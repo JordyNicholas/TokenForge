@@ -4,15 +4,15 @@
 
 ## Category
 
-**AI Coding FinOps** — cost & token governance for metered GitHub Copilot, not assistant memory.
+**AI Coding FinOps** — cost & token governance for metered AI coding agents / LLMs, not assistant memory.
 
 ## Problem
 
-Large IT orgs overspend on Copilot **AI credits** because low-value context (inactive giant tabs, lockfiles/configs, fat always-on instructions, missing exclusions) inflates Chat/Agent-style usage. Managers lack a clear loop to **see → fix → prove** savings.
+Large IT orgs overspend on **AI coding credits / metered usage** because low-value context (inactive giant tabs, lockfiles/configs, fat always-on instructions, missing exclusions) inflates Chat/Agent-style workflows—regardless of which vendor agent is in use. Managers lack a clear loop to **see → fix → prove** savings.
 
 ## One-liner
 
-> TokenForge detects high-cost, low-value context in the IDE and repo, removes it via Copilot-native exclusions and lean instructions, and proves tokens/$ saved to engineering managers.
+> TokenForge detects high-cost, low-value context in the IDE and repo, removes it via provider-native policy packs (lean instructions + exclusions), and proves tokens/$ saved to engineering managers.
 
 ## Who it’s for
 
@@ -26,29 +26,41 @@ Large IT orgs overspend on Copilot **AI credits** because low-value context (ina
 
 **Token Risk → Policy Pack → Savings Proof**
 
-1. **Detect** — score risky open tabs / paths (size × inactivity × filetype)
-2. **Fix** — filter inactive tabs; write lean `copilot-instructions` + content exclusions
-3. **Prove** — Tokens Saved ROI dashboard (simulated OK for MVP)
+1. **Detect** — score risky open tabs / paths (size × inactivity × filetype) — **provider-agnostic**
+2. **Fix** — filter inactive tabs; write lean agent instructions + content exclusions via a **provider adapter** (same findings, different output files)
+3. **Prove** — Tokens Saved ROI dashboard (simulated OK for MVP; cost knobs are assumption inputs)
+
+## Provider independence
+
+TokenForge logic (risk scoring, scan reports, ROI math) must not hard-depend on a single AI vendor.
+
+| Layer | Binding |
+| --- | --- |
+| Detect / risk-core / JSON contract | **Agnostic** — works for any Chat/Agent workflow |
+| Fix adapters | **Pluggable** — e.g. GitHub Copilot instructions/exclusions, Cursor rules, Claude/Codex instruction files, generic ignore packs |
+| Prove / dashboard | **Agnostic** — editable rate / credits / msgs; not vendor-locked metering APIs |
+
+MVP may ship **one adapter first** (commonly Copilot) for the demo; that choice is a default, not the product identity.
 
 ## MVP (organiser-aligned)
 
 1. **VS Code extension** — recommend/filter background tabs inactive ≥15 minutes (high-risk filetypes prioritized)
-2. **CLI** — one command drops token-optimised settings, lean instructions, strict exclusion candidates + before/after estimate
+2. **CLI** — one command drops token-optimised settings, lean instructions, strict exclusion candidates + before/after estimate (via selected provider adapter)
 3. **ROI dashboard** — mock analytics of tokens avoided and $ across a business unit
 
 ## In / out of scope
 
 | In (ship) | Out (roadmap / don’t pitch first) |
 | --- | --- |
-| Tab risk + 15‑min rule | Claiming we intercept Copilot’s private pipeline |
-| Repo optimisation pack | Full Auto Memory–style learnings store |
-| Simulated ROI + assumptions | Live billing API sync |
+| Tab risk + 15‑min rule | Claiming we intercept any vendor’s private context pipeline |
+| Repo optimisation pack (adapter outputs) | Full Auto Memory–style learnings store |
+| Simulated ROI + assumptions | Live billing API sync for a single vendor |
 | Cost-first narrative | Chat compaction / premium model router as headlines |
 
 ## Success for the pitch
 
 - Demo ≤5 min: noisy IDE → risk drops → CLI pack → dashboard shows ~**30%** reduction on a **scripted scenario**
-- Judges leave with: “FinOps for Copilot context waste”
+- Judges leave with: “FinOps for AI coding context waste” (works across agents, not one brand)
 
 ## Not Claude Auto Memory
 
@@ -63,10 +75,11 @@ Large IT orgs overspend on Copilot **AI credits** because low-value context (ina
 
 ## Innovation (within hackathon honesty)
 
-Not a new memory system — a **governable Token Risk model** wired to real Copilot levers (exclusions, instructions, IDE hygiene) and a manager-facing savings proof.
+Not a new memory system — a **governable Token Risk model** wired to real IDE/repo levers (exclusions, lean instructions, IDE hygiene) through **provider adapters**, plus a manager-facing savings proof.
 
 ## Non-goals / honesty
 
-- Completions ≠ same metering as Chat/Agent — pitch credit-consuming workflows
+- Completions ≠ same metering as Chat/Agent — pitch credit-consuming / metered workflows
 - Extension **advises / filters recommended context**; repo exclusions are the hard enforce path
+- Do not claim interception of any agent/LLM’s private context pipeline
 - “30%” = transparent calculator on a demo scenario, not a universal guarantee

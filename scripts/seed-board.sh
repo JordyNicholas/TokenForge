@@ -123,7 +123,7 @@ write_body "$tmpdir/e1.md" \
 
 write_body "$tmpdir/e2.md" \
   "## Goal" \
-  "One-click TypeScript CLI that scans a repo and writes lean Copilot instructions + exclusion candidates with before/after token estimate." \
+  "One-click TypeScript CLI that scans a repo and writes lean agent instructions + exclusion candidates via a provider adapter, with before/after token estimate." \
   "" \
   "## Success" \
   "\`tokenforge init|scan|apply\` works on \`fixtures/noisy-app\` and emits \`.tokenforge/scan-report.json\`." \
@@ -288,14 +288,14 @@ mk_story S06 "[E2] CLI: tokenforge scan command" "$E2" E2 \
   "Works on fixtures/noisy-app; non-zero beforeTokens." \
   -- phase:e2 priority:p0 type:cli estimate:1d
 
-mk_story S07 "[E2] CLI: apply lean copilot-instructions + exclusions" "$E2" E2 \
+mk_story S07 "[E2] CLI: apply policy pack via provider adapter" "$E2" E2 \
   "## Scope" \
-  "- Templates for lean .github/copilot-instructions.md" \
-  "- Exclusion candidate YAML/markdown for org/repo owners" \
-  "- apply / init with --dry-run" \
+  "- Provider adapter interface; MVP may ship one default (e.g. Copilot) + stubs" \
+  "- Adapter maps scan findings → lean instructions + exclusion candidates for that vendor" \
+  "- apply / init with --provider and --dry-run" \
   "" \
   "## Acceptance" \
-  "After apply, afterTokens < beforeTokens on fixture; files stay short (no instruction bloat)." \
+  "After apply, afterTokens < beforeTokens on fixture; files stay short; risk-core stays vendor-agnostic." \
   -- phase:e2 priority:p0 type:cli estimate:1d
 
 mk_story S08 "[E2] CLI: before/after savings report output" "$E2" E2 \
@@ -401,14 +401,14 @@ mk_story S19 "[Future] Intelligent model routing recommendations" "$EF" Future \
   "Roadmap only: classify prompt complexity; recommend standard vs premium models." \
   -- phase:future priority:p2
 
-mk_story S20 "[Future] Live Copilot usage metrics / billing sync" "$EF" Future \
+mk_story S20 "[Future] Live usage metrics / billing sync (per provider)" "$EF" Future \
   "## Scope" \
-  "Roadmap only: replace simulated ROI with org usage metrics API data." \
+  "Roadmap only: replace simulated ROI with org usage metrics from the configured provider(s)." \
   -- phase:future priority:p2
 
-mk_story S21 "[Future] Apply org content exclusions via GitHub API" "$EF" Future \
+mk_story S21 "[Future] Apply org policy/exclusions via provider APIs" "$EF" Future \
   "## Scope" \
-  "Roadmap only: CLI/API path to push exclusion rules for org owners." \
+  "Roadmap only: CLI/API path to push exclusion/policy rules for org owners per adapter." \
   -- phase:future priority:p2
 
 cat > /home/jordy-silva/TokenForge/docs/BOARD.md <<EOF
@@ -440,7 +440,7 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #$S04 | Create fixtures/noisy-app | E1 |
 | #$S05 | Formalize .tokenforge JSON schema | E1 |
 | #$S06 | CLI: scan command | E2 |
-| #$S07 | CLI: apply instructions + exclusions | E2 |
+| #$S07 | CLI: apply policy pack via provider adapter | E2 |
 | #$S08 | CLI: before/after savings report | E2 |
 | #$S09 | Scaffold React dashboard | E3 |
 | #$S10 | Assumptions panel + calculator | E3 |
@@ -453,8 +453,8 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #$S17 | Pitch FAQ (vs Auto Memory) | E5 |
 | #$S18 | Future: chat compaction | Future |
 | #$S19 | Future: model routing | Future |
-| #$S20 | Future: live usage metrics | Future |
-| #$S21 | Future: org exclusion API apply | Future |
+| #$S20 | Future: live usage metrics (per provider) | Future |
+| #$S21 | Future: org policy/exclusion apply (per provider) | Future |
 
 ## Build order
 

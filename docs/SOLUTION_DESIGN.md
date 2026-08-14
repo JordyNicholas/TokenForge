@@ -16,10 +16,11 @@ Locked after concept workshop. Full narrative: [`CONCEPT_BRIEF.md`](./CONCEPT_BR
 ## Product spine
 
 ```text
-DETECT (extension) → FIX (CLI) → PROVE (dashboard)
+DETECT (extension) → FIX (CLI adapters) → PROVE (dashboard)
 ```
 
 Shared contract: Token Risk events / scan reports as JSON (see schema below).
+Detect + Prove are **provider-agnostic**. Fix applies findings through a **provider adapter**.
 
 ## Monorepo layout
 
@@ -41,6 +42,7 @@ TokenForge/
   "timestamp": "ISO-8601",
   "repo": "org/name-or-local",
   "team": "payments-platform",
+  "provider": "copilot|cursor|claude|generic",
   "findings": [
     {
       "path": "package-lock.json",
@@ -58,6 +60,8 @@ TokenForge/
 }
 ```
 
+`provider` records which Fix adapter produced (or will produce) policy files; risk scoring does not depend on it.
+
 Hackathon token estimate: `estTokens ≈ ceil(bytes / 4)` unless replaced by a tokenizer later.
 
 ## “30%” definition
@@ -68,7 +72,7 @@ On the **demo fixture** (not a universal production claim):
 \text{savings \%} = (beforeTokens - afterTokens) / beforeTokens
 \]
 
-Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/day).
+Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/day). Assumptions are vendor-neutral; live billing sync is Phase 2 per provider.
 
 ## Component briefs
 
@@ -78,33 +82,44 @@ Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/
 - Rule: inactive ≥15 minutes **or** high-risk class → at-risk
 - UX: status bar + side panel (Keep / Filter)
 - Export `.tokenforge/last-scan.json` or `~/.tokenforge/events.jsonl`
-- Honesty: recommended hygiene / risk scoring — not Copilot pipeline interception
+- Honesty: recommended hygiene / risk scoring — not interception of any agent’s private pipeline
 
 ### CLI — `tokenforge`
 
 ```bash
 tokenforge scan
-tokenforge apply [--dry-run]
+tokenforge apply [--provider <id>] [--dry-run]
 tokenforge init   # scan + apply + report
 ```
 
-Writes lean `.github/copilot-instructions.md`, exclusion candidates, and
-`.tokenforge/scan-report.json`.
+`apply` / `init` select a **provider adapter** that maps the same scan findings to that vendor’s levers, for example:
+
+| Adapter id | Example outputs (illustrative) |
+| --- | --- |
+| `copilot` (MVP default OK) | lean `.github/copilot-instructions.md`, Copilot content-exclusion candidates |
+| `cursor` | lean Cursor rules / instruction files + ignore candidates |
+| `claude` / `codex` | lean agent instruction files + ignore candidates |
+| `generic` | vendor-neutral exclusion/ignore pack + short instruction stub |
+
+Always also write `.tokenforge/scan-report.json` (agnostic contract).
+
+MVP may implement one adapter fully and stub others; do not hard-code a single vendor into `risk-core` or the dashboard.
 
 ### Dashboard — Tokens Saved (React)
 
 - BU overview, team heatmap, top offenders, assumptions panel
 - Load seeded demo data + optional CLI/extension JSON
+- Cost knobs are generic (rate / credits / msgs), not a single vendor’s billing API
 
 ## Build order
 
 1. Foundation + risk-core + noisy fixture  
-2. CLI  
+2. CLI (scan + at least one Fix adapter)  
 3. Dashboard  
 4. Extension  
 5. Demo polish / pitch  
 
 ## Phase 2 (board: Future)
 
-Chat history compaction, intelligent model routing, live Copilot usage metrics,
-org Content Exclusion API apply — do **not** lead the pitch with these.
+Chat history compaction, intelligent model routing, live usage/billing sync **per provider**,
+org-level exclusion/policy apply APIs — do **not** lead the pitch with these.

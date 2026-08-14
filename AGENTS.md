@@ -2,7 +2,8 @@
 
 ## What this is
 
-Enterprise **AI Coding FinOps** for metered GitHub Copilot: Detect → Fix → Prove.
+Enterprise **AI Coding FinOps** for metered AI coding agents / LLMs: Detect → Fix → Prove.
+Logic is **provider-agnostic**; Fix applies findings through pluggable adapters.
 
 Read first:
 
@@ -22,8 +23,14 @@ Read first:
 
 TypeScript everywhere: `packages/risk-core`, `cli/`, `extension/`, React `dashboard/`.
 
+## Provider independence
+
+- Do **not** hard-wire product identity or `risk-core` to a single vendor (Copilot, Cursor, Claude, etc.).
+- CLI Fix path uses **adapters**; MVP may implement one default adapter and stub others.
+- Dashboard cost math uses editable assumptions, not a single vendor billing API.
+
 ## Honesty constraints
 
-- Do not claim interception of Copilot’s private context pipeline.
-- Pitch Chat/Agent / AI-credit workflows, not unlimited completions metering.
+- Do not claim interception of any agent/LLM’s private context pipeline.
+- Pitch Chat/Agent / metered AI-credit workflows, not unlimited completions metering.
 - “30%” is scenario-based via the dashboard calculator.

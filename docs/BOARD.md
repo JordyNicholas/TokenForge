@@ -26,7 +26,7 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #11 | Create fixtures/noisy-app | E1 |
 | #12 | Formalize .tokenforge JSON schema | E1 |
 | #13 | CLI: scan command | E2 |
-| #14 | CLI: apply instructions + exclusions | E2 |
+| #14 | CLI: apply policy pack via provider adapter | E2 |
 | #15 | CLI: before/after savings report | E2 |
 | #16 | Scaffold React dashboard | E3 |
 | #17 | Assumptions panel + calculator | E3 |
@@ -39,8 +39,8 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #24 | Pitch FAQ (vs Auto Memory) | E5 |
 | #25 | Future: chat compaction | Future |
 | #26 | Future: model routing | Future |
-| #27 | Future: live usage metrics | Future |
-| #28 | Future: org exclusion API apply | Future |
+| #27 | Future: live usage metrics (per provider) | Future |
+| #28 | Future: org policy/exclusion apply (per provider) | Future |
 
 ## Build order
 

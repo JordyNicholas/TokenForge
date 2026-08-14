@@ -1,8 +1,8 @@
 # TokenForge
 
-Enterprise Copilot **cost & token optimiser** for large IT organisations.
+Enterprise **AI Coding FinOps** — cost & token optimiser for large IT organisations, independent of which coding agent / LLM teams use.
 
-TokenForge helps teams cut “token bleed” in developer workflows: detect high-cost, low-value IDE/repo context, apply Copilot-native exclusions and lean instructions, and prove tokens/$ saved to engineering managers.
+TokenForge helps teams cut “token bleed” in developer workflows: detect high-cost, low-value IDE/repo context, apply **provider-native** lean instructions and exclusions via adapters, and prove tokens/$ saved to engineering managers.
 
 > **Category:** AI Coding FinOps — not assistant memory.
 
@@ -21,12 +21,14 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 
 **Token Risk → Policy Pack → Savings Proof**
 
+Detect and Prove are provider-agnostic. Fix uses pluggable adapters (Copilot, Cursor, Claude/Codex, generic, …).
+
 ## MVP
 
 | Component | Path | Role |
 | --- | --- | --- |
 | VS Code extension | `extension/` | Score & filter inactive / high-risk background tabs (≥15 min) |
-| CLI (TypeScript) | `cli/` | One-click repo optimisation (instructions + exclusions + estimate) |
+| CLI (TypeScript) | `cli/` | One-click repo optimisation (adapter instructions + exclusions + estimate) |
 | ROI dashboard (React) | `dashboard/` | Mock “tokens saved” analytics across a business unit |
 | Shared risk helpers | `packages/risk-core/` | Token estimate + risk scoring types |
 
