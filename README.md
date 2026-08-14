@@ -6,24 +6,36 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 
 > **Category:** AI Coding FinOps — not assistant memory.
 
-## Concept
+## Links
 
-See the full one-pager: [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md)
+| Resource | URL |
+| --- | --- |
+| Project board | [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas/projects/2) |
+| Epic / story map | [`docs/BOARD.md`](docs/BOARD.md) |
+| Concept brief | [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) |
+| Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) |
+| PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
+| Collaborator guide | [`AGENTS.md`](AGENTS.md) |
 
-**Core loop:** Token Risk → Policy Pack → Savings Proof
+## Core loop
 
-## MVP (hackathon)
+**Token Risk → Policy Pack → Savings Proof**
+
+## MVP
 
 | Component | Path | Role |
 | --- | --- | --- |
 | VS Code extension | `extension/` | Score & filter inactive / high-risk background tabs (≥15 min) |
-| CLI | `cli/` | One-click repo optimisation (instructions + exclusions + estimate) |
-| ROI dashboard | `dashboard/` | Mock “tokens saved” analytics across a business unit |
+| CLI (TypeScript) | `cli/` | One-click repo optimisation (instructions + exclusions + estimate) |
+| ROI dashboard (React) | `dashboard/` | Mock “tokens saved” analytics across a business unit |
+| Shared risk helpers | `packages/risk-core/` | Token estimate + risk scoring types |
 
-## Status
+## Delivery
 
-Hackathon scaffold — concept brief locked; solution design next.
+- Issues + Epics on the project board (phases E0–E5, Future)
+- Branch `TF#<issue>` → PR with `Closes #<n>` → auto-close on merge
+- Board automation mirrors Flux (see `docs/PROJECT_PR_WORKFLOW.md`)
 
-## Not Claude Auto Memory
+## Setup note
 
-Auto Memory helps an agent **remember useful facts**. TokenForge helps enterprises **stop paying for useless context**.
+Add repository secret **`PROJECT_TOKEN`** (PAT with Projects:write) so board Status sync works. Issue auto-link via `Closes #` still works without it.

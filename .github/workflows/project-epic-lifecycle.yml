@@ -1,0 +1,161 @@
+# Moves closed [Epic] issues to Status = "Epics Finished" on the Project board.
+#
+# Built-in Project workflows set closed items → Done. For epics that is wrong:
+# they belong in the dedicated "Epics Finished" column. This Action overrides
+# Done (with a short re-assert to win the race against the built-in workflow).
+#
+# Detection: issue title starts with "[Epic]" (same convention as E0/E1/…).
+# Requires repo secret PROJECT_TOKEN (Projects:write).
+
+name: Project ↔ Epic lifecycle
+
+on:
+  issues:
+    types:
+      - closed
+      - reopened
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: project-epic-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_NUMBER: '2'
+  # TokenForge — Hackathon Board (user project #2)
+  PROJECT_ID: PVT_kwHOA1wxk84BgZKI
+  STATUS_FIELD_ID: PVTSSF_lAHOA1wxk84BgZKIzhale0c
+  STATUS_TODO: f75ad846
+  STATUS_EPICS_FINISHED: b420eb0a
+
+jobs:
+  sync-epic-status:
+    name: Sync Epic board Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require PROJECT_TOKEN
+        id: token
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [[ -z "${PROJECT_TOKEN:-}" ]]; then
+            echo "::warning::PROJECT_TOKEN secret is missing — epic Status sync skipped."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+
+      - name: Detect Epic and resolve target Status
+        id: epic
+        if: steps.token.outputs.present == 'true'
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TITLE" =~ ^\[Epic\] ]]; then
+            echo "Issue title is not an [Epic] — skipping."
+            echo "is_epic=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "is_epic=true" >> "$GITHUB_OUTPUT"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            echo "target=Epics Finished" >> "$GITHUB_OUTPUT"
+            echo "option=$STATUS_EPICS_FINISHED" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=To-Do" >> "$GITHUB_OUTPUT"
+            echo "option=$STATUS_TODO" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "Epic #$TITLE → ${ACTION}"
+
+      - name: Set Project Status for Epic
+        if: steps.token.outputs.present == 'true' && steps.epic.outputs.is_epic == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          OPTION_ID: ${{ steps.epic.outputs.option }}
+          TARGET: ${{ steps.epic.outputs.target }}
+          ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+
+          set_status() {
+            local label="$1"
+
+            ISSUE_ID=$(gh api graphql -f query='
+              query($owner:String!, $name:String!, $number:Int!) {
+                repository(owner:$owner, name:$name) {
+                  issue(number:$number) { id }
+                }
+              }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+              --jq '.data.repository.issue.id // empty')
+
+            if [[ -z "$ISSUE_ID" ]]; then
+              echo "::warning::Could not resolve node id for #$ISSUE"
+              return 1
+            fi
+
+            ITEM_ID=$(gh api graphql -f query='
+              mutation($projectId:ID!, $contentId:ID!) {
+                addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
+                  item { id }
+                }
+              }' -f projectId="$PROJECT_ID" -f contentId="$ISSUE_ID" \
+              --jq '.data.addProjectV2ItemById.item.id // empty' 2>/dev/null || true)
+
+            if [[ -z "$ITEM_ID" ]]; then
+              ITEM_ID=$(gh api graphql -f query='
+                query($owner:String!, $name:String!, $number:Int!) {
+                  repository(owner:$owner, name:$name) {
+                    issue(number:$number) {
+                      projectItems(first:20) {
+                        nodes {
+                          id
+                          project { id }
+                        }
+                      }
+                    }
+                  }
+                }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+                --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id" \
+                | head -1)
+            fi
+
+            if [[ -z "$ITEM_ID" ]]; then
+              echo "::warning::Issue #$ISSUE is not on project $PROJECT_NUMBER and could not be added."
+              return 1
+            fi
+
+            gh api graphql -f query='
+              mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$projectId
+                  itemId:$itemId
+                  fieldId:$fieldId
+                  value:{ singleSelectOptionId:$optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' \
+              -f projectId="$PROJECT_ID" \
+              -f itemId="$ITEM_ID" \
+              -f fieldId="$STATUS_FIELD_ID" \
+              -f optionId="$OPTION_ID" \
+              --silent
+
+            echo "[$label] Issue #$ISSUE Status set to $TARGET"
+          }
+
+          set_status "immediate"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            sleep 20
+            set_status "re-assert"
+          fi

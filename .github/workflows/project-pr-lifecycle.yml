@@ -1,0 +1,265 @@
+# Links TF#<n> branches to issues and syncs GitHub Project board Status.
+#
+# Built-in Project workflows already set Status=Done on merge/close.
+# This Action adds Jira-like glue:
+#   1) Branch TF#10 → ensure PR body contains "Closes #10"
+#   2) PR lifecycle → board Status (In Progress / Ready for Review / Done)
+#
+# Closed [Epic] issues use a separate workflow (`project-epic-lifecycle.yml`)
+# that sets Status=Epics Finished instead of Done.
+#
+# Requires repo secret PROJECT_TOKEN (classic PAT or fine-grained with
+# Contents:read, Issues:write, Pull requests:write, and Projects:write).
+
+name: Project ↔ PR lifecycle
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+      - closed
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: project-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_OWNER: JordyNicholas
+  PROJECT_NUMBER: '2'
+  # TokenForge — Hackathon Board (user project #2)
+  PROJECT_ID: PVT_kwHOA1wxk84BgZKI
+  STATUS_FIELD_ID: PVTSSF_lAHOA1wxk84BgZKIzhale0c
+  STATUS_TODO: f75ad846
+  STATUS_IN_PROGRESS: 47fc9ee4
+  STATUS_READY_FOR_REVIEW: 391cadb3
+  STATUS_DONE: 98236657
+
+jobs:
+  link-issue-from-branch:
+    name: Link TF#issue from branch name
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.parse.outputs.issue_number }}
+    steps:
+      - name: Parse issue number from branch
+        id: parse
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          ISSUE=""
+          if [[ "$BRANCH" =~ [Tt][Ff]#([0-9]+) ]]; then
+            ISSUE="${BASH_REMATCH[1]}"
+          elif [[ "$BRANCH" =~ [Tt][Oo][Kk][Ee][Nn][Ff][Oo][Rr][Gg][Ee]#([0-9]+) ]]; then
+            ISSUE="${BASH_REMATCH[1]}"
+          fi
+          echo "issue_number=$ISSUE" >> "$GITHUB_OUTPUT"
+          if [[ -n "$ISSUE" ]]; then
+            echo "Detected branch issue reference: #$ISSUE"
+          else
+            echo "No TF#<n> pattern in branch '$BRANCH' — skipping auto-link."
+          fi
+
+      - name: Ensure PR closes the referenced issue
+        if: steps.parse.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ steps.parse.outputs.issue_number }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          BODY=$(gh pr view "$PR" -R "$REPO" --json body --jq '.body // ""')
+          TITLE=$(gh pr view "$PR" -R "$REPO" --json title --jq '.title // ""')
+          COMBINED="$TITLE"$'\n'"$BODY"
+
+          if echo "$COMBINED" | grep -Eiq "(closes|fixes|resolves)[[:space:]]+#${ISSUE}\b"; then
+            echo "PR already references Closes/Fixes/Resolves #${ISSUE}."
+            exit 0
+          fi
+
+          if gh issue view "$ISSUE" -R "$REPO" --json number >/dev/null 2>&1; then
+            :
+          else
+            echo "::warning::Issue #${ISSUE} does not exist in $REPO — not rewriting PR body."
+            exit 0
+          fi
+
+          if [[ -z "${BODY// }" ]]; then
+            NEW_BODY="Closes #${ISSUE}"
+          else
+            NEW_BODY="${BODY}"$'\n\n'"Closes #${ISSUE}"
+          fi
+
+          gh pr edit "$PR" -R "$REPO" --body "$NEW_BODY"
+          echo "Appended 'Closes #${ISSUE}' to PR #${PR}."
+
+  sync-board-status:
+    name: Sync Project board Status
+    runs-on: ubuntu-latest
+    needs: link-issue-from-branch
+    if: ${{ always() }}
+    steps:
+      - name: Require PROJECT_TOKEN
+        id: token
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [[ -z "${PROJECT_TOKEN:-}" ]]; then
+            echo "::warning::PROJECT_TOKEN secret is missing — board Status sync skipped. Issue linking still runs with GITHUB_TOKEN."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve target Status from PR event
+        id: status
+        if: steps.token.outputs.present == 'true'
+        env:
+          ACTION: ${{ github.event.action }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          set -euo pipefail
+          TARGET=""
+          OPTION=""
+
+          if [[ "$ACTION" == "closed" && "$MERGED" == "true" ]]; then
+            TARGET="Done"
+            OPTION="$STATUS_DONE"
+          elif [[ "$ACTION" == "closed" && "$MERGED" != "true" ]]; then
+            TARGET="To-Do"
+            OPTION="$STATUS_TODO"
+          elif [[ "$ACTION" == "converted_to_draft" ]]; then
+            TARGET="In Progress"
+            OPTION="$STATUS_IN_PROGRESS"
+          elif [[ "$ACTION" == "ready_for_review" ]]; then
+            TARGET="Ready for Review"
+            OPTION="$STATUS_READY_FOR_REVIEW"
+          elif [[ "$DRAFT" == "true" ]]; then
+            TARGET="In Progress"
+            OPTION="$STATUS_IN_PROGRESS"
+          elif [[ "$ACTION" == "opened" || "$ACTION" == "reopened" ]]; then
+            TARGET="Ready for Review"
+            OPTION="$STATUS_READY_FOR_REVIEW"
+          elif [[ "$ACTION" == "synchronize" || "$ACTION" == "edited" ]]; then
+            TARGET="Ready for Review"
+            OPTION="$STATUS_READY_FOR_REVIEW"
+          fi
+
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "option=$OPTION" >> "$GITHUB_OUTPUT"
+          echo "Resolved board status: ${TARGET:-<none>}"
+
+      - name: Update linked issues on the Project board
+        if: steps.token.outputs.present == 'true' && steps.status.outputs.target != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          OPTION_ID: ${{ steps.status.outputs.option }}
+          TARGET: ${{ steps.status.outputs.target }}
+          PARSED_ISSUE: ${{ needs.link-issue-from-branch.outputs.issue_number }}
+        run: |
+          set -euo pipefail
+
+          mapfile -t ISSUES < <(
+            gh api graphql -f query='
+              query($owner:String!, $name:String!, $number:Int!) {
+                repository(owner:$owner, name:$name) {
+                  pullRequest(number:$number) {
+                    closingIssuesReferences(first:20) { nodes { number } }
+                  }
+                }
+              }' \
+              -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PR" \
+              --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[].number'
+          )
+
+          if [[ -n "${PARSED_ISSUE:-}" ]]; then
+            ISSUES+=("$PARSED_ISSUE")
+          fi
+
+          mapfile -t ISSUES < <(printf '%s\n' "${ISSUES[@]:-}" | awk 'NF' | sort -n | uniq)
+
+          if [[ ${#ISSUES[@]} -eq 0 ]]; then
+            echo "No linked issues found for PR #$PR — nothing to update on the board."
+            exit 0
+          fi
+
+          for ISSUE in "${ISSUES[@]}"; do
+            echo "Updating issue #$ISSUE → $TARGET"
+
+            ISSUE_ID=$(gh api graphql -f query='
+              query($owner:String!, $name:String!, $number:Int!) {
+                repository(owner:$owner, name:$name) {
+                  issue(number:$number) { id }
+                }
+              }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+              --jq '.data.repository.issue.id // empty')
+
+            if [[ -z "$ISSUE_ID" ]]; then
+              echo "::warning::Could not resolve node id for #$ISSUE"
+              continue
+            fi
+
+            ITEM_ID=$(gh api graphql -f query='
+              mutation($projectId:ID!, $contentId:ID!) {
+                addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
+                  item { id }
+                }
+              }' -f projectId="$PROJECT_ID" -f contentId="$ISSUE_ID" \
+              --jq '.data.addProjectV2ItemById.item.id // empty' 2>/dev/null || true)
+
+            if [[ -z "$ITEM_ID" ]]; then
+              ITEM_ID=$(gh api graphql -f query='
+                query($owner:String!, $name:String!, $number:Int!) {
+                  repository(owner:$owner, name:$name) {
+                    issue(number:$number) {
+                      projectItems(first:20) {
+                        nodes {
+                          id
+                          project { id }
+                        }
+                      }
+                    }
+                  }
+                }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+                --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id" \
+                | head -1)
+            fi
+
+            if [[ -z "$ITEM_ID" ]]; then
+              echo "::warning::Issue #$ISSUE is not on project $PROJECT_NUMBER and could not be added."
+              continue
+            fi
+
+            gh api graphql -f query='
+              mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$projectId
+                  itemId:$itemId
+                  fieldId:$fieldId
+                  value:{ singleSelectOptionId:$optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' \
+              -f projectId="$PROJECT_ID" \
+              -f itemId="$ITEM_ID" \
+              -f fieldId="$STATUS_FIELD_ID" \
+              -f optionId="$OPTION_ID" \
+              --silent
+
+            echo "Issue #$ISSUE Status set to $TARGET"
+          done
