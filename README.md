@@ -83,7 +83,8 @@ npm run dev -w @tokenforge/dashboard
 ```
 
 Serves the Tokens Saved layout (Overview, Heatmap, Offenders, Assumptions).
-Cost knobs and seeded JSON land in later E3 stories.
+Assumptions convert token totals → $ live (rate, team size, msgs/day, model
+mix). The pitch ~30% is that scenario, not a vendor billing API.
 
 ## Board automation setup
 
