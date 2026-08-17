@@ -9,6 +9,7 @@ export { writeScanReport, readScanReport, tryReadScanReport } from "./report-fil
 export { scanRepo, parseProviderId, type ScanOptions, type ScanResult } from "./scan";
 export { applyPolicy, initRepo, type ApplyOptions, type ApplyResult } from "./apply";
 export { formatScanTable, formatTotals } from "./table";
+export { savedPercent, formatSavedPercent, totalsPayload, savingsExitCode } from "./savings";
 export {
   getAdapter,
   copilotAdapter,

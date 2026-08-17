@@ -1,9 +1,11 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
+import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "./apply";
 import { UsageError, isCliError } from "./errors";
 import { writeScanReport } from "./report-file";
 import { scanRepo, type ScanResult } from "./scan";
+import { totalsPayload, savingsExitCode } from "./savings";
 import { formatScanTable } from "./table";
 
 const USAGE = `Usage: tokenforge <command> [root] [options]
@@ -19,7 +21,14 @@ Options:
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
   --dry-run             Print planned policy files; do not write them
+  --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
+
+Exit codes:
+  0   success, savedTokens > 0
+  1   runtime error
+  2   usage error
+  3   success, but savedTokens is 0
 `;
 
 export type CliIo = {
@@ -31,16 +40,37 @@ function printHelp(io: CliIo): void {
   io.stdout.write(`${USAGE}\n`);
 }
 
-function printApply(io: CliIo, scan: ScanResult, files: { path: string }[], dryRun: boolean, reportPath: string): void {
+function printReport(
+  io: CliIo,
+  report: TokenRiskReport,
+  scan: ScanResult,
+  json: boolean,
+): void {
+  if (json) {
+    io.stdout.write(`${JSON.stringify(totalsPayload(report.totals), null, 2)}\n`);
+    return;
+  }
   io.stdout.write(formatScanTable(scan));
+}
+
+function printApply(
+  io: CliIo,
+  scan: ScanResult,
+  files: { path: string }[],
+  dryRun: boolean,
+  reportPath: string,
+  json: boolean,
+): void {
+  printReport(io, scan.report, scan, json);
+  const sink = json ? io.stderr : io.stdout;
   if (dryRun) {
-    io.stdout.write("dry-run; would write:\n");
+    sink.write("dry-run; would write:\n");
   } else {
-    io.stdout.write("wrote:\n");
-    io.stdout.write(`  ${reportPath}\n`);
+    sink.write("wrote:\n");
+    sink.write(`  ${reportPath}\n`);
   }
   for (const file of files) {
-    io.stdout.write(`  ${file.path}\n`);
+    sink.write(`  ${file.path}\n`);
   }
 }
 
@@ -61,6 +91,7 @@ export async function runCli(
         repo: { type: "string" },
         provider: { type: "string" },
         "dry-run": { type: "boolean", default: false },
+        json: { type: "boolean", default: false },
       },
     });
 
@@ -85,9 +116,13 @@ export async function runCli(
     if (command === "scan") {
       const result = await scanRepo(common);
       await writeScanReport(result.reportPath, result.report);
-      io.stdout.write(formatScanTable(result));
-      io.stdout.write(`wrote ${result.reportPath}\n`);
-      return 0;
+      printReport(io, result.report, result, Boolean(values.json));
+      if (!values.json) {
+        io.stdout.write(`wrote ${result.reportPath}\n`);
+      } else {
+        io.stderr.write(`wrote ${result.reportPath}\n`);
+      }
+      return savingsExitCode(result.report.totals);
     }
 
     if (command === "apply" || command === "init") {
@@ -101,8 +136,9 @@ export async function runCli(
         applied.files,
         applied.dryRun,
         applied.reportPath,
+        Boolean(values.json),
       );
-      return 0;
+      return savingsExitCode(applied.report.totals);
     }
 
     throw new UsageError(`Unknown command "${command}".\n` + USAGE);

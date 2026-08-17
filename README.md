@@ -67,6 +67,17 @@ npm run tokenforge -- init fixtures/noisy-app
 `.github/copilot-instructions.md` + exclusion candidates). Cursor/Claude adapters
 are stubbed; `--provider generic` writes a vendor-neutral pack.
 
+```bash
+npm run tokenforge -- scan fixtures/noisy-app --json
+```
+
+`--json` prints machine totals (`beforeTokens`, `afterTokens`, `savedTokens`,
+`savedPercent`) for demo scripts and the dashboard seed. Human output includes
+the same percent (one decimal). Exit `0` when `savedTokens > 0`, `3` when a scan
+completes with no savings, `2` for usage errors.
+
+Pinned noisy-app numbers: [`fixtures/noisy-app-expected-totals.json`](fixtures/noisy-app-expected-totals.json).
+
 ## Board automation setup
 
 Exact GitHub UI steps (secret, delete-head-branches, Project workflows):
