@@ -1,39 +1,228 @@
 import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
-import type { ReactNode } from "react";
-import { NavLink } from "react-router-dom";
+import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
+import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
+import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
+import MenuIcon from "@mui/icons-material/Menu";
+import WarningAmberOutlined from "@mui/icons-material/WarningAmberOutlined";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import BottomNavigation from "@mui/material/BottomNavigation";
+import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Paper from "@mui/material/Paper";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import { useState, type ReactNode } from "react";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { useDashboard } from "../state/DashboardProvider";
 import { SourceBar } from "./SourceBar";
+import { ThemeControls } from "./ThemeControls";
 
-const NAV: { to: string; label: string; end?: boolean }[] = [
-  { to: "/", label: "Overview", end: true },
-  { to: "/heatmap", label: "Heatmap" },
-  { to: "/offenders", label: "Offenders" },
-  { to: "/assumptions", label: "Assumptions" },
+const DRAWER_WIDTH = 256;
+
+const NAV: {
+  to: string;
+  label: string;
+  icon: typeof DashboardOutlined;
+  end?: boolean;
+}[] = [
+  { to: "/", label: "Overview", icon: DashboardOutlined, end: true },
+  { to: "/heatmap", label: "Heatmap", icon: GridViewOutlined },
+  { to: "/offenders", label: "Offenders", icon: WarningAmberOutlined },
+  { to: "/assumptions", label: "Assumptions", icon: CalculateOutlined },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const theme = useTheme();
+  const compact = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { seed } = useDashboard();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const drawer = (
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {compact ? null : <Toolbar />}
+      <Toolbar sx={{ flexDirection: "column", alignItems: "flex-start", py: 2, gap: 0.25 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.4 }}>
+          TokenForge
+        </Typography>
+        <Typography variant="body2" color="primary">
+          Tokens Saved
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {seed?.businessUnit ?? "Loading…"}
+        </Typography>
+      </Toolbar>
+      <List sx={{ px: 1, flex: 1 }}>
+        {NAV.map((item) => {
+          const selected = item.end
+            ? location.pathname === item.to
+            : location.pathname.startsWith(item.to);
+          const Icon = item.icon;
+          return (
+            <ListItem key={item.to} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                component={RouterLink}
+                to={item.to}
+                selected={selected}
+                onClick={() => setMobileOpen(false)}
+                sx={{ borderRadius: 6 }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <Icon color={selected ? "primary" : "inherit"} />
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ px: 2, pb: 2, wordBreak: "break-all" }}
+      >
+        Prove adapter · {TOKEN_RISK_REPORT_SCHEMA_ID}
+      </Typography>
+    </Box>
+  );
+
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="brand">
-          <span className="brand-name">TokenForge</span>
-          <span className="brand-product">Tokens Saved</span>
-          <span className="brand-bu">{seed?.businessUnit ?? "Loading…"}</span>
-        </div>
-        <nav className="app-nav" aria-label="FinOps views">
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </header>
-      <SourceBar />
-      <main className="app-main">{children}</main>
-      <footer className="app-footer">
-        Prove adapter · Token Risk JSON · {TOKEN_RISK_REPORT_SCHEMA_ID}
-      </footer>
-    </div>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          zIndex: (muiTheme) => muiTheme.zIndex.drawer + 1,
+        }}
+      >
+        <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 } }}>
+          {compact ? (
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="Open navigation"
+              onClick={() => setMobileOpen(true)}
+            >
+              <MenuIcon />
+            </IconButton>
+          ) : null}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {compact ? (
+              <>
+                <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
+                  TokenForge
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {seed?.businessUnit ?? "Tokens Saved"}
+                </Typography>
+              </>
+            ) : (
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {seed?.businessUnit ?? "Business unit"} · ROI dashboard
+              </Typography>
+            )}
+          </Box>
+          <ThemeControls />
+          <SourceBar />
+        </Toolbar>
+      </AppBar>
+
+      <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }} aria-label="FinOps views">
+        {compact ? (
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            ModalProps={{ keepMounted: true }}
+            sx={{ "& .MuiDrawer-paper": { width: DRAWER_WIDTH } }}
+          >
+            {drawer}
+          </Drawer>
+        ) : (
+          <Drawer
+            variant="permanent"
+            open
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: DRAWER_WIDTH,
+                boxSizing: "border-box",
+                bgcolor: "background.paper",
+                borderRight: 1,
+                borderColor: "divider",
+              },
+            }}
+          >
+            {drawer}
+          </Drawer>
+        )}
+      </Box>
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          bgcolor: "background.default",
+        }}
+      >
+        <Toolbar />
+        <Box
+          sx={{
+            flex: 1,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 2, sm: 3 },
+            pb: { xs: 12, md: 3 },
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
+
+      {compact ? (
+        <Paper
+          elevation={3}
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: (muiTheme) => muiTheme.zIndex.appBar,
+            borderRadius: 0,
+          }}
+        >
+          <BottomNavigation
+            showLabels
+            value={location.pathname}
+            onChange={(_event, value: string) => navigate(value)}
+          >
+            {NAV.map((item) => {
+              const Icon = item.icon;
+              return (
+                <BottomNavigationAction
+                  key={item.to}
+                  label={item.label}
+                  value={item.to}
+                  icon={<Icon />}
+                />
+              );
+            })}
+          </BottomNavigation>
+        </Paper>
+      ) : null}
+    </Box>
   );
 }

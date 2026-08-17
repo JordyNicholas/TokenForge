@@ -1,3 +1,6 @@
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Typography from "@mui/material/Typography";
 import { Route, Routes } from "react-router-dom";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
@@ -18,7 +21,10 @@ export function App() {
           <Route path="/assumptions" element={<AssumptionsPage />} />
         </Routes>
       ) : (
-        <p className="muted">Loading demo seed…</p>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 6 }}>
+          <CircularProgress size={28} />
+          <Typography color="text.secondary">Loading demo seed…</Typography>
+        </Box>
       )}
     </AppShell>
   );

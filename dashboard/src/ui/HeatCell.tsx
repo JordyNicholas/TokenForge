@@ -1,33 +1,56 @@
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import { useColorScheme } from "@mui/material/styles";
 import { formatPercent, formatTokens } from "../domain";
-
-/** Teal (low waste) → red (high waste). */
-export function heatColor(percent: number): string {
-  const t = Math.min(100, Math.max(0, percent)) / 100;
-  const hue = 162 - t * 162;
-  const light = 14 + t * 26;
-  return `hsl(${hue} 62% ${light}%)`;
-}
+import { heatFill, heatOnFill, resolveColorMode } from "../theme/heat";
 
 export function HeatCell({
   team,
   repo,
   percent,
   savedTokens,
+  selected,
+  onSelect,
 }: {
   team: string;
   repo: string;
   percent: number;
   savedTokens: number;
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
+  const { mode, systemMode } = useColorScheme();
+  const resolved = resolveColorMode(mode, systemMode);
+  const color = heatOnFill(resolved);
+
   return (
-    <article className="heat-cell" style={{ background: heatColor(percent) }}>
-      <h2>{team}</h2>
-      <p className="heat-percent">{formatPercent(percent)}</p>
-      <p className="heat-meta">
-        {repo}
-        <br />
-        {formatTokens(savedTokens)} tokens avoided
-      </p>
-    </article>
+    <Card
+      sx={{
+        background: heatFill(percent, resolved),
+        color,
+        height: "100%",
+        outline: selected ? "2px solid" : "none",
+        outlineColor: "primary.main",
+        outlineOffset: 2,
+      }}
+    >
+      <CardActionArea onClick={onSelect} disabled={!onSelect} sx={{ height: "100%" }}>
+        <CardContent sx={{ minHeight: 9 * 16 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {team}
+          </Typography>
+          <Typography variant="h4" component="p" sx={{ mt: 0.5, fontVariantNumeric: "tabular-nums" }}>
+            {formatPercent(percent)}
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.75, opacity: 0.85 }}>
+            {repo}
+            <br />
+            {formatTokens(savedTokens)} tokens avoided
+          </Typography>
+        </CardContent>
+      </CardActionArea>
+    </Card>
   );
 }

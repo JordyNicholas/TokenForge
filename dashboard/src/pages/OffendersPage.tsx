@@ -1,6 +1,15 @@
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { formatTokens, tokensByFileClass, topOffenders } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
-import { ClassBars } from "../ui/ClassBars";
+import { ChartCard } from "../ui/ChartCard";
+import { ClassChart } from "../ui/ClassChart";
+import { DataTable } from "../ui/DataTable";
 import { Page } from "../ui/Page";
 
 export function OffendersPage() {
@@ -13,32 +22,41 @@ export function OffendersPage() {
       title="Top offenders"
       lead="Highest-token paths marked excluded or filtered, plus waste by filetype class from risk-core."
     >
-      <h2 className="subhead">By filetype class</h2>
-      <ClassBars buckets={classes} />
+      <ChartCard title="By filetype class" subheader="Hover a bar for token counts">
+        <ClassChart buckets={classes} />
+      </ChartCard>
 
-      <h2 className="subhead">By path</h2>
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Path</th>
-            <th>Team</th>
-            <th>Class</th>
-            <th>Reason</th>
-            <th>Tokens</th>
-          </tr>
-        </thead>
-        <tbody>
-          {offenders.map((row) => (
-            <tr key={`${row.team}:${row.path}`}>
-              <td>{row.path}</td>
-              <td>{row.team}</td>
-              <td>{row.fileClass}</td>
-              <td>{row.reason}</td>
-              <td className="num">{formatTokens(row.estTokens)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Box>
+        <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+          By path
+        </Typography>
+        <DataTable>
+          <TableHead>
+            <TableRow>
+              <TableCell>Path</TableCell>
+              <TableCell>Team</TableCell>
+              <TableCell>Class</TableCell>
+              <TableCell>Reason</TableCell>
+              <TableCell align="right">Tokens</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {offenders.map((row) => (
+              <TableRow key={`${row.team}:${row.path}`} hover>
+                <TableCell sx={{ wordBreak: "break-all" }}>{row.path}</TableCell>
+                <TableCell>{row.team}</TableCell>
+                <TableCell>
+                  <Chip size="small" label={row.fileClass} variant="outlined" />
+                </TableCell>
+                <TableCell>{row.reason}</TableCell>
+                <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatTokens(row.estTokens)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </DataTable>
+      </Box>
     </Page>
   );
 }

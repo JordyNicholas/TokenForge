@@ -1,3 +1,5 @@
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import type { ReactNode } from "react";
 
 export function Page({
@@ -10,10 +12,18 @@ export function Page({
   children: ReactNode;
 }) {
   return (
-    <section className="page">
-      <h1>{title}</h1>
-      {lead ? <p className="muted">{lead}</p> : null}
+    <Box component="section" sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+      <Box>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {title}
+        </Typography>
+        {lead ? (
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 52 * 16 }}>
+            {lead}
+          </Typography>
+        ) : null}
+      </Box>
       {children}
-    </section>
+    </Box>
   );
 }

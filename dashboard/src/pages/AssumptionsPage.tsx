@@ -1,3 +1,5 @@
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import {
   formatPercent,
   formatUsd,
@@ -24,6 +26,7 @@ const FIELDS: Field[] = [
     label: "USD per million tokens",
     hint: "Editable list price. Not a vendor billing API.",
     min: 0,
+    max: 50,
     step: 1,
   },
   {
@@ -31,6 +34,7 @@ const FIELDS: Field[] = [
     label: "Team size",
     hint: "Developers in the business unit.",
     min: 0,
+    max: 400,
     step: 1,
   },
   {
@@ -38,6 +42,7 @@ const FIELDS: Field[] = [
     label: "Messages per developer / day",
     hint: "Chat/Agent turns, not unlimited completions.",
     min: 0,
+    max: 200,
     step: 1,
   },
   {
@@ -53,6 +58,7 @@ const FIELDS: Field[] = [
     label: "Tokens per message",
     hint: "Assumed context size sent with each turn.",
     min: 0,
+    max: 32000,
     step: 500,
   },
   {
@@ -69,6 +75,7 @@ const FIELDS: Field[] = [
     label: "Premium rate multiplier",
     hint: "Premium model costs this × the base rate.",
     min: 1,
+    max: 10,
     step: 0.5,
   },
   {
@@ -103,17 +110,29 @@ export function AssumptionsPage() {
           label="Scan exclusion"
           value={formatPercent(projection.tokenSavedPercent)}
         />
+        <KpiCard
+          label="Blended rate"
+          value={formatUsd(projection.blendedUsdPerMillion)}
+          hint="Per million tokens"
+        />
       </KpiRow>
 
-      <p className="honesty">
-        Scan exclusion on these totals is{" "}
-        {formatPercent(projection.tokenSavedPercent)} (
-        {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()}{" "}
-        tokens). Displayed savings = exclusion × applicability. Changing rate,
-        team size, or mix updates $ live; they do not change the percent.
-      </p>
+      <Alert severity="info" variant="outlined">
+        Scan exclusion on these totals is {formatPercent(projection.tokenSavedPercent)} (
+        {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()} tokens).
+        Displayed savings = exclusion × applicability. Drag a slider to update $ live; rate and
+        mix do not change the percent.
+      </Alert>
 
-      <form className="assumptions-form" onSubmit={(event) => event.preventDefault()}>
+      <Box
+        component="form"
+        onSubmit={(event) => event.preventDefault()}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+          gap: 3,
+        }}
+      >
         {FIELDS.map((field) => {
           const raw = assumptions[field.key];
           const display = field.percent ? raw * 100 : raw;
@@ -139,7 +158,7 @@ export function AssumptionsPage() {
             />
           );
         })}
-      </form>
+      </Box>
     </Page>
   );
 }
