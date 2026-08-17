@@ -3,15 +3,16 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isTokenRiskReport } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ASSUMPTIONS, scenarioSavedPercent, tokenSavedPercent } from "./calculator";
+import { DEFAULT_ASSUMPTIONS } from "./assumptions";
+import { scenarioSavedPercent, tokenSavedPercent } from "./calculator";
+import { tokensByFileClass, topOffenders } from "./offenders";
 import {
   aggregateTotals,
   parseDashboardDocument,
   type DashboardSeed,
 } from "./seed";
-import { tokensByFileClass, topOffenders } from "./views";
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(resolve(repoRoot, relativePath), "utf8"));

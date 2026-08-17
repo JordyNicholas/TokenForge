@@ -1,9 +1,12 @@
-import { useDashboard } from "../DashboardContext";
 import {
   formatPercent,
   formatUsd,
   type Assumptions,
-} from "../calculator";
+} from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
+import { KpiCard, KpiRow } from "../ui/Kpi";
+import { NumberField } from "../ui/NumberField";
+import { Page } from "../ui/Page";
 
 type Field = {
   key: keyof Assumptions;
@@ -54,7 +57,7 @@ const FIELDS: Field[] = [
   },
   {
     key: "premiumShare",
-    label: "Premium model mix",
+    label: "Premium model mix (%)",
     hint: "Share of traffic on the higher-cost model.",
     min: 0,
     max: 1,
@@ -70,7 +73,7 @@ const FIELDS: Field[] = [
   },
   {
     key: "realizedWasteShare",
-    label: "Waste applicability",
+    label: "Waste applicability (%)",
     hint: "Share of billed usage this waste class applies to. 100% shows the scan ratio; 30% is the pitch scenario on a 99.8% fixture.",
     min: 0,
     max: 1,
@@ -83,34 +86,31 @@ export function AssumptionsPage() {
   const { assumptions, projection, patchAssumptions, totals } = useDashboard();
 
   return (
-    <section className="page">
-      <h1>Assumptions</h1>
-      <p className="muted">
-        Tokens → $ is scenario math on the loaded totals. The pitch ~30% is
-        this calculator, not a production SLA.
-      </p>
-
-      <div className="kpi-row">
-        <article className="kpi">
-          <p className="kpi-label">Scenario savings</p>
-          <p className="kpi-value">{formatPercent(projection.scenarioSavedPercent)}</p>
-        </article>
-        <article className="kpi">
-          <p className="kpi-label">$ saved / month</p>
-          <p className="kpi-value">{formatUsd(projection.monthlyUsdSaved)}</p>
-        </article>
-        <article className="kpi">
-          <p className="kpi-label">Scan exclusion</p>
-          <p className="kpi-value">{formatPercent(projection.tokenSavedPercent)}</p>
-        </article>
-      </div>
+    <Page
+      title="Assumptions"
+      lead="Tokens → $ is scenario math on the loaded totals. The pitch ~30% is this calculator, not a production SLA."
+    >
+      <KpiRow>
+        <KpiCard
+          label="Scenario savings"
+          value={formatPercent(projection.scenarioSavedPercent)}
+        />
+        <KpiCard
+          label="$ saved / month"
+          value={formatUsd(projection.monthlyUsdSaved)}
+        />
+        <KpiCard
+          label="Scan exclusion"
+          value={formatPercent(projection.tokenSavedPercent)}
+        />
+      </KpiRow>
 
       <p className="honesty">
         Scan exclusion on these totals is{" "}
-        {formatPercent(projection.tokenSavedPercent)} ({totals.savedTokens.toLocaleString()}{" "}
-        / {totals.beforeTokens.toLocaleString()} tokens). Displayed savings = exclusion
-        × applicability. Changing rate, team size, or mix updates $ live; they do
-        not change the percent.
+        {formatPercent(projection.tokenSavedPercent)} (
+        {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()}{" "}
+        tokens). Displayed savings = exclusion × applicability. Changing rate,
+        team size, or mix updates $ live; they do not change the percent.
       </p>
 
       <form className="assumptions-form" onSubmit={(event) => event.preventDefault()}>
@@ -118,37 +118,28 @@ export function AssumptionsPage() {
           const raw = assumptions[field.key];
           const display = field.percent ? raw * 100 : raw;
           return (
-            <label key={field.key} className="field">
-              <span className="field-label">
-                {field.label}
-                {field.percent ? " (%)" : ""}
-              </span>
-              <input
-                type="number"
-                min={field.percent ? field.min * 100 : field.min}
-                max={
-                  field.max === undefined
-                    ? undefined
-                    : field.percent
-                      ? field.max * 100
-                      : field.max
-                }
-                step={field.percent ? field.step * 100 : field.step}
-                value={Number.isFinite(display) ? display : 0}
-                onChange={(event) => {
-                  const next = event.target.valueAsNumber;
-                  if (!Number.isFinite(next)) {
-                    return;
-                  }
-                  const stored = field.percent ? next / 100 : next;
-                  patchAssumptions({ [field.key]: stored });
-                }}
-              />
-              <span className="field-hint">{field.hint}</span>
-            </label>
+            <NumberField
+              key={field.key}
+              label={field.label}
+              hint={field.hint}
+              min={field.percent ? field.min * 100 : field.min}
+              max={
+                field.max === undefined
+                  ? undefined
+                  : field.percent
+                    ? field.max * 100
+                    : field.max
+              }
+              step={field.percent ? field.step * 100 : field.step}
+              value={display}
+              onChange={(next) => {
+                const stored = field.percent ? next / 100 : next;
+                patchAssumptions({ [field.key]: stored });
+              }}
+            />
           );
         })}
       </form>
-    </section>
+    </Page>
   );
 }

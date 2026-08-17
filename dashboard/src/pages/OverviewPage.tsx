@@ -1,36 +1,38 @@
-import { useDashboard } from "../DashboardContext";
 import {
   formatPercent,
   formatTokens,
   formatUsd,
   tokenSavedPercent,
-} from "../calculator";
+} from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
+import { KpiCard, KpiRow } from "../ui/Kpi";
+import { Page } from "../ui/Page";
 
 export function OverviewPage() {
   const { seed, reports, totals, projection } = useDashboard();
 
   return (
-    <section className="page">
-      <h1>{seed?.businessUnit ?? "Business unit"} overview</h1>
-      <p className="muted">
-        Scenario savings on default assumptions is {formatPercent(projection.scenarioSavedPercent)}.
-        That figure is calculator math, not a vendor billing API.
-      </p>
-
-      <div className="kpi-row">
-        <article className="kpi">
-          <p className="kpi-label">Tokens saved</p>
-          <p className="kpi-value">{formatTokens(totals.savedTokens)}</p>
-        </article>
-        <article className="kpi">
-          <p className="kpi-label">$ saved / month</p>
-          <p className="kpi-value">{formatUsd(projection.monthlyUsdSaved)}</p>
-        </article>
-        <article className="kpi">
-          <p className="kpi-label">Scenario savings</p>
-          <p className="kpi-value">{formatPercent(projection.scenarioSavedPercent)}</p>
-        </article>
-      </div>
+    <Page
+      title={`${seed?.businessUnit ?? "Business unit"} overview`}
+      lead={
+        <>
+          Scenario savings on default assumptions is{" "}
+          {formatPercent(projection.scenarioSavedPercent)}. That figure is
+          calculator math, not a vendor billing API.
+        </>
+      }
+    >
+      <KpiRow>
+        <KpiCard label="Tokens saved" value={formatTokens(totals.savedTokens)} />
+        <KpiCard
+          label="$ saved / month"
+          value={formatUsd(projection.monthlyUsdSaved)}
+        />
+        <KpiCard
+          label="Scenario savings"
+          value={formatPercent(projection.scenarioSavedPercent)}
+        />
+      </KpiRow>
 
       <table className="data-table">
         <caption>Teams in this business unit</caption>
@@ -66,6 +68,6 @@ export function OverviewPage() {
           </tr>
         </tfoot>
       </table>
-    </section>
+    </Page>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_ASSUMPTIONS } from "./assumptions";
 import {
-  DEFAULT_ASSUMPTIONS,
   blendedUsdPerMillion,
   projectSavings,
   scenarioSavedPercent,

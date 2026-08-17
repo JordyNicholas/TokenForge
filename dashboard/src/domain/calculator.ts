@@ -1,35 +1,7 @@
 import type { TokenRiskTotals } from "@tokenforge/risk-core";
+import type { Assumptions } from "./assumptions";
 
 export const SAVED_PERCENT_DIGITS = 1;
-
-export type Assumptions = {
-  /** Vendor-neutral list price, not a billing API. */
-  usdPerMillionTokens: number;
-  teamSize: number;
-  msgsPerDevPerDay: number;
-  daysPerMonth: number;
-  tokensPerMessage: number;
-  /** 0–1 share of traffic on a higher-cost model. */
-  premiumShare: number;
-  /** Premium model costs this × the base rate. */
-  premiumMultiplier: number;
-  /**
-   * 0–1 share of billed Chat/Agent usage this waste class applies to.
-   * 1 = display the scan’s exclusion ratio; 0.3 ≈ pitch 30% on a 99.8% fixture.
-   */
-  realizedWasteShare: number;
-};
-
-export const DEFAULT_ASSUMPTIONS: Assumptions = {
-  usdPerMillionTokens: 15,
-  teamSize: 40,
-  msgsPerDevPerDay: 25,
-  daysPerMonth: 21,
-  tokensPerMessage: 12_000,
-  premiumShare: 0.2,
-  premiumMultiplier: 4,
-  realizedWasteShare: 1,
-};
 
 export type Projection = {
   monthlyTokensBefore: number;
@@ -104,20 +76,4 @@ export function projectSavings(
     tokenSavedPercent: tokenSavedPercent(totals),
     scenarioSavedPercent: scenarioSavedPercent(totals, assumptions),
   };
-}
-
-export function formatUsd(value: number): string {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
-}
-
-export function formatPercent(value: number): string {
-  return `${value.toFixed(SAVED_PERCENT_DIGITS)}%`;
-}
-
-export function formatTokens(value: number): string {
-  return value.toLocaleString("en-US");
 }

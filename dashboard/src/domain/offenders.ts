@@ -53,11 +53,3 @@ export function tokensByFileClass(reports: TokenRiskReport[]): ClassBucket[] {
     .map(([fileClass, estTokens]) => ({ fileClass, estTokens }))
     .sort((a, b) => b.estTokens - a.estTokens);
 }
-
-/** Teal (low waste) → red (high waste). */
-export function heatColor(percent: number): string {
-  const t = Math.min(100, Math.max(0, percent)) / 100;
-  const hue = 162 - t * 162;
-  const light = 14 + t * 26;
-  return `hsl(${hue} 62% ${light}%)`;
-}

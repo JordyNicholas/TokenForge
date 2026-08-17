@@ -1,6 +1,7 @@
-import { useDashboard } from "../DashboardContext";
-import { formatTokens } from "../calculator";
-import { tokensByFileClass, topOffenders } from "../views";
+import { formatTokens, tokensByFileClass, topOffenders } from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
+import { ClassBars } from "../ui/ClassBars";
+import { Page } from "../ui/Page";
 
 export function OffendersPage() {
   const { reports } = useDashboard();
@@ -8,29 +9,12 @@ export function OffendersPage() {
   const classes = tokensByFileClass(reports);
 
   return (
-    <section className="page">
-      <h1>Top offenders</h1>
-      <p className="muted">
-        Highest-token paths marked excluded or filtered, plus waste by filetype
-        class from risk-core.
-      </p>
-
+    <Page
+      title="Top offenders"
+      lead="Highest-token paths marked excluded or filtered, plus waste by filetype class from risk-core."
+    >
       <h2 className="subhead">By filetype class</h2>
-      <ul className="class-bars">
-        {classes.map((bucket) => {
-          const max = classes[0]?.estTokens ?? 1;
-          const width = Math.max(8, (bucket.estTokens / max) * 100);
-          return (
-            <li key={bucket.fileClass}>
-              <span className="class-label">{bucket.fileClass}</span>
-              <span className="class-bar-track">
-                <span className="class-bar" style={{ width: `${width}%` }} />
-              </span>
-              <span className="num">{formatTokens(bucket.estTokens)}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <ClassBars buckets={classes} />
 
       <h2 className="subhead">By path</h2>
       <table className="data-table">
@@ -55,6 +39,6 @@ export function OffendersPage() {
           ))}
         </tbody>
       </table>
-    </section>
+    </Page>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useDashboard } from "./DashboardContext";
+import { useDashboard } from "../state/DashboardProvider";
 
 export function SourceBar() {
   const { sourceLabel, loadError, loadFromFile, loadFromUrl, resetToDemo } =

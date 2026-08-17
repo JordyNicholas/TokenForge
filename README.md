@@ -46,8 +46,8 @@ npm install
 
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
 options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
-The CLI can scan a repo; the dashboard is a Vite React shell (views fill in
-during E3); the extension remains a placeholder until E4.
+The CLI can scan a repo; the dashboard is the React Prove adapter; the
+extension remains a placeholder until E4.
 
 ```bash
 npm run typecheck

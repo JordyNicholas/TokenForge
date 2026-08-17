@@ -1,37 +1,33 @@
-import { useDashboard } from "../DashboardContext";
-import { formatPercent, formatTokens, tokenSavedPercent } from "../calculator";
-import { heatColor } from "../views";
+import { tokenSavedPercent } from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
+import { HeatCell } from "../ui/HeatCell";
+import { Page } from "../ui/Page";
 
 export function HeatmapPage() {
   const { seed, reports } = useDashboard();
 
   return (
-    <section className="page">
-      <h1>Team heatmap</h1>
-      <p className="muted">
-        Color is each team’s scan exclusion ratio. {seed?.businessUnit ?? "This BU"}{" "}
-        rolls up to ~30% on the demo seed; payments-platform is the noisy outlier.
-      </p>
+    <Page
+      title="Team heatmap"
+      lead={
+        <>
+          Color is each team’s scan exclusion ratio.{" "}
+          {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed;
+          payments-platform is the noisy outlier.
+        </>
+      }
+    >
       <div className="heatmap">
-        {reports.map((report) => {
-          const percent = tokenSavedPercent(report.totals);
-          return (
-            <article
-              key={`${report.team}:${report.repo}`}
-              className="heat-cell"
-              style={{ background: heatColor(percent) }}
-            >
-              <h2>{report.team}</h2>
-              <p className="heat-percent">{formatPercent(percent)}</p>
-              <p className="heat-meta">
-                {report.repo}
-                <br />
-                {formatTokens(report.totals.savedTokens)} tokens avoided
-              </p>
-            </article>
-          );
-        })}
+        {reports.map((report) => (
+          <HeatCell
+            key={`${report.team}:${report.repo}`}
+            team={report.team}
+            repo={report.repo}
+            percent={tokenSavedPercent(report.totals)}
+            savedTokens={report.totals.savedTokens}
+          />
+        ))}
       </div>
-    </section>
+    </Page>
   );
 }
