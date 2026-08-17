@@ -46,8 +46,8 @@ npm install
 
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
 options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
-The CLI can scan a repo; dashboard / extension remain placeholders until later
-epics.
+The CLI can scan a repo; the dashboard is a Vite React shell (views fill in
+during E3); the extension remains a placeholder until E4.
 
 ```bash
 npm run typecheck
@@ -77,6 +77,13 @@ the same percent (one decimal). Exit `0` when `savedTokens > 0`, `3` when a scan
 completes with no savings, `2` for usage errors.
 
 Pinned noisy-app numbers: [`fixtures/noisy-app-expected-totals.json`](fixtures/noisy-app-expected-totals.json).
+
+```bash
+npm run dev -w @tokenforge/dashboard
+```
+
+Serves the Tokens Saved layout (Overview, Heatmap, Offenders, Assumptions).
+Cost knobs and seeded JSON land in later E3 stories.
 
 ## Board automation setup
 
