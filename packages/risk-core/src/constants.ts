@@ -1,0 +1,28 @@
+import type { FiletypeRiskClass } from "./types";
+
+/** Hackathon estimate: `estTokens ≈ ceil(bytes / 4)`. */
+export const BYTES_PER_TOKEN = 4;
+
+/** Extension rule: inactive ≥ 15 minutes. */
+export const INACTIVE_MS = 15 * 60 * 1000;
+
+/** Paths at or above this size are `oversized`. */
+export const OVERSIZED_BYTES = 100_000;
+
+export const HIGH_RISK_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
+  "lockfile",
+  "generated",
+]);
+
+/** Contribution of filetype class to `scoreRisk` (0–1). */
+export const CLASS_WEIGHT: Record<FiletypeRiskClass, number> = {
+  lockfile: 1,
+  generated: 0.9,
+  config: 0.5,
+  unknown: 0.3,
+  source: 0.15,
+};
+
+export const SCORE_WEIGHT_CLASS = 0.45;
+export const SCORE_WEIGHT_SIZE = 0.35;
+export const SCORE_WEIGHT_INACTIVE = 0.2;
