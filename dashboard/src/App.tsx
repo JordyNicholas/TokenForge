@@ -1,5 +1,6 @@
 import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
 import { NavLink, Route, Routes } from "react-router-dom";
+import { useDashboard } from "./DashboardContext";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
 import { OffendersPage } from "./pages/OffendersPage";
@@ -13,12 +14,14 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
 ];
 
 export function App() {
+  const { seed } = useDashboard();
   return (
     <div className="app">
       <header className="app-header">
         <div className="brand">
           <span className="brand-name">TokenForge</span>
           <span className="brand-product">Tokens Saved</span>
+          <span className="brand-bu">{seed.businessUnit}</span>
         </div>
         <nav className="app-nav" aria-label="FinOps views">
           {NAV.map((item) => (

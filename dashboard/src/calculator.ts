@@ -2,16 +2,6 @@ import type { TokenRiskTotals } from "@tokenforge/risk-core";
 
 export const SAVED_PERCENT_DIGITS = 1;
 
-/**
- * Placeholder BU totals until #19 loads demo-seed.json.
- * 886788 / 2955959 = 30.0% token exclusion (one decimal).
- */
-export const DEMO_TOTALS: TokenRiskTotals = {
-  beforeTokens: 2_955_959,
-  afterTokens: 2_069_171,
-  savedTokens: 886_788,
-};
-
 export type Assumptions = {
   /** Vendor-neutral list price, not a billing API. */
   usdPerMillionTokens: number;

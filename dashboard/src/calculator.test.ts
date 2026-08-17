@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_ASSUMPTIONS,
-  DEMO_TOTALS,
   blendedUsdPerMillion,
   projectSavings,
   scenarioSavedPercent,
   tokenSavedPercent,
 } from "./calculator";
+import { DEMO_TOTALS } from "./seed";
 
 const noisyAppTotals = {
   beforeTokens: 455_959,
