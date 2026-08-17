@@ -1,9 +1,51 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { runCli } from "./cli";
+import { scanRepo } from "./scan";
 import { savedPercent, savingsExitCode } from "./savings";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const fixtureRoot = resolve(repoRoot, "fixtures/noisy-app");
+const seedPath = resolve(repoRoot, "fixtures/noisy-app-expected-totals.json");
+
+describe("noisy-app dashboard seed", () => {
+  afterEach(async () => {
+    await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
+  });
+
+  it("matches fixtures/noisy-app-expected-totals.json (±0.1pp)", async () => {
+    const seed = JSON.parse(await readFile(seedPath, "utf8")) as {
+      totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
+      savedPercent: number;
+    };
+    const { report } = await scanRepo({ root: fixtureRoot });
+    expect(report.totals).toEqual(seed.totals);
+    expect(savedPercent(report.totals)).toBe(seed.savedPercent);
+    expect(
+      Math.abs(savedPercent(report.totals) - seed.savedPercent),
+    ).toBeLessThanOrEqual(0.1);
+  });
+
+  it("prints those totals as --json", async () => {
+    const seed = JSON.parse(await readFile(seedPath, "utf8")) as {
+      totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
+      savedPercent: number;
+    };
+    let stdout = "";
+    const code = await runCli(["scan", fixtureRoot, "--json"], {
+      stdout: { write(chunk: string) { stdout += chunk; } },
+      stderr: { write() {} },
+    });
+    expect(code).toBe(0);
+    expect(JSON.parse(stdout)).toEqual({
+      ...seed.totals,
+      savedPercent: seed.savedPercent,
+    });
+  });
+});
 
 describe("savedPercent", () => {
   it("rounds to one decimal place", () => {
