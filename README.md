@@ -46,12 +46,18 @@ npm install
 
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
 options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
-CLI / dashboard / extension remain placeholders until later epics.
+The CLI can scan a repo; dashboard / extension remain placeholders until later
+epics.
 
 ```bash
 npm run typecheck
 npm test
+npm run tokenforge -- scan fixtures/noisy-app
 ```
+
+`tokenforge scan` scores paths with risk-core, prints a findings table, and writes
+`.tokenforge/scan-report.json` (v0 Token Risk contract). Apply / init land in E2
+follow-up issues.
 
 ## Board automation setup
 
