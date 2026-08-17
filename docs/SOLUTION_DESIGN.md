@@ -88,6 +88,11 @@ TokenForge/
 
 ## JSON contract (v0)
 
+Formal schema (shared by CLI scan-report, extension last-scan export, and dashboard loader):
+[`docs/schemas/risk-event.schema.json`](./schemas/risk-event.schema.json)
+(`$id`: `https://tokenforge.dev/schema/risk-event/v0`).
+Example document: [`docs/schemas/examples/scan-report.v0.json`](./schemas/examples/scan-report.v0.json).
+
 ```json
 {
   "source": "extension|cli",
