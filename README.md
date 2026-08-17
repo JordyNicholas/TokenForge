@@ -13,7 +13,7 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | Project board | [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas/projects/2) |
 | Epic / story map | [`docs/BOARD.md`](docs/BOARD.md) |
 | Concept brief | [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) |
-| Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) |
+| Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) (architecture: [ports & adapters](docs/SOLUTION_DESIGN.md#architecture)) |
 | PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
 | Collaborator guide | [`AGENTS.md`](AGENTS.md) |
 

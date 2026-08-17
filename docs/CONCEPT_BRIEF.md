@@ -30,6 +30,9 @@ Large IT orgs overspend on **AI coding credits / metered usage** because low-val
 2. **Fix** — filter inactive tabs; write lean agent instructions + content exclusions via a **provider adapter** (same findings, different output files)
 3. **Prove** — Tokens Saved ROI dashboard (simulated OK for MVP; cost knobs are assumption inputs)
 
+System shape (ports and adapters, shared kernel, file JSON contract):
+[`docs/SOLUTION_DESIGN.md`](./SOLUTION_DESIGN.md#architecture).
+
 ## Provider independence
 
 TokenForge logic (risk scoring, scan reports, ROI math) must not hard-depend on a single AI vendor.

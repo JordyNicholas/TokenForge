@@ -22,6 +22,58 @@ DETECT (extension) → FIX (CLI adapters) → PROVE (dashboard)
 Shared contract: Token Risk events / scan reports as JSON (see schema below).
 Detect + Prove are **provider-agnostic**. Fix applies findings through a **provider adapter**.
 
+## Architecture
+
+TokenForge is **ports and adapters** (hexagonal), not a hosted platform and not
+microservices. There is no MVP API server, database, or message bus. Three local
+delivery surfaces share one domain library and one JSON document.
+
+**Kernel (the hexagon)** — `packages/risk-core`. Token estimate, risk score, and
+shared types. Core must not import VS Code, React, Node CLI frameworks, or a
+vendor SDK. Scoring does not depend on `provider`.
+
+**Ports** — what the kernel and the three surfaces agree on without knowing a UI
+or a vendor:
+
+| Port | Role |
+| --- | --- |
+| Token Risk JSON (v0, below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
+| Provider-adapter interface (CLI) | Fix-out port. Same findings → vendor-native instruction/exclusion files. |
+
+Surfaces do **not** call each other at runtime. They pass a file
+(`.tokenforge/scan-report.json`, `.tokenforge/last-scan.json`). That is
+file-based integration, not RPC or events.
+
+**Adapters (the edges)** — one runtime per side of the hexagon:
+
+| Adapter | Direction | Runtime |
+| --- | --- | --- |
+| Extension (Context Guard) | Detect in | VS Code extension host |
+| CLI + provider adapters | Fix out | Node |
+| Dashboard (Tokens Saved) | Prove out | React / Vite |
+
+Dependency rule: **consumers → core**, never the reverse, and never
+extension ↔ CLI ↔ dashboard. Copilot / Cursor / Claude mapping is allowed only
+in CLI adapters. Dashboard cost knobs are assumption inputs, not a billing API.
+
+The **pipeline** `DETECT → FIX → PROVE` is the product journey, not a runtime
+bus. `risk-core` is a **shared kernel** (one scoring model reused by three
+processes). `fixtures/noisy-app` is a demo repo the CLI scans — not a package
+and not an adapter.
+
+```text
+                    ┌─────────────────────┐
+                    │  packages/risk-core │  kernel
+                    │  estimate + score   │
+                    └──────────┬──────────┘
+           ┌───────────────────┼───────────────────┐
+           ▼                   ▼                   ▼
+     extension            cli + adapters       dashboard
+     Detect in              Fix out             Prove out
+           │                   │                   │
+           └──────── JSON port (files on disk) ────┘
+```
+
 ## Monorepo layout
 
 ```text
