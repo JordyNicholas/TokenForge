@@ -1,12 +1,19 @@
-import {
-  TOKEN_RISK_REPORT_SCHEMA_ID,
-  estimateTokens,
-} from "@tokenforge/risk-core";
+import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
 
-/** `.tokenforge/scan-report.json` must match this schema (E2 #13). */
+/** `.tokenforge/scan-report.json` must match this schema. */
 export const SCAN_REPORT_SCHEMA_ID = TOKEN_RISK_REPORT_SCHEMA_ID;
 
-/** Placeholder until E2 (#13) implements `tokenforge scan | apply | init`. */
-export function cliPlaceholder(): number {
-  return estimateTokens(0);
-}
+export { runCli, type CliIo } from "./cli";
+export { UsageError, RuntimeError } from "./errors";
+export { writeScanReport, readScanReport, tryReadScanReport } from "./report-file";
+export { scanRepo, parseProviderId, type ScanOptions, type ScanResult } from "./scan";
+export { applyPolicy, initRepo, type ApplyOptions, type ApplyResult } from "./apply";
+export { formatScanTable, formatTotals } from "./table";
+export {
+  getAdapter,
+  copilotAdapter,
+  genericAdapter,
+  COPILOT_INSTRUCTIONS_PATH,
+  COPILOT_EXCLUSIONS_PATH,
+  MAX_INSTRUCTION_BYTES,
+} from "./adapters";

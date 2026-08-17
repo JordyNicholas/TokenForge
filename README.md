@@ -46,12 +46,26 @@ npm install
 
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
 options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
-CLI / dashboard / extension remain placeholders until later epics.
+The CLI can scan a repo; dashboard / extension remain placeholders until later
+epics.
 
 ```bash
 npm run typecheck
 npm test
+npm run tokenforge -- scan fixtures/noisy-app
 ```
+
+`tokenforge scan` scores paths with risk-core, prints a findings table, and writes
+`.tokenforge/scan-report.json` (v0 Token Risk contract).
+
+```bash
+npm run tokenforge -- apply fixtures/noisy-app --dry-run
+npm run tokenforge -- init fixtures/noisy-app
+```
+
+`apply` / `init` write a **provider adapter** pack (MVP default: Copilot
+`.github/copilot-instructions.md` + exclusion candidates). Cursor/Claude adapters
+are stubbed; `--provider generic` writes a vendor-neutral pack.
 
 ## Board automation setup
 
