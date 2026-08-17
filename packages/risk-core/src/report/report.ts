@@ -6,7 +6,7 @@ import type {
   TokenRiskFinding,
   TokenRiskReport,
   TokenRiskTotals,
-} from "./types";
+} from "../domain/types";
 
 const SOURCES = new Set<ScanSource>(["extension", "cli"]);
 const PROVIDERS = new Set<ProviderId>([

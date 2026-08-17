@@ -7,10 +7,10 @@ import { describe, expect, it } from "vitest";
 import {
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
-} from "./constants";
+} from "../domain/constants";
 import { isTokenRiskReport } from "./report";
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 function readJson(relativePath: string): unknown {
   return JSON.parse(readFileSync(resolve(repoRoot, relativePath), "utf8"));

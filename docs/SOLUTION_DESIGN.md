@@ -80,10 +80,15 @@ and not an adapter.
 TokenForge/
 ├── docs/
 ├── packages/risk-core/     # estimateTokens, scoreRisk, types
-├── fixtures/noisy-app/     # demo repo with lockfiles / fat configs
+│   └── src/{domain,classify,estimate,score,report}/
+├── fixtures/
+│   ├── noisy-app/          # demo repo with lockfiles / fat configs
+│   └── expected/           # pinned scan totals for that fixture
 ├── extension/              # VS Code Context Guard
 ├── cli/                    # tokenforge init | scan | apply
+│   └── src/{app,commands,adapters,io,output,savings}/
 └── dashboard/              # React ROI UI
+    └── src/{domain,data,state,pages,ui}/
 ```
 
 ## JSON contract (v0)

@@ -34,7 +34,7 @@ describe("demo-seed.json", () => {
   });
 
   it("keeps noisy-app totals on payments-platform", () => {
-    const pin = readJson("fixtures/noisy-app-expected-totals.json") as {
+    const pin = readJson("fixtures/expected/noisy-app-totals.json") as {
       totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
     };
     const payments = demoSeed().reports.find(

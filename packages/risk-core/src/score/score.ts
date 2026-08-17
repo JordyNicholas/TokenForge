@@ -1,4 +1,4 @@
-import { classifyFiletype } from "./classify";
+import { classifyFiletype } from "../classify/classify";
 import {
   CLASS_WEIGHT,
   HIGH_RISK_FILE_CLASSES,
@@ -7,9 +7,9 @@ import {
   SCORE_WEIGHT_CLASS,
   SCORE_WEIGHT_INACTIVE,
   SCORE_WEIGHT_SIZE,
-} from "./constants";
-import { estimateTokens } from "./estimate";
-import type { FindingReason, RiskAssessment, RiskInput } from "./types";
+} from "../domain/constants";
+import { estimateTokens } from "../estimate/estimate";
+import type { FindingReason, RiskAssessment, RiskInput } from "../domain/types";
 
 const REASON_PRIORITY: FindingReason[] = [
   "high_risk_filetype",

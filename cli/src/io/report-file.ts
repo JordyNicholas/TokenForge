@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { isTokenRiskReport, type TokenRiskReport } from "@tokenforge/risk-core";
-import { RuntimeError } from "./errors";
+import { RuntimeError } from "../app/errors";
 
 function isEnoent(error: unknown): boolean {
   return (

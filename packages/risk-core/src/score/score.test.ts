@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INACTIVE_MS, OVERSIZED_BYTES } from "./constants";
+import { INACTIVE_MS, OVERSIZED_BYTES } from "../domain/constants";
 import { primaryReason, scoreRisk } from "./score";
 
 describe("scoreRisk", () => {

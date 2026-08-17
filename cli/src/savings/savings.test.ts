@@ -1,23 +1,17 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { runCli } from "./cli";
-import { scanRepo } from "./scan";
+import { runCli } from "../app/cli";
+import { scanRepo } from "../commands/scan/scan";
+import { cleanupFixture, expectedTotalsPath, fixtureRoot } from "../test/helpers";
 import { savedPercent, savingsExitCode } from "./savings";
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const fixtureRoot = resolve(repoRoot, "fixtures/noisy-app");
-const seedPath = resolve(repoRoot, "fixtures/noisy-app-expected-totals.json");
-
 describe("noisy-app dashboard seed", () => {
-  afterEach(async () => {
-    await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
-  });
+  afterEach(cleanupFixture);
 
-  it("matches fixtures/noisy-app-expected-totals.json (±0.1pp)", async () => {
-    const seed = JSON.parse(await readFile(seedPath, "utf8")) as {
+  it("matches fixtures/expected/noisy-app-totals.json (±0.1pp)", async () => {
+    const seed = JSON.parse(await readFile(expectedTotalsPath, "utf8")) as {
       totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
       savedPercent: number;
     };
@@ -30,7 +24,7 @@ describe("noisy-app dashboard seed", () => {
   });
 
   it("prints those totals as --json", async () => {
-    const seed = JSON.parse(await readFile(seedPath, "utf8")) as {
+    const seed = JSON.parse(await readFile(expectedTotalsPath, "utf8")) as {
       totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
       savedPercent: number;
     };

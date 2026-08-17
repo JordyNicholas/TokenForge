@@ -52,40 +52,46 @@ extension remains a placeholder until E4.
 ```bash
 npm run typecheck
 npm test
-npm run tokenforge -- scan fixtures/noisy-app
+npm run tokenforge:scan
 ```
 
 `tokenforge scan` scores paths with risk-core, prints a findings table, and writes
-`.tokenforge/scan-report.json` (v0 Token Risk contract).
+`.tokenforge/scan-report.json` (v0 Token Risk contract). Extra flags still work:
 
 ```bash
-npm run tokenforge -- apply fixtures/noisy-app --dry-run
-npm run tokenforge -- init fixtures/noisy-app
+npm run tokenforge:scan -- --json
+npm run tokenforge -- scan path/to/repo
+```
+
+```bash
+npm run tokenforge:apply -- --dry-run
+npm run tokenforge:init
 ```
 
 `apply` / `init` write a **provider adapter** pack (MVP default: Copilot
 `.github/copilot-instructions.md` + exclusion candidates). Cursor/Claude adapters
 are stubbed; `--provider generic` writes a vendor-neutral pack.
 
-```bash
-npm run tokenforge -- scan fixtures/noisy-app --json
-```
-
 `--json` prints machine totals (`beforeTokens`, `afterTokens`, `savedTokens`,
 `savedPercent`) for demo scripts and the dashboard seed. Human output includes
 the same percent (one decimal). Exit `0` when `savedTokens > 0`, `3` when a scan
 completes with no savings, `2` for usage errors.
 
-Pinned noisy-app numbers: [`fixtures/noisy-app-expected-totals.json`](fixtures/noisy-app-expected-totals.json).
+Pinned noisy-app numbers: [`fixtures/expected/noisy-app-totals.json`](fixtures/expected/noisy-app-totals.json).
 
 ```bash
-npm run dev -w @tokenforge/dashboard
+npm run tokenforge:dashboard
 ```
 
 Serves the Tokens Saved layout (Overview, Heatmap, Offenders, Assumptions).
 Assumptions convert token totals → $ live (rate, team size, msgs/day, model
 mix). The pitch ~30% is that scenario on `dashboard/public/demo-seed.json`
 (offline). Optionally load a CLI/extension `scan-report.json` via file or URL.
+
+```bash
+npm run tokenforge:dashboard:build
+npm run tokenforge:dashboard:preview
+```
 
 ## Board automation setup
 

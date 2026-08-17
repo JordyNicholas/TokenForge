@@ -13,7 +13,13 @@
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "tokenforge": "node ./cli/bin/tokenforge.mjs"
+    "tokenforge": "node ./cli/bin/tokenforge.mjs",
+    "tokenforge:scan": "node ./cli/bin/tokenforge.mjs scan fixtures/noisy-app",
+    "tokenforge:apply": "node ./cli/bin/tokenforge.mjs apply fixtures/noisy-app",
+    "tokenforge:init": "node ./cli/bin/tokenforge.mjs init fixtures/noisy-app",
+    "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
+    "tokenforge:dashboard:build": "npm run build -w @tokenforge/dashboard",
+    "tokenforge:dashboard:preview": "npm run preview -w @tokenforge/dashboard"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

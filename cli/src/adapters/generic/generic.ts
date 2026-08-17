@@ -3,8 +3,8 @@ import {
   GENERIC_EXCLUSIONS_PATH,
   GENERIC_INSTRUCTIONS_PATH,
   assertLeanInstruction,
-} from "./limits";
-import type { PolicyFile, ProviderAdapter } from "./types";
+} from "../limits";
+import type { PolicyFile, ProviderAdapter } from "../types";
 
 const INSTRUCTIONS = `# TokenForge instructions (generic)
 

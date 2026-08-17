@@ -1,14 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import type { ProviderId, TokenRiskReport } from "@tokenforge/risk-core";
-import { getAdapter, type PolicyFile } from "./adapters";
-import { RuntimeError } from "./errors";
-import { scanReportPath } from "./paths";
+import { getAdapter, type PolicyFile } from "../../adapters";
+import { RuntimeError } from "../../app/errors";
+import { scanReportPath } from "../../io/paths";
 import {
   tryReadScanReport,
   writeScanReport,
-} from "./report-file";
-import { parseProviderId, scanRepo } from "./scan";
+} from "../../io/report-file";
+import { parseProviderId, scanRepo } from "../scan/scan";
 
 export type ApplyOptions = {
   root: string;

@@ -10,8 +10,8 @@ import {
   type TokenRiskReport,
   type TokenRiskTotals,
 } from "@tokenforge/risk-core";
-import { RuntimeError, UsageError } from "./errors";
-import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "./paths";
+import { RuntimeError, UsageError } from "../../app/errors";
+import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
 
 const PROVIDERS = new Set<ProviderId>([
   "copilot",

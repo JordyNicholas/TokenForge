@@ -1,12 +1,12 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
-import { applyPolicy, initRepo } from "./apply";
+import { applyPolicy, initRepo } from "../commands/apply/apply";
+import { scanRepo, type ScanResult } from "../commands/scan/scan";
+import { writeScanReport } from "../io/report-file";
+import { formatScanTable } from "../output/table";
+import { savingsExitCode, totalsPayload } from "../savings/savings";
 import { UsageError, isCliError } from "./errors";
-import { writeScanReport } from "./report-file";
-import { scanRepo, type ScanResult } from "./scan";
-import { totalsPayload, savingsExitCode } from "./savings";
-import { formatScanTable } from "./table";
 
 const USAGE = `Usage: tokenforge <command> [root] [options]
 

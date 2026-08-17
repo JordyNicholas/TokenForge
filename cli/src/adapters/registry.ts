@@ -1,7 +1,7 @@
 import type { ProviderId } from "@tokenforge/risk-core";
-import { UsageError } from "../errors";
-import { copilotAdapter } from "./copilot";
-import { genericAdapter } from "./generic";
+import { UsageError } from "../app/errors";
+import { copilotAdapter } from "./copilot/copilot";
+import { genericAdapter } from "./generic/generic";
 import type { ProviderAdapter } from "./types";
 
 const STUBBED = new Set<ProviderId>(["cursor", "claude"]);

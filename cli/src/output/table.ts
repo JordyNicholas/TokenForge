@@ -1,6 +1,6 @@
 import type { TokenRiskReport } from "@tokenforge/risk-core";
-import type { ScanResult } from "./scan";
-import { formatSavedPercent } from "./savings";
+import type { ScanResult } from "../commands/scan/scan";
+import { formatSavedPercent } from "../savings/savings";
 
 function pad(value: string, width: number): string {
   return value.length >= width ? value : `${value}${" ".repeat(width - value.length)}`;

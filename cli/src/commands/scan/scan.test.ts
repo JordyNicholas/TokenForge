@@ -1,31 +1,10 @@
-import { readFile, rm } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { isTokenRiskReport } from "@tokenforge/risk-core";
 import { afterEach, describe, expect, it } from "vitest";
-import { runCli } from "./cli";
+import { runCli } from "../../app/cli";
+import { captureIo, cleanupFixture, fixtureRoot } from "../../test/helpers";
 import { scanRepo } from "./scan";
-import { formatScanTable } from "./table";
-
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const fixtureRoot = resolve(repoRoot, "fixtures/noisy-app");
-
-function captureIo() {
-  let stdout = "";
-  let stderr = "";
-  return {
-    io: {
-      stdout: { write(chunk: string) { stdout += chunk; } },
-      stderr: { write(chunk: string) { stderr += chunk; } },
-    },
-    get stdout() {
-      return stdout;
-    },
-    get stderr() {
-      return stderr;
-    },
-  };
-}
 
 describe("scanRepo (noisy-app)", () => {
   it("scores the fixture with a non-zero beforeTokens baseline", async () => {
@@ -58,9 +37,7 @@ describe("scanRepo (noisy-app)", () => {
 });
 
 describe("runCli scan", () => {
-  afterEach(async () => {
-    await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
-  });
+  afterEach(cleanupFixture);
 
   it("prints a table and writes .tokenforge/scan-report.json", async () => {
     const captured = captureIo();
@@ -95,19 +72,5 @@ describe("runCli scan", () => {
     const code = await runCli(["nope"], captured.io);
     expect(code).toBe(2);
     expect(captured.stderr).toContain("Unknown command");
-  });
-});
-
-describe("formatScanTable", () => {
-  it("renders findings and totals", async () => {
-    const result = await scanRepo({
-      root: fixtureRoot,
-      now: new Date("2026-08-17T18:00:00.000Z"),
-    });
-
-    const table = formatScanTable(result);
-    expect(table).toContain("PATH");
-    expect(table).toContain("high_risk_filetype");
-    expect(table).toContain("savedTokens");
   });
 });

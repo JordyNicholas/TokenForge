@@ -1,4 +1,4 @@
-import type { FiletypeRiskClass } from "./types";
+import type { FiletypeRiskClass } from "../domain/types";
 
 const LOCKFILE_NAMES = new Set([
   "package-lock.json",

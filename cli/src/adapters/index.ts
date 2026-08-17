@@ -5,7 +5,7 @@ export {
   GENERIC_INSTRUCTIONS_PATH,
   MAX_INSTRUCTION_BYTES,
 } from "./limits";
-export { copilotAdapter } from "./copilot";
-export { genericAdapter } from "./generic";
+export { copilotAdapter } from "./copilot/copilot";
+export { genericAdapter } from "./generic/generic";
 export { getAdapter } from "./registry";
 export type { PolicyFile, ProviderAdapter } from "./types";

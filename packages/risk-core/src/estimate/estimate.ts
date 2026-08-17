@@ -1,4 +1,4 @@
-import { BYTES_PER_TOKEN } from "./constants";
+import { BYTES_PER_TOKEN } from "../domain/constants";
 
 /**
  * Token estimate for a path of `bytes` length.

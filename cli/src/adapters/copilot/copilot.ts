@@ -3,8 +3,8 @@ import {
   COPILOT_EXCLUSIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
   assertLeanInstruction,
-} from "./limits";
-import type { PolicyFile, ProviderAdapter } from "./types";
+} from "../limits";
+import type { PolicyFile, ProviderAdapter } from "../types";
 
 const INSTRUCTIONS = `# Copilot instructions (TokenForge)
 

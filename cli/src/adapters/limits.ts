@@ -1,4 +1,4 @@
-import { RuntimeError } from "../errors";
+import { RuntimeError } from "../app/errors";
 import type { PolicyFile } from "./types";
 
 /** Hard cap so policy packs cannot become another fat always-on context file. */
