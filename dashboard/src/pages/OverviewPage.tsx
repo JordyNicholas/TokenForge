@@ -11,7 +11,7 @@ export function OverviewPage() {
 
   return (
     <section className="page">
-      <h1>{seed.businessUnit} overview</h1>
+      <h1>{seed?.businessUnit ?? "Business unit"} overview</h1>
       <p className="muted">
         Scenario savings on default assumptions is {formatPercent(projection.scenarioSavedPercent)}.
         That figure is calculator math, not a vendor billing API.

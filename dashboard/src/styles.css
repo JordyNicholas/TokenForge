@@ -177,6 +177,83 @@ body {
   line-height: 1.35;
 }
 
+.source-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.65rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: #12181f;
+}
+
+.source-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.source-label code {
+  color: var(--text);
+}
+
+.source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.source-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.source-file input {
+  max-width: 12rem;
+  font-size: 0.75rem;
+}
+
+.source-url {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.source-url input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  min-width: 16rem;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.source-bar button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.source-bar button:hover {
+  border-color: var(--accent);
+}
+
+.source-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #f0a0a0;
+  font-size: 0.8rem;
+}
+
 .brand-bu {
   color: var(--muted);
   font-size: 0.75rem;

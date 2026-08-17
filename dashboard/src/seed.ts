@@ -1,9 +1,52 @@
-import type { TokenRiskReport, TokenRiskTotals } from "@tokenforge/risk-core";
+import {
+  isTokenRiskReport,
+  type TokenRiskReport,
+  type TokenRiskTotals,
+} from "@tokenforge/risk-core";
+
+export const DEMO_SEED_URL = "/demo-seed.json";
 
 export type DashboardSeed = {
   businessUnit: string;
   reports: TokenRiskReport[];
 };
+
+export class SeedLoadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SeedLoadError";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function isDashboardSeed(value: unknown): value is DashboardSeed {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.businessUnit === "string" &&
+    value.businessUnit.length > 0 &&
+    Array.isArray(value.reports) &&
+    value.reports.length > 0 &&
+    value.reports.every(isTokenRiskReport)
+  );
+}
+
+/** Accept a BU seed or a single Token Risk report (CLI / extension JSON). */
+export function parseDashboardDocument(value: unknown): DashboardSeed {
+  if (isDashboardSeed(value)) {
+    return value;
+  }
+  if (isTokenRiskReport(value)) {
+    return { businessUnit: value.team, reports: [value] };
+  }
+  throw new SeedLoadError(
+    "JSON is not a Token Risk report or a dashboard seed (businessUnit + reports).",
+  );
+}
 
 export function aggregateTotals(reports: TokenRiskReport[]): TokenRiskTotals {
   return reports.reduce<TokenRiskTotals>(
@@ -16,132 +59,32 @@ export function aggregateTotals(reports: TokenRiskReport[]): TokenRiskTotals {
   );
 }
 
-const STAMP = "2026-08-17T18:00:00.000Z";
+export async function fetchDashboardDocument(url: string): Promise<DashboardSeed> {
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new SeedLoadError(`Could not fetch ${url}: ${reason}`);
+  }
+  if (!response.ok) {
+    throw new SeedLoadError(`Could not fetch ${url} (${response.status})`);
+  }
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new SeedLoadError(`${url} is not JSON`);
+  }
+  return parseDashboardDocument(payload);
+}
 
-/** In-memory BU seed until #19 ships public/demo-seed.json. */
-export const DEMO_SEED: DashboardSeed = {
-  businessUnit: "Retail Banking",
-  reports: [
-    {
-      source: "cli",
-      timestamp: STAMP,
-      repo: "fixtures/noisy-app",
-      team: "payments-platform",
-      provider: "generic",
-      findings: [
-        {
-          path: "package-lock.json",
-          reason: "high_risk_filetype",
-          bytes: 802241,
-          estTokens: 200561,
-          action: "excluded",
-        },
-        {
-          path: "config/app-settings.json",
-          reason: "oversized",
-          bytes: 357788,
-          estTokens: 89447,
-          action: "excluded",
-        },
-        {
-          path: "dist/bundle.js",
-          reason: "high_risk_filetype",
-          bytes: 337349,
-          estTokens: 84338,
-          action: "excluded",
-        },
-        {
-          path: "config/legacy-export.xml",
-          reason: "oversized",
-          bytes: 183260,
-          estTokens: 45815,
-          action: "excluded",
-        },
-        {
-          path: "dist/bundle.js.map",
-          reason: "high_risk_filetype",
-          bytes: 140258,
-          estTokens: 35065,
-          action: "excluded",
-        },
-      ],
-      totals: {
-        beforeTokens: 455959,
-        afterTokens: 733,
-        savedTokens: 455226,
-      },
-    },
-    {
-      source: "cli",
-      timestamp: STAMP,
-      repo: "checkout-web",
-      team: "checkout",
-      provider: "generic",
-      findings: [
-        {
-          path: "apps/checkout/package-lock.json",
-          reason: "high_risk_filetype",
-          bytes: 720000,
-          estTokens: 180000,
-          action: "excluded",
-        },
-      ],
-      totals: {
-        beforeTokens: 900000,
-        afterTokens: 720000,
-        savedTokens: 180000,
-      },
-    },
-    {
-      source: "cli",
-      timestamp: STAMP,
-      repo: "platform-services",
-      team: "platform-services",
-      provider: "generic",
-      findings: [
-        {
-          path: "dist/legacy-bundle.js",
-          reason: "high_risk_filetype",
-          bytes: 360000,
-          estTokens: 90000,
-          action: "excluded",
-        },
-        {
-          path: "config/flags.json",
-          reason: "oversized",
-          bytes: 246248,
-          estTokens: 61562,
-          action: "excluded",
-        },
-      ],
-      totals: {
-        beforeTokens: 900000,
-        afterTokens: 748438,
-        savedTokens: 151562,
-      },
-    },
-    {
-      source: "cli",
-      timestamp: STAMP,
-      repo: "data-pipelines",
-      team: "data-eng",
-      provider: "generic",
-      findings: [
-        {
-          path: "pipelines/dump.xml",
-          reason: "oversized",
-          bytes: 400000,
-          estTokens: 100000,
-          action: "excluded",
-        },
-      ],
-      totals: {
-        beforeTokens: 700000,
-        afterTokens: 600000,
-        savedTokens: 100000,
-      },
-    },
-  ],
-};
-
-export const DEMO_TOTALS = aggregateTotals(DEMO_SEED.reports);
+export async function parseDashboardFile(file: File): Promise<DashboardSeed> {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    throw new SeedLoadError(`${file.name} is not JSON`);
+  }
+  return parseDashboardDocument(payload);
+}
