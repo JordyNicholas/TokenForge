@@ -1,5 +1,6 @@
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import type { ScanResult } from "./scan";
+import { formatSavedPercent } from "./savings";
 
 function pad(value: string, width: number): string {
   return value.length >= width ? value : `${value}${" ".repeat(width - value.length)}`;
@@ -63,5 +64,6 @@ export function formatTotals(report: TokenRiskReport): string {
     `beforeTokens  ${padLeft(String(beforeTokens), width)}`,
     `afterTokens   ${padLeft(String(afterTokens), width)}`,
     `savedTokens   ${padLeft(String(savedTokens), width)}`,
+    `savedPercent  ${formatSavedPercent(report.totals)}`,
   ].join("\n");
 }
