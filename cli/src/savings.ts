@@ -32,3 +32,12 @@ export function totalsPayload(totals: TokenRiskTotals): TotalsPayload {
     savedPercent: savedPercent(totals),
   };
 }
+
+/**
+ * Demo-scripting exit codes after a successful scan/apply/init:
+ * - 0: savedTokens > 0
+ * - 3: completed, but nothing to prove
+ */
+export function savingsExitCode(totals: TokenRiskTotals): 0 | 3 {
+  return totals.savedTokens > 0 ? 0 : 3;
+}

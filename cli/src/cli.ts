@@ -5,7 +5,7 @@ import { applyPolicy, initRepo } from "./apply";
 import { UsageError, isCliError } from "./errors";
 import { writeScanReport } from "./report-file";
 import { scanRepo, type ScanResult } from "./scan";
-import { totalsPayload } from "./savings";
+import { totalsPayload, savingsExitCode } from "./savings";
 import { formatScanTable } from "./table";
 
 const USAGE = `Usage: tokenforge <command> [root] [options]
@@ -23,6 +23,12 @@ Options:
   --dry-run             Print planned policy files; do not write them
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
+
+Exit codes:
+  0   success, savedTokens > 0
+  1   runtime error
+  2   usage error
+  3   success, but savedTokens is 0
 `;
 
 export type CliIo = {
@@ -116,7 +122,7 @@ export async function runCli(
       } else {
         io.stderr.write(`wrote ${result.reportPath}\n`);
       }
-      return 0;
+      return savingsExitCode(result.report.totals);
     }
 
     if (command === "apply" || command === "init") {
@@ -132,7 +138,7 @@ export async function runCli(
         applied.reportPath,
         Boolean(values.json),
       );
-      return 0;
+      return savingsExitCode(applied.report.totals);
     }
 
     throw new UsageError(`Unknown command "${command}".\n` + USAGE);
