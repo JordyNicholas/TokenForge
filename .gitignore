@@ -8,6 +8,8 @@ __pycache__/
 
 # Build / IDE
 dist/
+!fixtures/noisy-app/dist/
+!fixtures/noisy-app/dist/**
 out/
 *.vsix
 .DS_Store
