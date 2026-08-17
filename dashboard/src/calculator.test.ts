@@ -6,7 +6,12 @@ import {
   scenarioSavedPercent,
   tokenSavedPercent,
 } from "./calculator";
-import { DEMO_TOTALS } from "./seed";
+
+const DEMO_TOTALS = {
+  beforeTokens: 2_955_959,
+  afterTokens: 2_069_171,
+  savedTokens: 886_788,
+};
 
 const noisyAppTotals = {
   beforeTokens: 455_959,

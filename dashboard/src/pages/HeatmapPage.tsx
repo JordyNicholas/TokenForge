@@ -9,8 +9,8 @@ export function HeatmapPage() {
     <section className="page">
       <h1>Team heatmap</h1>
       <p className="muted">
-        Color is each team’s scan exclusion ratio. {seed.businessUnit} rolls up
-        to ~30% on the seed; payments-platform is the noisy outlier.
+        Color is each team’s scan exclusion ratio. {seed?.businessUnit ?? "This BU"}{" "}
+        rolls up to ~30% on the demo seed; payments-platform is the noisy outlier.
       </p>
       <div className="heatmap">
         {reports.map((report) => {

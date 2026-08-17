@@ -84,8 +84,8 @@ npm run dev -w @tokenforge/dashboard
 
 Serves the Tokens Saved layout (Overview, Heatmap, Offenders, Assumptions).
 Assumptions convert token totals → $ live (rate, team size, msgs/day, model
-mix). The pitch ~30% is that scenario, not a vendor billing API. Overview,
-heatmap, and offenders render the in-memory Retail Banking seed.
+mix). The pitch ~30% is that scenario on `dashboard/public/demo-seed.json`
+(offline). Optionally load a CLI/extension `scan-report.json` via file or URL.
 
 ## Board automation setup
 

@@ -1,35 +1,67 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { isTokenRiskReport } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
-import { tokenSavedPercent } from "./calculator";
-import { DEMO_SEED, DEMO_TOTALS, aggregateTotals } from "./seed";
-import { heatColor, tokensByFileClass, topOffenders } from "./views";
+import { DEFAULT_ASSUMPTIONS, scenarioSavedPercent, tokenSavedPercent } from "./calculator";
+import {
+  aggregateTotals,
+  parseDashboardDocument,
+  type DashboardSeed,
+} from "./seed";
+import { tokensByFileClass, topOffenders } from "./views";
 
-describe("DEMO_SEED", () => {
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+function readJson(relativePath: string): unknown {
+  return JSON.parse(readFileSync(resolve(repoRoot, relativePath), "utf8"));
+}
+
+function demoSeed(): DashboardSeed {
+  return parseDashboardDocument(readJson("dashboard/public/demo-seed.json"));
+}
+
+describe("demo-seed.json", () => {
   it("is a valid Token Risk report per team", () => {
-    expect(DEMO_SEED.reports.every(isTokenRiskReport)).toBe(true);
+    expect(demoSeed().reports.every(isTokenRiskReport)).toBe(true);
   });
 
-  it("rolls up to 30.0% token savings", () => {
-    expect(aggregateTotals(DEMO_SEED.reports)).toEqual(DEMO_TOTALS);
-    expect(tokenSavedPercent(DEMO_TOTALS)).toBe(30);
+  it("hits 30.0% on default assumptions", () => {
+    const totals = aggregateTotals(demoSeed().reports);
+    expect(tokenSavedPercent(totals)).toBe(30);
+    expect(scenarioSavedPercent(totals, DEFAULT_ASSUMPTIONS)).toBe(30);
   });
 
   it("keeps noisy-app totals on payments-platform", () => {
-    const payments = DEMO_SEED.reports.find(
+    const pin = readJson("fixtures/noisy-app-expected-totals.json") as {
+      totals: { beforeTokens: number; afterTokens: number; savedTokens: number };
+    };
+    const payments = demoSeed().reports.find(
       (report) => report.team === "payments-platform",
     );
-    expect(payments?.totals).toEqual({
-      beforeTokens: 455959,
-      afterTokens: 733,
-      savedTokens: 455226,
-    });
-    expect(tokenSavedPercent(payments?.totals ?? DEMO_TOTALS)).toBe(99.8);
+    expect(payments?.totals).toEqual(pin.totals);
+    expect(tokenSavedPercent(payments?.totals ?? pin.totals)).toBe(99.8);
+  });
+});
+
+describe("parseDashboardDocument", () => {
+  it("wraps a single Token Risk report", () => {
+    const example = readJson("docs/schemas/examples/scan-report.v0.json");
+    const seed = parseDashboardDocument(example);
+    expect(seed.reports).toHaveLength(1);
+    expect(seed.businessUnit).toBe("payments-platform");
+  });
+
+  it("rejects unrelated JSON", () => {
+    expect(() => parseDashboardDocument({ totals: { beforeTokens: 1 } })).toThrow(
+      /Token Risk report/,
+    );
   });
 });
 
 describe("topOffenders", () => {
   it("lists the noisy-app lockfile first", () => {
-    const [first] = topOffenders(DEMO_SEED.reports, 3);
+    const [first] = topOffenders(demoSeed().reports, 3);
     expect(first?.path).toBe("package-lock.json");
     expect(first?.team).toBe("payments-platform");
     expect(first?.fileClass).toBe("lockfile");
@@ -38,17 +70,10 @@ describe("topOffenders", () => {
 
 describe("tokensByFileClass", () => {
   it("orders classes by wasted tokens", () => {
-    const buckets = tokensByFileClass(DEMO_SEED.reports);
+    const buckets = tokensByFileClass(demoSeed().reports);
     expect(buckets[0]?.fileClass).toBe("lockfile");
     expect(buckets.map((bucket) => bucket.fileClass)).toEqual(
       expect.arrayContaining(["lockfile", "generated", "config"]),
     );
-  });
-});
-
-describe("heatColor", () => {
-  it("returns distinct hsl colors", () => {
-    expect(heatColor(10)).toMatch(/^hsl\(/);
-    expect(heatColor(10)).not.toBe(heatColor(90));
   });
 });

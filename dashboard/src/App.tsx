@@ -1,6 +1,7 @@
 import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
 import { NavLink, Route, Routes } from "react-router-dom";
 import { useDashboard } from "./DashboardContext";
+import { SourceBar } from "./SourceBar";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
 import { OffendersPage } from "./pages/OffendersPage";
@@ -21,7 +22,7 @@ export function App() {
         <div className="brand">
           <span className="brand-name">TokenForge</span>
           <span className="brand-product">Tokens Saved</span>
-          <span className="brand-bu">{seed.businessUnit}</span>
+          <span className="brand-bu">{seed?.businessUnit ?? "Loading…"}</span>
         </div>
         <nav className="app-nav" aria-label="FinOps views">
           {NAV.map((item) => (
@@ -31,13 +32,18 @@ export function App() {
           ))}
         </nav>
       </header>
+      <SourceBar />
       <main className="app-main">
-        <Routes>
-          <Route path="/" element={<OverviewPage />} />
-          <Route path="/heatmap" element={<HeatmapPage />} />
-          <Route path="/offenders" element={<OffendersPage />} />
-          <Route path="/assumptions" element={<AssumptionsPage />} />
-        </Routes>
+        {seed ? (
+          <Routes>
+            <Route path="/" element={<OverviewPage />} />
+            <Route path="/heatmap" element={<HeatmapPage />} />
+            <Route path="/offenders" element={<OffendersPage />} />
+            <Route path="/assumptions" element={<AssumptionsPage />} />
+          </Routes>
+        ) : (
+          <p className="muted">Loading demo seed…</p>
+        )}
       </main>
       <footer className="app-footer">
         Prove adapter · Token Risk JSON · {TOKEN_RISK_REPORT_SCHEMA_ID}
