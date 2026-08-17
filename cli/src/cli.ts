@@ -1,19 +1,24 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { applyPolicy, initRepo } from "./apply";
 import { UsageError, isCliError } from "./errors";
 import { writeScanReport } from "./report-file";
-import { scanRepo } from "./scan";
+import { scanRepo, type ScanResult } from "./scan";
 import { formatScanTable } from "./table";
 
 const USAGE = `Usage: tokenforge <command> [root] [options]
 
 Commands:
-  scan [root]   Score high-risk paths and write .tokenforge/scan-report.json
+  scan [root]    Score high-risk paths and write .tokenforge/scan-report.json
+  apply [root]   Write lean instructions + exclusion candidates (provider adapter)
+  init [root]    scan + apply
 
 Options:
   --team <name>         Team label (default: local)
   --repo <name>         Repo label (default: directory name)
-  --provider <id>       copilot | cursor | claude | generic (default: generic)
+  --provider <id>       copilot | cursor | claude | generic
+                        scan default: generic; apply/init default: copilot
+  --dry-run             Print planned policy files; do not write them
   -h, --help            Show this help
 `;
 
@@ -24,6 +29,19 @@ export type CliIo = {
 
 function printHelp(io: CliIo): void {
   io.stdout.write(`${USAGE}\n`);
+}
+
+function printApply(io: CliIo, scan: ScanResult, files: { path: string }[], dryRun: boolean, reportPath: string): void {
+  io.stdout.write(formatScanTable(scan));
+  if (dryRun) {
+    io.stdout.write("dry-run; would write:\n");
+  } else {
+    io.stdout.write("wrote:\n");
+    io.stdout.write(`  ${reportPath}\n`);
+  }
+  for (const file of files) {
+    io.stdout.write(`  ${file.path}\n`);
+  }
 }
 
 /**
@@ -42,6 +60,7 @@ export async function runCli(
         team: { type: "string" },
         repo: { type: "string" },
         provider: { type: "string" },
+        "dry-run": { type: "boolean", default: false },
       },
     });
 
@@ -54,21 +73,39 @@ export async function runCli(
     if (!command) {
       throw new UsageError("Missing command.\n" + USAGE);
     }
-    if (command !== "scan") {
-      throw new UsageError(`Unknown command "${command}".\n` + USAGE);
-    }
 
-    const result = await scanRepo({
-      root: resolve(rootArg ?? process.cwd()),
+    const root = resolve(rootArg ?? process.cwd());
+    const common = {
+      root,
       team: values.team,
       repo: values.repo,
       provider: values.provider,
-    });
+    };
 
-    await writeScanReport(result.reportPath, result.report);
-    io.stdout.write(formatScanTable(result));
-    io.stdout.write(`wrote ${result.reportPath}\n`);
-    return 0;
+    if (command === "scan") {
+      const result = await scanRepo(common);
+      await writeScanReport(result.reportPath, result.report);
+      io.stdout.write(formatScanTable(result));
+      io.stdout.write(`wrote ${result.reportPath}\n`);
+      return 0;
+    }
+
+    if (command === "apply" || command === "init") {
+      const applied =
+        command === "init"
+          ? await initRepo({ ...common, dryRun: values["dry-run"] })
+          : await applyPolicy({ ...common, dryRun: values["dry-run"] });
+      printApply(
+        io,
+        { report: applied.report, reportPath: applied.reportPath, assessments: [] },
+        applied.files,
+        applied.dryRun,
+        applied.reportPath,
+      );
+      return 0;
+    }
+
+    throw new UsageError(`Unknown command "${command}".\n` + USAGE);
   } catch (error) {
     if (isCliError(error)) {
       io.stderr.write(`${error.message}\n`);

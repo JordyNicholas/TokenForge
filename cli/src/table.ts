@@ -42,11 +42,12 @@ export function formatScanTable(result: ScanResult): string {
     lines.push("(no at-risk paths)");
   }
 
-  lines.push(
-    "",
-    formatTotals(report),
-    `files ${assessments.length}  findings ${report.findings.length}`,
-  );
+  lines.push("", formatTotals(report));
+  if (assessments.length > 0) {
+    lines.push(`files ${assessments.length}  findings ${report.findings.length}`);
+  } else {
+    lines.push(`findings ${report.findings.length}`);
+  }
 
   return `${lines.join("\n")}\n`;
 }
