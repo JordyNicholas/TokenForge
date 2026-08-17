@@ -1,0 +1,42 @@
+{
+  "source": "cli",
+  "timestamp": "2026-08-17T18:00:00.000Z",
+  "repo": "fixtures/noisy-app",
+  "team": "payments-platform",
+  "provider": "generic",
+  "findings": [
+    {
+      "path": "package-lock.json",
+      "reason": "high_risk_filetype",
+      "bytes": 802241,
+      "estTokens": 200561,
+      "action": "excluded"
+    },
+    {
+      "path": "dist/bundle.js",
+      "reason": "high_risk_filetype",
+      "bytes": 337349,
+      "estTokens": 84338,
+      "action": "excluded"
+    },
+    {
+      "path": "config/app-settings.json",
+      "reason": "oversized",
+      "bytes": 357788,
+      "estTokens": 89447,
+      "action": "excluded"
+    },
+    {
+      "path": "src/index.js",
+      "reason": "inactive_tab",
+      "bytes": 259,
+      "estTokens": 65,
+      "action": "kept"
+    }
+  ],
+  "totals": {
+    "beforeTokens": 374411,
+    "afterTokens": 65,
+    "savedTokens": 374346
+  }
+}

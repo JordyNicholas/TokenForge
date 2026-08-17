@@ -47,7 +47,10 @@ export type TokenRiskTotals = {
   savedTokens: number;
 };
 
-/** Shared Detect/Fix → Prove document (`.tokenforge/scan-report.json`). */
+/**
+ * Shared Detect/Fix → Prove document (`.tokenforge/scan-report.json`).
+ * JSON Schema: `docs/schemas/risk-event.schema.json` (`TOKEN_RISK_REPORT_SCHEMA_ID`).
+ */
 export type TokenRiskReport = {
   source: ScanSource;
   timestamp: string;

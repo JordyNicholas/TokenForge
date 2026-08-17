@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokenforge.dev/schema/risk-event/v0",
+  "title": "TokenForge Token Risk report (v0)",
+  "description": "Shared Detect/Fix → Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "timestamp",
+    "repo",
+    "team",
+    "provider",
+    "findings",
+    "totals"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": ["extension", "cli"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "team": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["copilot", "cursor", "claude", "generic"],
+      "description": "Fix adapter that produced or will produce policy files. Risk scoring ignores this."
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "totals": { "$ref": "#/$defs/totals" }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason", "bytes", "estTokens", "action"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "reason": {
+          "type": "string",
+          "enum": ["inactive_tab", "high_risk_filetype", "oversized"]
+        },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "estTokens": { "type": "integer", "minimum": 0 },
+        "action": {
+          "type": "string",
+          "enum": ["filtered", "excluded", "kept"]
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beforeTokens", "afterTokens", "savedTokens"],
+      "properties": {
+        "beforeTokens": { "type": "integer", "minimum": 0 },
+        "afterTokens": { "type": "integer", "minimum": 0 },
+        "savedTokens": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
