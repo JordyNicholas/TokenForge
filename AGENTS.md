@@ -23,6 +23,18 @@ Read first:
 
 TypeScript everywhere: `packages/risk-core`, `cli/`, `extension/`, React `dashboard/`.
 
+## Architecture
+
+**Ports and adapters/Hexagonal Architecture.** `packages/risk-core` is the kernel (estimate, score, types).
+Extension / CLI / dashboard are adapters. They integrate through the Token Risk
+JSON file contract, not by calling each other. Provider file formats belong only
+in CLI adapters.
+
+Do **not** import VS Code, React, CLI frameworks, or vendor SDKs into `risk-core`.
+Do **not** import across delivery surfaces (extension ↛ CLI ↛ dashboard).
+
+Full write-up: [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md#architecture).
+
 ## Provider independence
 
 - Do **not** hard-wire product identity or `risk-core` to a single vendor (Copilot, Cursor, Claude, etc.).

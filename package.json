@@ -1,0 +1,19 @@
+{
+  "name": "tokenforge",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Enterprise AI Coding FinOps — detect, fix, and prove token waste across coding agents.",
+  "workspaces": [
+    "packages/*",
+    "cli",
+    "dashboard",
+    "extension"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
