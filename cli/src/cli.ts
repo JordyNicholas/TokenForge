@@ -1,12 +1,14 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { UsageError, isCliError } from "./errors";
+import { writeScanReport } from "./report-file";
 import { scanRepo } from "./scan";
+import { formatScanTable } from "./table";
 
 const USAGE = `Usage: tokenforge <command> [root] [options]
 
 Commands:
-  scan [root]   Score high-risk paths with risk-core
+  scan [root]   Score high-risk paths and write .tokenforge/scan-report.json
 
 Options:
   --team <name>         Team label (default: local)
@@ -63,7 +65,9 @@ export async function runCli(
       provider: values.provider,
     });
 
-    io.stdout.write(`${JSON.stringify(result.report, null, 2)}\n`);
+    await writeScanReport(result.reportPath, result.report);
+    io.stdout.write(formatScanTable(result));
+    io.stdout.write(`wrote ${result.reportPath}\n`);
     return 0;
   } catch (error) {
     if (isCliError(error)) {

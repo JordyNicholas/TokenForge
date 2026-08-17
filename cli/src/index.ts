@@ -5,4 +5,6 @@ export const SCAN_REPORT_SCHEMA_ID = TOKEN_RISK_REPORT_SCHEMA_ID;
 
 export { runCli, type CliIo } from "./cli";
 export { UsageError, RuntimeError } from "./errors";
+export { writeScanReport } from "./report-file";
 export { scanRepo, parseProviderId, type ScanOptions, type ScanResult } from "./scan";
+export { formatScanTable, formatTotals } from "./table";
