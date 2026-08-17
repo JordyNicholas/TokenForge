@@ -45,11 +45,12 @@ npm install
 ```
 
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
-options live in `tsconfig.base.json`. Placeholder packages exist so installs
-resolve; real CLI / dashboard / extension / risk-core land in later epics.
+options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
+CLI / dashboard / extension remain placeholders until later epics.
 
 ```bash
 npm run typecheck
+npm test
 ```
 
 ## Board automation setup
