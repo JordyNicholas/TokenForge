@@ -38,6 +38,25 @@ Detect and Prove are provider-agnostic. Fix uses pluggable adapters (Copilot, Cu
 - Branch `TF#<issue>` → PR with `Closes #<n>` → auto-close on merge
 - Board automation mirrors Flux (see `docs/PROJECT_PR_WORKFLOW.md`)
 
-## Setup note
+## Development
 
-Add repository secret **`PROJECT_TOKEN`** (PAT with Projects:write) so board Status sync works. Issue auto-link via `Closes #` still works without it.
+```bash
+npm install
+```
+
+npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
+options live in `tsconfig.base.json`. Placeholder packages exist so installs
+resolve; real CLI / dashboard / extension / risk-core land in later epics.
+
+```bash
+npm run typecheck
+```
+
+## Board automation setup
+
+Exact GitHub UI steps (secret, delete-head-branches, Project workflows):
+[`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md#collaborator-setup-github-ui).
+
+Repository secret **`PROJECT_TOKEN`** (PAT with Projects:write) is required for
+board Status sync. Issue auto-link via `Closes #` still works without it. Reuse
+the Flux PAT if it already has Projects:write on JordyNicholas user projects.
