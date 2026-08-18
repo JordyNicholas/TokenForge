@@ -50,11 +50,13 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #47 | Future: dashboard hybrid / LLM finding display | Future |
 | #48 | Future: extension optional LLM enricher | Future |
 | #49 | Future: pitch materials — hybrid scan FAQ + deck | Future / E5 |
+| #54 | Future: dashboard finding details + explanations | Future |
+| #55 | Future: advisory finding suggestions (copy-only) | Future |
 
 ## Build order
 
 E0 → E1 → E2 → E3 → E4 → E5 (Future deferred).
 
-Hybrid scan (Future): #41 → #42 → #43 → (#44 \| #45 \| #46) → #47 → #48; pitch #49.
+Hybrid scan (Future): #41 → #42 → #43 → (#44 \| #45 \| #46) → #47 → #54 → #55 → #48; pitch #49.
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).

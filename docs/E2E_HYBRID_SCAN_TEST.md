@@ -148,16 +148,17 @@ Open the URL printed (usually `http://localhost:5173`).
 
 - Default load: `dashboard/public/demo-seed.json`.
 - **Combined / Heuristic** boards show BU KPIs.
-- **LLM** tab is disabled or empty-state — demo seed has no LLM layer.
+- **LLM** board is enabled when a report includes LLM findings (demo seed includes a kept `AGENTS.md` review row).
+- **Findings** lists paths; click a row for explanation + copy-only suggestion. `/offenders` redirects here.
 
 ### 4b. Load hybrid scan JSON
 
 1. Use **Load JSON** (toolbar) → select `.tokenforge/scan-report.json` from step 2.
 2. Sidebar **Scan board** tabs:
-   - **Combined** — merged heuristic + LLM totals and offenders.
+   - **Combined** — merged heuristic + LLM totals and findings.
    - **Heuristic** — lockfiles / oversized only.
-   - **LLM** — semantic findings (e.g. redundant instructions) with confidence/detail in team drill-down.
-3. Walk **Overview → Heatmap → Offenders** on each board; numbers should differ per layer.
+   - **LLM** — semantic findings (e.g. redundant instructions) with confidence/detail in the finding drawer.
+3. Walk **Overview → Heatmap → Findings** on each board; numbers should differ per layer.
 4. **Assumptions** — same calculator; changing knobs does not rewrite scan JSON.
 
 **Talking point:** *Prove is provider-agnostic; boards let managers see rule-based vs semantic waste separately.*

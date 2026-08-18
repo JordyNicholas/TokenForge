@@ -177,7 +177,7 @@ MVP may implement one adapter fully and stub others; do not hard-code a single v
 
 ### Dashboard — Tokens Saved (React)
 
-- BU overview, team heatmap, top offenders, assumptions panel
+- BU overview, team heatmap, findings (detail drawer + copy-only advice), assumptions panel
 - Load seeded demo data + optional CLI/extension JSON
 - Cost knobs are generic (rate / credits / msgs), not a single vendor’s billing API
 

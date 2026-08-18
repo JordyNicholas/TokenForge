@@ -118,6 +118,10 @@ When the CLI writes a scan report, it includes:
 
 The dashboard exposes three **boards** (Combined / Heuristic / LLM) that read
 from `layers` when present, or synthesize from legacy `findings` + `source`.
+The Findings view lists paths with source, reason, confidence, and truncated
+detail; a detail drawer shows the explanation plus copy-only suggestion.
+`kept` / `review` rows appear on the LLM (and Combined) board and are labeled
+as not counted in saved tokens.
 
 **Finding** (optional):
 
@@ -126,6 +130,11 @@ from `layers` when present, or synthesize from legacy `findings` + `source`.
 | `source` | `heuristic \| llm \| combined` | Provenance |
 | `confidence` | 0–1 number | LLM confidence |
 | `detail` | string | Human-readable LLM explanation |
+| `suggestion` | `{ kind, summary }` | Copy-only advice. TokenForge **never applies** this |
+
+`suggestion.kind` allowlist: `exclude_from_context`, `trim_instructions`, `dedupe_rules`, `add_ignore`, `review`. Unknown kinds are dropped at parse time. Code snippets (`suggestion.snippet`) are **deferred** — not in the v0 contract.
+
+Heuristic findings get deterministic explanations and template suggestions in `risk-core` (`explainFinding`, `resolveSuggestion`) even when JSON omits `detail` / `suggestion`.
 
 **New `reason` values** (LLM-only findings):
 
@@ -194,13 +203,22 @@ Enrichers request JSON matching an internal schema (not yet in the public report
       "verdict": "exclude",
       "reason": "redundant_instructions",
       "confidence": 0.87,
-      "detail": "Repeats lint rules already in AGENTS.md"
+      "detail": "Repeats lint rules already in AGENTS.md",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Keep unique bullets; drop the copy that already lives in AGENTS.md."
+      }
     }
   ]
 }
 ```
 
 Adapters map `verdict: exclude` → `action: excluded` and attach bytes/tokens from candidates.
+`suggestion` is copied onto the finding when `kind` is allowlisted; snippets and
+unknown kinds are dropped. TokenForge does **not** apply suggestions — `apply`
+still writes provider policy packs only.
+
+Prompt rules forbid architecture, API, or product refactors.
 
 ## Privacy and cost
 
@@ -211,14 +229,17 @@ Adapters map `verdict: exclude` → `action: excluded` and attach bytes/tokens f
 | `hybrid` + `openai` / `anthropic` | Yes — candidate excerpts | Per-provider API usage |
 
 UX/docs must state this before external enrichment runs. Do **not** auto-apply LLM
-findings; `apply` continues to use the merged report with existing exclusion rules.
+findings or suggestions; `apply` continues to use the merged report with existing
+exclusion rules (policy pack only). The dashboard copies advice; it does not write
+source files.
 
 ## Honesty (pitch)
 
 - **Default scan does not use AI.**
 - Hybrid adds an **optional semantic pass** on a bounded candidate set.
 - We still do **not** intercept any agent’s private context pipeline.
-- LLM suggestions are **recommendations** merged into the same Token Risk JSON.
+- LLM suggestions are **recommendations** (kind + summary) on the Token Risk JSON.
+  TokenForge does not apply them.
 
 ## Implementation map (board)
 
@@ -231,10 +252,12 @@ findings; `apply` continues to use the merged report with existing exclusion rul
 | #45 | CLI: OpenAI-compatible enricher |
 | #46 | CLI: Anthropic enricher |
 | #47 | Dashboard: hybrid / LLM finding display |
+| #54 | Dashboard: finding details + heuristic explanations |
+| #55 | Advisory finding suggestions (copy-only, never applied) |
 | #48 | Extension: optional enricher on instruction paths (Future) |
 | #49 | Pitch FAQ + deck: hybrid scan talking points |
 
-Build order: #41 → #42 → #43 → (#44 \| #45 \| #46 in parallel) → #47 → #48.
+Build order: #41 → #42 → #43 → (#44 \| #45 \| #46 in parallel) → #47 → #54 → #55 → #48.
 
 ## Out of scope (this design)
 
@@ -242,3 +265,6 @@ Build order: #41 → #42 → #43 → (#44 \| #45 \| #46 in parallel) → #47 →
 - Sending lockfiles or entire trees to models
 - Gating CI on hybrid scan results (non-deterministic)
 - Cloud-hosted TokenForge scan service
+- Applying suggestions to source files
+- `suggestion.snippet` / code patches (deferred until text advice is trusted)
+- Architectural, API, or product-refactor advice
