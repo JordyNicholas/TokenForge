@@ -1,14 +1,15 @@
 import {
   INACTIVE_MS,
-  TOKEN_RISK_REPORT_SCHEMA_ID,
-  scoreRisk,
 } from "@tokenforge/risk-core";
+import { commands, ExtensionContext, window } from "vscode";
 
-/** `.tokenforge/last-scan.json` must match this schema (E4 #22). */
-export const LAST_SCAN_SCHEMA_ID = TOKEN_RISK_REPORT_SCHEMA_ID;
-
-/** Placeholder until E4 (#20) scaffolds the VS Code extension. */
-export function extensionPlaceholder(): boolean {
-  return scoreRisk({ path: "src/index.ts", bytes: 0, inactiveMs: 0 }).score <
-    scoreRisk({ path: "src/index.ts", bytes: 0, inactiveMs: INACTIVE_MS }).score;
+export function activate(context: ExtensionContext): void {
+  const hello = commands.registerCommand("tokenforge.hello", () => {
+    window.showInformationMessage(
+      `TokenForge Context Guard is active (inactive threshold: ${INACTIVE_MS / 60000} minutes)`
+    )
+  })
+  context.subscriptions.push(hello);
 }
+
+export function deactivate(): void {}
