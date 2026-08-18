@@ -1,8 +1,8 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import {
+  buildScanLayers,
   isTokenRiskReport,
-  mergeFindings,
   primaryReason,
   scoreRisk,
   selectEnrichmentCandidates,
@@ -13,7 +13,6 @@ import {
   type ScanMode,
   type TokenRiskFinding,
   type TokenRiskReport,
-  type TokenRiskTotals,
 } from "@tokenforge/risk-core";
 import { RuntimeError, UsageError } from "../../app/errors";
 import {
@@ -106,22 +105,6 @@ async function walkFiles(root: string): Promise<string[]> {
   return files;
 }
 
-function tallyTotals(assessments: readonly RiskAssessment[]): TokenRiskTotals {
-  let beforeTokens = 0;
-  let afterTokens = 0;
-  for (const assessment of assessments) {
-    beforeTokens += assessment.estTokens;
-    if (!assessment.atRisk) {
-      afterTokens += assessment.estTokens;
-    }
-  }
-  return {
-    beforeTokens,
-    afterTokens,
-    savedTokens: beforeTokens - afterTokens,
-  };
-}
-
 function toFinding(assessment: RiskAssessment): TokenRiskFinding | undefined {
   const reason = primaryReason(assessment.reasons);
   if (!assessment.atRisk || reason === undefined) {
@@ -157,17 +140,25 @@ async function loadCandidateExcerpt(
   };
 }
 
-async function buildHybridFindings(
+async function runHybridEnrichment(
   root: string,
   assessments: RiskAssessment[],
   heuristicFindings: TokenRiskFinding[],
   options: ScanOptions,
-): Promise<{ findings: TokenRiskFinding[]; scan?: ScanMetadata }> {
+): Promise<{
+  llmFindings: TokenRiskFinding[];
+  llmCandidateTokens: number;
+  scan: ScanMetadata;
+}> {
   const spec = parseLlmSpec(options.llm);
   const enricher = getEnricher(spec.backend as LlmBackendId);
   const candidateAssessments = selectEnrichmentCandidates(assessments);
   const candidates = await Promise.all(
     candidateAssessments.map((assessment) => loadCandidateExcerpt(root, assessment)),
+  );
+  const llmCandidateTokens = candidates.reduce(
+    (sum, candidate) => sum + candidate.estTokens,
+    0,
   );
 
   const started = Date.now();
@@ -179,7 +170,8 @@ async function buildHybridFindings(
   });
 
   return {
-    findings: mergeFindings(heuristicFindings, enrichment.findings),
+    llmFindings: enrichment.findings,
+    llmCandidateTokens,
     scan: {
       mode: "hybrid",
       llm: {
@@ -226,14 +218,23 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     return finding ? [finding] : [];
   });
 
-  let findings = heuristicFindings;
+  let llmFindings: TokenRiskFinding[] = [];
+  let llmCandidateTokens = 0;
   let scan: ScanMetadata | undefined;
 
   if (mode === "hybrid") {
-    const hybrid = await buildHybridFindings(root, assessments, heuristicFindings, options);
-    findings = hybrid.findings;
+    const hybrid = await runHybridEnrichment(root, assessments, heuristicFindings, options);
+    llmFindings = hybrid.llmFindings;
+    llmCandidateTokens = hybrid.llmCandidateTokens;
     scan = hybrid.scan;
   }
+
+  const layers = buildScanLayers({
+    assessments,
+    heuristicFindings,
+    llmFindings,
+    llmCandidateTokens,
+  });
 
   const report: TokenRiskReport = {
     source: "cli",
@@ -241,8 +242,9 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     repo: options.repo?.trim() || defaultRepoLabel(root),
     team: options.team?.trim() || "local",
     provider: parseProviderId(options.provider ?? "generic"),
-    findings,
-    totals: tallyTotals(assessments),
+    findings: layers.combined.findings,
+    totals: layers.combined.totals,
+    layers,
     ...(scan ? { scan } : {}),
   };
 

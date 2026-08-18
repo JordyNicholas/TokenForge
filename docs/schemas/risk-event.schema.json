@@ -41,7 +41,8 @@
       "items": { "$ref": "#/$defs/finding" }
     },
     "totals": { "$ref": "#/$defs/totals" },
-    "scan": { "$ref": "#/$defs/scan" }
+    "scan": { "$ref": "#/$defs/scan" },
+    "layers": { "$ref": "#/$defs/layers" }
   },
   "$defs": {
     "finding": {
@@ -109,6 +110,28 @@
             "candidatesSent": { "type": "integer", "minimum": 0 }
           }
         }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["findings", "totals"],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/finding" }
+        },
+        "totals": { "$ref": "#/$defs/totals" }
+      }
+    },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heuristic", "llm", "combined"],
+      "properties": {
+        "heuristic": { "$ref": "#/$defs/layer" },
+        "llm": { "$ref": "#/$defs/layer" },
+        "combined": { "$ref": "#/$defs/layer" }
       }
     }
   }

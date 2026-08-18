@@ -4,6 +4,9 @@ import type {
   FindingSource,
   LlmBackendId,
   ProviderId,
+  ScanLayer,
+  ScanLayerId,
+  ScanLayers,
   ScanMetadata,
   ScanMode,
   ScanSource,
@@ -29,6 +32,7 @@ const REASONS = new Set<FindingReason>([
 ]);
 const ACTIONS = new Set<FindingAction>(["filtered", "excluded", "kept"]);
 const FINDING_SOURCES = new Set<FindingSource>(["heuristic", "llm", "combined"]);
+const SCAN_LAYER_IDS = new Set<ScanLayerId>(["heuristic", "llm", "combined"]);
 const SCAN_MODES = new Set<ScanMode>(["heuristic", "hybrid"]);
 const LLM_BACKENDS = new Set<LlmBackendId>([
   "noop",
@@ -88,6 +92,29 @@ function isTotals(value: unknown): value is TokenRiskTotals {
   );
 }
 
+function isScanLayer(value: unknown): value is ScanLayer {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    Array.isArray(value.findings) &&
+    value.findings.every(isFinding) &&
+    isTotals(value.totals)
+  );
+}
+
+function isScanLayers(value: unknown): value is ScanLayers {
+  if (!isRecord(value)) {
+    return false;
+  }
+  for (const layerId of SCAN_LAYER_IDS) {
+    if (!isScanLayer(value[layerId])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function isScanMetadata(value: unknown): value is ScanMetadata {
   if (!isRecord(value)) {
     return false;
@@ -120,6 +147,9 @@ export function isTokenRiskReport(value: unknown): value is TokenRiskReport {
     return false;
   }
   if (value.scan !== undefined && !isScanMetadata(value.scan)) {
+    return false;
+  }
+  if (value.layers !== undefined && !isScanLayers(value.layers)) {
     return false;
   }
   return (
