@@ -17,6 +17,18 @@ export {
 export { selectEnrichmentCandidates } from "./candidates/candidates";
 export { classifyFiletype } from "./classify/classify";
 export { estimateTokens } from "./estimate/estimate";
+export {
+  buildScanLayers,
+  tallyCombinedTotals,
+  tallyHeuristicTotals,
+  tallyLlmTotals,
+} from "./layers/totals";
+export {
+  hasLlmLayerData,
+  reportForLayer,
+  resolveScanLayer,
+  resolveScanLayers,
+} from "./layers/resolve";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { primaryReason, scoreRisk } from "./score/score";
@@ -30,6 +42,9 @@ export type {
   RiskAssessment,
   RiskInput,
   ScanLlmMetadata,
+  ScanLayer,
+  ScanLayerId,
+  ScanLayers,
   ScanMetadata,
   ScanMode,
   ScanSource,

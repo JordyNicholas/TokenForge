@@ -95,7 +95,29 @@ until we define a safe exclusion rule for semantic-only paths (Future).
 
 ## JSON contract extensions (backward-compatible v0)
 
-Optional fields — existing v0 reports remain valid.
+Optional fields — existing v0 reports remain valid. Top-level `findings` / `totals`
+mirror the **combined** layer (Fix adapters keep using them).
+
+### Separated layers (`layers`)
+
+When the CLI writes a scan report, it includes:
+
+```json
+"layers": {
+  "heuristic": { "findings": [...], "totals": {...} },
+  "llm": { "findings": [...], "totals": {...} },
+  "combined": { "findings": [...], "totals": {...} }
+}
+```
+
+| Layer | Contents |
+| --- | --- |
+| `heuristic` | Path class, size, inactivity only |
+| `llm` | Semantic enricher findings + candidate-scope totals |
+| `combined` | `mergeFindings(heuristic, llm)` — same as top-level `findings` |
+
+The dashboard exposes three **boards** (Combined / Heuristic / LLM) that read
+from `layers` when present, or synthesize from legacy `findings` + `source`.
 
 **Finding** (optional):
 

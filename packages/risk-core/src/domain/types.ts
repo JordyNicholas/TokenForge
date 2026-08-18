@@ -75,6 +75,16 @@ export type ScanMetadata = {
   llm?: ScanLlmMetadata;
 };
 
+export type ScanLayerId = "heuristic" | "llm" | "combined";
+
+export type ScanLayer = {
+  findings: TokenRiskFinding[];
+  totals: TokenRiskTotals;
+};
+
+/** Separated Detect layers; `combined` mirrors top-level findings/totals for Fix. */
+export type ScanLayers = Record<ScanLayerId, ScanLayer>;
+
 export type TokenRiskTotals = {
   beforeTokens: number;
   afterTokens: number;
@@ -95,4 +105,6 @@ export type TokenRiskReport = {
   totals: TokenRiskTotals;
   /** Optional hybrid-scan metadata; omitted for heuristic-only reports. */
   scan?: ScanMetadata;
+  /** Separated heuristic / LLM / combined results when hybrid scan ran. */
+  layers?: ScanLayers;
 };

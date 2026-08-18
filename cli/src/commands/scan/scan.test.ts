@@ -33,6 +33,9 @@ describe("scanRepo (noisy-app)", () => {
     expect(report.findings.some((finding) => finding.path.startsWith("src/"))).toBe(
       false,
     );
+    expect(report.layers?.heuristic.findings).toEqual(report.findings);
+    expect(report.layers?.combined.totals).toEqual(report.totals);
+    expect(report.layers?.llm.findings).toEqual([]);
   });
 
   it("records hybrid scan metadata with the noop enricher", async () => {
@@ -51,6 +54,9 @@ describe("scanRepo (noisy-app)", () => {
         candidatesSent: expect.any(Number),
       },
     });
+    expect(report.layers?.heuristic.findings.length).toBeGreaterThan(0);
+    expect(report.layers?.llm.findings).toEqual([]);
+    expect(report.findings).toEqual(report.layers?.combined.findings);
   });
 });
 
