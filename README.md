@@ -15,6 +15,7 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | Concept brief | [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) |
 | Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) (architecture: [ports & adapters](docs/SOLUTION_DESIGN.md#architecture)) |
 | Hybrid scan design (Phase 2) | [`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md) |
+| E2E hybrid scan test | [`docs/E2E_HYBRID_SCAN_TEST.md`](docs/E2E_HYBRID_SCAN_TEST.md) |
 | Pitch FAQ (vs Auto Memory) | [`docs/PITCH_FAQ.md`](docs/PITCH_FAQ.md) |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
 | PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
@@ -67,6 +68,12 @@ npm run tokenforge:scan
 npm run tokenforge:scan -- --json
 npm run tokenforge:scan -- --mode hybrid
 npm run tokenforge -- scan path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
+```
+
+Local Ollama test (requires `qwen2.5-coder:7b` or your model tag):
+
+```bash
+npm run tokenforge -- scan fixtures/noisy-app --mode hybrid --llm ollama:qwen2.5-coder:7b
 ```
 
 ```bash
