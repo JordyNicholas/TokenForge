@@ -69,6 +69,7 @@ export function mapStructuredFinding(
     source: "llm",
     confidence: row.confidence,
     detail: row.detail,
+    suggestion: row.suggestion,
   };
 }
 

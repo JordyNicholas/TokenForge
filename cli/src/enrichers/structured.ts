@@ -1,4 +1,8 @@
-import type { FindingReason } from "@tokenforge/risk-core";
+import {
+  isFindingSuggestion,
+  type FindingReason,
+  type FindingSuggestion,
+} from "@tokenforge/risk-core";
 import type { EnrichmentCandidate, LlmStructuredFinding } from "./types";
 import { MAX_LLM_EXCERPT_CHARS } from "./limits";
 
@@ -39,7 +43,7 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "For each path, decide whether it is low-value billable context for Chat/Agent workflows.",
     "",
     "Return JSON only with this shape:",
-    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config","confidence":0.0,"detail":"short reason"}]}',
+    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}]}',
     "",
     "Rules:",
     "- Use exact paths from the input.",
@@ -47,6 +51,9 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "- verdict review = borderline; still include in findings.",
     "- verdict keep = omit from findings unless you must note it.",
     "- Prefer exclude for generated noise, redundant instructions, or low-signal config.",
+    "- suggestion.kind must be one of those five values. Unknown kinds are dropped.",
+    "- suggestion.summary is copy-only advice for a developer. TokenForge will not apply it.",
+    "- Do not suggest architecture, API, or product refactors. Do not include code patches or whole-file rewrites.",
     "",
     "Files:",
     blocks.join("\n\n"),
@@ -80,6 +87,13 @@ export function extractJsonPayload(text: string): unknown {
     }
     throw new Error("LLM response did not contain JSON.");
   }
+}
+
+function parseSuggestion(value: unknown): FindingSuggestion | undefined {
+  if (!isFindingSuggestion(value)) {
+    return undefined;
+  }
+  return { kind: value.kind, summary: value.summary.trim() };
 }
 
 export function parseStructuredFindings(
@@ -117,6 +131,7 @@ export function parseStructuredFindings(
       reason,
       confidence: clampConfidence(item.confidence),
       detail: typeof item.detail === "string" ? item.detail : undefined,
+      suggestion: parseSuggestion(item.suggestion),
     });
   }
 

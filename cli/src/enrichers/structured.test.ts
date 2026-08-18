@@ -20,6 +20,8 @@ describe("buildEnrichmentPrompt", () => {
     const prompt = buildEnrichmentPrompt(candidates);
     expect(prompt).toContain("AGENTS.md");
     expect(prompt).toContain("Always run lint before commit.");
+    expect(prompt).toContain("TokenForge will not apply");
+    expect(prompt).toContain("Do not suggest architecture");
   });
 });
 
@@ -58,6 +60,40 @@ describe("parseStructuredFindings", () => {
       verdict: "exclude",
       reason: "redundant_instructions",
     });
+  });
+
+  it("keeps allowlisted suggestions and drops unknown kinds and snippets", () => {
+    const rows = parseStructuredFindings(
+      {
+        findings: [
+          {
+            path: "AGENTS.md",
+            verdict: "exclude",
+            reason: "redundant_instructions",
+            suggestion: {
+              kind: "dedupe_rules",
+              summary: "Drop duplicated lint bullets.",
+              snippet: "--- a/AGENTS.md\n+++ b/AGENTS.md\n",
+            },
+          },
+          {
+            path: "AGENTS.md",
+            verdict: "review",
+            reason: "semantic_bloat",
+            suggestion: { kind: "rewrite_architecture", summary: "Split the app." },
+          },
+        ],
+      },
+      candidates,
+    );
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.suggestion).toEqual({
+      kind: "dedupe_rules",
+      summary: "Drop duplicated lint bullets.",
+    });
+    expect(rows[0]?.suggestion).not.toHaveProperty("snippet");
+    expect(rows[1]?.suggestion).toBeUndefined();
   });
 
   it("drops unknown paths and keep verdicts", () => {

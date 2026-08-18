@@ -43,6 +43,7 @@ export type LlmStructuredFinding = {
   reason: FindingReason;
   confidence?: number;
   detail?: string;
+  suggestion?: TokenRiskFinding["suggestion"];
 };
 
 export type LlmEnricher = {
