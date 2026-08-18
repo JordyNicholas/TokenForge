@@ -12,7 +12,7 @@
       "background": {
         "activeOnStart": true,
         "beginsPattern": ".",
-        "endsPattern": "Done in"
+        "endsPattern": "build finished"
       }
     },
     "presentation": { "reveal": "silent", "panel": "shared" },
