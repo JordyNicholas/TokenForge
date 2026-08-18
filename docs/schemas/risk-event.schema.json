@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tokenforge.dev/schema/risk-event/v0",
   "title": "TokenForge Token Risk report (v0)",
-  "description": "Shared Detect/Fix → Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider.",
+  "description": "Shared Detect/Fix → Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -40,7 +40,8 @@
       "type": "array",
       "items": { "$ref": "#/$defs/finding" }
     },
-    "totals": { "$ref": "#/$defs/totals" }
+    "totals": { "$ref": "#/$defs/totals" },
+    "scan": { "$ref": "#/$defs/scan" }
   },
   "$defs": {
     "finding": {
@@ -51,14 +52,27 @@
         "path": { "type": "string", "minLength": 1 },
         "reason": {
           "type": "string",
-          "enum": ["inactive_tab", "high_risk_filetype", "oversized"]
+          "enum": [
+            "inactive_tab",
+            "high_risk_filetype",
+            "oversized",
+            "semantic_bloat",
+            "redundant_instructions",
+            "low_signal_config"
+          ]
         },
         "bytes": { "type": "integer", "minimum": 0 },
         "estTokens": { "type": "integer", "minimum": 0 },
         "action": {
           "type": "string",
           "enum": ["filtered", "excluded", "kept"]
-        }
+        },
+        "source": {
+          "type": "string",
+          "enum": ["heuristic", "llm", "combined"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "detail": { "type": "string" }
       }
     },
     "totals": {
@@ -69,6 +83,32 @@
         "beforeTokens": { "type": "integer", "minimum": 0 },
         "afterTokens": { "type": "integer", "minimum": 0 },
         "savedTokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["heuristic", "hybrid"]
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["backend", "model", "durationMs", "candidatesSent"],
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": ["noop", "ollama", "openai", "anthropic"]
+            },
+            "model": { "type": "string", "minLength": 1 },
+            "endpoint": { "type": "string" },
+            "durationMs": { "type": "number", "minimum": 0 },
+            "candidatesSent": { "type": "integer", "minimum": 0 }
+          }
+        }
       }
     }
   }

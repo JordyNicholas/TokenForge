@@ -5,9 +5,24 @@ export type ScanSource = "extension" | "cli";
 /** Fix adapter that produced (or will produce) policy files. Scoring ignores this. */
 export type ProviderId = "copilot" | "cursor" | "claude" | "generic";
 
-export type FindingReason = "inactive_tab" | "high_risk_filetype" | "oversized";
+export type FindingReason =
+  | "inactive_tab"
+  | "high_risk_filetype"
+  | "oversized"
+  | "semantic_bloat"
+  | "redundant_instructions"
+  | "low_signal_config";
 
 export type FindingAction = "filtered" | "excluded" | "kept";
+
+/** How a finding was produced when hybrid scan is enabled. */
+export type FindingSource = "heuristic" | "llm" | "combined";
+
+/** CLI scan mode. Default MVP path is heuristic-only. */
+export type ScanMode = "heuristic" | "hybrid";
+
+/** LLM enricher backend identifiers (CLI adapters). */
+export type LlmBackendId = "noop" | "ollama" | "openai" | "anthropic";
 
 export type FiletypeRiskClass =
   | "lockfile"
@@ -39,6 +54,25 @@ export type TokenRiskFinding = {
   bytes: number;
   estTokens: number;
   action: FindingAction;
+  /** Present when hybrid enrichment ran; omitted for pure heuristic scans. */
+  source?: FindingSource;
+  /** LLM confidence 0–1 when `source` is `llm` or `combined`. */
+  confidence?: number;
+  /** Human-readable LLM explanation. */
+  detail?: string;
+};
+
+export type ScanLlmMetadata = {
+  backend: LlmBackendId;
+  model: string;
+  endpoint?: string;
+  durationMs: number;
+  candidatesSent: number;
+};
+
+export type ScanMetadata = {
+  mode: ScanMode;
+  llm?: ScanLlmMetadata;
 };
 
 export type TokenRiskTotals = {
@@ -59,4 +93,6 @@ export type TokenRiskReport = {
   provider: ProviderId;
   findings: TokenRiskFinding[];
   totals: TokenRiskTotals;
+  /** Optional hybrid-scan metadata; omitted for heuristic-only reports. */
+  scan?: ScanMetadata;
 };

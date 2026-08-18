@@ -39,6 +39,7 @@ or a vendor:
 | --- | --- |
 | Token Risk JSON (v0, below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
 | Provider-adapter interface (CLI) | Fix-out port. Same findings → vendor-native instruction/exclusion files. |
+| LLM-enricher interface (CLI) | Optional Detect enrichment. Heuristic findings + semantic LLM findings → merged report. |
 
 Surfaces do **not** call each other at runtime. They pass a file
 (`.tokenforge/scan-report.json`, `.tokenforge/last-scan.json`). That is
@@ -50,6 +51,7 @@ file-based integration, not RPC or events.
 | --- | --- | --- |
 | Extension (Context Guard) | Detect in | VS Code extension host |
 | CLI + provider adapters | Fix out | Node |
+| CLI + LLM enrichers | Detect enrich (optional) | Node — local or external model |
 | Dashboard (Tokens Saved) | Prove out | React / Vite |
 
 Dependency rule: **consumers → core**, never the reverse, and never
@@ -149,10 +151,16 @@ Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/
 ### CLI — `tokenforge`
 
 ```bash
-tokenforge scan
+tokenforge scan [--mode heuristic|hybrid] [--llm <backend>:<model>]
 tokenforge apply [--provider <id>] [--dry-run]
 tokenforge init   # scan + apply + report
 ```
+
+Default scan is **heuristic-only** (fast, offline, deterministic). Optional
+`--mode hybrid` runs the same baseline plus an **LLM enricher** on a bounded
+candidate set (instruction files, borderline configs, top-N largest paths).
+Enrichers are pluggable (`noop`, `ollama`, `openai`, `anthropic`). Full design:
+[`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 `apply` / `init` select a **provider adapter** that maps the same scan findings to that vendor’s levers, for example:
 
@@ -183,5 +191,7 @@ MVP may implement one adapter fully and stub others; do not hard-code a single v
 
 ## Phase 2 (board: Future)
 
-Chat history compaction, intelligent model routing, live usage/billing sync **per provider**,
+Hybrid scan (local **and** external LLM enrichers), chat history compaction,
+intelligent model routing, live usage/billing sync **per provider**,
 org-level exclusion/policy apply APIs — do **not** lead the pitch with these.
+Hybrid scan design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).

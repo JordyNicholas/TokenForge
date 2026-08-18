@@ -411,6 +411,53 @@ mk_story S21 "[Future] Apply org policy/exclusions via provider APIs" "$EF" Futu
   "Roadmap only: CLI/API path to push exclusion/policy rules for org owners per adapter." \
   -- phase:future priority:p2
 
+mk_story S22 "[Future] Hybrid scan design + JSON contract scaffolding" "$EF" Future \
+  "## Scope" \
+  "Lock docs/HYBRID_SCAN_DESIGN.md; extend Token Risk JSON; risk-core merge/candidates; CLI enricher port + noop + --mode hybrid." \
+  "## Doc" \
+  "docs/HYBRID_SCAN_DESIGN.md" \
+  -- phase:future priority:p2
+
+mk_story S23 "[Future] risk-core: enrichment candidate selection + finding merge" "$EF" Future \
+  "## Scope" \
+  "selectEnrichmentCandidates + mergeFindings with unit tests." \
+  -- phase:future priority:p2
+
+mk_story S24 "[Future] CLI: LLM enricher port + hybrid scan orchestration" "$EF" Future \
+  "## Scope" \
+  "cli/src/enrichers port, scanRepo hybrid branch, --mode/--llm flags." \
+  -- phase:future priority:p2
+
+mk_story S25 "[Future] CLI: Ollama LLM enricher (local Qwen, etc.)" "$EF" Future \
+  "## Scope" \
+  "Ollama adapter for structured semantic findings." \
+  -- phase:future priority:p2
+
+mk_story S26 "[Future] CLI: OpenAI-compatible LLM enricher" "$EF" Future \
+  "## Scope" \
+  "OpenAI-compatible adapter for external enrichment." \
+  -- phase:future priority:p2
+
+mk_story S27 "[Future] CLI: Anthropic LLM enricher" "$EF" Future \
+  "## Scope" \
+  "Anthropic Messages API adapter." \
+  -- phase:future priority:p2
+
+mk_story S28 "[Future] Dashboard: hybrid scan + LLM finding display" "$EF" Future \
+  "## Scope" \
+  "Show finding.source, confidence, detail; scan.llm metadata." \
+  -- phase:future priority:p2
+
+mk_story S29 "[Future] Extension: optional LLM enricher on instruction paths" "$EF" Future \
+  "## Scope" \
+  "Optional enricher hook on instruction paths; extension stays heuristic-first." \
+  -- phase:future priority:p2
+
+mk_story S30 "[Future] Pitch materials: hybrid scan FAQ + deck slide" "$EF" Future \
+  "## Scope" \
+  "docs/PITCH_FAQ.md hybrid section; docs/pitch/TokenForge-Pitch.pptx; scripts/generate-pitch-deck.py" \
+  -- phase:future priority:p2
+
 cat > /home/jordy-silva/TokenForge/docs/BOARD.md <<EOF
 # TokenForge board map
 
@@ -455,10 +502,21 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #$S19 | Future: model routing | Future |
 | #$S20 | Future: live usage metrics (per provider) | Future |
 | #$S21 | Future: org policy/exclusion apply (per provider) | Future |
+| #$S22 | Future: hybrid scan design + JSON scaffolding | Future |
+| #$S23 | Future: risk-core candidate selection + merge | Future |
+| #$S24 | Future: CLI LLM enricher port + hybrid orchestration | Future |
+| #$S25 | Future: CLI Ollama enricher | Future |
+| #$S26 | Future: CLI OpenAI-compatible enricher | Future |
+| #$S27 | Future: CLI Anthropic enricher | Future |
+| #$S28 | Future: dashboard hybrid / LLM finding display | Future |
+| #$S29 | Future: extension optional LLM enricher | Future |
+| #$S30 | Future: pitch hybrid scan FAQ + deck | Future |
 
 ## Build order
 
 E0 → E1 → E2 → E3 → E4 → E5 (Future deferred).
+
+Hybrid scan: S22 → S23 → S24 → (S25 | S26 | S27) → S28 → S29; see docs/HYBRID_SCAN_DESIGN.md.
 EOF
 
 echo "BOARD.md written"

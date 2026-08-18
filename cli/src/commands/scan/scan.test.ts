@@ -34,6 +34,24 @@ describe("scanRepo (noisy-app)", () => {
       false,
     );
   });
+
+  it("records hybrid scan metadata with the noop enricher", async () => {
+    const { report } = await scanRepo({
+      root: fixtureRoot,
+      mode: "hybrid",
+      now: new Date("2026-08-18T18:00:00.000Z"),
+    });
+
+    expect(isTokenRiskReport(report)).toBe(true);
+    expect(report.scan).toMatchObject({
+      mode: "hybrid",
+      llm: {
+        backend: "noop",
+        model: "none",
+        candidatesSent: expect.any(Number),
+      },
+    });
+  });
 });
 
 describe("runCli scan", () => {

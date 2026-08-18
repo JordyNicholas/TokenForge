@@ -26,7 +26,7 @@ Large IT orgs overspend on **AI coding credits / metered usage** because low-val
 
 **Token Risk → Policy Pack → Savings Proof**
 
-1. **Detect** — score risky open tabs / paths (size × inactivity × filetype) — **provider-agnostic**
+1. **Detect** — score risky open tabs / paths (size × inactivity × filetype) — **provider-agnostic**; optional Phase 2 **hybrid** pass adds local or external LLM semantic enrichment on a bounded candidate set ([`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md))
 2. **Fix** — filter inactive tabs; write lean agent instructions + content exclusions via a **provider adapter** (same findings, different output files)
 3. **Prove** — Tokens Saved ROI dashboard (simulated OK for MVP; cost knobs are assumption inputs)
 
@@ -40,6 +40,7 @@ TokenForge logic (risk scoring, scan reports, ROI math) must not hard-depend on 
 | Layer | Binding |
 | --- | --- |
 | Detect / risk-core / JSON contract | **Agnostic** — works for any Chat/Agent workflow |
+| Detect LLM enrichers (Phase 2) | **Pluggable** — local (Ollama/Qwen) or org-approved external models; default scan stays heuristic |
 | Fix adapters | **Pluggable** — e.g. GitHub Copilot instructions/exclusions, Cursor rules, Claude/Codex instruction files, generic ignore packs |
 | Prove / dashboard | **Agnostic** — editable rate / credits / msgs; not vendor-locked metering APIs |
 

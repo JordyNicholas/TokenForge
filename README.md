@@ -14,6 +14,9 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | Epic / story map | [`docs/BOARD.md`](docs/BOARD.md) |
 | Concept brief | [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) |
 | Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) (architecture: [ports & adapters](docs/SOLUTION_DESIGN.md#architecture)) |
+| Hybrid scan design (Phase 2) | [`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md) |
+| Pitch FAQ (vs Auto Memory) | [`docs/PITCH_FAQ.md`](docs/PITCH_FAQ.md) |
+| Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
 | PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
 | Collaborator guide | [`AGENTS.md`](AGENTS.md) |
 
@@ -56,11 +59,14 @@ npm run tokenforge:scan
 ```
 
 `tokenforge scan` scores paths with risk-core, prints a findings table, and writes
-`.tokenforge/scan-report.json` (v0 Token Risk contract). Extra flags still work:
+`.tokenforge/scan-report.json` (v0 Token Risk contract). Default mode is
+**heuristic-only** (no AI). Optional hybrid enrichment is documented in
+[`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md). Extra flags:
 
 ```bash
 npm run tokenforge:scan -- --json
-npm run tokenforge -- scan path/to/repo
+npm run tokenforge:scan -- --mode hybrid
+npm run tokenforge -- scan path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
 ```
 
 ```bash
