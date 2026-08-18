@@ -47,7 +47,7 @@ npm install
 npm workspaces: `packages/*`, `cli`, `dashboard`, `extension`. Shared TypeScript
 options live in `tsconfig.base.json`. `packages/risk-core` is the shared kernel.
 The CLI can scan a repo; the dashboard is the React Prove adapter; the
-extension remains a placeholder until E4.
+extension is the VS Code Detect adapter (Context Guard scaffold).
 
 ```bash
 npm run typecheck
@@ -92,6 +92,22 @@ mix). The pitch ~30% is that scenario on `dashboard/public/demo-seed.json`
 npm run tokenforge:dashboard:build
 npm run tokenforge:dashboard:preview
 ```
+
+```bash
+npm run tokenforge:extension
+```
+
+Builds `extension/dist/extension.js` (bundles `@tokenforge/risk-core` for the
+extension host). Open the repo root in VS Code or Cursor, run **Run Extension**
+(F5), then in the Extension Development Host use Command Palette →
+**TokenForge: Hello**. Tab scoring, status bar, and `.tokenforge/last-scan.json`
+export are follow-on E4 stories (#21 / #22).
+
+```bash
+npm run tokenforge:extension:watch
+```
+
+Rebuilds on save while the watch task is running (used by `.vscode/launch.json`).
 
 ## Board automation setup
 

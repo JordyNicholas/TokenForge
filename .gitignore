@@ -16,6 +16,8 @@ out/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # Env / secrets
 .env
