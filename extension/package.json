@@ -12,7 +12,6 @@
   },
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "node esbuild.config.mjs",
     "watch": "node esbuild.config.mjs --watch",
