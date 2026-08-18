@@ -16,6 +16,15 @@ export {
   type OffenderRow,
 } from "./offenders";
 export {
+  SCAN_LAYER_LABELS,
+  SCAN_LAYER_LEADS,
+  aggregateLayerTotals,
+  parseScanLayerId,
+  reportsForLayer,
+  seedHasLlmLayer,
+  type ScanLayerId,
+} from "./layers";
+export {
   DEMO_SEED_URL,
   SeedLoadError,
   aggregateTotals,

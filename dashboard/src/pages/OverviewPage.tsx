@@ -7,12 +7,15 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import {
+  SCAN_LAYER_LABELS,
+  SCAN_LAYER_LEADS,
   formatPercent,
   formatTokens,
   formatUsd,
+  seedHasLlmLayer,
   tokenSavedPercent,
 } from "../domain";
-import { useDashboard } from "../state/DashboardProvider";
+import { useLayerView } from "../state/useLayerView";
 import { ChartCard } from "../ui/ChartCard";
 import { DataTable } from "../ui/DataTable";
 import { KpiCard, KpiRow } from "../ui/Kpi";
@@ -22,15 +25,22 @@ import { SavingsChart } from "../ui/SavingsChart";
 import { TeamDetailDialog } from "../ui/TeamDetailDialog";
 
 export function OverviewPage() {
-  const { seed, reports, totals, projection } = useDashboard();
+  const { seed, reports, totals, projection, boardLayer } = useLayerView();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const selected = reports.find((report) => report.team === selectedTeam) ?? null;
+  const llmEmpty = boardLayer === "llm" && seed && !seedHasLlmLayer(seed.reports);
 
   return (
     <Page
-      title={`${seed?.businessUnit ?? "Business unit"} overview`}
-      lead="Scenario savings is calculator math on loaded totals — not a vendor billing API."
+      title={`${seed?.businessUnit ?? "Business unit"} · ${SCAN_LAYER_LABELS[boardLayer]}`}
+      lead={SCAN_LAYER_LEADS[boardLayer]}
     >
+      {llmEmpty ? (
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+          No LLM layer in the loaded JSON. Run a hybrid scan (
+          <code>--mode hybrid --llm ollama:…</code>) and load the report to populate this board.
+        </Alert>
+      ) : null}
       <KpiRow>
         <KpiCard
           label="Tokens saved"
