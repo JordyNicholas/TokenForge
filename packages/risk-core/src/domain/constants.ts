@@ -34,3 +34,24 @@ export const TOKEN_RISK_REPORT_SCHEMA_ID =
 /** Repo-relative JSON Schema path. Single source of truth for all surfaces. */
 export const TOKEN_RISK_REPORT_SCHEMA_PATH =
   "docs/schemas/risk-event.schema.json";
+
+/** Default largest-file bucket size for LLM enrichment candidates. */
+export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
+
+/** Borderline config/unknown paths at or above this size are LLM candidates. */
+export const MIN_BORDERLINE_BYTES = 4_096;
+
+/** Basenames treated as agent instruction / rules files for enrichment. */
+export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([
+  "agents.md",
+  "claude.md",
+  "copilot-instructions.md",
+  "cursorrules",
+  ".cursorrules",
+]);
+
+/** Path segments that indicate instruction / rules directories. */
+export const INSTRUCTION_PATH_SEGMENTS: ReadonlySet<string> = new Set([
+  ".cursor",
+  "rules",
+]);

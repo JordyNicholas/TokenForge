@@ -46,3 +46,4 @@ Full write-up: [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md#architecture)
 - Do not claim interception of any agent/LLM’s private context pipeline.
 - Pitch Chat/Agent / metered AI-credit workflows, not unlimited completions metering.
 - “30%” is scenario-based via the dashboard calculator.
+- Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — see [`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md).

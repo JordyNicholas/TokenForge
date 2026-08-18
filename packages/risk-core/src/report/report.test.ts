@@ -34,6 +34,12 @@ describe("Token Risk JSON schema", () => {
     expect(isTokenRiskReport(example)).toBe(true);
   });
 
+  it("accepts the hybrid v0 example report", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json");
+    expect(validate(hybrid)).toBe(true);
+    expect(isTokenRiskReport(hybrid)).toBe(true);
+  });
+
   it("rejects a report missing totals", () => {
     const { totals: _totals, ...rest } = example as {
       totals: unknown;

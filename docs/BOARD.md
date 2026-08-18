@@ -41,7 +41,20 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #26 | Future: model routing | Future |
 | #27 | Future: live usage metrics (per provider) | Future |
 | #28 | Future: org policy/exclusion apply (per provider) | Future |
+| #41 | Future: hybrid scan design + JSON scaffolding | Future |
+| #42 | Future: risk-core candidate selection + merge | Future |
+| #43 | Future: CLI LLM enricher port + hybrid orchestration | Future |
+| #44 | Future: CLI Ollama enricher (local Qwen) | Future |
+| #45 | Future: CLI OpenAI-compatible enricher | Future |
+| #46 | Future: CLI Anthropic enricher | Future |
+| #47 | Future: dashboard hybrid / LLM finding display | Future |
+| #48 | Future: extension optional LLM enricher | Future |
+| #49 | Future: pitch materials — hybrid scan FAQ + deck | Future / E5 |
 
 ## Build order
 
 E0 → E1 → E2 → E3 → E4 → E5 (Future deferred).
+
+Hybrid scan (Future): #41 → #42 → #43 → (#44 \| #45 \| #46) → #47 → #48; pitch #49.
+
+Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
