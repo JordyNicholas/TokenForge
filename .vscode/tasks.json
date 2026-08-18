@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [{
+    "label": "watch-extension",
+    "type": "npm",
+    "script": "watch",
+    "path": "extension/",
+    "isBackground": true,
+    "problemMatcher": {
+      "owner": "esbuild",
+      "pattern": { "regexp": "^$" },
+      "background": {
+        "activeOnStart": true,
+        "beginsPattern": ".",
+        "endsPattern": "Done in"
+      }
+    },
+    "presentation": { "reveal": "silent", "panel": "shared" },
+    "group": { "kind": "build", "isDefault": true }
+  }]
+}
