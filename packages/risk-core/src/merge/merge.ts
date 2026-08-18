@@ -37,6 +37,7 @@ export function mergeFindings(
       source: "combined",
       confidence: finding.confidence ?? existing.confidence,
       detail: finding.detail ?? existing.detail,
+      suggestion: finding.suggestion ?? existing.suggestion,
     });
   }
 

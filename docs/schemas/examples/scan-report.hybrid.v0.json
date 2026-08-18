@@ -21,7 +21,25 @@
       "action": "excluded",
       "source": "llm",
       "confidence": 0.88,
-      "detail": "Repeats lint and test guidance already present in README.md"
+      "detail": "Repeats lint and test guidance already present in README.md",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Keep the unique bullets in AGENTS.md and drop the copy that already lives in README.md. TokenForge will not apply this."
+      }
+    },
+    {
+      "path": ".cursor/rules/testing.mdc",
+      "reason": "semantic_bloat",
+      "bytes": 2100,
+      "estTokens": 525,
+      "action": "kept",
+      "source": "llm",
+      "confidence": 0.61,
+      "detail": "Overlaps AGENTS.md but still used by the team.",
+      "suggestion": {
+        "kind": "review",
+        "summary": "Compare this rules file with AGENTS.md and delete only duplicated bullets if you agree. TokenForge will not apply this."
+      }
     }
   ],
   "totals": {

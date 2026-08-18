@@ -73,7 +73,27 @@
           "enum": ["heuristic", "llm", "combined"]
         },
         "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "detail": { "type": "string" }
+        "detail": { "type": "string" },
+        "suggestion": { "$ref": "#/$defs/suggestion" }
+      }
+    },
+    "suggestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary"],
+      "description": "Copy-only advice. TokenForge never applies this. Code snippets are deferred (v0 has kind + summary only).",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "exclude_from_context",
+            "trim_instructions",
+            "dedupe_rules",
+            "add_ignore",
+            "review"
+          ]
+        },
+        "summary": { "type": "string", "minLength": 1 }
       }
     },
     "totals": {

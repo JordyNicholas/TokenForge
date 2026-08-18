@@ -11,6 +11,7 @@ export {
   SCORE_WEIGHT_CLASS,
   SCORE_WEIGHT_INACTIVE,
   SCORE_WEIGHT_SIZE,
+  SUGGESTION_KINDS,
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
 } from "./domain/constants";
@@ -29,14 +30,23 @@ export {
   resolveScanLayer,
   resolveScanLayers,
 } from "./layers/resolve";
+export { explainFinding } from "./advise/explain";
+export {
+  isFindingSuggestion,
+  isSuggestionKind,
+  resolveSuggestion,
+  templateSuggestion,
+} from "./advise/suggest";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { primaryReason, scoreRisk } from "./score/score";
+export type { FindingExplanation } from "./advise/explain";
 export type {
   FiletypeRiskClass,
   FindingAction,
   FindingReason,
   FindingSource,
+  FindingSuggestion,
   LlmBackendId,
   ProviderId,
   RiskAssessment,
@@ -48,6 +58,7 @@ export type {
   ScanMetadata,
   ScanMode,
   ScanSource,
+  SuggestionKind,
   TokenRiskFinding,
   TokenRiskReport,
   TokenRiskTotals,

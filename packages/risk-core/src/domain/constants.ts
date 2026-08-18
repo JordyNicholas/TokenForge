@@ -55,3 +55,12 @@ export const INSTRUCTION_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   ".cursor",
   "rules",
 ]);
+
+/** Allowed advisory suggestion kinds (JSON contract). No snippets in v0. */
+export const SUGGESTION_KINDS = [
+  "exclude_from_context",
+  "trim_instructions",
+  "dedupe_rules",
+  "add_ignore",
+  "review",
+] as const;

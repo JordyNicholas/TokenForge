@@ -40,6 +40,43 @@ describe("Token Risk JSON schema", () => {
     expect(isTokenRiskReport(hybrid)).toBe(true);
   });
 
+  it("rejects suggestion snippets (deferred)", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      findings: Array<Record<string, unknown>>;
+    };
+    const withSnippet = {
+      ...hybrid,
+      findings: [
+        {
+          ...hybrid.findings[1],
+          suggestion: {
+            kind: "dedupe_rules",
+            summary: "Drop duplicated bullets.",
+            snippet: "--- a/AGENTS.md\n+++ b/AGENTS.md\n",
+          },
+        },
+      ],
+    };
+    expect(validate(withSnippet)).toBe(false);
+  });
+
+  it("rejects an unknown suggestion kind", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      findings: Array<Record<string, unknown>>;
+    };
+    const invalid = {
+      ...hybrid,
+      findings: [
+        {
+          ...hybrid.findings[1],
+          suggestion: { kind: "rewrite_architecture", summary: "Reshape the app." },
+        },
+      ],
+    };
+    expect(validate(invalid)).toBe(false);
+    expect(isTokenRiskReport(invalid)).toBe(false);
+  });
+
   it("rejects a report missing totals", () => {
     const { totals: _totals, ...rest } = example as {
       totals: unknown;

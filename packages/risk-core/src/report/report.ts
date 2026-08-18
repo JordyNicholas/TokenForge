@@ -1,3 +1,4 @@
+import { isFindingSuggestion } from "../advise/suggest";
 import type {
   FindingAction,
   FindingReason,
@@ -76,6 +77,9 @@ function isFinding(value: unknown): value is TokenRiskFinding {
     return false;
   }
   if (value.detail !== undefined && typeof value.detail !== "string") {
+    return false;
+  }
+  if (value.suggestion !== undefined && !isFindingSuggestion(value.suggestion)) {
     return false;
   }
   return true;

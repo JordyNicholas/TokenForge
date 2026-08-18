@@ -18,6 +18,22 @@ export type FindingAction = "filtered" | "excluded" | "kept";
 /** How a finding was produced when hybrid scan is enabled. */
 export type FindingSource = "heuristic" | "llm" | "combined";
 
+/**
+ * Advisory next step for a developer. TokenForge never applies this
+ * (not policy-pack Fix, and not a source-file write).
+ */
+export type SuggestionKind =
+  | "exclude_from_context"
+  | "trim_instructions"
+  | "dedupe_rules"
+  | "add_ignore"
+  | "review";
+
+export type FindingSuggestion = {
+  kind: SuggestionKind;
+  summary: string;
+};
+
 /** CLI scan mode. Default MVP path is heuristic-only. */
 export type ScanMode = "heuristic" | "hybrid";
 
@@ -60,6 +76,8 @@ export type TokenRiskFinding = {
   confidence?: number;
   /** Human-readable LLM explanation. */
   detail?: string;
+  /** Optional copy-only advice. Never applied by TokenForge. */
+  suggestion?: FindingSuggestion;
 };
 
 export type ScanLlmMetadata = {

@@ -44,6 +44,10 @@ describe("mergeFindings", () => {
         source: "llm",
         confidence: 0.8,
         detail: "Duplicate testing rules",
+        suggestion: {
+          kind: "dedupe_rules",
+          summary: "Drop the duplicated testing bullets.",
+        },
       }),
     ];
 
@@ -54,6 +58,10 @@ describe("mergeFindings", () => {
       reason: "high_risk_filetype",
       confidence: 0.8,
       detail: "Duplicate testing rules",
+      suggestion: {
+        kind: "dedupe_rules",
+        summary: "Drop the duplicated testing bullets.",
+      },
     });
   });
 });
