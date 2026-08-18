@@ -19,7 +19,10 @@
     "tokenforge:init": "node ./cli/bin/tokenforge.mjs init fixtures/noisy-app",
     "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
     "tokenforge:dashboard:build": "npm run build -w @tokenforge/dashboard",
-    "tokenforge:dashboard:preview": "npm run preview -w @tokenforge/dashboard"
+    "tokenforge:dashboard:preview": "npm run preview -w @tokenforge/dashboard",
+    "tokenforge:extension": "npm run build -w @tokenforge/extension",
+    "tokenforge:extension:watch": "npm run watch -w @tokenforge/extension",
+    "tokenforge:extension:prepublish": "npm run vscode:prepublish -w @tokenforge/extension"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

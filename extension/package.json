@@ -1,12 +1,39 @@
 {
   "name": "@tokenforge/extension",
+  "displayName": "TokenForge Context Guard",
+  "description": "Short Detect-adapter blurb.",
+  "publisher": "tokenforge",
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "engines.vscode": "^1.85.0",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "vscode:prepublish": "npm run build"
   },
   "dependencies": {
     "@tokenforge/risk-core": "*"
+  },
+  "activationEvents": [
+    "onCommand:tokenforge.hello"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tokenforge.hello",
+        "title": "TokenForge: Hello",
+        "category": "TokenForge"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.125.0",
+    "esbuild": "^0.28.2"
   }
 }
