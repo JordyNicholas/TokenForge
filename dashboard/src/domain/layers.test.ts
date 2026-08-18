@@ -85,7 +85,7 @@ const sampleReport = {
 describe("dashboard layer helpers", () => {
   it("parses board layer from pathname", () => {
     expect(parseBoardLayerFromPath("/board/heuristic")).toBe("heuristic");
-    expect(parseBoardLayerFromPath("/board/llm/offenders")).toBe("llm");
+    expect(parseBoardLayerFromPath("/board/llm/findings")).toBe("llm");
     expect(parseBoardLayerFromPath("/assumptions")).toBe("combined");
   });
 

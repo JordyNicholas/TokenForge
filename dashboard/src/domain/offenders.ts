@@ -5,25 +5,29 @@ import {
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 
-export type OffenderRow = TokenRiskFinding & {
+export type FindingRow = TokenRiskFinding & {
   team: string;
   repo: string;
   fileClass: FiletypeRiskClass;
 };
+
+/** @deprecated Use FindingRow. Kept for existing imports. */
+export type OffenderRow = FindingRow;
 
 export type ClassBucket = {
   fileClass: FiletypeRiskClass;
   estTokens: number;
 };
 
-export function topOffenders(
+export function listFindings(
   reports: TokenRiskReport[],
-  limit = 10,
-): OffenderRow[] {
-  const rows: OffenderRow[] = [];
+  options: { includeKept?: boolean } = {},
+): FindingRow[] {
+  const includeKept = options.includeKept ?? true;
+  const rows: FindingRow[] = [];
   for (const report of reports) {
     for (const finding of report.findings) {
-      if (finding.action === "kept") {
+      if (!includeKept && finding.action === "kept") {
         continue;
       }
       rows.push({
@@ -34,8 +38,15 @@ export function topOffenders(
       });
     }
   }
-  rows.sort((a, b) => b.estTokens - a.estTokens);
-  return rows.slice(0, limit);
+  rows.sort((a, b) => b.estTokens - a.estTokens || a.path.localeCompare(b.path));
+  return rows;
+}
+
+export function topOffenders(
+  reports: TokenRiskReport[],
+  limit = 10,
+): FindingRow[] {
+  return listFindings(reports, { includeKept: false }).slice(0, limit);
 }
 
 export function tokensByFileClass(reports: TokenRiskReport[]): ClassBucket[] {

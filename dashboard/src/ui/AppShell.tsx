@@ -1,12 +1,12 @@
 import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
+import FactCheckOutlined from "@mui/icons-material/FactCheckOutlined";
 import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PsychologyOutlined from "@mui/icons-material/PsychologyOutlined";
 import RuleOutlined from "@mui/icons-material/RuleOutlined";
 import StackedBarChartOutlined from "@mui/icons-material/StackedBarChartOutlined";
-import WarningAmberOutlined from "@mui/icons-material/WarningAmberOutlined";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import BottomNavigation from "@mui/material/BottomNavigation";
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const viewNav = [
     { to: boardBase, label: "Overview", icon: DashboardOutlined, end: true },
     { to: `${boardBase}/heatmap`, label: "Heatmap", icon: GridViewOutlined },
-    { to: `${boardBase}/offenders`, label: "Offenders", icon: WarningAmberOutlined },
+    { to: `${boardBase}/findings`, label: "Findings", icon: FactCheckOutlined },
     { to: "/assumptions", label: "Assumptions", icon: CalculateOutlined },
   ];
 

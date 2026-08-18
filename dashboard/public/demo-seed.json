@@ -42,6 +42,20 @@
           "bytes": 140258,
           "estTokens": 35065,
           "action": "excluded"
+        },
+        {
+          "path": "AGENTS.md",
+          "reason": "redundant_instructions",
+          "bytes": 4200,
+          "estTokens": 1050,
+          "action": "kept",
+          "source": "llm",
+          "confidence": 0.88,
+          "detail": "Repeats lint and test guidance already present in README.md",
+          "suggestion": {
+            "kind": "dedupe_rules",
+            "summary": "Keep unique bullets in AGENTS.md and drop the copy that already lives in README.md. TokenForge will not apply this."
+          }
         }
       ],
       "totals": {

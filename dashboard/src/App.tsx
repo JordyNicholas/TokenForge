@@ -3,8 +3,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
+import { FindingsPage } from "./pages/FindingsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
-import { OffendersPage } from "./pages/OffendersPage";
 import { OverviewPage } from "./pages/OverviewPage";
 import { useDashboard } from "./state/DashboardProvider";
 import { AppShell } from "./ui/AppShell";
@@ -14,7 +14,8 @@ function BoardRoutes() {
     <Routes>
       <Route index element={<OverviewPage />} />
       <Route path="heatmap" element={<HeatmapPage />} />
-      <Route path="offenders" element={<OffendersPage />} />
+      <Route path="findings" element={<FindingsPage />} />
+      <Route path="offenders" element={<Navigate to="findings" replace />} />
     </Routes>
   );
 }

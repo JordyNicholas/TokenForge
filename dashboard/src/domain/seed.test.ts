@@ -5,7 +5,7 @@ import { isTokenRiskReport } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_ASSUMPTIONS } from "./assumptions";
 import { scenarioSavedPercent, tokenSavedPercent } from "./calculator";
-import { tokensByFileClass, topOffenders } from "./offenders";
+import { tokensByFileClass, listFindings, topOffenders } from "./offenders";
 import {
   aggregateTotals,
   parseDashboardDocument,
@@ -66,6 +66,22 @@ describe("topOffenders", () => {
     expect(first?.path).toBe("package-lock.json");
     expect(first?.team).toBe("payments-platform");
     expect(first?.fileClass).toBe("lockfile");
+  });
+});
+
+describe("listFindings", () => {
+  it("includes kept LLM review rows", () => {
+    const rows = listFindings(demoSeed().reports, { includeKept: true });
+    const review = rows.find((row) => row.path === "AGENTS.md");
+    expect(review?.action).toBe("kept");
+    expect(review?.source).toBe("llm");
+    expect(review?.detail).toMatch(/README/);
+    expect(review?.suggestion?.kind).toBe("dedupe_rules");
+  });
+
+  it("can hide kept rows", () => {
+    const rows = listFindings(demoSeed().reports, { includeKept: false });
+    expect(rows.some((row) => row.action === "kept")).toBe(false);
   });
 });
 
