@@ -19,6 +19,7 @@ import {
   MAX_CANDIDATE_BYTES,
   getEnricher,
   parseLlmSpec,
+  parseLlmTimeoutSeconds,
   type EnrichmentCandidate,
 } from "../../enrichers";
 import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
@@ -40,6 +41,8 @@ export type ScanOptions = {
   mode?: string;
   llm?: string;
   llmEndpoint?: string;
+  llmTimeout?: string;
+  onProgress?: (message: string) => void;
   now?: Date;
 };
 
@@ -65,6 +68,19 @@ export function parseScanMode(value: string | undefined): ScanMode {
     throw new UsageError('Unknown scan mode. Use "heuristic" or "hybrid".');
   }
   return mode as ScanMode;
+}
+
+function parseLlmTimeoutOption(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  try {
+    return parseLlmTimeoutSeconds(value);
+  } catch {
+    throw new UsageError(
+      `Invalid --llm-timeout "${value}". Use seconds (minimum 60), e.g. --llm-timeout 900.`,
+    );
+  }
 }
 
 function toPosix(path: string): string {
@@ -167,6 +183,12 @@ async function runHybridEnrichment(
     candidates,
     model: spec.model,
     endpoint: options.llmEndpoint,
+    timeoutMs: parseLlmTimeoutOption(options.llmTimeout),
+    onProgress:
+      options.onProgress ??
+      ((message) => {
+        process.stderr.write(`tokenforge: ${message}\n`);
+      }),
   });
 
   return {

@@ -71,12 +71,16 @@ npm run tokenforge -- scan . \
   --mode hybrid \
   --llm ollama:qwen2.5-coder:7b \
   --repo TokenForge \
-  --team local
+  --team local \
+  --llm-timeout 1800
 ```
 
 **Expected**
 
-- Runs **2–5+ minutes** on a local 7B (CPU/GPU dependent) — say this upfront.
+- Runs **several minutes to 30+ minutes** on low-spec hardware — say this upfront.
+- Progress lines on stderr: `tokenforge: LLM enricher: batch 1/N …`
+- Default **900s (15 min) per batch**; override with `--llm-timeout <seconds>` or env `TOKENFORGE_OLLAMA_TIMEOUT_MS`.
+- Smaller scope finishes faster: `npm run tokenforge -- scan docs --mode hybrid --llm ollama:qwen2.5-coder:7b`
 - Completes with exit `0`.
 - Report includes:
 
@@ -183,7 +187,8 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| Ollama timeout | Large repo / slow CPU | Scan smaller path (`docs/`) or wait (5 min cap) |
+| Ollama timeout | Large repo / slow CPU | Use `--llm-timeout 1800`; scan `docs/` instead of `.` |
+| LLM board tabs stuck on Combined | Old dashboard bug (fixed) | Pull latest; URL must change to `/board/heuristic` etc. |
 | LLM board empty | Heuristic-only JSON | Re-run step 2 with `--llm ollama:…` |
 | LLM tab disabled | No LLM findings in loaded file | Load hybrid report from step 2 |
 | Dashboard 404 on `/` | Old bookmark | Use `/board/combined` |

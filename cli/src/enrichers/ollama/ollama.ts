@@ -2,7 +2,7 @@ import { RuntimeError } from "../../app/errors";
 import {
   DEFAULT_OLLAMA_ENDPOINT,
   OLLAMA_BATCH_SIZE,
-  OLLAMA_TIMEOUT_MS,
+  resolveOllamaTimeoutMs,
 } from "../limits";
 import { mapStructuredFindings } from "../parse";
 import {
@@ -28,9 +28,10 @@ async function callOllamaChat(
   endpoint: string,
   model: string,
   prompt: string,
+  timeoutMs: number,
 ): Promise<string> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(chatUrl(endpoint), {
@@ -69,7 +70,8 @@ async function callOllamaChat(
     }
     if (error instanceof Error && error.name === "AbortError") {
       throw new RuntimeError(
-        `Ollama request timed out after ${OLLAMA_TIMEOUT_MS / 1000}s.`,
+        `Ollama request timed out after ${Math.round(timeoutMs / 1000)}s. ` +
+          "On slower hardware, retry with a higher --llm-timeout (seconds) or scan a smaller folder.",
       );
     }
     const reason = error instanceof Error ? error.message : String(error);
@@ -98,6 +100,8 @@ export const ollamaEnricher: LlmEnricher = {
   async enrich(input) {
     const started = Date.now();
     const endpoint = input.endpoint?.trim() || DEFAULT_OLLAMA_ENDPOINT;
+    const timeoutMs = resolveOllamaTimeoutMs(input.timeoutMs);
+    const progress = input.onProgress;
 
     if (input.candidates.length === 0) {
       return {
@@ -112,14 +116,26 @@ export const ollamaEnricher: LlmEnricher = {
       };
     }
 
+    const batches = chunkCandidates(input.candidates, OLLAMA_BATCH_SIZE);
     const findings = [];
-    for (const batch of chunkCandidates(input.candidates, OLLAMA_BATCH_SIZE)) {
+
+    for (let index = 0; index < batches.length; index += 1) {
+      const batch = batches[index]!;
+      progress?.(
+        `LLM enricher: batch ${index + 1}/${batches.length} ` +
+          `(${batch.length} file(s), timeout ${Math.round(timeoutMs / 1000)}s per batch)…`,
+      );
       const prompt = buildEnrichmentPrompt(batch);
-      const content = await callOllamaChat(endpoint, input.model, prompt);
+      const content = await callOllamaChat(endpoint, input.model, prompt, timeoutMs);
       const payload = extractJsonPayload(content);
       const structured = parseStructuredFindings(payload, batch);
       findings.push(...mapStructuredFindings(structured, batch));
     }
+
+    progress?.(
+      `LLM enricher: finished in ${Math.round((Date.now() - started) / 1000)}s ` +
+        `(${findings.length} finding(s)).`,
+    );
 
     return {
       findings,

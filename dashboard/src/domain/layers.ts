@@ -25,11 +25,19 @@ export const SCAN_LAYER_LEADS: Record<ScanLayerId, string> = {
 
 const LAYER_IDS = new Set<ScanLayerId>(["heuristic", "llm", "combined"]);
 
+const BOARD_PATH_RE = /^\/board\/(combined|heuristic|llm)(?:\/|$)/;
+
 export function parseScanLayerId(value: string | undefined): ScanLayerId | undefined {
   if (value !== undefined && LAYER_IDS.has(value as ScanLayerId)) {
     return value as ScanLayerId;
   }
   return undefined;
+}
+
+/** Read the active scan board from a React Router pathname (works outside matched routes). */
+export function parseBoardLayerFromPath(pathname: string): ScanLayerId {
+  const match = pathname.match(BOARD_PATH_RE);
+  return parseScanLayerId(match?.[1]) ?? "combined";
 }
 
 export function reportsForLayer(
@@ -57,5 +65,13 @@ export function aggregateLayerTotals(
 }
 
 export function seedHasLlmLayer(reports: readonly TokenRiskReport[]): boolean {
-  return reports.some((report) => resolveScanLayer(report, "llm").findings.length > 0);
+  return reports.some((report) => reportHasHybridLlm(report));
+}
+
+/** True when a report ran hybrid enrichment (even if the model returned zero findings). */
+export function reportHasHybridLlm(report: TokenRiskReport): boolean {
+  if (report.scan?.mode === "hybrid" && report.scan.llm?.backend !== "noop") {
+    return true;
+  }
+  return resolveScanLayer(report, "llm").findings.length > 0;
 }

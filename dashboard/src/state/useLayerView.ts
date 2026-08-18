@@ -1,11 +1,19 @@
 import { useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { aggregateLayerTotals, parseScanLayerId, projectSavings, reportsForLayer, type ScanLayerId } from "../domain";
+import { useLocation, useParams } from "react-router-dom";
+import {
+  aggregateLayerTotals,
+  parseBoardLayerFromPath,
+  parseScanLayerId,
+  projectSavings,
+  reportsForLayer,
+  type ScanLayerId,
+} from "../domain";
 import { useDashboard } from "./DashboardProvider";
 
 export function useBoardLayer(): ScanLayerId {
   const { layerId } = useParams();
-  return parseScanLayerId(layerId) ?? "combined";
+  const location = useLocation();
+  return parseScanLayerId(layerId) ?? parseBoardLayerFromPath(location.pathname);
 }
 
 /** Layer-scoped reports, totals, and projection for the active board. */

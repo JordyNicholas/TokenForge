@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { aggregateLayerTotals, reportsForLayer } from "./layers";
+import {
+  aggregateLayerTotals,
+  parseBoardLayerFromPath,
+  reportHasHybridLlm,
+  reportsForLayer,
+} from "./layers";
 
 const sampleReport = {
   source: "cli" as const,
@@ -78,6 +83,31 @@ const sampleReport = {
 };
 
 describe("dashboard layer helpers", () => {
+  it("parses board layer from pathname", () => {
+    expect(parseBoardLayerFromPath("/board/heuristic")).toBe("heuristic");
+    expect(parseBoardLayerFromPath("/board/llm/offenders")).toBe("llm");
+    expect(parseBoardLayerFromPath("/assumptions")).toBe("combined");
+  });
+
+  it("detects hybrid LLM reports without findings", () => {
+    expect(
+      reportHasHybridLlm({
+        ...sampleReport,
+        findings: [],
+        layers: undefined,
+        scan: {
+          mode: "hybrid",
+          llm: {
+            backend: "ollama",
+            model: "qwen2.5-coder:7b",
+            durationMs: 1000,
+            candidatesSent: 3,
+          },
+        },
+      }),
+    ).toBe(true);
+  });
+
   it("projects heuristic and llm boards separately", () => {
     const heuristic = reportsForLayer([sampleReport], "heuristic")[0];
     const llm = reportsForLayer([sampleReport], "llm")[0];

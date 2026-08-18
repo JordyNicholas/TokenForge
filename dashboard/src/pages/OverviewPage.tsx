@@ -28,17 +28,28 @@ export function OverviewPage() {
   const { seed, reports, totals, projection, boardLayer } = useLayerView();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const selected = reports.find((report) => report.team === selectedTeam) ?? null;
-  const llmEmpty = boardLayer === "llm" && seed && !seedHasLlmLayer(seed.reports);
+  const llmBoardEmpty =
+    boardLayer === "llm" &&
+    reports.length > 0 &&
+    reports.every((report) => report.findings.length === 0);
+  const llmBoardUnavailable =
+    boardLayer === "llm" && seed !== null && !seedHasLlmLayer(seed.reports);
 
   return (
     <Page
       title={`${seed?.businessUnit ?? "Business unit"} · ${SCAN_LAYER_LABELS[boardLayer]}`}
       lead={SCAN_LAYER_LEADS[boardLayer]}
     >
-      {llmEmpty ? (
+      {llmBoardUnavailable ? (
         <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
           No LLM layer in the loaded JSON. Run a hybrid scan (
           <code>--mode hybrid --llm ollama:…</code>) and load the report to populate this board.
+        </Alert>
+      ) : null}
+      {llmBoardEmpty ? (
+        <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
+          Hybrid scan ran, but the model did not flag any paths for exclusion. Try a smaller
+          path (e.g. <code>docs/</code>) or increase <code>--llm-timeout</code> on slower hardware.
         </Alert>
       ) : null}
       <KpiRow>

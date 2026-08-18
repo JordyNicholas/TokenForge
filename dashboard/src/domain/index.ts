@@ -20,7 +20,9 @@ export {
   SCAN_LAYER_LEADS,
   aggregateLayerTotals,
   parseScanLayerId,
+  parseBoardLayerFromPath,
   reportsForLayer,
+  reportHasHybridLlm,
   seedHasLlmLayer,
   type ScanLayerId,
 } from "./layers";

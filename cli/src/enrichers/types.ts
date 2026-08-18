@@ -17,6 +17,10 @@ export type LlmEnricherInput = {
   candidates: EnrichmentCandidate[];
   model: string;
   endpoint?: string;
+  /** Per-batch request timeout in milliseconds. */
+  timeoutMs?: number;
+  /** Optional progress sink (CLI writes to stderr). */
+  onProgress?: (message: string) => void;
 };
 
 export type LlmEnrichmentResult = {

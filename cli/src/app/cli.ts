@@ -24,6 +24,8 @@ Options:
   --llm <spec>          LLM enricher backend:model (hybrid only)
                         e.g. ollama:qwen2.5-coder:7b; omit for noop enricher
   --llm-endpoint <url>  Override enricher API base URL
+  --llm-timeout <sec>   Per-batch Ollama timeout in seconds (default: 900)
+                        Env: TOKENFORGE_OLLAMA_TIMEOUT_MS
   --dry-run             Print planned policy files; do not write them
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
@@ -97,6 +99,7 @@ export async function runCli(
         mode: { type: "string" },
         llm: { type: "string" },
         "llm-endpoint": { type: "string" },
+        "llm-timeout": { type: "string" },
         "dry-run": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
       },
@@ -121,10 +124,16 @@ export async function runCli(
       mode: values.mode,
       llm: values.llm,
       llmEndpoint: values["llm-endpoint"],
+      llmTimeout: values["llm-timeout"],
     };
 
     if (command === "scan") {
-      const result = await scanRepo(common);
+      const result = await scanRepo({
+        ...common,
+        onProgress: (message) => {
+          io.stderr.write(`tokenforge: ${message}\n`);
+        },
+      });
       await writeScanReport(result.reportPath, result.report);
       printReport(io, result.report, result, Boolean(values.json));
       if (!values.json) {

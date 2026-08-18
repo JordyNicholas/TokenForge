@@ -21,6 +21,8 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -30,10 +32,10 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   SCAN_LAYER_LABELS,
   seedHasLlmLayer,
+  parseBoardLayerFromPath,
   type ScanLayerId,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
-import { useBoardLayer } from "../state/useLayerView";
 import { SourceBar } from "./SourceBar";
 import { ThemeControls } from "./ThemeControls";
 
@@ -50,8 +52,65 @@ const BOARDS: {
 ];
 
 function boardSubpath(pathname: string): string {
-  const match = pathname.match(/^\/board\/[^/]+(\/.*)?$/);
-  return match?.[1] ?? "";
+  const match = pathname.match(/^\/board\/(?:combined|heuristic|llm)(\/.*)?$/);
+  const rest = match?.[1];
+  return rest && rest.length > 0 ? rest : "";
+}
+
+function isBoardRoute(pathname: string): boolean {
+  return pathname.startsWith("/board/");
+}
+
+function BoardLayerToggle({
+  boardLayer,
+  hasLlm,
+  onSelect,
+  size = "medium",
+}: {
+  boardLayer: ScanLayerId;
+  hasLlm: boolean;
+  onSelect: (layer: ScanLayerId) => void;
+  size?: "small" | "medium";
+}) {
+  return (
+    <ToggleButtonGroup
+      exclusive
+      fullWidth
+      size={size}
+      value={boardLayer}
+      onChange={(_event, value: ScanLayerId | null) => {
+        if (value) {
+          onSelect(value);
+        }
+      }}
+      aria-label="Scan board"
+    >
+      {BOARDS.map((board) => (
+        <ToggleButton
+          key={board.id}
+          value={board.id}
+          disabled={board.id === "llm" && !hasLlm}
+          aria-label={board.label}
+          sx={{
+            py: size === "small" ? 0.75 : 1,
+            px: size === "small" ? 0.5 : 1,
+            textTransform: "none",
+            gap: 0.5,
+            minWidth: 0,
+            "& .MuiSvgIcon-root": { fontSize: size === "small" ? 16 : 18 },
+          }}
+        >
+          <board.icon />
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            {board.label}
+          </Box>
+          <Box component="span" sx={{ display: { xs: "inline", sm: "none" }, fontSize: "0.7rem" }}>
+            {board.id === "heuristic" ? "Heur." : board.label}
+          </Box>
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
+  );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -59,12 +118,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const compact = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const { seed } = useDashboard();
-  const boardLayer = useBoardLayer();
   const location = useLocation();
+  const boardLayer = parseBoardLayerFromPath(location.pathname);
   const navigate = useNavigate();
   const hasLlm = seed ? seedHasLlmLayer(seed.reports) : false;
   const subpath = boardSubpath(location.pathname);
   const boardBase = `/board/${boardLayer}`;
+  const showMobileBoardSwitch = compact && isBoardRoute(location.pathname);
+
+  const selectBoard = (layer: ScanLayerId) => {
+    navigate(`/board/${layer}${subpath}`);
+  };
 
   const viewNav = [
     { to: boardBase, label: "Overview", icon: DashboardOutlined, end: true },
@@ -93,7 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Typography>
       <Tabs
         value={boardLayer}
-        onChange={(_event, value: ScanLayerId) => navigate(`/board/${value}${subpath}`)}
+        onChange={(_event, value: ScanLayerId) => selectBoard(value)}
         variant="fullWidth"
         sx={{ px: 1, mb: 1, minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0.5 } }}
       >
@@ -169,7 +233,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {compact ? (
               <>
                 <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
-                  TokenForge · {SCAN_LAYER_LABELS[boardLayer]}
+                  TokenForge
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap>
                   {seed?.businessUnit ?? "Tokens Saved"}
@@ -184,6 +248,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           <ThemeControls />
           <SourceBar />
         </Toolbar>
+        {showMobileBoardSwitch ? (
+          <Box sx={{ px: 1, pb: 1, width: "100%" }}>
+            <BoardLayerToggle
+              boardLayer={boardLayer}
+              hasLlm={hasLlm}
+              onSelect={selectBoard}
+              size="small"
+            />
+          </Box>
+        ) : null}
       </AppBar>
 
       <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }} aria-label="FinOps views">
@@ -226,7 +300,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           bgcolor: "background.default",
         }}
       >
-        <Toolbar />
+        <Toolbar
+          sx={{
+            minHeight: showMobileBoardSwitch ? 112 : undefined,
+          }}
+        />
         <Box
           sx={{
             flex: 1,

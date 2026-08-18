@@ -5,13 +5,44 @@ export const MAX_ENRICHMENT_CANDIDATES = 30;
 export const MAX_CANDIDATE_BYTES = 32 * 1024;
 
 /** Max characters of each excerpt embedded in the LLM prompt (local models). */
-export const MAX_LLM_EXCERPT_CHARS = 4_096;
+export const MAX_LLM_EXCERPT_CHARS = 2_048;
 
-/** Default Ollama request timeout (local 7B models can be slow). */
-export const OLLAMA_TIMEOUT_MS = 300_000;
+/** Default Ollama per-batch timeout (local 7B on low-spec hardware can be very slow). */
+export const DEFAULT_OLLAMA_TIMEOUT_MS = 900_000;
 
-/** Candidates per Ollama request (keeps local 7B models responsive). */
-export const OLLAMA_BATCH_SIZE = 4;
+/** Minimum per-batch timeout accepted via CLI/env. */
+export const MIN_OLLAMA_TIMEOUT_MS = 60_000;
+
+/** Candidates per Ollama request — smaller batches finish sooner on weak GPUs/CPUs. */
+export const OLLAMA_BATCH_SIZE = 2;
+
+export function resolveOllamaTimeoutMs(overrideMs?: number): number {
+  if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_OLLAMA_TIMEOUT_MS) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_OLLAMA_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_OLLAMA_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_OLLAMA_TIMEOUT_MS;
+}
+
+/** Parse `--llm-timeout` seconds from the CLI into milliseconds. */
+export function parseLlmTimeoutSeconds(value: string | undefined): number | undefined {
+  if (value === undefined || value.trim().length === 0) {
+    return undefined;
+  }
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new Error(`Invalid --llm-timeout value "${value}". Use seconds, e.g. 900.`);
+  }
+  return Math.round(seconds * 1000);
+}
 
 /** Default Ollama base URL when `--llm-endpoint` is omitted. */
 export const DEFAULT_OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
