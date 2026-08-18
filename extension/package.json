@@ -1,13 +1,15 @@
 {
   "name": "@tokenforge/extension",
   "displayName": "TokenForge Context Guard",
-  "description": "Short Detect-adapter blurb.",
+  "description": "Score and recommend filtering inactive / high-risk editor tabs to cut token bleed.",
   "publisher": "tokenforge",
   "categories": [
     "Other"
   ],
   "main": "./dist/extension.js",
-  "engines.vscode": "^1.85.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +29,7 @@
     "commands": [
       {
         "command": "tokenforge.hello",
-        "title": "TokenForge: Hello",
+        "title": "Hello",
         "category": "TokenForge"
       }
     ]
