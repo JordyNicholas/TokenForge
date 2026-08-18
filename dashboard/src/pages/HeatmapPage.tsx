@@ -3,15 +3,15 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useColorScheme } from "@mui/material/styles";
 import { useState } from "react";
-import { tokenSavedPercent } from "../domain";
-import { useDashboard } from "../state/DashboardProvider";
+import { tokenSavedPercent, SCAN_LAYER_LABELS, SCAN_LAYER_LEADS } from "../domain";
+import { useLayerView } from "../state/useLayerView";
 import { heatFill, resolveColorMode } from "../theme/heat";
 import { HeatCell } from "../ui/HeatCell";
 import { Page } from "../ui/Page";
 import { TeamDetailDialog } from "../ui/TeamDetailDialog";
 
 export function HeatmapPage() {
-  const { seed, reports } = useDashboard();
+  const { seed, reports, boardLayer } = useLayerView();
   const { mode, systemMode } = useColorScheme();
   const resolved = resolveColorMode(mode, systemMode);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -19,10 +19,10 @@ export function HeatmapPage() {
 
   return (
     <Page
-      title="Team heatmap"
+      title={`Team heatmap · ${SCAN_LAYER_LABELS[boardLayer]}`}
       lead={
         <>
-          Color is each team’s scan exclusion ratio.{" "}
+          {SCAN_LAYER_LEADS[boardLayer]} Color is each team’s exclusion ratio on this board.{" "}
           {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed;
           payments-platform is the noisy outlier. Click a cell for findings.
         </>

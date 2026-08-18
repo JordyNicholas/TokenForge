@@ -5,22 +5,22 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { formatTokens, tokensByFileClass, topOffenders } from "../domain";
-import { useDashboard } from "../state/DashboardProvider";
+import { formatTokens, tokensByFileClass, topOffenders, SCAN_LAYER_LABELS, SCAN_LAYER_LEADS } from "../domain";
+import { useLayerView } from "../state/useLayerView";
 import { ChartCard } from "../ui/ChartCard";
 import { ClassChart } from "../ui/ClassChart";
 import { DataTable } from "../ui/DataTable";
 import { Page } from "../ui/Page";
 
 export function OffendersPage() {
-  const { reports } = useDashboard();
+  const { reports, boardLayer } = useLayerView();
   const offenders = topOffenders(reports, 10);
   const classes = tokensByFileClass(reports);
 
   return (
     <Page
-      title="Top offenders"
-      lead="Highest-token paths marked excluded or filtered, plus waste by filetype class from risk-core."
+      title={`Top offenders · ${SCAN_LAYER_LABELS[boardLayer]}`}
+      lead={SCAN_LAYER_LEADS[boardLayer]}
     >
       <ChartCard title="By filetype class" subheader="Hover a bar for token counts">
         <ClassChart buckets={classes} />

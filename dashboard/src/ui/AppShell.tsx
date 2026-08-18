@@ -3,6 +3,9 @@ import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
 import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
+import PsychologyOutlined from "@mui/icons-material/PsychologyOutlined";
+import RuleOutlined from "@mui/icons-material/RuleOutlined";
+import StackedBarChartOutlined from "@mui/icons-material/StackedBarChartOutlined";
 import WarningAmberOutlined from "@mui/icons-material/WarningAmberOutlined";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -16,37 +19,59 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useState, type ReactNode } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  SCAN_LAYER_LABELS,
+  seedHasLlmLayer,
+  type ScanLayerId,
+} from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
+import { useBoardLayer } from "../state/useLayerView";
 import { SourceBar } from "./SourceBar";
 import { ThemeControls } from "./ThemeControls";
 
 const DRAWER_WIDTH = 256;
 
-const NAV: {
-  to: string;
+const BOARDS: {
+  id: ScanLayerId;
   label: string;
-  icon: typeof DashboardOutlined;
-  end?: boolean;
+  icon: typeof StackedBarChartOutlined;
 }[] = [
-  { to: "/", label: "Overview", icon: DashboardOutlined, end: true },
-  { to: "/heatmap", label: "Heatmap", icon: GridViewOutlined },
-  { to: "/offenders", label: "Offenders", icon: WarningAmberOutlined },
-  { to: "/assumptions", label: "Assumptions", icon: CalculateOutlined },
+  { id: "combined", label: SCAN_LAYER_LABELS.combined, icon: StackedBarChartOutlined },
+  { id: "heuristic", label: SCAN_LAYER_LABELS.heuristic, icon: RuleOutlined },
+  { id: "llm", label: SCAN_LAYER_LABELS.llm, icon: PsychologyOutlined },
 ];
+
+function boardSubpath(pathname: string): string {
+  const match = pathname.match(/^\/board\/[^/]+(\/.*)?$/);
+  return match?.[1] ?? "";
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const { seed } = useDashboard();
+  const boardLayer = useBoardLayer();
   const location = useLocation();
   const navigate = useNavigate();
+  const hasLlm = seed ? seedHasLlmLayer(seed.reports) : false;
+  const subpath = boardSubpath(location.pathname);
+  const boardBase = `/board/${boardLayer}`;
+
+  const viewNav = [
+    { to: boardBase, label: "Overview", icon: DashboardOutlined, end: true },
+    { to: `${boardBase}/heatmap`, label: "Heatmap", icon: GridViewOutlined },
+    { to: `${boardBase}/offenders`, label: "Offenders", icon: WarningAmberOutlined },
+    { to: "/assumptions", label: "Assumptions", icon: CalculateOutlined },
+  ];
 
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -62,8 +87,30 @@ export function AppShell({ children }: { children: ReactNode }) {
           {seed?.businessUnit ?? "Loading…"}
         </Typography>
       </Toolbar>
+
+      <Typography variant="overline" sx={{ px: 2, color: "text.secondary" }}>
+        Scan board
+      </Typography>
+      <Tabs
+        value={boardLayer}
+        onChange={(_event, value: ScanLayerId) => navigate(`/board/${value}${subpath}`)}
+        variant="fullWidth"
+        sx={{ px: 1, mb: 1, minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0.5 } }}
+      >
+        {BOARDS.map((board) => (
+          <Tab
+            key={board.id}
+            value={board.id}
+            label={board.label}
+            disabled={board.id === "llm" && !hasLlm}
+            icon={<board.icon sx={{ fontSize: 18 }} />}
+            iconPosition="start"
+          />
+        ))}
+      </Tabs>
+
       <List sx={{ px: 1, flex: 1 }}>
-        {NAV.map((item) => {
+        {viewNav.map((item) => {
           const selected = item.end
             ? location.pathname === item.to
             : location.pathname.startsWith(item.to);
@@ -122,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {compact ? (
               <>
                 <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
-                  TokenForge
+                  TokenForge · {SCAN_LAYER_LABELS[boardLayer]}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap>
                   {seed?.businessUnit ?? "Tokens Saved"}
@@ -130,7 +177,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </>
             ) : (
               <Typography variant="body2" color="text.secondary" noWrap>
-                {seed?.businessUnit ?? "Business unit"} · ROI dashboard
+                {seed?.businessUnit ?? "Business unit"} · {SCAN_LAYER_LABELS[boardLayer]} board
               </Typography>
             )}
           </Box>
@@ -206,16 +253,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <BottomNavigation
             showLabels
-            value={location.pathname}
+            value={location.pathname.startsWith("/assumptions") ? "/assumptions" : boardBase}
             onChange={(_event, value: string) => navigate(value)}
           >
-            {NAV.map((item) => {
+            {viewNav.slice(0, 3).map((item) => {
               const Icon = item.icon;
               return (
                 <BottomNavigationAction
                   key={item.to}
                   label={item.label}
-                  value={item.to}
+                  value={item.end ? boardBase : item.to}
                   icon={<Icon />}
                 />
               );
