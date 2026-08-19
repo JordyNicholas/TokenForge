@@ -1,6 +1,7 @@
-import { commands, ExtensionContext, window } from "vscode";
+import { commands, ExtensionContext, window, workspace } from "vscode";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
+import { startInactivityTimer } from "./tabs/inactivityTimer";
 
 export function activate(context: ExtensionContext): void {
   const registry = new TabRegistry();
@@ -15,6 +16,8 @@ export function activate(context: ExtensionContext): void {
     window.showInformationMessage(`TokenForge - ${summary}`);
   });
   context.subscriptions.push(hello);
+
+  startInactivityTimer(registry, context);
 }
 
 export function deactivate(): void {}
