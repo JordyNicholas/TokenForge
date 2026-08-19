@@ -1,7 +1,7 @@
 import { assessTab } from "./assessTab";
 import { TrackedTab } from "./types";
 
-interface InputSnapshot {
+export interface InputSnapshot {
   path: string;
   bytes: number;
   focus?: boolean;
@@ -26,7 +26,7 @@ export class TabRegistry {
       lastFocusAt,
       lastEditAt,
       lastActivityAt,
-      assessment: assessTab({ path: input.path, bytes: input.bytes, lastActivityAt }, nowMs),
+      assessment: assessTab({ path: input.path, bytes: input.bytes, lastActivityAt }, nowMs)
     };
 
     this.tabs.set(uri, tab);
@@ -50,7 +50,7 @@ export class TabRegistry {
       ...tab,
       assessment: assessTab(
         { path: tab.path, bytes: tab.bytes, lastActivityAt: tab.lastActivityAt },
-        nowMs,
+        nowMs
       ),
     };
   }
