@@ -45,6 +45,12 @@ export class TabRegistry {
     return this.list(nowMs).filter((tab) => tab.assessment.atRisk);
   }
 
+  refresh(nowMs: number = Date.now()): void {
+    for (const [uri, tab] of this.tabs) {
+      this.tabs.set(uri, this.rescore(tab, nowMs));
+    }
+  }
+
   private rescore(tab: TrackedTab, nowMs: number): TrackedTab {
     return {
       ...tab,

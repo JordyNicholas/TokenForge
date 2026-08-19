@@ -1,4 +1,4 @@
-import { commands, ExtensionContext, window, workspace } from "vscode";
+import { commands, ExtensionContext, window } from "vscode";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
