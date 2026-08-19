@@ -1,26 +1,28 @@
 import { InputSnapshot, TabRegistry } from "./registry";
-import { TextDocument, TextEditor, Uri, window, workspace } from "vscode";
+import { ExtensionContext, TextDocument, TextEditor, Uri, window, workspace } from "vscode";
 
-export function trackTabs(registry: TabRegistry): void {
+export function trackTabs(registry: TabRegistry, context: ExtensionContext): void {
   for (const editor of window.visibleTextEditors) {
     upsertFromEditor(registry, editor, { focus: true });
   }
 
-  window.onDidChangeActiveTextEditor((editor) => {
-    if (editor) upsertFromEditor(registry, editor, { focus: true });
-  });
+  context.subscriptions.push(
+    window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) upsertFromEditor(registry, editor, { focus: true });
+    }),
 
-  workspace.onDidChangeTextDocument((event) => {
-    upsertFromDocument(registry, event.document, { edit: true });
-  });
+    workspace.onDidChangeTextDocument((event) => {
+      upsertFromDocument(registry, event.document, { edit: true });
+    }),
 
-  workspace.onDidOpenTextDocument((document) => {
-    upsertFromDocument(registry, document);
-  });
+    workspace.onDidOpenTextDocument((document) => {
+      upsertFromDocument(registry, document);
+    }),
 
-  workspace.onDidCloseTextDocument((document) => {
-    registry.remove(document.uri.toString());
-  });
+    workspace.onDidCloseTextDocument((document) => {
+      registry.remove(document.uri.toString());
+    })
+  );
 }
 
 function upsertFromEditor(registry: TabRegistry, editor: TextEditor, option?: { focus?: boolean, edit?: boolean }): void {
@@ -43,10 +45,10 @@ function upsertFromDocument(registry: TabRegistry, document: TextDocument, optio
   registry.upsert(uri.toString(), snapshot, Date.now());
 }
 
-export function tabPath(uri: Uri): string {
+function tabPath(uri: Uri): string {
   return workspace.asRelativePath(uri, false) ?? uri.fsPath.split(/[/\\]/).pop() ?? "untitled";
 }
 
-export function tabBytes(doc: TextDocument): number {
+function tabBytes(doc: TextDocument): number {
   return Buffer.byteLength(doc.getText(), "utf8");
 }

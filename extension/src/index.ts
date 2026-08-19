@@ -1,27 +1,20 @@
-import {
-  INACTIVE_MS,
-} from "@tokenforge/risk-core";
-import { commands, ExtensionContext, window, workspace } from "vscode";
+import { commands, ExtensionContext, window } from "vscode";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
 
 export function activate(context: ExtensionContext): void {
   const registry = new TabRegistry();
-  trackTabs(registry);
+  trackTabs(registry, context);
   
   const hello = commands.registerCommand("tokenforge.hello", () => {
-    window.showInformationMessage(
-      `${registry.listAtRisk(Date.now())}`
-    )
-  })
-  context.subscriptions.push(hello);
+    const atRisk = registry.listAtRisk();
+    const summary = atRisk.length
+      ? `${atRisk.length} at-risk: ${atRisk.map((tab) => tab.path).join(", ")}`
+      : "No at-risk tabs";
 
-  context.subscriptions.push(
-    window.onDidChangeActiveTextEditor(() => {}),
-    workspace.onDidChangeTextDocument(() => {}),
-    workspace.onDidOpenTextDocument(() => {}),
-    workspace.onDidCloseTextDocument(() => {})
-  );
+    window.showInformationMessage(`TokenForge - ${summary}`);
+  })
+  context.subscriptions.push(hello)
 }
 
 export function deactivate(): void {
