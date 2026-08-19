@@ -5,7 +5,12 @@
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extension"],
+      "debugWebWorkerExtensions": false,
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "--disable-extensions",
+        "${workspaceFolder}"
+      ],
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.js"],
       "preLaunchTask": "watch-extension"
     }

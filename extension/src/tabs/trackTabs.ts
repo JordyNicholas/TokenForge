@@ -26,6 +26,7 @@ export function trackTabs(registry: TabRegistry, context: ExtensionContext): voi
 }
 
 function upsertFromEditor(registry: TabRegistry, editor: TextEditor, option?: { focus?: boolean, edit?: boolean }): void {
+  if (!isTrackable(editor.document)) return;
   const uri = Uri.from(editor.document.uri)
   const snapshot: InputSnapshot = {
     path: tabPath(uri),
@@ -36,6 +37,7 @@ function upsertFromEditor(registry: TabRegistry, editor: TextEditor, option?: { 
 }
 
 function upsertFromDocument(registry: TabRegistry, document: TextDocument, option?: { focus?: boolean, edit?: boolean }): void {
+  if (!isTrackable(document)) return;
   const uri = Uri.from(document.uri);
   const snapshot: InputSnapshot = {
     path: tabPath(uri),
@@ -51,4 +53,10 @@ function tabPath(uri: Uri): string {
 
 function tabBytes(doc: TextDocument): number {
   return Buffer.byteLength(doc.getText(), "utf8");
+}
+
+function isTrackable(document: TextDocument): boolean {
+  if (document.uri.scheme !== "file") return false;
+  if (document.fileName.endsWith(".git") && document.fileName !== ".git") return false;
+  return true;
 }
