@@ -21,9 +21,7 @@
   "dependencies": {
     "@tokenforge/risk-core": "*"
   },
-  "activationEvents": [
-    "onCommand:tokenforge.hello"
-  ],
+  "activationEvents": [ "onStartupFinished" ],
   "contributes": {
     "commands": [
       {
