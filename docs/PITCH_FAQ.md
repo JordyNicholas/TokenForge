@@ -10,7 +10,7 @@ Short answers for judges and collaborators. Aligns with [`CONCEPT_BRIEF.md`](./C
 | Enriches continuity for one agent | Cuts **billable** waste for the **enterprise** |
 | Quality / continuity metric | **Tokens avoided / AI credits / $** |
 
-**Sound bite:** *They help the agent remember. We help the organisation stop bleeding tokens.*
+**Sound bite:** *They help the agent remember. We help the organization stop bleeding tokens.*
 
 ## Do you use AI to scan?
 
