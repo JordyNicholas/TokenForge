@@ -16,8 +16,8 @@ export class TabRegistry {
     let lastFocusAt = existing?.lastFocusAt ?? nowMs;
     let lastEditAt = existing?.lastEditAt ?? nowMs;
 
-    if (input.focus) lastEditAt = nowMs;
-    if (input.edit) lastFocusAt = nowMs;
+    if (input.focus) lastFocusAt = nowMs;
+    if (input.edit) lastEditAt = nowMs;
 
     const lastActivityAt = Math.max(lastFocusAt, lastEditAt);
     const tab: TrackedTab = {
