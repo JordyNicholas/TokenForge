@@ -20,14 +20,19 @@ export function trackTabs(registry: TabRegistry, context: ExtensionContext): voi
     }),
 
     workspace.onDidCloseTextDocument((document) => {
+      if (!isTrackable(document)) return;
       registry.remove(document.uri.toString());
-    })
+    }),
   );
 }
 
-function upsertFromEditor(registry: TabRegistry, editor: TextEditor, option?: { focus?: boolean, edit?: boolean }): void {
+function upsertFromEditor(
+  registry: TabRegistry,
+  editor: TextEditor,
+  option?: { focus?: boolean; edit?: boolean },
+): void {
   if (!isTrackable(editor.document)) return;
-  const uri = Uri.from(editor.document.uri)
+  const { uri } = editor.document;
   const snapshot: InputSnapshot = {
     path: tabPath(uri),
     bytes: tabBytes(editor.document),
@@ -36,9 +41,13 @@ function upsertFromEditor(registry: TabRegistry, editor: TextEditor, option?: { 
   registry.upsert(uri.toString(), snapshot, Date.now());
 }
 
-function upsertFromDocument(registry: TabRegistry, document: TextDocument, option?: { focus?: boolean, edit?: boolean }): void {
+function upsertFromDocument(
+  registry: TabRegistry,
+  document: TextDocument,
+  option?: { focus?: boolean; edit?: boolean },
+): void {
   if (!isTrackable(document)) return;
-  const uri = Uri.from(document.uri);
+  const { uri } = document;
   const snapshot: InputSnapshot = {
     path: tabPath(uri),
     bytes: tabBytes(document),

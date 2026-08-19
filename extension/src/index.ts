@@ -5,7 +5,7 @@ import { trackTabs } from "./tabs/trackTabs";
 export function activate(context: ExtensionContext): void {
   const registry = new TabRegistry();
   trackTabs(registry, context);
-  
+
   const hello = commands.registerCommand("tokenforge.hello", () => {
     const atRisk = registry.listAtRisk();
     const summary = atRisk.length
@@ -13,10 +13,8 @@ export function activate(context: ExtensionContext): void {
       : "No at-risk tabs";
 
     window.showInformationMessage(`TokenForge - ${summary}`);
-  })
-  context.subscriptions.push(hello)
+  });
+  context.subscriptions.push(hello);
 }
 
-export function deactivate(): void {
-  window.showInformationMessage("TokenForge Extension deactivated");
-}
+export function deactivate(): void {}
