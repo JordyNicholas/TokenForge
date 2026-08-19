@@ -1,5 +1,6 @@
 import { InputSnapshot, TabRegistry } from "./registry";
 import { ExtensionContext, TextDocument, TextEditor, Uri, window, workspace } from "vscode";
+import { tabBytes } from "./tabBytes";
 
 export function trackTabs(registry: TabRegistry, context: ExtensionContext): void {
   for (const editor of window.visibleTextEditors) {
@@ -58,10 +59,6 @@ function upsertFromDocument(
 
 function tabPath(uri: Uri): string {
   return workspace.asRelativePath(uri, false) ?? uri.fsPath.split(/[/\\]/).pop() ?? "untitled";
-}
-
-function tabBytes(doc: TextDocument): number {
-  return Buffer.byteLength(doc.getText(), "utf8");
 }
 
 function isTrackable(document: TextDocument): boolean {
