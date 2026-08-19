@@ -2,10 +2,10 @@ import { assessTab } from "./assessTab";
 import { TrackedTab } from "./types";
 
 interface InputSnapshot {
-  path: string,
-  bytes: number,
-  focus?: boolean,
-  edit?: boolean
+  path: string;
+  bytes: number;
+  focus?: boolean;
+  edit?: boolean;
 }
 
 export class TabRegistry {
@@ -27,43 +27,31 @@ export class TabRegistry {
       lastEditAt,
       lastActivityAt,
       assessment: assessTab({ path: input.path, bytes: input.bytes, lastActivityAt }, nowMs),
-    }
+    };
 
     this.tabs.set(uri, tab);
     return tab;
   }
 
   remove(uri: string): void {
-    const existing = this.tabs.get(uri);
-    if (existing) this.tabs.delete(uri);
-  }
-  
-  list(): readonly TrackedTab[] {
-    return Array.from(this.tabs.values())
-      .map((tab) => {
-        return {
-          ...tab,
-          assessment: assessTab({ 
-            path: tab.path,
-            bytes: tab.bytes,
-            lastActivityAt: tab.lastActivityAt
-          })
-        }
-      })
+    this.tabs.delete(uri);
   }
 
-  listAtRisk(nowMs?: number): TrackedTab[] {
-    return Array.from(this.tabs.values())
-      .map((tab) => {
-        return {
-          ...tab,
-          assessment: assessTab({ 
-            path: tab.path,
-            bytes: tab.bytes,
-            lastActivityAt: tab.lastActivityAt
-          }, nowMs ?? Date.now())
-        }
-      })
-      .filter((tab) => tab.assessment.atRisk)
+  list(nowMs: number = Date.now()): readonly TrackedTab[] {
+    return Array.from(this.tabs.values()).map((tab) => this.rescore(tab, nowMs));
+  }
+
+  listAtRisk(nowMs: number = Date.now()): TrackedTab[] {
+    return this.list(nowMs).filter((tab) => tab.assessment.atRisk);
+  }
+
+  private rescore(tab: TrackedTab, nowMs: number): TrackedTab {
+    return {
+      ...tab,
+      assessment: assessTab(
+        { path: tab.path, bytes: tab.bytes, lastActivityAt: tab.lastActivityAt },
+        nowMs,
+      ),
+    };
   }
 }
