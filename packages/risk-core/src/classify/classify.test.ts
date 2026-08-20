@@ -25,6 +25,33 @@ describe("classifyFiletype", () => {
     expect(classifyFiletype("README.md")).toBe("unknown");
   });
 
+  it("classifies Prisma generated client trees", () => {
+    expect(
+      classifyFiletype(
+        "src/shared/infra/database/client/models/Tenant.ts",
+      ),
+    ).toBe("generated");
+    expect(
+      classifyFiletype(
+        "src/shared/infra/database/client/commonInputTypes.ts",
+      ),
+    ).toBe("generated");
+    expect(classifyFiletype("node_modules/.prisma/client/index.js")).toBe(
+      "generated",
+    );
+    expect(classifyFiletype("src/generated/prisma/client.ts")).toBe(
+      "generated",
+    );
+    expect(classifyFiletype("prisma/generated/client/index.ts")).toBe(
+      "generated",
+    );
+  });
+
+  it("does not treat unrelated client paths as Prisma generated", () => {
+    expect(classifyFiletype("src/infra/http/client/api.ts")).toBe("source");
+    expect(classifyFiletype("packages/api-client/src/index.ts")).toBe("source");
+  });
+
   it("accepts Windows separators", () => {
     expect(classifyFiletype("dist\\out.js")).toBe("generated");
   });
