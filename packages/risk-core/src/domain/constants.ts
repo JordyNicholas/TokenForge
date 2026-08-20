@@ -3,8 +3,14 @@ import type { FiletypeRiskClass } from "./types";
 /** Hackathon estimate: `estTokens ≈ ceil(bytes / 4)`. */
 export const BYTES_PER_TOKEN = 4;
 
-/** Extension rule: inactive ≥ 15 minutes. */
-export const INACTIVE_MS = 15 * 60 * 1000;
+/** Focused-tab rule: inactive ≥ 10 minutes. */
+export const INACTIVE_MS = 10 * 60 * 1000;
+
+/**
+ * Non-focused (background) tab rule: inactive ≥ 5 minutes.
+ * Shorter than {@link INACTIVE_MS} so idle background context flags sooner.
+ */
+export const BACKGROUND_INACTIVE_MS = 5 * 60 * 1000;
 
 /** Paths at or above this size are `oversized`. */
 export const OVERSIZED_BYTES = 100_000;

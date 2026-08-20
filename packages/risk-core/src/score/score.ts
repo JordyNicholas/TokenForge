@@ -32,6 +32,13 @@ function normalizeBytes(bytes: number): number {
   return Number.isFinite(bytes) ? Math.max(0, bytes) : 0;
 }
 
+function normalizeThreshold(thresholdMs: number | undefined): number {
+  if (thresholdMs === undefined || !Number.isFinite(thresholdMs) || thresholdMs <= 0) {
+    return INACTIVE_MS;
+  }
+  return thresholdMs;
+}
+
 /** Pick the JSON-contract `reason` when a path has more than one. */
 export function primaryReason(
   reasons: readonly FindingReason[],
@@ -41,12 +48,14 @@ export function primaryReason(
 
 /**
  * Score a path for Detect (tabs) and Fix (repo scan).
- * `atRisk` when inactive ≥ 15 min, high-risk filetype, or oversized.
+ * `atRisk` when inactive past the threshold (default 10 min focused / 5 min
+ * background via `inactiveThresholdMs`), high-risk filetype, or oversized.
  * Score is a 0–100 mix of class, size, and inactivity (not a vendor signal).
  */
 export function scoreRisk(input: RiskInput): RiskAssessment {
   const bytes = normalizeBytes(input.bytes);
   const inactiveMs = normalizeMs(input.inactiveMs);
+  const inactiveThresholdMs = normalizeThreshold(input.inactiveThresholdMs);
   const fileClass = classifyFiletype(input.path);
   const reasons: FindingReason[] = [];
 
@@ -56,12 +65,12 @@ export function scoreRisk(input: RiskInput): RiskAssessment {
   if (bytes >= OVERSIZED_BYTES) {
     reasons.push("oversized");
   }
-  if (inactiveMs >= INACTIVE_MS) {
+  if (inactiveMs >= inactiveThresholdMs) {
     reasons.push("inactive_tab");
   }
 
   const sizeWeight = clamp01(bytes / OVERSIZED_BYTES);
-  const inactivityWeight = clamp01(inactiveMs / INACTIVE_MS);
+  const inactivityWeight = clamp01(inactiveMs / inactiveThresholdMs);
   const mixed =
     SCORE_WEIGHT_CLASS * CLASS_WEIGHT[fileClass] +
     SCORE_WEIGHT_SIZE * sizeWeight +

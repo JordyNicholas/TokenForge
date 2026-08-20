@@ -51,6 +51,12 @@ export type RiskInput = {
   path: string;
   bytes: number;
   inactiveMs: number;
+  /**
+   * Idle threshold before `inactive_tab` fires.
+   * Defaults to {@link INACTIVE_MS} (focused). Pass {@link BACKGROUND_INACTIVE_MS}
+   * for non-focused editor tabs.
+   */
+  inactiveThresholdMs?: number;
 };
 
 export type RiskAssessment = {

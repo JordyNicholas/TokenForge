@@ -33,7 +33,7 @@ function heuristicExplanation(
 ): string {
   switch (reason) {
     case "inactive_tab":
-      return "This path was inactive for at least 15 minutes. Keeping it in Chat/Agent context still consumes billable tokens while it is unlikely to be the file being edited.";
+      return "This path was inactive long enough to flag as stale context (10 minutes when focused, 5 minutes in a background tab). Keeping it in Chat/Agent context still consumes billable tokens while it is unlikely to be the file being edited.";
     case "high_risk_filetype":
       if (fileClass === "lockfile") {
         return "Lockfiles are high-volume, low-signal context for coding agents. Excluding them from Chat/Agent workflows is the usual Fix.";

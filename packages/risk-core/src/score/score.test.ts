@@ -30,7 +30,7 @@ describe("scoreRisk", () => {
     expect(result.atRisk).toBe(true);
   });
 
-  it("flags inactive source tabs at 15 minutes", () => {
+  it("flags inactive source tabs at the focused idle threshold", () => {
     const result = scoreRisk({
       path: "src/app.ts",
       bytes: 1_200,
@@ -43,6 +43,25 @@ describe("scoreRisk", () => {
     expect(result.score).toBeGreaterThan(
       scoreRisk({ path: "src/app.ts", bytes: 1_200, inactiveMs: 0 }).score,
     );
+  });
+
+  it("flags background tabs earlier via inactiveThresholdMs", () => {
+    const backgroundThreshold = INACTIVE_MS / 2;
+    const result = scoreRisk({
+      path: "src/app.ts",
+      bytes: 1_200,
+      inactiveMs: backgroundThreshold,
+      inactiveThresholdMs: backgroundThreshold,
+    });
+
+    expect(result.reasons).toEqual(["inactive_tab"]);
+    expect(
+      scoreRisk({
+        path: "src/app.ts",
+        bytes: 1_200,
+        inactiveMs: backgroundThreshold,
+      }).atRisk,
+    ).toBe(false);
   });
 
   it("does not flag a small active source file", () => {
