@@ -67,8 +67,9 @@ Phase 2 (open). Former catch-all #7 was split:
 
 | Issue | Title | Epic | Order |
 | --- | --- | --- | --- |
-| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | F1 #60 | 1a (∥ #46) |
-| #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45) |
+| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | F1 #60 | 1a (∥ #46, #66) |
+| #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45, #66) |
+| #66 | CLI: multi-pass local-first LLM enrich (map → judge → reconcile) | F1 #60 | 1c (∥ #45, #46; Ollama-first) |
 | #48 | Extension: optional LLM enricher | F1 #60 | 2 (after #45 or #46) |
 | #27 | Live usage metrics / billing sync (per provider) | F2 #61 | 1 |
 | #28 | Apply org content exclusions / policy (per provider) | F2 #61 | 2 |
@@ -83,7 +84,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 
 Phase 2:
 
-1. **F1** (#60) — confirm #43 closed → **#45 ∥ #46** → **#48**
+1. **F1** (#60) — confirm #43/#44 closed → **#45 ∥ #46 ∥ #66** → **#48**
 2. **F2** (#61) — **#27** → **#28** (after F1 if hybrid findings should show in org Prove)
 3. **F3** (#62) — **#25** → **#26** (do not start while F1 is open; do not pitch)
 
