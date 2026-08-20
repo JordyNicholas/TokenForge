@@ -7,7 +7,7 @@ import {
   type WebviewViewProvider,
 } from "vscode";
 import type { RiskSession } from "../session/riskSession";
-import type { RiskPulseModel } from "../session/riskPulse";
+import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
 
 export const RISK_PULSE_VIEW_ID = "tokenforge.riskPulse";
@@ -42,13 +42,12 @@ class RiskPulseProvider implements WebviewViewProvider {
     }
     const model = this.session.pulse();
     this.view.webview.html = renderPulseHtml(this.view.webview, model);
-    this.view.badge =
-      model.totals.savedTokens > 0
-        ? {
-            value: Math.min(model.filteredCount, 99),
-            tooltip: `${formatTokenCount(model.totals.savedTokens)} tokens saved`,
-          }
-        : undefined;
+    this.view.badge = hasTokenReduction(model)
+      ? {
+          value: Math.min(model.filteredCount, 99),
+          tooltip: `${formatTokenCount(model.totals.savedTokens)} tokens saved`,
+        }
+      : undefined;
   }
 }
 
@@ -72,9 +71,8 @@ export function createRiskPulse(
 function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
   const { totals, segments, displayAtRiskTokens } = model;
   const before = Math.max(totals.beforeTokens, 1);
-  const savedPct = Math.round((totals.savedTokens / before) * 1000) / 10;
-  const afterPct = Math.round((totals.afterTokens / before) * 1000) / 10;
   const csp = webview.cspSource;
+  const showReduction = hasTokenReduction(model);
 
   const segmentRows = segments
     .slice(0, 8)
@@ -95,10 +93,32 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
     })
     .join("\n");
 
-  const empty =
-    segments.length === 0
-      ? `<p class="hint">No at-risk tabs yet. Open a lockfile or leave a tab idle ≥15 minutes.</p>`
-      : "";
+  let bodyMain: string;
+  if (segments.length === 0) {
+    bodyMain = `<p class="hint">No at-risk tabs yet. Open a lockfile or leave a tab idle ≥15 minutes.</p>`;
+  } else if (!showReduction) {
+    bodyMain = `
+  <div class="kpi single">
+    <div><span class="label">At risk now</span><span class="value">${formatTokenCount(displayAtRiskTokens)}</span></div>
+  </div>
+  <p class="hint">Filter a tab to unlock the reduction evidence (before → after → saved). Until then, before and after are the same — nothing has been filtered yet.</p>
+  ${segmentRows}`;
+  } else {
+    const savedPct = Math.round((totals.savedTokens / before) * 1000) / 10;
+    const afterPct = Math.round((totals.afterTokens / before) * 1000) / 10;
+    bodyMain = `
+  <div class="kpi">
+    <div><span class="label">Before</span><span class="value">${formatTokenCount(totals.beforeTokens)}</span></div>
+    <div><span class="label">After</span><span class="value">${formatTokenCount(totals.afterTokens)}</span></div>
+    <div><span class="label">Saved</span><span class="value">${formatTokenCount(totals.savedTokens)}</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="${savedPct}% saved">
+    <div class="saved" style="width:${savedPct}%"></div>
+    <div class="after" style="width:${afterPct}%"></div>
+  </div>
+  <div class="caption">${savedPct}% filtered · ${formatTokenCount(displayAtRiskTokens)} still at risk</div>
+  ${segmentRows}`;
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -139,6 +159,7 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
       gap: 8px;
       margin: 10px 0 14px;
     }
+    .kpi.single { grid-template-columns: 1fr; }
     .kpi div {
       padding: 8px 6px;
       border: 1px solid var(--border);
@@ -176,24 +197,13 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
     .tag.saved { color: var(--saved); }
     .tag.kept { color: var(--kept); }
     .tag.risk { color: var(--risk); }
-    .hint { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 10px 0 14px; }
     .foot { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.35; }
   </style>
 </head>
 <body>
-  <h1>Token reduction</h1>
-  <div class="kpi">
-    <div><span class="label">Before</span><span class="value">${formatTokenCount(totals.beforeTokens)}</span></div>
-    <div><span class="label">After</span><span class="value">${formatTokenCount(totals.afterTokens)}</span></div>
-    <div><span class="label">Saved</span><span class="value">${formatTokenCount(totals.savedTokens)}</span></div>
-  </div>
-  <div class="bar" role="img" aria-label="${savedPct}% saved">
-    <div class="saved" style="width:${savedPct}%"></div>
-    <div class="after" style="width:${afterPct}%"></div>
-  </div>
-  <div class="caption">${savedPct}% filtered · ${formatTokenCount(displayAtRiskTokens)} still at risk</div>
-  ${empty}
-  ${segmentRows}
+  <h1>${showReduction ? "Token reduction" : "Context risk"}</h1>
+  ${bodyMain}
   <p class="foot">Live from open tabs + Keep/Filter. Same math as last-scan.json. Hygiene advice only — not agent interception.</p>
 </body>
 </html>`;

@@ -27,6 +27,11 @@ export type RiskPulseModel = {
   segments: RiskPulseSegment[];
 };
 
+/** True only when Filter has created real before≠after savings to show. */
+export function hasTokenReduction(model: RiskPulseModel): boolean {
+  return model.totals.savedTokens > 0 && model.totals.afterTokens !== model.totals.beforeTokens;
+}
+
 /**
  * Live Detect pulse from open tabs + Keep/Filter decisions.
  * Same totals math as last-scan export (`tallyCombinedTotals`).

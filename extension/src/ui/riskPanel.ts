@@ -41,11 +41,16 @@ export class RiskSectionItem extends TreeItem {
 export class RiskSummaryItem extends TreeItem {
   constructor(atRiskTokens: number, savedTokens: number, beforeTokens: number) {
     super("Live estimate", TreeItemCollapsibleState.None);
-    this.description = `${formatTokenCount(atRiskTokens)} at risk · ${formatTokenCount(savedTokens)} saved`;
+    this.description =
+      savedTokens > 0
+        ? `${formatTokenCount(atRiskTokens)} at risk · ${formatTokenCount(savedTokens)} saved`
+        : `${formatTokenCount(atRiskTokens)} at risk`;
     this.tooltip = [
-      `Before: ${beforeTokens} tokens`,
+      `Open-tab estimate: ${beforeTokens} tokens`,
       `Still at risk: ${atRiskTokens} tokens`,
-      `Saved by Filter: ${savedTokens} tokens`,
+      savedTokens > 0
+        ? `Saved by Filter: ${savedTokens} tokens`
+        : "Filter a tab to record savings in last-scan.json",
       "",
       "Recommendations only — TokenForge does not intercept any agent pipeline.",
     ].join("\n");
