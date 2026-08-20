@@ -74,10 +74,10 @@ SLIDES = [
     ),
     (
         "Roadmap (Phase 2)",
-        "Hybrid scan backends: Ollama, OpenAI-compat, Anthropic\n"
-        "Dashboard LLM finding badges\n"
-        "Extension enricher on instruction paths\n"
-        "Chat compaction · model routing · live billing sync",
+        "Shipped: heuristic default, Ollama hybrid, dashboard LLM boards\n"
+        "F1 Hybrid Detect: OpenAI-compat + Anthropic enrichers, then extension hook\n"
+        "F2 Org scale: live usage/billing (per provider) → org policy apply\n"
+        "F3 Adjacent (do not pitch): chat compaction · model routing",
     ),
 ]
 

@@ -243,21 +243,23 @@ source files.
 
 ## Implementation map (board)
 
-| Issue | Deliverable |
-| --- | --- |
-| #41 | This design + schema/types scaffolding (foundation) |
-| #42 | `risk-core`: candidate selection + merge (tests) |
-| #43 | CLI: enricher port + noop adapter + `--mode hybrid` wiring |
-| #44 | CLI: Ollama enricher (local Qwen) |
-| #45 | CLI: OpenAI-compatible enricher |
-| #46 | CLI: Anthropic enricher |
-| #47 | Dashboard: hybrid / LLM finding display |
-| #54 | Dashboard: finding details + heuristic explanations |
-| #55 | Advisory finding suggestions (copy-only, never applied) |
-| #48 | Extension: optional enricher on instruction paths (Future) |
-| #49 | Pitch FAQ + deck: hybrid scan talking points |
+Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/TokenForge/issues/60)**. Full board: [`BOARD.md`](./BOARD.md).
 
-Build order: #41 → #42 → #43 → (#44 \| #45 \| #46 in parallel) → #47 → #54 → #55 → #48.
+| Issue | Deliverable | Status |
+| --- | --- | --- |
+| #41 | This design + schema/types scaffolding (foundation) | Shipped |
+| #42 | `risk-core`: candidate selection + merge (tests) | Shipped |
+| #43 | CLI: enricher port + noop adapter + `--mode hybrid` wiring | Shipped |
+| #44 | CLI: Ollama enricher (local Qwen) | Shipped |
+| #47 | Dashboard: hybrid / LLM finding display | Shipped |
+| #54 | Dashboard: finding details + heuristic explanations | Shipped |
+| #55 | Advisory finding suggestions (copy-only, never applied) | Shipped |
+| #49 | Pitch FAQ + deck: hybrid scan talking points | Shipped (deck roadmap refresh in #63) |
+| #45 | CLI: OpenAI-compatible enricher | Open — F1, parallel with #46 |
+| #46 | CLI: Anthropic enricher | Open — F1, parallel with #45 |
+| #48 | Extension: optional enricher on instruction paths | Open — F1 last, after #45 or #46 |
+
+Remaining F1 order: **#45 ∥ #46 → #48**.
 
 ## Out of scope (this design)
 
