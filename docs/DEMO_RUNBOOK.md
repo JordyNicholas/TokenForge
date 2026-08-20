@@ -6,12 +6,13 @@ teammate can run the whole demo from this doc alone, with no other context.
 
 Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
 
-> **Honesty note:** the VS Code extension currently ships one command
-> (`TokenForge: Hello`) that shows a toast of at-risk tabs — no tree view, status bar,
-> or one-click filter yet (those land in follow-on stories #21/#22). Don't imply
-> otherwise on stage. Likewise, the CLI's raw savings ratio on the demo fixture is
-> **~99.8%**, not the pitch **~30%** — the 30% only appears after the dashboard
-> Assumptions step below. See the caveats inline in each beat.
+> **Honesty note:** the VS Code extension ships **Context Guard** — status bar
+> at-risk readout, TokenForge sidebar (Pending / Kept / Filtered + Risk pulse),
+> Keep/Filter actions, and auto-export of `.tokenforge/last-scan.json`. It
+> recommends hygiene; it does **not** intercept any agent pipeline. Likewise, the
+> CLI's raw savings ratio on the demo fixture is **~99.8%**, not the pitch
+> **~30%** — the 30% only appears after the dashboard Assumptions step below.
+> See the caveats inline in each beat.
 
 ## Pre-demo setup (do this before the clock starts)
 
@@ -22,10 +23,11 @@ Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`]
    ```
    Open the repo root in VS Code, press **F5** (**Run Extension**, per
    `.vscode/launch.json`) to open the Extension Development Host window.
-3. In that Extension Development Host window, open these fixture files as tabs and
-   then **leave them alone for 15+ minutes** before the demo slot (the extension
-   polls inactivity every 60s and has no live fast-forward — there's no way to fake
-   this on stage):
+3. In that Extension Development Host window, open these fixture files as tabs.
+   High-risk filetypes (lockfile / generated) flag **immediately**; source/config
+   tabs need **≥15 minutes idle** (panel shows an **Approaching idle** countdown
+   after 1m). For a clean stage beat, leave the lockfile + bundle open and
+   optionally idle the others beforehand:
    - `fixtures/noisy-app/package-lock.json`
    - `fixtures/noisy-app/dist/bundle.js`
    - `fixtures/noisy-app/config/app-settings.json`
@@ -43,11 +45,15 @@ Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`]
 ### Beat 1 — Noisy tabs → extension (~60–75s)
 
 - Switch to the pre-staged Extension Development Host window.
-- Command Palette → **TokenForge: Hello**.
-- Point out the toast listing the at-risk tab paths (flagged by size, high-risk
-  filetype, and inactivity ≥15 min).
-- Say: *"This is v0 — right now it's a single command that surfaces the risk; the
-  tree view and one-click filter are next up on the board."*
+- Open the **TokenForge** activity-bar icon: **At-risk tabs** + **Risk pulse**.
+- Point at the status bar (`TokenForge: … at risk`) and the Pending section
+  (lockfile / bundle should already be flagged).
+- Click **Filter** on the lockfile — status bar drops, Risk pulse shows
+  before → after → saved, and `.tokenforge/last-scan.json` updates (use
+  **Reveal last-scan.json** if you want to show the file).
+- Say: *"Detect is heuristic on open tabs — Keep or Filter is your call. We don't
+  intercept the agent pipeline; we export the same Token Risk JSON the dashboard
+  can load."*
 
 ### Beat 2 — CLI scan → fix (~120–150s)
 
