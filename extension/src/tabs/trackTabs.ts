@@ -2,7 +2,16 @@ import { InputSnapshot, TabRegistry } from "./registry";
 import { ExtensionContext, TextDocument, TextEditor, Uri, window, workspace } from "vscode";
 import { tabBytes } from "./tabBytes";
 
-export function trackTabs(registry: TabRegistry, context: ExtensionContext): void {
+export type TrackTabsOptions = {
+  /** Called after a tracked document is removed from the registry. */
+  onClose?: (uri: string) => void;
+};
+
+export function trackTabs(
+  registry: TabRegistry,
+  context: ExtensionContext,
+  options: TrackTabsOptions = {},
+): void {
   for (const editor of window.visibleTextEditors) {
     upsertFromEditor(registry, editor, { focus: true });
   }
@@ -22,7 +31,9 @@ export function trackTabs(registry: TabRegistry, context: ExtensionContext): voi
 
     workspace.onDidCloseTextDocument((document) => {
       if (!isTrackable(document)) return;
-      registry.remove(document.uri.toString());
+      const uri = document.uri.toString();
+      registry.remove(uri);
+      options.onClose?.(uri);
     }),
   );
 }
