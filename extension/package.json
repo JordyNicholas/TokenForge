@@ -92,6 +92,12 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "tokenforge.toggleAutoFilterHighRisk",
+        "title": "Toggle Auto-filter High-Risk",
+        "category": "TokenForge",
+        "icon": "$(zap)"
+      },
+      {
         "command": "tokenforge.focusRiskPanel",
         "title": "Focus Risk Panel",
         "category": "TokenForge"
@@ -99,6 +105,12 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "tokenforge.toggleAutoFilterHighRisk",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@0",
+          "toggled": "config.tokenforge.autoFilterHighRisk"
+        },
         {
           "command": "tokenforge.refreshRiskPanel",
           "when": "view == tokenforge.riskPanel",

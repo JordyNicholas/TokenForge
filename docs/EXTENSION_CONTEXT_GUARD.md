@@ -69,6 +69,13 @@ Acceptance rule: **only Filter reduces displayed at-risk tokens.**
 
 Setting: `tokenforge.autoFilterHighRisk` (default **false**).
 
+**Turn it on from:**
+
+- TokenForge sidebar toolbar — zap icon (**Toggle Auto-filter High-Risk**) on
+  **At-risk tabs** or **Risk pulse** (icon stays highlighted while enabled)
+- Command Palette → **TokenForge: Toggle Auto-filter High-Risk**
+- Settings → search `tokenforge.autoFilterHighRisk`
+
 When enabled, pending **lockfile** and **generated** tabs are Filtered automatically.
 Keep/Restore remain durable overrides. This never closes editors or writes vendor
 ignore files — it only updates the Detect estimate and `last-scan.json`.

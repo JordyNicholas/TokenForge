@@ -2,7 +2,7 @@ import { commands, workspace, window, type ExtensionContext } from "vscode";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
-import { runAutoFilter } from "./filter/autoFilterSettings";
+import { runAutoFilter, toggleAutoFilterHighRisk } from "./filter/autoFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
@@ -122,6 +122,19 @@ export function activate(context: ExtensionContext): void {
     void window.showInformationMessage("Cleared Keep/Filter decisions.");
   });
 
+  const toggleAutoFilter = commands.registerCommand(
+    "tokenforge.toggleAutoFilterHighRisk",
+    async () => {
+      const enabled = await toggleAutoFilterHighRisk();
+      runAutoFilter(session);
+      void window.showInformationMessage(
+        enabled
+          ? "Auto-filter on — pending lockfile/generated tabs will Filter automatically."
+          : "Auto-filter off — high-risk tabs stay Pending until you Filter.",
+      );
+    },
+  );
+
   const focusPanel = commands.registerCommand("tokenforge.focusRiskPanel", async () => {
     await commands.executeCommand(`${RISK_PANEL_VIEW_ID}.focus`);
   });
@@ -134,6 +147,7 @@ export function activate(context: ExtensionContext): void {
     reveal,
     refresh,
     clearFilters,
+    toggleAutoFilter,
     focusPanel,
   );
 }
