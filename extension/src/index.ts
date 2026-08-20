@@ -6,6 +6,7 @@ import { startInactivityTimer } from "./tabs/inactivityTimer";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
 import { createRiskPanel, RISK_PANEL_VIEW_ID, type RiskTabItem } from "./ui/riskPanel";
+import { createRiskPulse } from "./ui/riskPulseView";
 import { createStatusBar } from "./ui/statusBar";
 
 export function activate(context: ExtensionContext): void {
@@ -19,6 +20,7 @@ export function activate(context: ExtensionContext): void {
   startInactivityTimer(registry, context);
 
   createRiskPanel(session, context);
+  createRiskPulse(session, context);
   context.subscriptions.push(createStatusBar(session));
   context.subscriptions.push({ dispose: () => session.dispose() });
 
@@ -31,9 +33,7 @@ export function activate(context: ExtensionContext): void {
         return;
       }
       session.keep(uri);
-      void writeLastScan(session).catch((error) => {
-        void window.showErrorMessage(formatError("Export failed after Keep", error));
-      });
+      void exportQuiet(session);
     },
   );
 
@@ -58,6 +58,19 @@ export function activate(context: ExtensionContext): void {
     },
   );
 
+  const restore = commands.registerCommand(
+    "tokenforge.restoreTab",
+    (item?: RiskTabItem) => {
+      const uri = item?.tab.uri;
+      if (!uri) {
+        void window.showWarningMessage("Select a filtered tab in the TokenForge panel.");
+        return;
+      }
+      session.clearDecision(uri);
+      void exportQuiet(session);
+    },
+  );
+
   const exportScan = commands.registerCommand("tokenforge.exportLastScan", async () => {
     try {
       const result = await writeLastScan(session);
@@ -69,14 +82,38 @@ export function activate(context: ExtensionContext): void {
     }
   });
 
+  const refresh = commands.registerCommand("tokenforge.refreshRiskPanel", () => {
+    session.refreshScores();
+  });
+
+  const clearFilters = commands.registerCommand("tokenforge.clearFilters", () => {
+    session.clearAllDecisions();
+    void exportQuiet(session);
+    void window.showInformationMessage("Cleared Keep/Filter decisions.");
+  });
+
   const focusPanel = commands.registerCommand("tokenforge.focusRiskPanel", async () => {
     await commands.executeCommand(`${RISK_PANEL_VIEW_ID}.focus`);
   });
 
-  context.subscriptions.push(keep, filter, exportScan, focusPanel);
+  context.subscriptions.push(
+    keep,
+    filter,
+    restore,
+    exportScan,
+    refresh,
+    clearFilters,
+    focusPanel,
+  );
 }
 
 export function deactivate(): void {}
+
+function exportQuiet(session: RiskSession): void {
+  void writeLastScan(session).catch((error) => {
+    void window.showErrorMessage(formatError("Export failed", error));
+  });
+}
 
 function formatError(prefix: string, error: unknown): string {
   const reason = error instanceof Error ? error.message : String(error);

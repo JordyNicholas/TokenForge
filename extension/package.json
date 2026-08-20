@@ -40,6 +40,11 @@
         {
           "id": "tokenforge.riskPanel",
           "name": "At-risk tabs"
+        },
+        {
+          "id": "tokenforge.riskPulse",
+          "name": "Risk pulse",
+          "type": "webview"
         }
       ]
     },
@@ -57,10 +62,28 @@
         "icon": "$(filter)"
       },
       {
+        "command": "tokenforge.restoreTab",
+        "title": "Restore",
+        "category": "TokenForge",
+        "icon": "$(discard)"
+      },
+      {
         "command": "tokenforge.exportLastScan",
         "title": "Export last-scan.json",
         "category": "TokenForge",
         "icon": "$(save)"
+      },
+      {
+        "command": "tokenforge.refreshRiskPanel",
+        "title": "Refresh",
+        "category": "TokenForge",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tokenforge.clearFilters",
+        "title": "Clear Keep/Filter decisions",
+        "category": "TokenForge",
+        "icon": "$(clear-all)"
       },
       {
         "command": "tokenforge.focusRiskPanel",
@@ -71,21 +94,36 @@
     "menus": {
       "view/title": [
         {
-          "command": "tokenforge.exportLastScan",
+          "command": "tokenforge.refreshRiskPanel",
           "when": "view == tokenforge.riskPanel",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "tokenforge.exportLastScan",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tokenforge.clearFilters",
+          "when": "view == tokenforge.riskPanel",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
         {
           "command": "tokenforge.keepTab",
           "when": "view == tokenforge.riskPanel && viewItem == tokenforge.atRiskTab",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
           "command": "tokenforge.filterTab",
           "when": "view == tokenforge.riskPanel && viewItem =~ /tokenforge\\.(atRisk|kept)Tab/",
-          "group": "inline"
+          "group": "inline@2"
+        },
+        {
+          "command": "tokenforge.restoreTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.filteredTab",
+          "group": "inline@1"
         },
         {
           "command": "tokenforge.keepTab",
@@ -95,6 +133,11 @@
         {
           "command": "tokenforge.filterTab",
           "when": "view == tokenforge.riskPanel && viewItem =~ /tokenforge\\.(atRisk|kept)Tab/",
+          "group": "1_actions"
+        },
+        {
+          "command": "tokenforge.restoreTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.filteredTab",
           "group": "1_actions"
         }
       ]
