@@ -52,3 +52,34 @@ export const DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1";
 
 /** Default Anthropic base URL when `--llm-endpoint` is omitted. */
 export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1";
+
+/** Anthropic Messages API version header. */
+export const ANTHROPIC_API_VERSION = "2023-06-01";
+
+/** Anthropic Messages API requires an explicit max_tokens on every request. */
+export const ANTHROPIC_MAX_OUTPUT_TOKENS = 4096;
+
+/** Default Anthropic per-batch timeout (hosted API — fails fast on real problems). */
+export const DEFAULT_ANTHROPIC_TIMEOUT_MS = 120_000;
+
+/** Minimum per-batch timeout accepted via CLI/env for Anthropic. */
+export const MIN_ANTHROPIC_TIMEOUT_MS = 10_000;
+
+/** Candidates per Anthropic request — hosted API tolerates larger batches than local Ollama. */
+export const ANTHROPIC_BATCH_SIZE = 4;
+
+export function resolveAnthropicTimeoutMs(overrideMs?: number): number {
+  if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_ANTHROPIC_TIMEOUT_MS) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_ANTHROPIC_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_ANTHROPIC_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_ANTHROPIC_TIMEOUT_MS;
+}
