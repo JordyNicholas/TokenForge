@@ -1,0 +1,12 @@
+{
+  "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
+  "pitchNote": "Negative control: a genuinely healthy repo should not produce manufactured savings.",
+  "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
+  "fixture": "fixtures/lean-app",
+  "totals": {
+    "beforeTokens": 591,
+    "afterTokens": 591,
+    "savedTokens": 0
+  },
+  "savedPercent": 0
+}
