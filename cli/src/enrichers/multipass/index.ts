@@ -1,3 +1,4 @@
+export { chunkCandidates, groupCandidatesForJudge } from "./group";
 export { parseRepoContextMap } from "./map";
 export {
   buildJudgePrompt,
