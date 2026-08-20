@@ -98,6 +98,18 @@
         "icon": "$(zap)"
       },
       {
+        "command": "tokenforge.enableAutoFilterHighRisk",
+        "title": "Enable Auto-filter High-Risk",
+        "category": "TokenForge",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "tokenforge.disableAutoFilterHighRisk",
+        "title": "Disable Auto-filter (On)",
+        "category": "TokenForge",
+        "icon": "$(check)"
+      },
+      {
         "command": "tokenforge.focusRiskPanel",
         "title": "Focus Risk Panel",
         "category": "TokenForge"
@@ -106,10 +118,14 @@
     "menus": {
       "view/title": [
         {
-          "command": "tokenforge.toggleAutoFilterHighRisk",
-          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "navigation@0",
-          "toggled": "config.tokenforge.autoFilterHighRisk"
+          "command": "tokenforge.enableAutoFilterHighRisk",
+          "when": "(view == tokenforge.riskPanel || view == tokenforge.riskPulse) && !config.tokenforge.autoFilterHighRisk",
+          "group": "navigation@0"
+        },
+        {
+          "command": "tokenforge.disableAutoFilterHighRisk",
+          "when": "(view == tokenforge.riskPanel || view == tokenforge.riskPulse) && config.tokenforge.autoFilterHighRisk",
+          "group": "navigation@0"
         },
         {
           "command": "tokenforge.refreshRiskPanel",

@@ -5,12 +5,14 @@ import {
   TreeItemCollapsibleState,
   Uri,
   window,
+  workspace,
   type Event,
   type ExtensionContext,
   type TreeDataProvider,
   type TreeView,
 } from "vscode";
 import { primaryReason } from "@tokenforge/risk-core";
+import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import type { TabDecision } from "../filter/types";
 import type { RiskSession } from "../session/riskSession";
 import { idleHintForTab } from "../tabs/idleHint";
@@ -21,6 +23,24 @@ import { startUiTicker } from "./uiTicker";
 export const RISK_PANEL_VIEW_ID = "tokenforge.riskPanel";
 
 type SectionId = "pending" | "kept" | "filtered" | "approaching";
+
+export class RiskAutoFilterItem extends TreeItem {
+  constructor(enabled: boolean) {
+    super("Auto-filter high-risk", TreeItemCollapsibleState.None);
+    this.description = enabled ? "On · lockfile / generated" : "Off";
+    this.tooltip = enabled
+      ? "Auto-filter is ON. Pending lockfile and generated tabs Filter automatically. Click to turn off."
+      : "Auto-filter is OFF. Click to auto-Filter pending lockfile and generated tabs.";
+    this.iconPath = new ThemeIcon(enabled ? "check" : "zap");
+    this.contextValue = enabled
+      ? "tokenforge.autoFilterOn"
+      : "tokenforge.autoFilterOff";
+    this.command = {
+      command: "tokenforge.toggleAutoFilterHighRisk",
+      title: "Toggle Auto-filter High-Risk",
+    };
+  }
+}
 
 export class RiskSectionItem extends TreeItem {
   constructor(
@@ -124,7 +144,12 @@ export class RiskTabItem extends TreeItem {
   }
 }
 
-export type RiskTreeNode = RiskSummaryItem | RiskSectionItem | RiskTabItem | RiskEmptyItem;
+export type RiskTreeNode =
+  | RiskAutoFilterItem
+  | RiskSummaryItem
+  | RiskSectionItem
+  | RiskTabItem
+  | RiskEmptyItem;
 
 class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
   private readonly _onDidChangeTreeData = new EventEmitter<RiskTreeNode | undefined | void>();
@@ -157,12 +182,15 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     const approaching = this.session.listApproachingIdle(nowMs);
     const atRiskTotal =
       pulse.pendingCount + pulse.keptCount + pulse.filteredCount;
+    const autoFilterOn = isAutoFilterEnabled();
+
+    const nodes: RiskTreeNode[] = [new RiskAutoFilterItem(autoFilterOn)];
 
     if (atRiskTotal === 0 && approaching.length === 0) {
-      return [new RiskEmptyItem()];
+      nodes.push(new RiskEmptyItem());
+      return nodes;
     }
 
-    const nodes: RiskTreeNode[] = [];
     if (atRiskTotal > 0) {
       nodes.push(
         new RiskSummaryItem(
@@ -179,9 +207,6 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
       nodes.push(
         new RiskSectionItem("approaching", "Approaching idle", approaching.length),
       );
-    }
-    if (nodes.length === 0) {
-      return [new RiskEmptyItem()];
     }
     return nodes;
   }
@@ -225,6 +250,14 @@ export type RiskPanelHandle = {
   dispose(): void;
 };
 
+function syncAutoFilterChrome(view: TreeView<RiskTreeNode>): void {
+  const enabled = isAutoFilterEnabled();
+  view.message = enabled
+    ? "Auto-filter ON — lockfile/generated tabs Filter automatically."
+    : undefined;
+  view.title = enabled ? "At-risk tabs · Auto" : "At-risk tabs";
+}
+
 export function createRiskPanel(
   session: RiskSession,
   context: ExtensionContext,
@@ -237,6 +270,7 @@ export function createRiskPanel(
 
   const syncBadge = (): void => {
     provider.refresh();
+    syncAutoFilterChrome(view);
     const count = session.listDisplayAtRisk().length;
     const tokens = session.displayAtRiskTokens();
     view.badge =
@@ -246,16 +280,22 @@ export function createRiskPanel(
   };
 
   const subscription = session.onDidChange(syncBadge);
+  const configSub = workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+      syncBadge();
+    }
+  });
   startUiTicker(syncBadge, context);
   syncBadge();
 
-  context.subscriptions.push(view, subscription);
+  context.subscriptions.push(view, subscription, configSub);
 
   return {
     view,
     provider,
     dispose: () => {
       subscription.dispose();
+      configSub.dispose();
       view.dispose();
     },
   };

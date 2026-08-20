@@ -71,8 +71,12 @@ Setting: `tokenforge.autoFilterHighRisk` (default **false**).
 
 **Turn it on from:**
 
-- TokenForge sidebar toolbar — zap icon (**Toggle Auto-filter High-Risk**) on
-  **At-risk tabs** or **Risk pulse** (icon stays highlighted while enabled)
+- TokenForge **At-risk tabs** list — top row **Auto-filter high-risk** (shows
+  `On · lockfile / generated` or `Off`; click to toggle)
+- Sidebar toolbar — zap when off, check when on (title becomes
+  **At-risk tabs · Auto** while enabled; banner message appears under the title)
+- Status bar — appends `· auto` and a warning tint while enabled
+- Risk pulse — “Auto-filter ON” banner
 - Command Palette → **TokenForge: Toggle Auto-filter High-Risk**
 - Settings → search `tokenforge.autoFilterHighRisk`
 

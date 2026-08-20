@@ -1,11 +1,13 @@
 import {
   Uri,
   window,
+  workspace,
   type ExtensionContext,
   type Webview,
   type WebviewView,
   type WebviewViewProvider,
 } from "vscode";
+import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import type { RiskSession } from "../session/riskSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
@@ -14,13 +16,20 @@ export const RISK_PULSE_VIEW_ID = "tokenforge.riskPulse";
 
 class RiskPulseProvider implements WebviewViewProvider {
   private view?: WebviewView;
-  private readonly subscription: { dispose(): void };
+  private readonly disposables: Array<{ dispose(): void }> = [];
 
   constructor(
     private readonly session: RiskSession,
     private readonly extensionUri: Uri,
   ) {
-    this.subscription = session.onDidChange(() => this.render());
+    this.disposables.push(
+      session.onDidChange(() => this.render()),
+      workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+          this.render();
+        }
+      }),
+    );
   }
 
   resolveWebviewView(webviewView: WebviewView): void {
@@ -33,7 +42,9 @@ class RiskPulseProvider implements WebviewViewProvider {
   }
 
   dispose(): void {
-    this.subscription.dispose();
+    for (const disposable of this.disposables) {
+      disposable.dispose();
+    }
   }
 
   private render(): void {
@@ -41,13 +52,17 @@ class RiskPulseProvider implements WebviewViewProvider {
       return;
     }
     const model = this.session.pulse();
-    this.view.webview.html = renderPulseHtml(this.view.webview, model);
+    const autoFilterOn = isAutoFilterEnabled();
+    this.view.webview.html = renderPulseHtml(this.view.webview, model, autoFilterOn);
+    this.view.description = autoFilterOn ? "Auto-filter on" : undefined;
     this.view.badge = hasTokenReduction(model)
       ? {
           value: Math.min(model.filteredCount, 99),
           tooltip: `${formatTokenCount(model.totals.savedTokens)} tokens saved`,
         }
-      : undefined;
+      : autoFilterOn
+        ? { value: 1, tooltip: "Auto-filter is on" }
+        : undefined;
   }
 }
 
@@ -68,7 +83,11 @@ export function createRiskPulse(
   };
 }
 
-function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
+function renderPulseHtml(
+  webview: Webview,
+  model: RiskPulseModel,
+  autoFilterOn: boolean,
+): string {
   const { totals, segments, displayAtRiskTokens } = model;
   const before = Math.max(totals.beforeTokens, 1);
   const csp = webview.cspSource;
@@ -120,6 +139,10 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
   ${segmentRows}`;
   }
 
+  const autoBanner = autoFilterOn
+    ? `<div class="auto-on" role="status">Auto-filter ON · lockfile / generated</div>`
+    : "";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,6 +159,8 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
       --saved: var(--vscode-charts-green, #3fae6d);
       --kept: var(--vscode-charts-blue, #4a90d9);
       --track: color-mix(in srgb, var(--fg) 12%, transparent);
+      --warn-bg: var(--vscode-inputValidation-warningBackground, color-mix(in srgb, var(--risk) 22%, transparent));
+      --warn-border: var(--vscode-inputValidation-warningBorder, var(--risk));
     }
     body {
       margin: 0;
@@ -152,6 +177,16 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
       letter-spacing: 0.02em;
       text-transform: uppercase;
       color: var(--muted);
+    }
+    .auto-on {
+      margin: 0 0 12px;
+      padding: 6px 8px;
+      border: 1px solid var(--warn-border);
+      border-radius: 4px;
+      background: var(--warn-bg);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
     .kpi {
       display: grid;
@@ -202,6 +237,7 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
   </style>
 </head>
 <body>
+  ${autoBanner}
   <h1>${showReduction ? "Token reduction" : "Context risk"}</h1>
   ${bodyMain}
   <p class="foot">Live from open tabs + Keep/Filter. Same math as last-scan.json. Hygiene advice only — not agent interception.</p>

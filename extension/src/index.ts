@@ -2,7 +2,7 @@ import { commands, workspace, window, type ExtensionContext } from "vscode";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
-import { runAutoFilter, toggleAutoFilterHighRisk } from "./filter/autoFilterSettings";
+import { runAutoFilter, toggleAutoFilterHighRisk, isAutoFilterEnabled } from "./filter/autoFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
@@ -135,6 +135,24 @@ export function activate(context: ExtensionContext): void {
     },
   );
 
+  const enableAutoFilter = commands.registerCommand(
+    "tokenforge.enableAutoFilterHighRisk",
+    async () => {
+      if (!isAutoFilterEnabled()) {
+        await commands.executeCommand("tokenforge.toggleAutoFilterHighRisk");
+      }
+    },
+  );
+
+  const disableAutoFilter = commands.registerCommand(
+    "tokenforge.disableAutoFilterHighRisk",
+    async () => {
+      if (isAutoFilterEnabled()) {
+        await commands.executeCommand("tokenforge.toggleAutoFilterHighRisk");
+      }
+    },
+  );
+
   const focusPanel = commands.registerCommand("tokenforge.focusRiskPanel", async () => {
     await commands.executeCommand(`${RISK_PANEL_VIEW_ID}.focus`);
   });
@@ -148,6 +166,8 @@ export function activate(context: ExtensionContext): void {
     refresh,
     clearFilters,
     toggleAutoFilter,
+    enableAutoFilter,
+    disableAutoFilter,
     focusPanel,
   );
 }
