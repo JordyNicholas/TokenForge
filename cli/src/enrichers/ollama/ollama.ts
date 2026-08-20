@@ -4,13 +4,9 @@ import {
   OLLAMA_BATCH_SIZE,
   resolveOllamaTimeoutMs,
 } from "../limits";
+import { runMultiPassEnrich } from "../multipass";
 import { mapStructuredFindings } from "../parse";
-import {
-  buildEnrichmentPrompt,
-  extractJsonPayload,
-  parseStructuredFindings,
-} from "../structured";
-import type { EnrichmentCandidate, LlmEnricher } from "../types";
+import type { LlmEnricher } from "../types";
 
 const OLLAMA_CHAT_PATH = "/api/chat";
 
@@ -83,17 +79,6 @@ async function callOllamaChat(
   }
 }
 
-function chunkCandidates(
-  candidates: readonly EnrichmentCandidate[],
-  size: number,
-): EnrichmentCandidate[][] {
-  const batches: EnrichmentCandidate[][] = [];
-  for (let index = 0; index < candidates.length; index += size) {
-    batches.push(candidates.slice(index, index + size));
-  }
-  return batches;
-}
-
 /** Local Ollama enricher (e.g. qwen2.5-coder:7b). */
 export const ollamaEnricher: LlmEnricher = {
   id: "ollama",
@@ -116,21 +101,19 @@ export const ollamaEnricher: LlmEnricher = {
       };
     }
 
-    const batches = chunkCandidates(input.candidates, OLLAMA_BATCH_SIZE);
-    const findings = [];
+    progress?.(
+      `LLM enricher: multi-pass Ollama (${input.candidates.length} candidate(s), ` +
+        `timeout ${Math.round(timeoutMs / 1000)}s per request)…`,
+    );
 
-    for (let index = 0; index < batches.length; index += 1) {
-      const batch = batches[index]!;
-      progress?.(
-        `LLM enricher: batch ${index + 1}/${batches.length} ` +
-          `(${batch.length} file(s), timeout ${Math.round(timeoutMs / 1000)}s per batch)…`,
-      );
-      const prompt = buildEnrichmentPrompt(batch);
-      const content = await callOllamaChat(endpoint, input.model, prompt, timeoutMs);
-      const payload = extractJsonPayload(content);
-      const structured = parseStructuredFindings(payload, batch);
-      findings.push(...mapStructuredFindings(structured, batch));
-    }
+    const structured = await runMultiPassEnrich({
+      candidates: input.candidates,
+      batchSize: OLLAMA_BATCH_SIZE,
+      onProgress: progress,
+      callModel: (prompt) =>
+        callOllamaChat(endpoint, input.model, prompt, timeoutMs),
+    });
+    const findings = mapStructuredFindings(structured, input.candidates);
 
     progress?.(
       `LLM enricher: finished in ${Math.round((Date.now() - started) / 1000)}s ` +
