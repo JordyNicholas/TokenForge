@@ -21,11 +21,11 @@ Options:
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
   --mode <mode>         heuristic | hybrid (default: heuristic)
-  --llm <spec>          LLM enricher backend:model (hybrid only)
-                        e.g. ollama:qwen2.5-coder:7b; omit for noop enricher
-  --llm-endpoint <url>  Override enricher API base URL
-  --llm-timeout <sec>   Per-batch Ollama timeout in seconds (default: 900)
-                        Env: TOKENFORGE_OLLAMA_TIMEOUT_MS
+  --llm <spec>          LLM enricher backend[:model] (hybrid only)
+                        e.g. codex or ollama:qwen2.5-coder:7b; omit for noop
+  --llm-endpoint <url>  Override Ollama/Anthropic API base URL (not Codex)
+  --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)
+  --allow-external      Confirm that bounded source excerpts may leave this machine
   --dry-run             Print planned policy files; do not write them
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
@@ -100,6 +100,7 @@ export async function runCli(
         llm: { type: "string" },
         "llm-endpoint": { type: "string" },
         "llm-timeout": { type: "string" },
+        "allow-external": { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
       },
@@ -125,6 +126,7 @@ export async function runCli(
       llm: values.llm,
       llmEndpoint: values["llm-endpoint"],
       llmTimeout: values["llm-timeout"],
+      externalDataConsent: values["allow-external"],
     };
 
     if (command === "scan") {

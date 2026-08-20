@@ -38,7 +38,7 @@ export type FindingSuggestion = {
 export type ScanMode = "heuristic" | "hybrid";
 
 /** LLM enricher backend identifiers (CLI adapters). */
-export type LlmBackendId = "noop" | "ollama" | "openai" | "anthropic";
+export type LlmBackendId = "noop" | "ollama" | "codex" | "anthropic";
 
 export type FiletypeRiskClass =
   | "lockfile"

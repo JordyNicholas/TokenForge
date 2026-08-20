@@ -12,7 +12,7 @@ covers "what do I set to make `--llm <backend>:<model>` work."
 | `noop` (default) | Zero cost, zero latency, no semantic pass — just the heuristic scan. |
 | `ollama` | Private/offline runs at zero API cost; slower on weak local hardware, so timeouts default high (900s). |
 | `anthropic` | Best semantic judgment for redundant/contradictory agent instructions; cloud cost per call, short 120s default timeout so failures surface fast. |
-| `openai` | Not yet implemented (tracked in [#45](https://github.com/JordyNicholas/TokenForge/issues/45)) — will cover OpenAI-compatible hosted/self-hosted endpoints. |
+| `codex` | Uses the installed Codex CLI and the user's saved ChatGPT login; no API key is handled by TokenForge. |
 
 ## `noop`
 
@@ -49,7 +49,34 @@ bounded (≤ 30 files, ≤ 32 KiB each) and never include lockfiles or whole
 trees; see the "Candidate selection" and "Privacy and cost" sections of
 [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) for the exact rules.
 
-## `openai` (not yet available)
+## `codex` (ChatGPT account through Codex CLI)
 
-Stubbed — selecting `--llm openai:<model>` currently throws a usage error.
-Tracked in [#45](https://github.com/JordyNicholas/TokenForge/issues/45).
+```bash
+codex login
+tokenforge scan . --mode hybrid --llm codex --allow-external
+```
+
+- Install the [Codex CLI](https://developers.openai.com/codex/cli/) separately
+  and run `codex login` using the browser-based ChatGPT flow.
+- `codex login status` must report ChatGPT authentication. TokenForge rejects
+  API-key/access-token authentication for this backend.
+- `--llm codex` respects the model configured by Codex. Use
+  `--llm codex:<model>` only when an explicit per-scan override is wanted.
+- `--llm-timeout <sec>` — per-batch timeout in seconds (default 120).
+- `TOKENFORGE_CODEX_TIMEOUT_MS` — env var fallback for the same timeout.
+- `TOKENFORGE_CODEX_PATH` — optional path to the Codex executable when it is
+  not available as `codex` on `PATH`.
+- `--allow-external` — explicit confirmation that bounded source excerpts may
+  be sent to OpenAI through Codex. Without it, TokenForge prints a privacy
+  warning and exits before starting Codex.
+
+TokenForge invokes `codex exec` non-interactively in a new empty temporary
+directory with a read-only sandbox, an ephemeral session, a JSON output schema,
+and the bounded enrichment prompt on stdin. The repository path is not exposed
+as the Codex working directory. `OPENAI_API_KEY` and `CODEX_API_KEY` are removed
+from the child process environment so they cannot silently replace the saved
+ChatGPT login with usage-based authentication.
+
+```bash
+tokenforge scan . --mode hybrid --llm codex:gpt-5.6-sol --allow-external
+```

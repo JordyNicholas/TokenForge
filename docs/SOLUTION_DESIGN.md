@@ -160,7 +160,7 @@ tokenforge init   # scan + apply + report
 Default scan is **heuristic-only** (fast, offline, deterministic). Optional
 `--mode hybrid` runs the same baseline plus an **LLM enricher** on a bounded
 candidate set (instruction files, borderline configs, top-N largest paths).
-Enrichers are pluggable (`noop`, `ollama`, `openai`, `anthropic`). Full design:
+Enrichers are pluggable (`noop`, `ollama`, `codex`, `anthropic`). Full design:
 [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 `apply` / `init` select a **provider adapter** that maps the same scan findings to that vendor’s levers, for example:

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UsageError } from "../app/errors";
-import { anthropicEnricher, getEnricher, ollamaEnricher } from "./index";
+import { anthropicEnricher, codexEnricher, getEnricher, ollamaEnricher } from "./index";
 
 describe("getEnricher", () => {
   it("returns ollama enricher", () => {
@@ -11,7 +10,7 @@ describe("getEnricher", () => {
     expect(getEnricher("anthropic")).toBe(anthropicEnricher);
   });
 
-  it("stubs openai", () => {
-    expect(() => getEnricher("openai")).toThrow(UsageError);
+  it("returns Codex CLI enricher", () => {
+    expect(getEnricher("codex")).toBe(codexEnricher);
   });
 });

@@ -67,7 +67,7 @@ Phase 2 (open). Former catch-all #7 was split:
 
 | Issue | Title | Epic | Order |
 | --- | --- | --- | --- |
-| #45 | CLI: OpenAI-compatible enricher | F1 #60 | 1a (∥ #46) |
+| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | F1 #60 | 1a (∥ #46) |
 | #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45) |
 | #48 | Extension: optional LLM enricher | F1 #60 | 2 (after #45 or #46) |
 | #27 | Live usage metrics / billing sync (per provider) | F2 #61 | 1 |

@@ -21,6 +21,8 @@ export type LlmEnricherInput = {
   timeoutMs?: number;
   /** Optional progress sink (CLI writes to stderr). */
   onProgress?: (message: string) => void;
+  /** Explicit approval for adapters that send excerpts outside this machine. */
+  externalDataConsent?: boolean;
 };
 
 export type LlmEnrichmentResult = {
