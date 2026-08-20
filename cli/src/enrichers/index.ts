@@ -29,6 +29,21 @@ export { ollamaEnricher } from "./ollama/ollama";
 export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./parse";
 export { buildEnrichmentPrompt, extractJsonPayload, parseStructuredFindings } from "./structured";
 export { getEnricher } from "./registry";
+export {
+  buildJudgePrompt,
+  buildMapPrompt,
+  buildReconcilePrompt,
+  chunkCandidates,
+  groupCandidatesForJudge,
+  parseRepoContextMap,
+  reconcileFindings,
+  runMultiPassEnrich,
+} from "./multipass";
+export type {
+  CallModelFn,
+  MultiPassEnrichOptions,
+  RepoContextMap,
+} from "./multipass";
 export type {
   EnrichmentCandidate,
   LlmEnricher,
