@@ -22,15 +22,163 @@
   "dependencies": {
     "@tokenforge/risk-core": "*"
   },
-  "activationEvents": [ "onStartupFinished" ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tokenforge",
+          "title": "TokenForge",
+          "icon": "media/tokenforge.svg"
+        }
+      ]
+    },
+    "views": {
+      "tokenforge": [
+        {
+          "id": "tokenforge.riskPanel",
+          "name": "At-risk tabs"
+        },
+        {
+          "id": "tokenforge.riskPulse",
+          "name": "Risk pulse",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "tokenforge.hello",
-        "title": "Hello",
+        "command": "tokenforge.keepTab",
+        "title": "Keep",
+        "category": "TokenForge",
+        "icon": "$(pinned)"
+      },
+      {
+        "command": "tokenforge.filterTab",
+        "title": "Filter",
+        "category": "TokenForge",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "tokenforge.restoreTab",
+        "title": "Restore",
+        "category": "TokenForge",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "tokenforge.exportLastScan",
+        "title": "Export last-scan.json",
+        "category": "TokenForge",
+        "icon": "$(save)"
+      },
+      {
+        "command": "tokenforge.revealLastScan",
+        "title": "Reveal last-scan.json",
+        "category": "TokenForge",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "tokenforge.refreshRiskPanel",
+        "title": "Refresh",
+        "category": "TokenForge",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tokenforge.clearFilters",
+        "title": "Clear Keep/Filter decisions",
+        "category": "TokenForge",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "tokenforge.focusRiskPanel",
+        "title": "Focus Risk Panel",
         "category": "TokenForge"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "tokenforge.refreshRiskPanel",
+          "when": "view == tokenforge.riskPanel",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tokenforge.exportLastScan",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tokenforge.revealLastScan",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@3"
+        },
+        {
+          "command": "tokenforge.clearFilters",
+          "when": "view == tokenforge.riskPanel",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tokenforge.keepTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.atRiskTab",
+          "group": "inline@1"
+        },
+        {
+          "command": "tokenforge.filterTab",
+          "when": "view == tokenforge.riskPanel && viewItem =~ /tokenforge\\.(atRisk|kept)Tab/",
+          "group": "inline@2"
+        },
+        {
+          "command": "tokenforge.restoreTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.filteredTab",
+          "group": "inline@1"
+        },
+        {
+          "command": "tokenforge.keepTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.atRiskTab",
+          "group": "1_actions"
+        },
+        {
+          "command": "tokenforge.filterTab",
+          "when": "view == tokenforge.riskPanel && viewItem =~ /tokenforge\\.(atRisk|kept)Tab/",
+          "group": "1_actions"
+        },
+        {
+          "command": "tokenforge.restoreTab",
+          "when": "view == tokenforge.riskPanel && viewItem == tokenforge.filteredTab",
+          "group": "1_actions"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TokenForge",
+      "properties": {
+        "tokenforge.team": {
+          "type": "string",
+          "default": "default",
+          "description": "Team label written into .tokenforge/last-scan.json."
+        },
+        "tokenforge.repo": {
+          "type": "string",
+          "default": "",
+          "description": "Optional repo label for last-scan.json. Defaults to the workspace folder name."
+        },
+        "tokenforge.provider": {
+          "type": "string",
+          "default": "generic",
+          "enum": [
+            "copilot",
+            "cursor",
+            "claude",
+            "generic"
+          ],
+          "description": "Fix adapter id recorded in last-scan.json (scoring ignores this)."
+        }
+      }
+    }
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

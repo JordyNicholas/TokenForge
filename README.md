@@ -113,9 +113,8 @@ npm run tokenforge:extension
 
 Builds `extension/dist/extension.js` (bundles `@tokenforge/risk-core` for the
 extension host). Open the repo root in VS Code or Cursor, run **Run Extension**
-(F5), then in the Extension Development Host use Command Palette →
-**TokenForge: Hello**. Tab scoring, status bar, and `.tokenforge/last-scan.json`
-export are follow-on E4 stories (#21 / #22).
+(F5), then open the **TokenForge** activity bar: at-risk panel, Risk pulse,
+Keep/Filter, and auto-exported `.tokenforge/last-scan.json`.
 
 ```bash
 npm run tokenforge:extension:watch
