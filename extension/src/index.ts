@@ -1,7 +1,8 @@
-import { commands, window, type ExtensionContext } from "vscode";
+import { commands, workspace, window, type ExtensionContext } from "vscode";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
+import { runAutoFilter } from "./filter/autoFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
@@ -22,6 +23,18 @@ export function activate(context: ExtensionContext): void {
   startInactivityTimer(registry, context);
   startAutoExport(session, context);
 
+  const syncAutoFilter = (): void => {
+    runAutoFilter(session);
+  };
+  context.subscriptions.push(
+    session.onDidChange(syncAutoFilter),
+    workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+        syncAutoFilter();
+      }
+    }),
+  );
+  syncAutoFilter();
   createRiskPanel(session, context);
   createRiskPulse(session, context);
   context.subscriptions.push(createStatusBar(session));
@@ -71,7 +84,8 @@ export function activate(context: ExtensionContext): void {
         void window.showWarningMessage("Select a filtered tab in the TokenForge panel.");
         return;
       }
-      session.clearDecision(uri);
+      // Keep — not pending — so opt-in auto-filter does not immediately re-filter.
+      session.keep(uri);
     },
   );
 

@@ -156,6 +156,11 @@
     "configuration": {
       "title": "TokenForge",
       "properties": {
+        "tokenforge.autoFilterHighRisk": {
+          "type": "boolean",
+          "default": false,
+          "description": "When enabled, automatically Filter pending lockfile and generated tabs (Restore/Keep overrides)."
+        },
         "tokenforge.team": {
           "type": "string",
           "default": "default",
