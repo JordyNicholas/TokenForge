@@ -1,0 +1,13 @@
+# Normalize to LF on checkout regardless of platform/core.autocrlf.
+# Byte-exact fixtures (fixtures/expected/*) are pinned against LF file
+# sizes; CRLF checkout on Windows silently inflates every text file by
+# one byte per line and breaks those snapshots.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
