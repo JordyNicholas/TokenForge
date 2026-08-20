@@ -29,6 +29,20 @@ describe("getAdapter", () => {
           estTokens: 25,
           action: "excluded",
         },
+        {
+          path: "src/shared/infra/database/client/models/User.ts",
+          reason: "high_risk_filetype",
+          bytes: 1000,
+          estTokens: 250,
+          action: "excluded",
+        },
+        {
+          path: "src/shared/infra/database/client/models/Tenant.ts",
+          reason: "high_risk_filetype",
+          bytes: 1000,
+          estTokens: 250,
+          action: "excluded",
+        },
       ],
       totals: { beforeTokens: 100, afterTokens: 10, savedTokens: 90 },
     });
@@ -40,5 +54,9 @@ describe("getAdapter", () => {
       MAX_INSTRUCTION_BYTES,
     );
     expect(exclusions?.contents).toContain("package-lock.json");
+    expect(exclusions?.contents).toContain(
+      "src/shared/infra/database/client/**",
+    );
+    expect(exclusions?.contents).not.toContain("models/User.ts");
   });
 });

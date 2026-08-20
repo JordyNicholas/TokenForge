@@ -1,4 +1,5 @@
 import type { TokenRiskReport } from "@tokenforge/risk-core";
+import { collapseExclusionPaths } from "../exclusions";
 import {
   COPILOT_EXCLUSIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
@@ -25,9 +26,11 @@ vendor billing notes.
 `;
 
 function exclusionYaml(report: TokenRiskReport): string {
-  const lines = report.findings
-    .filter((finding) => finding.action === "excluded")
-    .map((finding) => `  - ${finding.path}`);
+  const lines = collapseExclusionPaths(
+    report.findings
+      .filter((finding) => finding.action === "excluded")
+      .map((finding) => finding.path),
+  ).map((path) => `  - ${path}`);
 
   return `# Copilot content-exclusion *candidates* for org/repo owners.
 # TokenForge does not call GitHub's org API. Paste or adapt these paths
