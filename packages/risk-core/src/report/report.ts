@@ -38,7 +38,7 @@ const SCAN_MODES = new Set<ScanMode>(["heuristic", "hybrid"]);
 const LLM_BACKENDS = new Set<LlmBackendId>([
   "noop",
   "ollama",
-  "openai",
+  "codex",
   "anthropic",
 ]);
 

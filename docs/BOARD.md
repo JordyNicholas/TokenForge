@@ -67,7 +67,7 @@ Phase 2 (open). Former catch-all #7 was split:
 
 | Issue | Title | Epic | Order |
 | --- | --- | --- | --- |
-| #45 | CLI: OpenAI-compatible enricher | F1 #60 | 1a (∥ #46, #66) |
+| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | F1 #60 | 1a (∥ #46, #66) |
 | #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45, #66) |
 | #66 | CLI: multi-pass local-first LLM enrich (map → judge → reconcile) | F1 #60 | 1c (∥ #45, #46; Ollama-first) |
 | #48 | Extension: optional LLM enricher | F1 #60 | 2 (after #45 or #46) |

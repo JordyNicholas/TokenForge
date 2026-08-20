@@ -42,6 +42,7 @@ export type ScanOptions = {
   llm?: string;
   llmEndpoint?: string;
   llmTimeout?: string;
+  externalDataConsent?: boolean;
   onProgress?: (message: string) => void;
   now?: Date;
 };
@@ -189,6 +190,7 @@ async function runHybridEnrichment(
       ((message) => {
         process.stderr.write(`tokenforge: ${message}\n`);
       }),
+    externalDataConsent: options.externalDataConsent,
   });
 
   return {

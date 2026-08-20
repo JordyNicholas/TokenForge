@@ -20,7 +20,7 @@ See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 **Optional Phase 2: hybrid mode** (`--mode hybrid`) runs the same baseline plus an LLM **enricher** on a bounded candidate set (instruction files, borderline configs, top-N paths). Backends are pluggable:
 
 - **Local** — Ollama / Qwen 2.5-Coder (data stays on machine)
-- **External** — OpenAI-compatible, Anthropic (org-approved keys; excerpts may leave the machine)
+- **External** — Codex CLI with the user's ChatGPT login, or Anthropic with an org-approved key (excerpts may leave the machine)
 
 Token math stays heuristic; the model adds semantic findings and explanations, not primary token counts.
 

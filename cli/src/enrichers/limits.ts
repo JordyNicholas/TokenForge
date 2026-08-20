@@ -47,8 +47,33 @@ export function parseLlmTimeoutSeconds(value: string | undefined): number | unde
 /** Default Ollama base URL when `--llm-endpoint` is omitted. */
 export const DEFAULT_OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 
-/** Default OpenAI-compatible base URL when `--llm-endpoint` is omitted. */
-export const DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1";
+/** Default Codex CLI timeout for each bounded batch. */
+export const DEFAULT_CODEX_TIMEOUT_MS = 120_000;
+
+/** Minimum timeout accepted via CLI/env for Codex CLI. */
+export const MIN_CODEX_TIMEOUT_MS = 10_000;
+
+/** Authentication detection should fail quickly and never receive source excerpts. */
+export const CODEX_STATUS_TIMEOUT_MS = 10_000;
+
+/** Candidates sent to each non-interactive Codex run. */
+export const CODEX_BATCH_SIZE = 4;
+
+export function resolveCodexTimeoutMs(overrideMs?: number): number {
+  if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_CODEX_TIMEOUT_MS) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_CODEX_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_CODEX_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_CODEX_TIMEOUT_MS;
+}
 
 /** Default Anthropic base URL when `--llm-endpoint` is omitted. */
 export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1";

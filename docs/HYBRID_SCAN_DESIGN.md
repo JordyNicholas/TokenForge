@@ -20,9 +20,9 @@ Optional **LLM enrichment** closes that gap without making AI the default scan p
 | Rule | Rationale |
 | --- | --- |
 | Heuristics are always the baseline | Speed, CI pinning, zero GPU, works offline |
-| LLM is opt-in (`--mode hybrid`) | Honest pitch; no surprise API cost |
+| LLM is opt-in (`--mode hybrid`) | Honest pitch; no surprise external usage |
 | Token math stays heuristic | `estTokens ≈ ceil(bytes / 4)` — not model guesses |
-| `risk-core` stays pure | No HTTP, Ollama, or vendor SDKs in the kernel |
+| `risk-core` stays pure | No HTTP, Ollama, vendor SDKs, or subprocesses in the kernel |
 | Enrichers live in CLI (like Fix adapters) | Pluggable local **and** external backends |
 | Bounded candidate set | Never send whole lockfiles / `node_modules` trees |
 | External mode is explicit | Candidate excerpts may leave the machine |
@@ -39,7 +39,7 @@ Optional **LLM enrichment** closes that gap without making AI the default scan p
               ┌────────────────┴────────────────┐
               ▼                                 ▼
      HeuristicScanner (CLI/ext)      LlmEnricher port (CLI only)
-     walk + stat + scoreRisk           noop | ollama | openai | anthropic
+     walk + stat + scoreRisk           noop | ollama | codex | anthropic
               │                                 │
               └──────── merge findings ─────────┘
                                │
@@ -148,7 +148,7 @@ Heuristic findings get deterministic explanations and template suggestions in `r
 "scan": {
   "mode": "heuristic | hybrid",
   "llm": {
-    "backend": "noop | ollama | openai | anthropic",
+    "backend": "noop | ollama | codex | anthropic",
     "model": "qwen2.5-coder:7b",
     "endpoint": "http://localhost:11434",
     "durationMs": 842,
@@ -172,7 +172,7 @@ type LlmEnricher = {
 | --- | --- | --- |
 | `noop` | — | Default; no network |
 | `ollama` | Local Ollama | Qwen 2.5-Coder, etc. |
-| `openai` | OpenAI-compatible | OpenAI, Azure, Groq, LM Studio, vLLM |
+| `codex` | Local Codex CLI process | Reuses the user's saved ChatGPT login |
 | `anthropic` | Anthropic Messages API | Org-approved cloud |
 
 Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
@@ -183,13 +183,15 @@ Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
 tokenforge scan .                                    # heuristic (default)
 tokenforge scan . --mode hybrid                      # hybrid + noop enricher
 tokenforge scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
-tokenforge scan . --mode hybrid --llm openai:gpt-4o-mini --llm-endpoint https://api.openai.com/v1
+tokenforge scan . --mode hybrid --llm codex --allow-external
+tokenforge scan . --mode hybrid --llm codex:gpt-5.6-sol --allow-external
 ```
 
 Environment (external backends):
 
-- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
-- `TOKENFORGE_LLM_ENDPOINT` (override default endpoint)
+- Codex uses the authentication saved by `codex login`; TokenForge does not read API keys.
+- `ANTHROPIC_API_KEY` remains the existing configuration for the Anthropic adapter.
+- `TOKENFORGE_LLM_ENDPOINT` remains an override for HTTP-based adapters.
 
 ### Structured LLM output
 
@@ -226,7 +228,8 @@ Prompt rules forbid architecture, API, or product refactors.
 | --- | --- | --- |
 | `heuristic` | No | None |
 | `hybrid` + `ollama` | No (local) | Local GPU/CPU only |
-| `hybrid` + `openai` / `anthropic` | Yes — candidate excerpts | Per-provider API usage |
+| `hybrid` + `codex` | Yes — candidate excerpts via Codex CLI | ChatGPT plan limits |
+| `hybrid` + `anthropic` | Yes — candidate excerpts | Per-provider API usage |
 
 UX/docs must state this before external enrichment runs. Do **not** auto-apply LLM
 findings or suggestions; `apply` continues to use the merged report with existing
@@ -255,7 +258,7 @@ Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/Tok
 | #54 | Dashboard: finding details + heuristic explanations | Shipped |
 | #55 | Advisory finding suggestions (copy-only, never applied) | Shipped |
 | #49 | Pitch FAQ + deck: hybrid scan talking points | Shipped (deck roadmap refresh in #63) |
-| #45 | CLI: OpenAI-compatible enricher | Open — F1, parallel with #46 / #66 |
+| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | Open — F1, parallel with #46 / #66 |
 | #46 | CLI: Anthropic enricher | Open — F1, parallel with #45 / #66 |
 | #66 | CLI: multi-pass local-first enrich (map → judge → reconcile) | Open — F1, parallel with #45 / #46; Ollama-first |
 | #48 | Extension: optional enricher on instruction paths | Open — F1 last, after #45 or #46 |

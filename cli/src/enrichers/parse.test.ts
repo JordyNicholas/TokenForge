@@ -12,4 +12,21 @@ describe("parseLlmSpec", () => {
       model: "qwen2.5-coder:7b",
     });
   });
+
+  it("uses the Codex-configured model unless one is explicitly provided", () => {
+    expect(parseLlmSpec("codex")).toEqual({
+      backend: "codex",
+      model: "default",
+    });
+    expect(parseLlmSpec("codex:gpt-5.6-sol")).toEqual({
+      backend: "codex",
+      model: "gpt-5.6-sol",
+    });
+  });
+
+  it("does not expose the removed OpenAI HTTP backend", () => {
+    expect(() => parseLlmSpec("openai:gpt-5.6-sol")).toThrow(
+      'Unknown LLM backend "openai"',
+    );
+  });
 });

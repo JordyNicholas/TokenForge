@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_CODEX_TIMEOUT_MS,
   DEFAULT_OLLAMA_TIMEOUT_MS,
   parseLlmTimeoutSeconds,
+  resolveCodexTimeoutMs,
   resolveOllamaTimeoutMs,
 } from "./limits";
 
@@ -14,5 +16,16 @@ describe("resolveOllamaTimeoutMs", () => {
   it("parses CLI seconds override", () => {
     expect(parseLlmTimeoutSeconds("1200")).toBe(1_200_000);
     expect(resolveOllamaTimeoutMs(1_200_000)).toBe(1_200_000);
+  });
+});
+
+describe("resolveCodexTimeoutMs", () => {
+  it("defaults to two minutes per batch", () => {
+    expect(resolveCodexTimeoutMs()).toBe(DEFAULT_CODEX_TIMEOUT_MS);
+    expect(DEFAULT_CODEX_TIMEOUT_MS).toBe(120_000);
+  });
+
+  it("accepts the shared CLI timeout override", () => {
+    expect(resolveCodexTimeoutMs(parseLlmTimeoutSeconds("30"))).toBe(30_000);
   });
 });

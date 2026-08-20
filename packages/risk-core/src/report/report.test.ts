@@ -40,6 +40,31 @@ describe("Token Risk JSON schema", () => {
     expect(isTokenRiskReport(hybrid)).toBe(true);
   });
 
+  it("accepts Codex metadata and rejects the removed OpenAI HTTP backend", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      scan: { llm: Record<string, unknown> };
+    };
+    const codex = {
+      ...hybrid,
+      scan: {
+        ...hybrid.scan,
+        llm: { ...hybrid.scan.llm, backend: "codex", model: "default" },
+      },
+    };
+    const openai = {
+      ...codex,
+      scan: {
+        ...codex.scan,
+        llm: { ...codex.scan.llm, backend: "openai" },
+      },
+    };
+
+    expect(validate(codex)).toBe(true);
+    expect(isTokenRiskReport(codex)).toBe(true);
+    expect(validate(openai)).toBe(false);
+    expect(isTokenRiskReport(openai)).toBe(false);
+  });
+
   it("rejects suggestion snippets (deferred)", () => {
     const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
       findings: Array<Record<string, unknown>>;

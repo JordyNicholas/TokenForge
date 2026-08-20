@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { isTokenRiskReport } from "@tokenforge/risk-core";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { runCli } from "../../app/cli";
 import { captureIo, cleanupFixture, fixtureRoot } from "../../test/helpers";
 import { scanRepo } from "./scan";
@@ -61,7 +61,11 @@ describe("scanRepo (noisy-app)", () => {
 });
 
 describe("runCli scan", () => {
-  afterEach(cleanupFixture);
+  afterEach(async () => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+    await cleanupFixture();
+  });
 
   it("prints a table and writes .tokenforge/scan-report.json", async () => {
     const captured = captureIo();
@@ -96,5 +100,18 @@ describe("runCli scan", () => {
     const code = await runCli(["nope"], captured.io);
     expect(code).toBe(2);
     expect(captured.stderr).toContain("Unknown command");
+  });
+
+  it("does not call an external enricher without explicit privacy consent", async () => {
+    const captured = captureIo();
+
+    const code = await runCli(
+      ["scan", fixtureRoot, "--mode", "hybrid", "--llm", "codex"],
+      captured.io,
+    );
+
+    expect(code).toBe(2);
+    expect(captured.stderr).toContain("Privacy warning");
+    expect(captured.stderr).toContain("--allow-external");
   });
 });

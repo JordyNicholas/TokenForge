@@ -9,7 +9,7 @@ import type {
 const VERDICTS = new Set<LlmVerdict>(["exclude", "review", "keep"]);
 
 export function parseLlmSpec(value: string | undefined): {
-  backend: "noop" | "ollama" | "openai" | "anthropic";
+  backend: "noop" | "ollama" | "codex" | "anthropic";
   model: string;
 } {
   if (value === undefined || value.trim().length === 0) {
@@ -17,6 +17,10 @@ export function parseLlmSpec(value: string | undefined): {
   }
 
   const trimmed = value.trim();
+  if (trimmed === "codex") {
+    return { backend: "codex", model: "default" };
+  }
+
   const separator = trimmed.indexOf(":");
   if (separator <= 0 || separator === trimmed.length - 1) {
     throw new UsageError(
@@ -24,16 +28,21 @@ export function parseLlmSpec(value: string | undefined): {
     );
   }
 
-  const backend = trimmed.slice(0, separator);
-  const model = trimmed.slice(separator + 1);
+  const backend = trimmed.slice(0, separator).trim();
+  const model = trimmed.slice(separator + 1).trim();
+  if (model.length === 0) {
+    throw new UsageError(
+      'Invalid --llm value. Model must not be empty; use "<backend>:<model>".',
+    );
+  }
   if (
     backend !== "noop" &&
     backend !== "ollama" &&
-    backend !== "openai" &&
+    backend !== "codex" &&
     backend !== "anthropic"
   ) {
     throw new UsageError(
-      `Unknown LLM backend "${backend}". Use noop, ollama, openai, or anthropic.`,
+      `Unknown LLM backend "${backend}". Use noop, ollama, codex, or anthropic.`,
     );
   }
 
