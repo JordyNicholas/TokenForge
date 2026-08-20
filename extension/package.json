@@ -74,6 +74,12 @@
         "icon": "$(save)"
       },
       {
+        "command": "tokenforge.revealLastScan",
+        "title": "Reveal last-scan.json",
+        "category": "TokenForge",
+        "icon": "$(folder-opened)"
+      },
+      {
         "command": "tokenforge.refreshRiskPanel",
         "title": "Refresh",
         "category": "TokenForge",
@@ -104,9 +110,14 @@
           "group": "navigation@2"
         },
         {
+          "command": "tokenforge.revealLastScan",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@3"
+        },
+        {
           "command": "tokenforge.clearFilters",
           "when": "view == tokenforge.riskPanel",
-          "group": "navigation@3"
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [

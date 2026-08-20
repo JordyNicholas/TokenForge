@@ -13,12 +13,14 @@ import {
 import { primaryReason } from "@tokenforge/risk-core";
 import type { TabDecision } from "../filter/types";
 import type { RiskSession } from "../session/riskSession";
+import { idleHintForTab } from "../tabs/idleHint";
 import type { TrackedTab } from "../tabs/types";
 import { formatTokenCount } from "./formatTokens";
+import { startUiTicker } from "./uiTicker";
 
 export const RISK_PANEL_VIEW_ID = "tokenforge.riskPanel";
 
-type SectionId = "pending" | "kept" | "filtered";
+type SectionId = "pending" | "kept" | "filtered" | "approaching";
 
 export class RiskSectionItem extends TreeItem {
   constructor(
@@ -33,7 +35,13 @@ export class RiskSectionItem extends TreeItem {
     this.contextValue = `tokenforge.section.${sectionId}`;
     this.description = count > 0 ? String(count) : undefined;
     this.iconPath = new ThemeIcon(
-      sectionId === "pending" ? "warning" : sectionId === "kept" ? "pinned" : "filter",
+      sectionId === "pending"
+        ? "warning"
+        : sectionId === "kept"
+          ? "pinned"
+          : sectionId === "filtered"
+            ? "filter"
+            : "clock",
     );
   }
 }
@@ -73,18 +81,35 @@ export class RiskEmptyItem extends TreeItem {
 export class RiskTabItem extends TreeItem {
   constructor(
     readonly tab: TrackedTab,
-    readonly decision: Exclude<TabDecision, "filtered"> | "filtered",
+    readonly decision: Exclude<TabDecision, "filtered"> | "filtered" | "approaching",
+    nowMs: number = Date.now(),
   ) {
     super(tab.path, TreeItemCollapsibleState.None);
-    const reason = primaryReason(tab.assessment.reasons) ?? "at-risk";
-    this.description = `${formatTokenCount(tab.assessment.estTokens)} · ${reason}`;
-    this.tooltip = `${tab.path}\n${tab.assessment.estTokens} est. tokens · score ${tab.assessment.score}`;
+    const reason = primaryReason(tab.assessment.reasons);
+    const hint = idleHintForTab(tab, nowMs);
+    const bits = [
+      formatTokenCount(tab.assessment.estTokens),
+      reason,
+      hint?.label,
+    ].filter(Boolean);
+    this.description = bits.join(" · ");
+    this.tooltip = [
+      tab.path,
+      `${tab.assessment.estTokens} est. tokens · score ${tab.assessment.score}`,
+      hint ? hint.label : undefined,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     if (decision === "filtered") {
       this.contextValue = "tokenforge.filteredTab";
       this.iconPath = new ThemeIcon("filter");
     } else if (decision === "kept") {
       this.contextValue = "tokenforge.keptTab";
       this.iconPath = new ThemeIcon("pinned");
+    } else if (decision === "approaching") {
+      this.contextValue = "tokenforge.approachingTab";
+      this.iconPath = new ThemeIcon("clock");
     } else {
       this.contextValue = "tokenforge.atRiskTab";
       this.iconPath = new ThemeIcon("warning");
@@ -125,38 +150,64 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
   }
 
   private rootChildren(): RiskTreeNode[] {
-    const pulse = this.session.pulse();
+    const nowMs = Date.now();
+    const pulse = this.session.pulse(nowMs);
+    const approaching = this.session.listApproachingIdle(nowMs);
     const atRiskTotal =
       pulse.pendingCount + pulse.keptCount + pulse.filteredCount;
 
-    if (atRiskTotal === 0) {
+    if (atRiskTotal === 0 && approaching.length === 0) {
       return [new RiskEmptyItem()];
     }
 
-    return [
-      new RiskSummaryItem(
-        pulse.displayAtRiskTokens,
-        pulse.totals.savedTokens,
-        pulse.totals.beforeTokens,
-      ),
-      new RiskSectionItem("pending", "Pending", pulse.pendingCount),
-      new RiskSectionItem("kept", "Kept", pulse.keptCount),
-      new RiskSectionItem("filtered", "Filtered", pulse.filteredCount),
-    ];
+    const nodes: RiskTreeNode[] = [];
+    if (atRiskTotal > 0) {
+      nodes.push(
+        new RiskSummaryItem(
+          pulse.displayAtRiskTokens,
+          pulse.totals.savedTokens,
+          pulse.totals.beforeTokens,
+        ),
+        new RiskSectionItem("pending", "Pending", pulse.pendingCount),
+        new RiskSectionItem("kept", "Kept", pulse.keptCount),
+        new RiskSectionItem("filtered", "Filtered", pulse.filteredCount),
+      );
+    }
+    if (approaching.length > 0) {
+      nodes.push(
+        new RiskSectionItem("approaching", "Approaching idle", approaching.length),
+      );
+    }
+    if (nodes.length === 0) {
+      return [new RiskEmptyItem()];
+    }
+    return nodes;
   }
 
   private sectionChildren(sectionId: SectionId): RiskTabItem[] {
+    const nowMs = Date.now();
     const tabs =
       sectionId === "pending"
-        ? this.session.listPendingAtRisk()
+        ? this.session.listPendingAtRisk(nowMs)
         : sectionId === "kept"
-          ? this.session.listKeptAtRisk()
-          : this.session.listFilteredAtRisk();
+          ? this.session.listKeptAtRisk(nowMs)
+          : sectionId === "filtered"
+            ? this.session.listFilteredAtRisk(nowMs)
+            : this.session.listApproachingIdle(nowMs);
+
+    const decision =
+      sectionId === "filtered"
+        ? "filtered"
+        : sectionId === "approaching"
+          ? "approaching"
+          : sectionId === "kept"
+            ? "kept"
+            : "pending";
 
     return tabs
       .slice()
       .sort((a, b) => b.assessment.estTokens - a.assessment.estTokens)
-      .map((tab) => new RiskTabItem(tab, sectionId === "filtered" ? "filtered" : sectionId));
+      .map((tab) => new RiskTabItem(tab, decision, nowMs));
   }
 }
 
@@ -187,6 +238,7 @@ export function createRiskPanel(
   };
 
   const subscription = session.onDidChange(syncBadge);
+  startUiTicker(syncBadge, context);
   syncBadge();
 
   context.subscriptions.push(view, subscription);

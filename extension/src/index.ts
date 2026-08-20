@@ -1,4 +1,6 @@
 import { commands, window, type ExtensionContext } from "vscode";
+import { startAutoExport } from "./export/autoExport";
+import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
@@ -18,6 +20,7 @@ export function activate(context: ExtensionContext): void {
     onClose: (uri) => filters.clear(uri),
   });
   startInactivityTimer(registry, context);
+  startAutoExport(session, context);
 
   createRiskPanel(session, context);
   createRiskPulse(session, context);
@@ -33,28 +36,30 @@ export function activate(context: ExtensionContext): void {
         return;
       }
       session.keep(uri);
-      void exportQuiet(session);
     },
   );
 
   const filter = commands.registerCommand(
     "tokenforge.filterTab",
-    (item?: RiskTabItem) => {
+    async (item?: RiskTabItem) => {
       const uri = item?.tab.uri;
       if (!uri) {
         void window.showWarningMessage("Select an at-risk tab in the TokenForge panel.");
         return;
       }
       session.filter(uri);
-      void writeLastScan(session)
-        .then((result) => {
-          void window.showInformationMessage(
-            `Filtered ${item?.tab.path ?? "tab"} — ${result.savedTokens} tokens saved in last-scan.json`,
-          );
-        })
-        .catch((error) => {
-          void window.showErrorMessage(formatError("Export failed after Filter", error));
-        });
+      try {
+        const result = await writeLastScan(session);
+        const choice = await window.showInformationMessage(
+          `Filtered ${item?.tab.path ?? "tab"} — ${result.savedTokens} tokens saved`,
+          "Reveal last-scan.json",
+        );
+        if (choice === "Reveal last-scan.json") {
+          await revealLastScan(result.reportPath);
+        }
+      } catch (error) {
+        void window.showErrorMessage(formatError("Export failed after Filter", error));
+      }
     },
   );
 
@@ -67,18 +72,30 @@ export function activate(context: ExtensionContext): void {
         return;
       }
       session.clearDecision(uri);
-      void exportQuiet(session);
     },
   );
 
   const exportScan = commands.registerCommand("tokenforge.exportLastScan", async () => {
     try {
       const result = await writeLastScan(session);
-      void window.showInformationMessage(
+      const choice = await window.showInformationMessage(
         `Exported ${result.reportPath} (${result.savedTokens} tokens saved)`,
+        "Reveal",
       );
+      if (choice === "Reveal") {
+        await revealLastScan(result.reportPath);
+      }
     } catch (error) {
       void window.showErrorMessage(formatError("Export failed", error));
+    }
+  });
+
+  const reveal = commands.registerCommand("tokenforge.revealLastScan", async () => {
+    try {
+      await writeLastScan(session);
+      await revealLastScan();
+    } catch (error) {
+      void window.showErrorMessage(formatError("Reveal failed", error));
     }
   });
 
@@ -88,7 +105,6 @@ export function activate(context: ExtensionContext): void {
 
   const clearFilters = commands.registerCommand("tokenforge.clearFilters", () => {
     session.clearAllDecisions();
-    void exportQuiet(session);
     void window.showInformationMessage("Cleared Keep/Filter decisions.");
   });
 
@@ -101,6 +117,7 @@ export function activate(context: ExtensionContext): void {
     filter,
     restore,
     exportScan,
+    reveal,
     refresh,
     clearFilters,
     focusPanel,
@@ -108,12 +125,6 @@ export function activate(context: ExtensionContext): void {
 }
 
 export function deactivate(): void {}
-
-function exportQuiet(session: RiskSession): void {
-  void writeLastScan(session).catch((error) => {
-    void window.showErrorMessage(formatError("Export failed", error));
-  });
-}
 
 function formatError(prefix: string, error: unknown): string {
   const reason = error instanceof Error ? error.message : String(error);

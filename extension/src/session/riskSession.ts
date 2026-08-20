@@ -1,6 +1,7 @@
 import { TabFilterStore } from "../filter/filterStore";
 import { isFiltered } from "../filter/types";
 import type { TabDecision } from "../filter/types";
+import { idleHintForTab } from "../tabs/idleHint";
 import { TabRegistry } from "../tabs/registry";
 import type { TrackedTab } from "../tabs/types";
 import { buildRiskPulseModel, type RiskPulseModel } from "./riskPulse";
@@ -82,6 +83,23 @@ export class RiskSession {
     return this.listAtRisk(nowMs).filter(
       (tab) => this.filters.get(tab.uri) === "filtered",
     );
+  }
+
+  /**
+   * Open tabs that are not yet at-risk but are within the inactivity window
+   * (idle ≥1m, still under 15m). Used for the Approaching panel section.
+   */
+  listApproachingIdle(nowMs: number = Date.now()): TrackedTab[] {
+    return this.listAll(nowMs).filter((tab) => {
+      if (tab.assessment.atRisk) {
+        return false;
+      }
+      if (isFiltered(this.filters.get(tab.uri))) {
+        return false;
+      }
+      const hint = idleHintForTab(tab, nowMs);
+      return hint?.kind === "at_risk_in";
+    });
   }
 
   displayAtRiskTokens(nowMs: number = Date.now()): number {

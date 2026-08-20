@@ -97,4 +97,24 @@ describe("RiskSession", () => {
     expect(session.listFilteredAtRisk(now).map((tab) => tab.uri)).toEqual(["file:///b"]);
     expect(session.pulse(now).totals.savedTokens).toBe(estimateTokens(8_000));
   });
+
+  it("lists approaching-idle source tabs for the countdown section", () => {
+    const registry = new TabRegistry();
+    const session = new RiskSession(registry);
+    const now = 1_000_000;
+
+    registry.upsert(
+      "file:///src",
+      { path: "src/app.ts", bytes: 400, focus: true },
+      now - 11 * 60_000,
+    );
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+
+    const approaching = session.listApproachingIdle(now);
+    expect(approaching.map((tab) => tab.path)).toEqual(["src/app.ts"]);
+  });
 });
