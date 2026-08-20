@@ -1,11 +1,14 @@
-# Moves closed [Epic] issues to Status = "Epics Finished" on the Project board.
+# Epic board lifecycle.
 #
-# Built-in Project workflows set closed items → Done. For epics that is wrong:
-# they belong in the dedicated "Epics Finished" column. This Action overrides
-# Done (with a short re-assert to win the race against the built-in workflow).
+# 1) When the last child story of an `[Epic]` closes, close the epic.
+#    Reopening a child reopens a closed parent epic.
+# 2) Closed `[Epic]` issues go to Status = "Epics Finished" (not Done).
+#    Built-in Project workflows set closed items → Done; this Action
+#    overrides that (with a short re-assert to win the race).
 #
 # Detection: issue title starts with "[Epic]" (same convention as E0/E1/…).
-# Requires repo secret PROJECT_TOKEN (Projects:write).
+# Board Status writes require repo secret PROJECT_TOKEN (Projects:write).
+# Auto-close/reopen of the GitHub issue uses GITHUB_TOKEN.
 
 name: Project ↔ Epic lifecycle
 
@@ -17,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  issues: read
+  issues: write
 
 concurrency:
   group: project-epic-${{ github.event.issue.number }}
@@ -32,6 +35,85 @@ env:
   STATUS_EPICS_FINISHED: b420eb0a
 
 jobs:
+  close-parent-epic:
+    name: Close epic when all stories are done
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close or reopen parent [Epic] from child stories
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ github.event.issue.title }}
+          ACTION: ${{ github.event.action }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$TITLE" =~ ^\[Epic\] ]]; then
+            echo "Closed/reopened issue is itself an [Epic] — skip parent lookup."
+            exit 0
+          fi
+
+          PARENT_JSON=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) {
+                  parent { number title state }
+                }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE")
+
+          PARENT=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.number // empty')
+          PARENT_TITLE=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.title // empty')
+          PARENT_STATE=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.state // empty')
+
+          if [[ -z "$PARENT" ]]; then
+            echo "Issue #$ISSUE has no parent — skip."
+            exit 0
+          fi
+          if [[ ! "$PARENT_TITLE" =~ ^\[Epic\] ]]; then
+            echo "Parent #$PARENT is not an [Epic] — skip."
+            exit 0
+          fi
+
+          if [[ "$ACTION" == "reopened" ]]; then
+            if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+              gh issue reopen "$PARENT" --repo "$REPO" \
+                --comment "Child #$ISSUE was reopened. Reopening this epic so it leaves **Epics Finished**."
+              echo "Reopened parent epic #$PARENT"
+            else
+              echo "Parent epic #$PARENT is already open."
+            fi
+            exit 0
+          fi
+
+          OPEN_COUNT=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) {
+                  subIssues(first:50) {
+                    nodes { number state }
+                  }
+                }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '[.data.repository.issue.subIssues.nodes[] | select(.state=="OPEN")] | length')
+
+          echo "Epic #$PARENT has $OPEN_COUNT open child stories"
+
+          if [[ "$OPEN_COUNT" != "0" ]]; then
+            echo "Epic still has open stories — leave it open."
+            exit 0
+          fi
+          if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+            echo "Parent epic #$PARENT is already closed."
+            exit 0
+          fi
+
+          gh issue close "$PARENT" --repo "$REPO" \
+            --comment "All child stories are closed. Closing this epic so the board moves it to **Epics Finished**."
+          echo "Closed parent epic #$PARENT"
+
   sync-epic-status:
     name: Sync Epic board Status
     runs-on: ubuntu-latest

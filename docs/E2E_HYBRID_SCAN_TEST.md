@@ -203,6 +203,6 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Ollama enricher | #44 | `TF#44-ollama-enricher` |
 | Dashboard boards + this runbook | #47, #23 | `TF#47-dashboard-boards` |
 
-#42 (candidate + merge) and #43 (enricher port) were delivered in #41; close as done when reviewing.
+#42 (candidate + merge) and #43 (enricher port) shipped with #41 (both closed). Remaining hybrid work is F1 (#60): **#45 ∥ #46 → #48**.
 
 **Merge order on `main`:** #41 (done) → scan-layers → Ollama → dashboard boards.

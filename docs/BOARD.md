@@ -4,7 +4,11 @@ Project: [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas
 
 Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Finished**.
 
+Stories land in **Done** when they close. An `[Epic]` moves to **Epics Finished** when **all of its child stories are closed** (workflow auto-closes the epic). F1–F3 stay in **To-Do** until that happens.
+
 ## Epics
+
+MVP (closed → **Epics Finished**):
 
 | Epic | Issue | Phase |
 | --- | --- | --- |
@@ -14,9 +18,18 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | ROI dashboard (React) | #4 | E3 |
 | VS Code extension | #5 | E4 |
 | Demo polish & pitch | #6 | E5 |
-| Future / Phase 2 | #7 | Future |
+
+Phase 2 (open). Former catch-all #7 was split:
+
+| Epic | Issue | Phase |
+| --- | --- | --- |
+| F1 Hybrid Detect backends | #60 | Future |
+| F2 Prove at org scale | #61 | Future |
+| F3 Adjacent (do not pitch) | #62 | Future |
 
 ## Stories
+
+### MVP (done)
 
 | Issue | Title | Epic |
 | --- | --- | --- |
@@ -33,30 +46,45 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 | #18 | BU overview / heatmap / offenders | E3 |
 | #19 | Seeded demo data + JSON load | E3 |
 | #20 | Scaffold VS Code extension | E4 |
-| #21 | Tabs + 15-min / high-risk rule | E4 |
+| #21 | Track tabs + idle / high-risk rule (now 10m focused / 5m background) | E4 |
 | #22 | Status bar + panel + JSON export | E4 |
 | #23 | Demo script + runbook | E5 |
 | #24 | Pitch FAQ (vs Auto Memory) | E5 |
-| #25 | Future: chat compaction | Future |
-| #26 | Future: model routing | Future |
-| #27 | Future: live usage metrics (per provider) | Future |
-| #28 | Future: org policy/exclusion apply (per provider) | Future |
-| #41 | Future: hybrid scan design + JSON scaffolding | Future |
-| #42 | Future: risk-core candidate selection + merge | Future |
-| #43 | Future: CLI LLM enricher port + hybrid orchestration | Future |
-| #44 | Future: CLI Ollama enricher (local Qwen) | Future |
-| #45 | Future: CLI OpenAI-compatible enricher | Future |
-| #46 | Future: CLI Anthropic enricher | Future |
-| #47 | Future: dashboard hybrid / LLM finding display | Future |
-| #48 | Future: extension optional LLM enricher | Future |
-| #49 | Future: pitch materials — hybrid scan FAQ + deck | Future / E5 |
-| #54 | Future: dashboard finding details + explanations | Future |
-| #55 | Future: advisory finding suggestions (copy-only) | Future |
+
+### Hybrid Detect — shipped (historically under #7)
+
+| Issue | Title |
+| --- | --- |
+| #41 | Hybrid scan design + JSON scaffolding |
+| #42 | risk-core: enrichment candidate selection + merge |
+| #43 | CLI: LLM enricher port + hybrid orchestration |
+| #44 | CLI: Ollama LLM enricher (local Qwen) |
+| #47 | Dashboard: hybrid scan + LLM finding display |
+| #54 | Dashboard: finding details + heuristic explanations |
+| #55 | Advisory finding suggestions (copy-only) |
+
+### Phase 2 — open
+
+| Issue | Title | Epic | Order |
+| --- | --- | --- | --- |
+| #45 | CLI: OpenAI-compatible enricher | F1 #60 | 1a (∥ #46) |
+| #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45) |
+| #48 | Extension: optional LLM enricher | F1 #60 | 2 (after #45 or #46) |
+| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | 1 |
+| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | 2 |
+| #25 | Chat history compaction assistant | F3 #62 | 1 (do not pitch) |
+| #26 | Intelligent model routing | F3 #62 | 2 (do not pitch) |
+
+#49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story.
 
 ## Build order
 
-E0 → E1 → E2 → E3 → E4 → E5 (Future deferred).
+MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 
-Hybrid scan (Future): #41 → #42 → #43 → (#44 \| #45 \| #46) → #47 → #54 → #55 → #48; pitch #49.
+Phase 2:
+
+1. **F1** (#60) — confirm #43 closed → **#45 ∥ #46** → **#48**
+2. **F2** (#61) — **#27** → **#28** (after F1 if hybrid findings should show in org Prove)
+3. **F3** (#62) — **#25** → **#26** (do not start while F1 is open; do not pitch)
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
