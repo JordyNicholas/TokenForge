@@ -3,7 +3,7 @@ import {
   INSTRUCTION_PATH_SEGMENTS,
 } from "@tokenforge/risk-core";
 import { MAX_MAP_DIGEST_CHARS } from "../limits";
-import { buildEnrichmentPrompt } from "../structured";
+import { buildEnrichmentPrompt, ENRICHMENT_POLICY_RULES } from "../structured";
 import type { EnrichmentCandidate, LlmStructuredFinding } from "../types";
 import type { RepoContextMap } from "./types";
 
@@ -71,16 +71,17 @@ export function buildMapPrompt(candidates: readonly EnrichmentCandidate[]): stri
     "You build a compact context map for TokenForge (AI coding FinOps).",
     "Goal: identify always-on instruction hubs and likely duplicate clusters.",
     "Do not judge exclude/keep yet. Do not suggest architecture or product refactors.",
+    "Remember: later passes must cut token bleed without stripping needed documentation.",
     "",
     "Return JSON only with this shape:",
     '{"hubs":["path"],"clusters":[["path","path"]],"batchHints":[["path","path"]],"suspects":["path"]}',
     "",
     "Rules:",
     "- Use exact paths from the inventory only.",
-    "- hubs = always-on agent instruction / rules centers.",
+    "- hubs = always-on agent instruction / rules centers (include RULEBOOK-style standards docs if present).",
     "- clusters = groups that likely overlap or duplicate guidance.",
     "- batchHints = groups that must be compared together in a later pass.",
-    "- suspects = optional paths that may be low-value billable context.",
+    "- suspects = only clear waste candidates (lockfiles, generated/vendored code, dumps) — never README, RULEBOOK, ADRs/DECISIONS, ENVIRONMENTS, OpenAPI/API contracts, or similar docs.",
     "- Prefer small arrays. Omit empty optional fields if unused.",
     "",
     "Candidate inventory:",
@@ -129,7 +130,9 @@ export function buildReconcilePrompt(
     '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}]}',
     "",
     "Rules:",
+    ...ENRICHMENT_POLICY_RULES.map((rule) => `- ${rule}`),
     "- Prefer redundant_instructions only when both related paths appear in hubs/clusters/batchHints or in the findings list.",
+    "- Drop findings that exclude documentation/standards/API contracts; convert those to keep (omit) or review + trim_instructions.",
     "- Drop or soften contradictory claims that the map does not support.",
     "- verdict keep = omit from findings unless you must note it.",
     "- suggestion is copy-only advice. TokenForge will not apply it.",

@@ -27,7 +27,13 @@ export { codexEnricher, createCodexEnricher } from "./codex/codex";
 export { noopEnricher } from "./noop/noop";
 export { ollamaEnricher } from "./ollama/ollama";
 export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./parse";
-export { buildEnrichmentPrompt, extractJsonPayload, parseStructuredFindings } from "./structured";
+export {
+  buildEnrichmentPrompt,
+  ENRICHMENT_POLICY_RULES,
+  extractJsonPayload,
+  parseStructuredFindings,
+} from "./structured";
+
 export { getEnricher } from "./registry";
 export {
   buildJudgePrompt,

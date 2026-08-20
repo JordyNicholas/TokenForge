@@ -16,12 +16,15 @@ const candidates: EnrichmentCandidate[] = [
 ];
 
 describe("buildEnrichmentPrompt", () => {
-  it("includes path and excerpt", () => {
+  it("includes path, excerpt, and protect-docs policy", () => {
     const prompt = buildEnrichmentPrompt(candidates);
     expect(prompt).toContain("AGENTS.md");
     expect(prompt).toContain("Always run lint before commit.");
     expect(prompt).toContain("TokenForge will not apply");
     expect(prompt).toContain("Do not suggest architecture");
+    expect(prompt).toContain("preserving repository functionality and documentation");
+    expect(prompt).toContain("RULEBOOK");
+    expect(prompt).toContain("never exclude");
   });
 });
 

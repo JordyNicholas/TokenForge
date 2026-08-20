@@ -18,6 +18,21 @@ const VERDICTS = new Set<LlmStructuredFinding["verdict"]>([
   "keep",
 ]);
 
+/**
+ * Shared Detect policy for local/external enrichers.
+ * Token bleed cuts must not strip docs/rules needed for correct agent work.
+ */
+export const ENRICHMENT_POLICY_RULES: readonly string[] = [
+  "Primary goal: reduce billable token bleed while preserving repository functionality and documentation that agents need to work correctly.",
+  "exclude ONLY clear waste: lockfiles, generated/vendored code (e.g. Prisma client, dist/build), minified bundles, oversized dumps, or truly duplicate always-on instruction copies.",
+  "KEEP (verdict keep / omit from findings) project documentation and standards: README, RULEBOOK, ADRs/DECISIONS, ENVIRONMENTS, architecture guides, OpenAPI/API contracts, CONTRIBUTING, and similar docs — even if large.",
+  "For oversized but useful docs/instructions, prefer verdict review with suggestion.kind trim_instructions or dedupe_rules — never exclude the whole file.",
+  "When unsure whether a path is waste or needed documentation, choose keep or review — never exclude.",
+  "redundant_instructions applies only to overlapping agent instruction/rules files — never to generated code, scripts, or general docs.",
+  "low_signal_config is for noisy machine config dumps — not for human-facing docs or API contracts.",
+  "Do not exclude a path merely because it is 'not the file being edited' or 'infrastructure-related'.",
+];
+
 export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]): string {
   const blocks = candidates.map((candidate) => {
     const raw =
@@ -50,7 +65,7 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "- verdict exclude = recommend excluding from agent context.",
     "- verdict review = borderline; still include in findings.",
     "- verdict keep = omit from findings unless you must note it.",
-    "- Prefer exclude for generated noise, redundant instructions, or low-signal config.",
+    ...ENRICHMENT_POLICY_RULES.map((rule) => `- ${rule}`),
     "- suggestion.kind must be one of those five values. Unknown kinds are dropped.",
     "- suggestion.summary is copy-only advice for a developer. TokenForge will not apply it.",
     "- Do not suggest architecture, API, or product refactors. Do not include code patches or whole-file rewrites.",

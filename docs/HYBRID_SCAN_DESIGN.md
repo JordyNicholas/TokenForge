@@ -202,6 +202,10 @@ Pass A digests instruction/rules paths only (short excerpts). Token math and
 report merge semantics are unchanged. Anthropic/OpenAI may adopt the same
 orchestrator later; MVP wires **Ollama first**.
 
+Judge / reconcile prompts share `ENRICHMENT_POLICY_RULES`: cut lockfiles and
+generated noise, but **keep** README / RULEBOOK / ADRs / ENV / OpenAPI-style
+docs (prefer `review` + trim over exclude). When unsure, keep — never exclude.
+
 ### CLI flags (Phase 2)
 
 ```bash

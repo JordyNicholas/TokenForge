@@ -49,6 +49,7 @@ describe("buildMapPrompt", () => {
     expect(prompt).toContain("…(truncated)");
     expect(prompt).not.toContain("export const app = true;");
     expect(prompt).toContain("Do not suggest architecture");
+    expect(prompt).toContain("never README, RULEBOOK");
   });
 });
 
@@ -65,7 +66,7 @@ describe("buildJudgePrompt", () => {
 });
 
 describe("buildReconcilePrompt", () => {
-  it("includes map and finding rows without file bodies", () => {
+  it("includes map, finding rows, and protect-docs policy", () => {
     const findings: LlmStructuredFinding[] = [
       {
         path: "AGENTS.md",
@@ -78,5 +79,7 @@ describe("buildReconcilePrompt", () => {
     expect(prompt).toContain(formatRepoContextMap(map));
     expect(prompt).toContain('"path":"AGENTS.md"');
     expect(prompt).not.toContain("Always run lint before commit.");
+    expect(prompt).toContain("Drop findings that exclude documentation");
+    expect(prompt).toContain("preserving repository functionality and documentation");
   });
 });
