@@ -2,6 +2,8 @@
 
 *(Hackathon one-pager · board / team aligned)*
 
+See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
+
 ## Category
 
 **AI Coding FinOps** — cost & token governance for metered AI coding agents / LLMs, not assistant memory.

@@ -1,6 +1,7 @@
 # Pitch FAQ — TokenForge
 
 Short answers for judges and collaborators. Aligns with [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
+See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 
 ## vs Claude Auto Memory?
 
