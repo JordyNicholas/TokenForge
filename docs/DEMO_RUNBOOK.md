@@ -25,9 +25,9 @@ Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`]
    `.vscode/launch.json`) to open the Extension Development Host window.
 3. In that Extension Development Host window, open these fixture files as tabs.
    High-risk filetypes (lockfile / generated) flag **immediately**; source/config
-   tabs need **≥15 minutes idle** (panel shows an **Approaching idle** countdown
-   after 1m). For a clean stage beat, leave the lockfile + bundle open and
-   optionally idle the others beforehand:
+   tabs need idle time (**10 minutes** when focused, **5 minutes** in the
+   background — panel shows an **Approaching idle** countdown after 1m). For a
+   clean stage beat, leave the lockfile + bundle open:
    - `fixtures/noisy-app/package-lock.json`
    - `fixtures/noisy-app/dist/bundle.js`
    - `fixtures/noisy-app/config/app-settings.json`

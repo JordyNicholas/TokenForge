@@ -18,6 +18,7 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | E2E hybrid scan test | [`docs/E2E_HYBRID_SCAN_TEST.md`](docs/E2E_HYBRID_SCAN_TEST.md) |
 | Pitch FAQ (vs Auto Memory) | [`docs/PITCH_FAQ.md`](docs/PITCH_FAQ.md) |
 | Demo runbook (≤5 min script) | [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md) |
+| Context Guard (extension) | [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
 | PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
 | Collaborator guide | [`AGENTS.md`](AGENTS.md) |
@@ -32,7 +33,7 @@ Detect and Prove are provider-agnostic. Fix uses pluggable adapters (Copilot, Cu
 
 | Component | Path | Role |
 | --- | --- | --- |
-| VS Code extension | `extension/` | Score & filter inactive / high-risk background tabs (≥15 min) |
+| VS Code extension | `extension/` | Score & filter inactive / high-risk tabs (10m focused / 5m background) |
 | CLI (TypeScript) | `cli/` | One-click repo optimisation (adapter instructions + exclusions + estimate) |
 | ROI dashboard (React) | `dashboard/` | Mock “tokens saved” analytics across a business unit |
 | Shared risk helpers | `packages/risk-core/` | Token estimate + risk scoring types |

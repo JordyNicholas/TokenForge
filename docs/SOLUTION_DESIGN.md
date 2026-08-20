@@ -143,10 +143,11 @@ Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/
 ### Extension — Context Guard
 
 - Track open editors: path, size, last focus/edit, filetype class
-- Rule: inactive ≥15 minutes **or** high-risk class → at-risk
-- UX: status bar + side panel (Keep / Filter)
+- Rule: inactive ≥10 minutes (focused) / ≥5 minutes (background) **or** high-risk class → at-risk
+- UX: status bar + side panel (Keep / Filter) + Risk pulse; see [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md)
 - Export `.tokenforge/last-scan.json` or `~/.tokenforge/events.jsonl`
 - Honesty: recommended hygiene / risk scoring — not interception of any agent’s private pipeline
+- Optional: `tokenforge.autoFilterHighRisk` auto-Filters pending lockfile/generated tabs
 
 ### CLI — `tokenforge`
 

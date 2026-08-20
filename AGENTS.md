@@ -9,7 +9,8 @@ Read first:
 
 1. [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) — locked product narrative (not Auto Memory)
 2. [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) — stack + MVP design
-3. [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
+3. [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
+4. [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
 
 ## Delivery rules
 

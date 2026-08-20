@@ -1,0 +1,91 @@
+# Context Guard — VS Code extension
+
+How the TokenForge **Detect** surface works in the editor: scoring open tabs,
+Keep/Filter decisions, Risk pulse evidence, and `.tokenforge/last-scan.json`.
+
+Related: [`SOLUTION_DESIGN.md`](./SOLUTION_DESIGN.md) · [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) ·
+[`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
+
+## What it is (and is not)
+
+**Is:** recommended hygiene for Chat/Agent / metered AI-credit workflows. It scores
+open editors and lets you Filter high-bleed tabs out of the live estimate.
+
+**Is not:** interception of any agent’s private context pipeline. Filtering updates
+TokenForge’s estimate and export file only — it does not close tabs or rewrite
+Copilot/Cursor/Claude config by itself (that is CLI **Fix** / `tokenforge apply`).
+
+Default Detect is **heuristic-only**. Optional LLM enrichment in the extension is
+Future ([issue #48](https://github.com/JordyNicholas/TokenForge/issues/48)); hybrid
+scan lives in the CLI today ([`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)).
+
+## Quick start
+
+```bash
+npm run tokenforge:extension
+```
+
+Open the repo root → **Run Extension** (F5) → Extension Development Host →
+**TokenForge** activity-bar icon.
+
+## Surfaces
+
+| Surface | Role |
+| --- | --- |
+| Status bar | Compact `TokenForge: … at risk` (click focuses the panel) |
+| **At-risk tabs** tree | Pending / Kept / Filtered (+ Approaching idle) with Keep, Filter, Restore |
+| **Risk pulse** webview | Live before → after → saved **after** you Filter; otherwise “at risk now” |
+| Toolbar | Refresh, Export, Reveal last-scan, Clear decisions |
+
+## Scoring rules
+
+Shared kernel: `@tokenforge/risk-core` (`scoreRisk`).
+
+A tab is **at-risk** when any of:
+
+1. **High-risk filetype** — lockfile or generated (e.g. `package-lock.json`, `dist/**`) — immediate
+2. **Oversized** — bytes ≥ 100 KiB
+3. **Inactive** —
+   - **Focused** editor: idle ≥ **10 minutes**
+   - **Background** (non-focused) tab: idle ≥ **5 minutes**
+
+Token estimate: `estTokens ≈ ceil(bytes / 4)`.
+
+The panel’s **Approaching idle** section appears after ≥1 minute idle, with a
+countdown to the applicable threshold.
+
+## Keep / Filter / Restore
+
+| Action | Effect on display | Effect on export |
+| --- | --- | --- |
+| **Filter** | Drops tab from at-risk readout and status bar | `action: "filtered"` → counts as saved |
+| **Keep** | Still at-risk (honest), marked Kept | `action: "kept"` |
+| **Restore** | Undoes Filter → **Kept** (so auto-filter does not instantly re-apply) | `action: "kept"` |
+| **Clear decisions** | All back to pending | pending → kept at export time until filtered |
+
+Acceptance rule: **only Filter reduces displayed at-risk tokens.**
+
+## Auto-filter (opt-in)
+
+Setting: `tokenforge.autoFilterHighRisk` (default **false**).
+
+When enabled, pending **lockfile** and **generated** tabs are Filtered automatically.
+Keep/Restore remain durable overrides. This never closes editors or writes vendor
+ignore files — it only updates the Detect estimate and `last-scan.json`.
+
+## Export / Prove handoff
+
+- Path: `.tokenforge/last-scan.json` (workspace folder)
+- Contract: Token Risk v0 ([`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json))
+- `source: "extension"`; validated with `isTokenRiskReport`
+- **Auto-export** debounces on session changes; Export / Filter can still write immediately
+- **Reveal last-scan.json** opens/reveals the file for demos or dashboard load
+
+Settings written into the report: `tokenforge.team`, `tokenforge.repo`,
+`tokenforge.provider` (scoring ignores provider).
+
+## Demo tip
+
+Open `fixtures/noisy-app/package-lock.json` and `dist/bundle.js` — they flag
+immediately. Filter one and watch Risk pulse unlock before/after/saved. Full stage
+script: [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).

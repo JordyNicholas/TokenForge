@@ -50,7 +50,7 @@ MVP may ship **one adapter first** (commonly Copilot) for the demo; that choice 
 
 ## MVP (organiser-aligned)
 
-1. **VS Code extension** — recommend/filter background tabs inactive ≥15 minutes (high-risk filetypes prioritized)
+1. **VS Code extension** — recommend/filter background tabs inactive ≥10 minutes focused / ≥5 minutes background (high-risk filetypes prioritized)
 2. **CLI** — one command drops token-optimised settings, lean instructions, strict exclusion candidates + before/after estimate (via selected provider adapter)
 3. **ROI dashboard** — mock analytics of tokens avoided and $ across a business unit
 
@@ -58,7 +58,7 @@ MVP may ship **one adapter first** (commonly Copilot) for the demo; that choice 
 
 | In (ship) | Out (roadmap / don’t pitch first) |
 | --- | --- |
-| Tab risk + 15‑min rule | Claiming we intercept any vendor’s private context pipeline |
+| Tab risk + idle rule (10m focused / 5m background) | Claiming we intercept any vendor’s private context pipeline |
 | Repo optimisation pack (adapter outputs) | Full Auto Memory–style learnings store |
 | Simulated ROI + assumptions | Live billing API sync for a single vendor |
 | Cost-first narrative | Chat compaction / premium model router as headlines |
