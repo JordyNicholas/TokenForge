@@ -36,4 +36,15 @@ describe("TabFilterStore", () => {
 
     expect(listener).toHaveBeenCalledTimes(2);
   });
+
+  it("clearAll resets every decision", () => {
+    const store = new TabFilterStore();
+    store.set("file:///a.ts", "kept");
+    store.set("file:///b.ts", "filtered");
+    store.clearAll();
+
+    expect(store.get("file:///a.ts")).toBe("pending");
+    expect(store.get("file:///b.ts")).toBe("pending");
+    expect(store.entries().size).toBe(0);
+  });
 });

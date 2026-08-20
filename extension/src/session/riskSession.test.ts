@@ -67,4 +67,34 @@ describe("RiskSession", () => {
     expect(session.decision("file:///lock")).toBe("pending");
     expect(session.listDisplayAtRisk()).toHaveLength(1);
   });
+
+  it("lists pending, kept, and filtered sections separately", () => {
+    const registry = new TabRegistry();
+    const session = new RiskSession(registry);
+    const now = Date.now();
+
+    registry.upsert(
+      "file:///a",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+    registry.upsert(
+      "file:///b",
+      { path: "dist/bundle.js", bytes: 8_000, focus: true },
+      now,
+    );
+    registry.upsert(
+      "file:///c",
+      { path: "yarn.lock", bytes: 2_000, focus: true },
+      now,
+    );
+
+    session.keep("file:///a");
+    session.filter("file:///b");
+
+    expect(session.listPendingAtRisk(now).map((tab) => tab.uri)).toEqual(["file:///c"]);
+    expect(session.listKeptAtRisk(now).map((tab) => tab.uri)).toEqual(["file:///a"]);
+    expect(session.listFilteredAtRisk(now).map((tab) => tab.uri)).toEqual(["file:///b"]);
+    expect(session.pulse(now).totals.savedTokens).toBe(estimateTokens(8_000));
+  });
 });

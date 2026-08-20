@@ -35,6 +35,15 @@ export class TabFilterStore {
     this.notify();
   }
 
+  /** Reset every Keep / Filter decision back to pending. */
+  clearAll(): void {
+    if (this.decisions.size === 0) {
+      return;
+    }
+    this.decisions.clear();
+    this.notify();
+  }
+
   /** Snapshot for export / tests. */
   entries(): ReadonlyMap<string, TabDecision> {
     return new Map(this.decisions);

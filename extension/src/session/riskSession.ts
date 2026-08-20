@@ -3,6 +3,7 @@ import { isFiltered } from "../filter/types";
 import type { TabDecision } from "../filter/types";
 import { TabRegistry } from "../tabs/registry";
 import type { TrackedTab } from "../tabs/types";
+import { buildRiskPulseModel, type RiskPulseModel } from "./riskPulse";
 
 type ChangeListener = () => void;
 
@@ -42,15 +43,45 @@ export class RiskSession {
     this.filters.clear(uri);
   }
 
+  clearAllDecisions(): void {
+    this.filters.clearAll();
+  }
+
+  refreshScores(nowMs: number = Date.now()): void {
+    this.registry.refresh(nowMs);
+  }
+
   listAll(nowMs: number = Date.now()): readonly TrackedTab[] {
     return this.registry.list(nowMs);
   }
 
+  listAtRisk(nowMs: number = Date.now()): TrackedTab[] {
+    return this.registry.listAtRisk(nowMs);
+  }
+
   /** At-risk tabs that the user has not filtered out of the estimate. */
   listDisplayAtRisk(nowMs: number = Date.now()): TrackedTab[] {
-    return this.registry
-      .listAtRisk(nowMs)
-      .filter((tab) => !isFiltered(this.filters.get(tab.uri)));
+    return this.listAtRisk(nowMs).filter(
+      (tab) => !isFiltered(this.filters.get(tab.uri)),
+    );
+  }
+
+  listPendingAtRisk(nowMs: number = Date.now()): TrackedTab[] {
+    return this.listAtRisk(nowMs).filter(
+      (tab) => this.filters.get(tab.uri) === "pending",
+    );
+  }
+
+  listKeptAtRisk(nowMs: number = Date.now()): TrackedTab[] {
+    return this.listAtRisk(nowMs).filter(
+      (tab) => this.filters.get(tab.uri) === "kept",
+    );
+  }
+
+  listFilteredAtRisk(nowMs: number = Date.now()): TrackedTab[] {
+    return this.listAtRisk(nowMs).filter(
+      (tab) => this.filters.get(tab.uri) === "filtered",
+    );
   }
 
   displayAtRiskTokens(nowMs: number = Date.now()): number {
@@ -58,6 +89,11 @@ export class RiskSession {
       (sum, tab) => sum + tab.assessment.estTokens,
       0,
     );
+  }
+
+  /** Live totals + per-tab segments for the Risk pulse webview. */
+  pulse(nowMs: number = Date.now()): RiskPulseModel {
+    return buildRiskPulseModel(this.listAll(nowMs), (uri) => this.decision(uri));
   }
 
   onDidChange(listener: ChangeListener): { dispose(): void } {
