@@ -1,0 +1,10 @@
+{
+  "name": "borderline-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Synthetic TokenForge demo app — legitimate large files that stress-test heuristic precision.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}

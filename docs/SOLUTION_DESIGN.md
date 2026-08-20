@@ -83,9 +83,12 @@ TokenForge/
 ├── docs/
 ├── packages/risk-core/     # estimateTokens, scoreRisk, types
 │   └── src/{domain,classify,estimate,score,report}/
-├── fixtures/
+├── fixtures/               # see fixtures/README.md for the full catalog
 │   ├── noisy-app/          # demo repo with lockfiles / fat configs
-│   └── expected/           # pinned scan totals for that fixture
+│   ├── lean-app/           # negative control: healthy repo, no findings
+│   ├── borderline-app/     # precision stress test: legit large files
+│   ├── instructions-app/   # hybrid/LLM candidate-selection fixture
+│   └── expected/           # pinned scan totals per fixture
 ├── extension/              # VS Code Context Guard
 ├── cli/                    # tokenforge init | scan | apply
 │   └── src/{app,commands,adapters,io,output,savings}/

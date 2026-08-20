@@ -75,6 +75,20 @@ npm run tokenforge -- scan . \
   --llm-timeout 1800
 ```
 
+**Smaller, purpose-built target:** `fixtures/instructions-app` ships four
+verbose, duplicated instruction files (`AGENTS.md`, `CLAUDE.md`,
+`.cursorrules`, `.github/copilot-instructions.md`) sized to land in the
+candidate-selection "borderline" band without tripping the plain heuristic
+`oversized` rule — see `fixtures/instructions-app/README.md`. It's the
+fastest way to manually check `semantic_bloat` / `redundant_instructions`
+findings without waiting on a whole-repo scan:
+
+```bash
+npm run tokenforge -- scan fixtures/instructions-app \
+  --mode hybrid \
+  --llm ollama:qwen2.5-coder:7b
+```
+
 **Expected**
 
 - Runs **several minutes to 30+ minutes** on low-spec hardware — say this upfront.
