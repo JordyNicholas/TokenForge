@@ -10,6 +10,8 @@ export {
   DEFAULT_OLLAMA_ENDPOINT,
   MAX_CANDIDATE_BYTES,
   MAX_ENRICHMENT_CANDIDATES,
+  MAX_LLM_EXCERPT_CHARS,
+  MAX_MAP_DIGEST_CHARS,
   DEFAULT_OLLAMA_TIMEOUT_MS,
   MIN_ANTHROPIC_TIMEOUT_MS,
   MIN_CODEX_TIMEOUT_MS,
@@ -25,8 +27,29 @@ export { codexEnricher, createCodexEnricher } from "./codex/codex";
 export { noopEnricher } from "./noop/noop";
 export { ollamaEnricher } from "./ollama/ollama";
 export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./parse";
-export { buildEnrichmentPrompt, extractJsonPayload, parseStructuredFindings } from "./structured";
+export {
+  buildEnrichmentPrompt,
+  ENRICHMENT_POLICY_RULES,
+  extractJsonPayload,
+  parseStructuredFindings,
+} from "./structured";
+
 export { getEnricher } from "./registry";
+export {
+  buildJudgePrompt,
+  buildMapPrompt,
+  buildReconcilePrompt,
+  chunkCandidates,
+  groupCandidatesForJudge,
+  parseRepoContextMap,
+  reconcileFindings,
+  runMultiPassEnrich,
+} from "./multipass";
+export type {
+  CallModelFn,
+  MultiPassEnrichOptions,
+  RepoContextMap,
+} from "./multipass";
 export type {
   EnrichmentCandidate,
   LlmEnricher,

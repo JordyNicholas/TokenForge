@@ -7,6 +7,9 @@ export const MAX_CANDIDATE_BYTES = 32 * 1024;
 /** Max characters of each excerpt embedded in the LLM prompt (local models). */
 export const MAX_LLM_EXCERPT_CHARS = 2_048;
 
+/** Max characters per instruction-file digest in the Pass A map prompt. */
+export const MAX_MAP_DIGEST_CHARS = 400;
+
 /** Default Ollama per-batch timeout (local 7B on low-spec hardware can be very slow). */
 export const DEFAULT_OLLAMA_TIMEOUT_MS = 900_000;
 

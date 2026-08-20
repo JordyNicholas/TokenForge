@@ -1,4 +1,5 @@
 import type { TokenRiskReport } from "@tokenforge/risk-core";
+import { collapseExclusionPaths } from "../exclusions";
 import {
   GENERIC_EXCLUSIONS_PATH,
   GENERIC_INSTRUCTIONS_PATH,
@@ -15,9 +16,11 @@ Prefer current source. Keep this file short.
 `;
 
 function exclusionYaml(report: TokenRiskReport): string {
-  const lines = report.findings
-    .filter((finding) => finding.action === "excluded")
-    .map((finding) => `  - ${finding.path}`);
+  const lines = collapseExclusionPaths(
+    report.findings
+      .filter((finding) => finding.action === "excluded")
+      .map((finding) => finding.path),
+  ).map((path) => `  - ${path}`);
 
   return `# Generic exclusion pack (not a vendor billing/API file).
 provider: generic

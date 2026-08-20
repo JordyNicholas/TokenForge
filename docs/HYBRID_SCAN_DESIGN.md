@@ -177,6 +177,35 @@ type LlmEnricher = {
 
 Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
 
+### Multi-pass enrich (local-first)
+
+Flat independent batches lose cross-file context (e.g. `redundant_instructions`
+across `AGENTS.md` and a rules file). Ollama uses a **map → judge → reconcile**
+pipeline in `cli/src/enrichers/multipass/` (#66). Transport stays backend-specific;
+orchestration is shared via an injected `callModel`.
+
+```text
+Pass A (1 call)  → RepoContextMap { hubs, clusters, batchHints, suspects? }
+Pass B (N calls) → judge batches (map-conditioned grouping; default size 2)
+Pass C (1 call)  → reconcile findings (no file bodies) + deterministic safety net
+```
+
+| Rule | Behaviour |
+| --- | --- |
+| Context carry | Compact **map artifact** on later prompts — not full chat history |
+| Pass A failure | Fall back to today’s flat chunking for Pass B; skip Pass C LLM |
+| Pass C failure | Keep Pass B findings; still run deterministic reconcile |
+| Grouping | Prefer `batchHints` / `clusters` together, then leftovers by size |
+| Safety net | Dedupe by path; downgrade unsupported `redundant_instructions` |
+
+Pass A digests instruction/rules paths only (short excerpts). Token math and
+report merge semantics are unchanged. Anthropic/OpenAI may adopt the same
+orchestrator later; MVP wires **Ollama first**.
+
+Judge / reconcile prompts share `ENRICHMENT_POLICY_RULES`: cut lockfiles and
+generated noise, but **keep** README / RULEBOOK / ADRs / ENV / OpenAPI-style
+docs (prefer `review` + trim over exclude). When unsure, keep — never exclude.
+
 ### CLI flags (Phase 2)
 
 ```bash
@@ -260,7 +289,7 @@ Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/Tok
 | #49 | Pitch FAQ + deck: hybrid scan talking points | Shipped (deck roadmap refresh in #63) |
 | #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | Open — F1, parallel with #46 / #66 |
 | #46 | CLI: Anthropic enricher | Open — F1, parallel with #45 / #66 |
-| #66 | CLI: multi-pass local-first enrich (map → judge → reconcile) | Open — F1, parallel with #45 / #46; Ollama-first |
+| #66 | CLI: multi-pass local-first enrich (map → judge → reconcile) | In progress — F1, parallel with #45 / #46; Ollama-first |
 | #48 | Extension: optional enricher on instruction paths | Open — F1 last, after #45 or #46 |
 
 Remaining F1 order: **#45 ∥ #46 ∥ #66 → #48**.

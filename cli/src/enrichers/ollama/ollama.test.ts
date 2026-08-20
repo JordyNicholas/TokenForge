@@ -1,6 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ollamaEnricher } from "./ollama";
 
+function jsonResponse(content: unknown) {
+  return {
+    ok: true,
+    json: async () => ({
+      message: {
+        content: JSON.stringify(content),
+      },
+    }),
+  };
+}
+
 describe("ollamaEnricher", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -20,28 +31,49 @@ describe("ollamaEnricher", () => {
     });
   });
 
-  it("maps Ollama JSON findings", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          message: {
-            content: JSON.stringify({
-              findings: [
-                {
-                  path: "README.md",
-                  verdict: "exclude",
-                  reason: "low_signal_config",
-                  confidence: 0.75,
-                  detail: "Mostly boilerplate",
-                },
-              ],
-            }),
+  it("maps multi-pass Ollama JSON findings", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        messages?: { content?: string }[];
+      };
+      const prompt = body.messages?.[0]?.content ?? "";
+
+      if (prompt.includes("compact context map")) {
+        return jsonResponse({
+          hubs: ["README.md"],
+          clusters: [],
+          batchHints: [],
+          suspects: ["README.md"],
+        });
+      }
+
+      if (prompt.includes("reconcile TokenForge LLM findings")) {
+        return jsonResponse({
+          findings: [
+            {
+              path: "README.md",
+              verdict: "exclude",
+              reason: "low_signal_config",
+              confidence: 0.8,
+              detail: "Mostly boilerplate",
+            },
+          ],
+        });
+      }
+
+      return jsonResponse({
+        findings: [
+          {
+            path: "README.md",
+            verdict: "exclude",
+            reason: "low_signal_config",
+            confidence: 0.75,
+            detail: "Mostly boilerplate",
           },
-        }),
-      })),
-    );
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
 
     const result = await ollamaEnricher.enrich({
       root: "/tmp",
@@ -57,6 +89,7 @@ describe("ollamaEnricher", () => {
       ],
     });
 
+    expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(2);
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]).toMatchObject({
       path: "README.md",

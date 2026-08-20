@@ -76,13 +76,61 @@ function extensionOf(name: string): string {
   return dot === -1 ? "" : lower.slice(dot);
 }
 
+function isPrismaishDir(segment: string): boolean {
+  const lower = segment.toLowerCase();
+  return lower.includes("prisma") || lower === "database" || lower === "db";
+}
+
 /**
- * Classify a path for Token Risk. Order: generated dir → lockfile →
- * generated suffix → source → config → unknown.
+ * True for Prisma-generated client trees (default and common custom outputs).
+ * Requires `.prisma`, `prisma/generated`, or files under
+ * `(database|db|*prisma*)/client/**`.
+ */
+export function isPrismaGeneratedPath(filePath: string): boolean {
+  const segments = pathSegments(filePath);
+  if (segments.some((segment) => segment === ".prisma")) {
+    return true;
+  }
+
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    const current = segments[index]!.toLowerCase();
+    const next = segments[index + 1]!.toLowerCase();
+    if (current === "prisma" && next === "generated") {
+      return true;
+    }
+    if (current === "generated" && next === "prisma") {
+      return true;
+    }
+  }
+
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    if (!isPrismaishDir(segments[index]!)) {
+      continue;
+    }
+    const clientIndex = segments.findIndex(
+      (segment, offset) =>
+        offset > index && segment.toLowerCase() === "client",
+    );
+    // Must be a file (or nested path) under that client directory.
+    if (clientIndex >= 0 && clientIndex < segments.length - 1) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Classify a path for Token Risk. Order: generated dir → Prisma client →
+ * lockfile → generated suffix → source → config → unknown.
  */
 export function classifyFiletype(filePath: string): FiletypeRiskClass {
   const segments = pathSegments(filePath);
   if (segments.some((segment) => GENERATED_DIR_NAMES.has(segment))) {
+    return "generated";
+  }
+
+  if (isPrismaGeneratedPath(filePath)) {
     return "generated";
   }
 

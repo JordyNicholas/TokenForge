@@ -5,6 +5,7 @@ export {
   GENERIC_INSTRUCTIONS_PATH,
   MAX_INSTRUCTION_BYTES,
 } from "./limits";
+export { collapseExclusionPaths } from "./exclusions";
 export { copilotAdapter } from "./copilot/copilot";
 export { genericAdapter } from "./generic/generic";
 export { getAdapter } from "./registry";

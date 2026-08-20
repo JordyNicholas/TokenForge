@@ -17,7 +17,7 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_PATH,
 } from "./domain/constants";
 export { selectEnrichmentCandidates } from "./candidates/candidates";
-export { classifyFiletype } from "./classify/classify";
+export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export { estimateTokens } from "./estimate/estimate";
 export {
   buildScanLayers,

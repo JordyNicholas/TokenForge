@@ -47,7 +47,8 @@ describe("apply / init on noisy-app", () => {
       "utf8",
     );
     expect(exclusions).toContain("package-lock.json");
-    expect(exclusions).toContain("dist/bundle.js");
+    expect(exclusions).toContain("dist/**");
+    expect(exclusions).not.toContain("dist/bundle.js");
   });
 
   it("returns usage exit code 2 for a stubbed provider", async () => {
