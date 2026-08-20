@@ -90,6 +90,7 @@ export class RiskSession {
    * (idle ≥1m, still under 15m). Used for the Approaching panel section.
    */
   listApproachingIdle(nowMs: number = Date.now()): TrackedTab[] {
+    const activeUri = this.registry.getActiveUri();
     return this.listAll(nowMs).filter((tab) => {
       if (tab.assessment.atRisk) {
         return false;
@@ -97,7 +98,9 @@ export class RiskSession {
       if (isFiltered(this.filters.get(tab.uri))) {
         return false;
       }
-      const hint = idleHintForTab(tab, nowMs);
+      const hint = idleHintForTab(tab, nowMs, {
+        background: activeUri !== tab.uri,
+      });
       return hint?.kind === "at_risk_in";
     });
   }

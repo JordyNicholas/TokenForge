@@ -106,8 +106,9 @@ describe("RiskSession", () => {
     registry.upsert(
       "file:///src",
       { path: "src/app.ts", bytes: 400, focus: true },
-      now - 11 * 60_000,
+      now - 3 * 60_000,
     );
+    // Newest focus wins → src becomes background with 3m idle (5m background threshold).
     registry.upsert(
       "file:///lock",
       { path: "package-lock.json", bytes: 4_000, focus: true },

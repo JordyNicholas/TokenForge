@@ -18,7 +18,11 @@ export function trackTabs(
 
   context.subscriptions.push(
     window.onDidChangeActiveTextEditor((editor) => {
-      if (editor) upsertFromEditor(registry, editor, { focus: true });
+      if (editor) {
+        upsertFromEditor(registry, editor, { focus: true });
+      } else {
+        registry.setActiveUri(undefined);
+      }
     }),
 
     workspace.onDidChangeTextDocument((event) => {

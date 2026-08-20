@@ -95,7 +95,7 @@ function renderPulseHtml(webview: Webview, model: RiskPulseModel): string {
 
   let bodyMain: string;
   if (segments.length === 0) {
-    bodyMain = `<p class="hint">No at-risk tabs yet. Open a lockfile or leave a tab idle ≥15 minutes.</p>`;
+    bodyMain = `<p class="hint">No at-risk tabs yet. Open a lockfile or leave a tab idle (10m focused / 5m background).</p>`;
   } else if (!showReduction) {
     bodyMain = `
   <div class="kpi single">

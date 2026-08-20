@@ -1,4 +1,4 @@
-import { INACTIVE_MS } from "@tokenforge/risk-core";
+import { BACKGROUND_INACTIVE_MS, INACTIVE_MS } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
 import type { TrackedTab } from "./types";
 import { formatDurationMs, idleHintForTab } from "./idleHint";
@@ -44,13 +44,13 @@ describe("idleHintForTab", () => {
       }),
       now,
     );
-    expect(hint).toEqual({ kind: "idle_for", label: "idle 17m" });
+    expect(hint).toEqual({ kind: "idle_for", label: "idle 12m" });
   });
 
-  it("shows countdown for source tabs approaching 15m idle", () => {
+  it("shows countdown for focused source tabs approaching 10m idle", () => {
     const hint = idleHintForTab(
       tab({
-        lastActivityAt: now - 11 * 60_000,
+        lastActivityAt: now - 6 * 60_000,
         assessment: {
           path: "src/a.ts",
           bytes: 100,
@@ -65,6 +65,27 @@ describe("idleHintForTab", () => {
     );
     expect(hint?.kind).toBe("at_risk_in");
     expect(hint?.label).toBe("at risk in 4m");
+  });
+
+  it("uses the shorter background threshold for countdown", () => {
+    const hint = idleHintForTab(
+      tab({
+        lastActivityAt: now - 3 * 60_000,
+        assessment: {
+          path: "src/a.ts",
+          bytes: 100,
+          estTokens: 25,
+          fileClass: "source",
+          score: 10,
+          atRisk: false,
+          reasons: [],
+        },
+      }),
+      now,
+      { background: true },
+    );
+    expect(hint?.kind).toBe("at_risk_in");
+    expect(hint?.label).toBe(`at risk in ${formatDurationMs(BACKGROUND_INACTIVE_MS - 3 * 60_000)}`);
   });
 
   it("skips countdown for fresh tabs", () => {

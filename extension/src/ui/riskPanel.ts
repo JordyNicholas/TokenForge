@@ -70,7 +70,7 @@ export class RiskSummaryItem extends TreeItem {
 export class RiskEmptyItem extends TreeItem {
   constructor() {
     super("No at-risk tabs", TreeItemCollapsibleState.None);
-    this.description = "Open noisy files or wait 15m idle";
+    this.description = "Open noisy files or wait for idle (10m focused / 5m background)";
     this.tooltip =
       "TokenForge scores open editors for inactive / high-risk context. This is hygiene advice, not interception.";
     this.iconPath = new ThemeIcon("pass");
@@ -83,10 +83,12 @@ export class RiskTabItem extends TreeItem {
     readonly tab: TrackedTab,
     readonly decision: Exclude<TabDecision, "filtered"> | "filtered" | "approaching",
     nowMs: number = Date.now(),
+    options: { background?: boolean } = {},
   ) {
     super(tab.path, TreeItemCollapsibleState.None);
     const reason = primaryReason(tab.assessment.reasons);
-    const hint = idleHintForTab(tab, nowMs);
+    const background = options.background ?? false;
+    const hint = idleHintForTab(tab, nowMs, { background });
     const bits = [
       formatTokenCount(tab.assessment.estTokens),
       reason,
@@ -186,6 +188,7 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
 
   private sectionChildren(sectionId: SectionId): RiskTabItem[] {
     const nowMs = Date.now();
+    const activeUri = this.session.registry.getActiveUri();
     const tabs =
       sectionId === "pending"
         ? this.session.listPendingAtRisk(nowMs)
@@ -207,7 +210,12 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     return tabs
       .slice()
       .sort((a, b) => b.assessment.estTokens - a.assessment.estTokens)
-      .map((tab) => new RiskTabItem(tab, decision, nowMs));
+      .map(
+        (tab) =>
+          new RiskTabItem(tab, decision, nowMs, {
+            background: activeUri !== tab.uri,
+          }),
+      );
   }
 }
 

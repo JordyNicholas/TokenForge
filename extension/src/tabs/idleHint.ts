@@ -1,4 +1,7 @@
-import { INACTIVE_MS } from "@tokenforge/risk-core";
+import {
+  BACKGROUND_INACTIVE_MS,
+  INACTIVE_MS,
+} from "@tokenforge/risk-core";
 import type { TrackedTab } from "./types";
 
 /** Compact duration for panel copy (`4m`, `1h 2m`, `<1m`). */
@@ -25,11 +28,16 @@ export type IdleHint =
   | undefined;
 
 /**
- * Panel hint for inactivity: already idle, or countdown until the 15m rule fires.
- * High-risk/oversized tabs that are at-risk for other reasons skip the countdown.
+ * Panel hint for inactivity: already idle, or countdown until the idle rule fires.
+ * Background tabs use the shorter 5m threshold; focused tabs use 10m.
  */
-export function idleHintForTab(tab: TrackedTab, nowMs: number = Date.now()): IdleHint {
+export function idleHintForTab(
+  tab: TrackedTab,
+  nowMs: number = Date.now(),
+  options: { background?: boolean } = {},
+): IdleHint {
   const idleMs = Math.max(0, nowMs - tab.lastActivityAt);
+  const thresholdMs = options.background ? BACKGROUND_INACTIVE_MS : INACTIVE_MS;
 
   if (tab.assessment.reasons.includes("inactive_tab")) {
     return { kind: "idle_for", label: `idle ${formatDurationMs(idleMs)}` };
@@ -39,8 +47,8 @@ export function idleHintForTab(tab: TrackedTab, nowMs: number = Date.now()): Idl
     return undefined;
   }
 
-  const remainingMs = INACTIVE_MS - idleMs;
-  if (remainingMs <= 0 || remainingMs > INACTIVE_MS) {
+  const remainingMs = thresholdMs - idleMs;
+  if (remainingMs <= 0 || remainingMs > thresholdMs) {
     return undefined;
   }
 
