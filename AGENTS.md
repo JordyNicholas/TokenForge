@@ -18,7 +18,7 @@ Read first:
 - Branch: `TF#<n>-slug` (or `TOKENFORGE#<n>`).
 - PR body must include `Closes #<n>` (automation will append if missing).
 - Board: To-Do → In Progress → Ready for Review → Done.
-- Epics titled `[Epic] …` close into **Epics Finished**, not Done.
+- Epics titled `[Epic] …` close into **Epics Finished**, not Done — including when the last child story closes.
 
 ## Stack
 

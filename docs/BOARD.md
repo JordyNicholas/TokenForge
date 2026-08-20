@@ -4,6 +4,8 @@ Project: [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas
 
 Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Finished**.
 
+Stories land in **Done** when they close. An `[Epic]` moves to **Epics Finished** when **all of its child stories are closed** (workflow auto-closes the epic). F1–F3 stay in **To-Do** until that happens.
+
 ## Epics
 
 MVP (closed → **Epics Finished**):

@@ -41,13 +41,17 @@ Columns: **To-Do → In Progress → Ready for Review → Done** (+ **Epics Fini
 | PR opened ready for review / marked ready | Ready for Review |
 | Commits pushed to a non-draft PR | Ready for Review |
 | PR merged / linked **story** issue closed | Done |
+| Last child story of an **`[Epic]`** closed | Epic auto-closes → **Epics Finished** |
 | **`[Epic]` issue closed** | **Epics Finished** |
+| Child story of a closed **`[Epic]`** reopened | Epic reopens → To-Do |
 | **`[Epic]` issue reopened** | To-Do |
 | PR closed without merge | To-Do |
 
 Epics are detected by title prefix `[Epic]` (e.g. `[Epic] E2 — …`). Story/task
-issues use **Done**. The epic Action re-asserts **Epics Finished** after a short
-delay so the built-in “closed → Done” project workflow does not win the race.
+issues use **Done**. Closing the last sub-issue of an epic auto-closes the epic
+(`.github/workflows/project-epic-lifecycle.yml`). That Action then sets
+**Epics Finished** and re-asserts after a short delay so the built-in
+“closed → Done” project workflow does not win the race.
 
 Issue map: [`docs/BOARD.md`](./BOARD.md).
 
