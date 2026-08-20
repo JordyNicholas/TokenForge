@@ -255,11 +255,12 @@ Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/Tok
 | #54 | Dashboard: finding details + heuristic explanations | Shipped |
 | #55 | Advisory finding suggestions (copy-only, never applied) | Shipped |
 | #49 | Pitch FAQ + deck: hybrid scan talking points | Shipped (deck roadmap refresh in #63) |
-| #45 | CLI: OpenAI-compatible enricher | Open — F1, parallel with #46 |
-| #46 | CLI: Anthropic enricher | Open — F1, parallel with #45 |
+| #45 | CLI: OpenAI-compatible enricher | Open — F1, parallel with #46 / #66 |
+| #46 | CLI: Anthropic enricher | Open — F1, parallel with #45 / #66 |
+| #66 | CLI: multi-pass local-first enrich (map → judge → reconcile) | Open — F1, parallel with #45 / #46; Ollama-first |
 | #48 | Extension: optional enricher on instruction paths | Open — F1 last, after #45 or #46 |
 
-Remaining F1 order: **#45 ∥ #46 → #48**.
+Remaining F1 order: **#45 ∥ #46 ∥ #66 → #48**.
 
 ## Out of scope (this design)
 
