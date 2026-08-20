@@ -65,6 +65,24 @@ describe("parseStructuredFindings", () => {
     });
   });
 
+  it("soft-caps confidence below absolute certainty", () => {
+    const rows = parseStructuredFindings(
+      {
+        findings: [
+          {
+            path: "AGENTS.md",
+            verdict: "exclude",
+            reason: "semantic_bloat",
+            confidence: 1,
+          },
+        ],
+      },
+      candidates,
+    );
+
+    expect(rows[0]?.confidence).toBe(0.95);
+  });
+
   it("keeps allowlisted suggestions and drops unknown kinds and snippets", () => {
     const rows = parseStructuredFindings(
       {

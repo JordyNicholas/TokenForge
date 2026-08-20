@@ -61,7 +61,7 @@ export function reconcileFindings(
       const base = finding.confidence ?? 0.7;
       return {
         ...finding,
-        confidence: Math.min(1, Math.round((base + 0.05) * 100) / 100),
+        confidence: Math.min(0.95, Math.round((base + 0.05) * 100) / 100),
       };
     }
 

@@ -79,11 +79,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Soft ceiling so models cannot claim absolute certainty on Detect findings. */
+export const MAX_LLM_CONFIDENCE = 0.95;
+
 function clampConfidence(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return undefined;
   }
-  return Math.min(1, Math.max(0, value));
+  return Math.min(MAX_LLM_CONFIDENCE, Math.max(0, value));
 }
 
 export function extractJsonPayload(text: string): unknown {
