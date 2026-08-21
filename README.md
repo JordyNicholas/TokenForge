@@ -94,9 +94,12 @@ npm run tokenforge -- init path/to/repo --mode hybrid --provider generic
 ```
 
 `apply` / `init` write a **provider adapter** pack (MVP default: Copilot
-`.github/copilot-instructions.md` + exclusion candidates). Cursor/Claude adapters
-are stubbed; `--provider generic` writes a vendor-neutral pack. `init` forwards
-`--mode` / `--llm` into the scan step (same as `scan`).
+`.github/copilot-instructions.md` + exclusion candidates). The instructions file
+is **synthesized from the combined scan report** (heuristic + optional LLM
+findings/themes), not a fixed template — still byte-capped so it cannot become
+another fat always-on context file. Cursor/Claude adapters are stubbed;
+`--provider generic` writes a vendor-neutral pack. `init` forwards `--mode` /
+`--llm` into the scan step (same as `scan`).
 
 `--json` prints machine totals (`beforeTokens`, `afterTokens`, `savedTokens`,
 `savedPercent`) for demo scripts and the dashboard seed. Human output includes
