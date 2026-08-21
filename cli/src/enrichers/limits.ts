@@ -19,6 +19,15 @@ export const MIN_OLLAMA_TIMEOUT_MS = 60_000;
 /** Candidates per Ollama request — smaller batches finish sooner on weak GPUs/CPUs. */
 export const OLLAMA_BATCH_SIZE = 2;
 
+/** How many times to retry a single Ollama request on transient network errors. */
+export const OLLAMA_TRANSIENT_RETRIES = 3;
+
+/** Base delay (ms) before the first Ollama transient retry; doubles each attempt. */
+export const OLLAMA_RETRY_BASE_DELAY_MS = 500;
+
+/** Short timeout for the Ollama /api/tags preflight reachability check. */
+export const OLLAMA_PREFLIGHT_TIMEOUT_MS = 5_000;
+
 export function resolveOllamaTimeoutMs(overrideMs?: number): number {
   if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_OLLAMA_TIMEOUT_MS) {
     return overrideMs;

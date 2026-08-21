@@ -203,6 +203,7 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Ollama timeout | Large repo / slow CPU | Use `--llm-timeout 1800`; scan `docs/` instead of `.` |
+| Mid-scan `Cannot reach Ollama` / `fetch failed` | Daemon briefly refused/reset a connection under load | TokenForge retries transient errors; if it still fails, run `curl -s http://127.0.0.1:11434/api/tags` and restart Ollama, then re-scan |
 | LLM board tabs stuck on Combined | Old dashboard bug (fixed) | Pull latest; URL must change to `/board/heuristic` etc. |
 | LLM board empty | Heuristic-only JSON | Re-run step 2 with `--llm ollama:…` |
 | LLM tab disabled | No LLM findings in loaded file | Load hybrid report from step 2 |
@@ -215,6 +216,7 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Design + scaffold (merged) | #41 | `TF#41-hybrid-scan` ✓ |
 | Separated `layers` in JSON + CLI | #47 (part 1) | `TF#47-scan-layers` |
 | Ollama enricher | #44 | `TF#44-ollama-enricher` |
+| Ollama transient retries + preflight | #70 | `TF#70-ollama-retries` |
 | Dashboard boards + this runbook | #47, #23 | `TF#47-dashboard-boards` |
 
 #42 (candidate + merge) and #43 (enricher port) shipped with #41 (both closed). Remaining hybrid work is F1 (#60): **#45 ∥ #46 → #48**.
