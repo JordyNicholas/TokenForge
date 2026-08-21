@@ -2,7 +2,7 @@ import { commands, workspace, window, type ExtensionContext } from "vscode";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
-import { runAutoFilter, toggleAutoFilterHighRisk, isAutoFilterEnabled } from "./filter/autoFilterSettings";
+import { runAutoFilter, toggleAutoFilterHighRisk, isAutoFilterEnabled, setAutoFilterHighRisk } from "./filter/autoFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
@@ -129,7 +129,7 @@ export function activate(context: ExtensionContext): void {
       runAutoFilter(session);
       void window.showInformationMessage(
         enabled
-          ? "Auto-filter on — pending lockfile/generated tabs will Filter automatically."
+          ? "Auto-filter on — pending lockfile/generated tabs will Filter automatically (this workspace only)."
           : "Auto-filter off — high-risk tabs stay Pending until you Filter.",
       );
     },
@@ -139,7 +139,11 @@ export function activate(context: ExtensionContext): void {
     "tokenforge.enableAutoFilterHighRisk",
     async () => {
       if (!isAutoFilterEnabled()) {
-        await commands.executeCommand("tokenforge.toggleAutoFilterHighRisk");
+        await setAutoFilterHighRisk(true);
+        runAutoFilter(session);
+        void window.showInformationMessage(
+          "Auto-filter on — pending lockfile/generated tabs will Filter automatically (this workspace only).",
+        );
       }
     },
   );
@@ -148,7 +152,11 @@ export function activate(context: ExtensionContext): void {
     "tokenforge.disableAutoFilterHighRisk",
     async () => {
       if (isAutoFilterEnabled()) {
-        await commands.executeCommand("tokenforge.toggleAutoFilterHighRisk");
+        await setAutoFilterHighRisk(false);
+        runAutoFilter(session);
+        void window.showInformationMessage(
+          "Auto-filter off — high-risk tabs stay Pending until you Filter.",
+        );
       }
     },
   );

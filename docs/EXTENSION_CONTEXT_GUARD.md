@@ -65,9 +65,13 @@ countdown to the applicable threshold.
 
 Acceptance rule: **only Filter reduces displayed at-risk tokens.**
 
-## Auto-filter (opt-in)
+## Auto-filter (opt-in, **per workspace**)
 
 Setting: `tokenforge.autoFilterHighRisk` (default **false**).
+
+**Scope:** workspace / folder only. A User (global) setting is **ignored** so
+enabling auto-filter in one repo cannot turn it on everywhere. Toggle always
+writes the workspace `.vscode/settings.json` value.
 
 **Turn it on from:**
 
@@ -89,7 +93,9 @@ ignore files — it only updates the Detect estimate and `last-scan.json`.
 - Path: `.tokenforge/last-scan.json` (workspace folder)
 - Contract: Token Risk v0 ([`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json))
 - `source: "extension"`; validated with `isTokenRiskReport`
-- **Auto-export** debounces on session changes; Export / Filter can still write immediately
+- **Auto-export** debounces on session changes; skips rewrite when findings/totals
+  are unchanged (timestamp-only churn does not touch disk)
+- On write, ensures the workspace `.gitignore` contains `.tokenforge/`
 - **Reveal last-scan.json** opens/reveals the file for demos or dashboard load
 
 Settings written into the report: `tokenforge.team`, `tokenforge.repo`,

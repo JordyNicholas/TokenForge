@@ -187,7 +187,8 @@
         "tokenforge.autoFilterHighRisk": {
           "type": "boolean",
           "default": false,
-          "description": "When enabled, automatically Filter pending lockfile and generated tabs (Restore/Keep overrides)."
+          "scope": "resource",
+          "description": "Workspace-only. When enabled, automatically Filter pending lockfile and generated tabs (Restore/Keep overrides). User/global values are ignored."
         },
         "tokenforge.team": {
           "type": "string",

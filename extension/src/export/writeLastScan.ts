@@ -1,9 +1,13 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ProviderId } from "@tokenforge/risk-core";
+import type { ProviderId, TokenRiskReport } from "@tokenforge/risk-core";
 import { workspace } from "vscode";
 import type { RiskSession } from "../session/riskSession";
 import { assertValidLastScan, buildLastScanReport } from "./buildLastScan";
+import { ensureTokenforgeGitignored } from "./gitignore";
+import { lastScanFingerprint } from "./lastScanFingerprint";
+
+export { lastScanFingerprint } from "./lastScanFingerprint";
 
 export const LAST_SCAN_DIR = ".tokenforge";
 export const LAST_SCAN_FILE = "last-scan.json";
@@ -13,6 +17,8 @@ export type ExportLastScanResult = {
   savedTokens: number;
   beforeTokens: number;
   afterTokens: number;
+  /** False when the on-disk report already matched (timestamp ignored). */
+  wrote: boolean;
 };
 
 function workspaceRoot(): string {
@@ -50,6 +56,16 @@ function providerId(): ProviderId {
   return "generic";
 }
 
+async function readExistingFingerprint(reportPath: string): Promise<string | undefined> {
+  try {
+    const raw = await readFile(reportPath, "utf8");
+    const parsed = JSON.parse(raw) as TokenRiskReport;
+    return lastScanFingerprint(parsed);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function writeLastScan(
   session: RiskSession,
   nowMs: number = Date.now(),
@@ -66,9 +82,24 @@ export async function writeLastScan(
     }),
   );
 
+  await ensureTokenforgeGitignored(root);
+
   const dir = join(root, LAST_SCAN_DIR);
   await mkdir(dir, { recursive: true });
   const reportPath = join(dir, LAST_SCAN_FILE);
+  const nextFingerprint = lastScanFingerprint(report);
+  const previousFingerprint = await readExistingFingerprint(reportPath);
+
+  if (previousFingerprint === nextFingerprint) {
+    return {
+      reportPath,
+      savedTokens: report.totals.savedTokens,
+      beforeTokens: report.totals.beforeTokens,
+      afterTokens: report.totals.afterTokens,
+      wrote: false,
+    };
+  }
+
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
   return {
@@ -76,5 +107,6 @@ export async function writeLastScan(
     savedTokens: report.totals.savedTokens,
     beforeTokens: report.totals.beforeTokens,
     afterTokens: report.totals.afterTokens,
+    wrote: true,
   };
 }
