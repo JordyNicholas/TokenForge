@@ -27,4 +27,5 @@ out/
 # Logs / local
 *.log
 .tokenforge/
+dashboard/public/last-scan.json
 coverage/
