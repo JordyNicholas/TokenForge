@@ -22,6 +22,12 @@ const TRANSIENT_ERROR_CODES = new Set([
   "UND_ERR_SOCKET",
 ]);
 
+/** Slow-request undici timeouts — not brief blips; do not retry as transient. */
+const REQUEST_TIMEOUT_CODES = new Set([
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_BODY_TIMEOUT",
+]);
+
 const TRANSIENT_MESSAGE_PATTERNS = [
   /fetch failed/i,
   /socket hang up/i,
@@ -29,6 +35,11 @@ const TRANSIENT_MESSAGE_PATTERNS = [
   /econnreset/i,
   /epipe/i,
   /other side closed/i,
+];
+
+const REQUEST_TIMEOUT_MESSAGE_PATTERNS = [
+  /headers timeout/i,
+  /body timeout/i,
 ];
 
 function collectErrorChain(error: unknown): unknown[] {
@@ -64,12 +75,32 @@ function errorMessage(error: unknown): string {
   return String(error);
 }
 
+/** True when undici aborted because headers/body waited longer than configured. */
+export function isUndiciRequestTimeout(error: unknown): boolean {
+  for (const item of collectErrorChain(error)) {
+    const code = errorCode(item);
+    if (code && REQUEST_TIMEOUT_CODES.has(code)) {
+      return true;
+    }
+    const message = errorMessage(item);
+    if (REQUEST_TIMEOUT_MESSAGE_PATTERNS.some((pattern) => pattern.test(message))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** True when the error looks like a brief network blip worth retrying. */
 export function isTransientFetchError(error: unknown): boolean {
   if (error instanceof TransientHttpError) {
     return true;
   }
   if (error instanceof Error && error.name === "AbortError") {
+    return false;
+  }
+  // Headers/body timeouts mean the model was still generating past the limit —
+  // retrying immediately usually wastes another full wait.
+  if (isUndiciRequestTimeout(error)) {
     return false;
   }
 

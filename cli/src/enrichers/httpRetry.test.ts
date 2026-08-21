@@ -27,6 +27,15 @@ describe("isTransientFetchError", () => {
     error.name = "AbortError";
     expect(isTransientFetchError(error)).toBe(false);
   });
+
+  it("does not treat UND_ERR_HEADERS_TIMEOUT as transient", () => {
+    const error = new TypeError("fetch failed");
+    (error as Error & { cause: Error & { code: string } }).cause = Object.assign(
+      new Error("Headers Timeout Error"),
+      { code: "UND_ERR_HEADERS_TIMEOUT" },
+    );
+    expect(isTransientFetchError(error)).toBe(false);
+  });
 });
 
 describe("isTransientHttpStatus", () => {

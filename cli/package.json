@@ -12,7 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@tokenforge/risk-core": "*"
+    "@tokenforge/risk-core": "*",
+    "undici": "^8.10.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

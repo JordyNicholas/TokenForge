@@ -1,6 +1,13 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RuntimeError } from "../../app/errors";
+import { fetchWithTimeout } from "../fetchWithTimeout";
 import { ollamaEnricher } from "./ollama";
+
+vi.mock("../fetchWithTimeout", () => ({
+  fetchWithTimeout: vi.fn(),
+}));
+
+const fetchMock = vi.mocked(fetchWithTimeout);
 
 function jsonResponse(content: unknown) {
   return {
@@ -65,13 +72,25 @@ function connectionResetError(): TypeError {
   return error;
 }
 
+function headersTimeoutError(): TypeError {
+  const error = new TypeError("fetch failed");
+  (error as Error & { cause: Error & { code: string } }).cause = Object.assign(
+    new Error("Headers Timeout Error"),
+    { code: "UND_ERR_HEADERS_TIMEOUT" },
+  );
+  return error;
+}
+
 function isTagsRequest(url: string): boolean {
   return url.includes("/api/tags");
 }
 
 describe("ollamaEnricher", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+  });
+
   afterEach(() => {
-    vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 
@@ -87,12 +106,13 @@ describe("ollamaEnricher", () => {
       backend: "ollama",
       candidatesSent: 0,
     });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("maps multi-pass Ollama JSON findings", async () => {
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (isTagsRequest(String(url))) {
-        return tagsOkResponse();
+        return tagsOkResponse() as Response;
       }
 
       const body = JSON.parse(String(init?.body ?? "{}")) as {
@@ -101,16 +121,15 @@ describe("ollamaEnricher", () => {
       const prompt = body.messages?.[0]?.content ?? "";
 
       if (prompt.includes("compact context map")) {
-        return mapPassResponse();
+        return mapPassResponse() as Response;
       }
 
       if (prompt.includes("reconcile TokenForge LLM findings")) {
-        return reconcilePassResponse();
+        return reconcilePassResponse() as Response;
       }
 
-      return judgePassResponse();
+      return judgePassResponse() as Response;
     });
-    vi.stubGlobal("fetch", fetchMock);
 
     const result = await ollamaEnricher.enrich({
       root: "/tmp",
@@ -144,9 +163,9 @@ describe("ollamaEnricher", () => {
     vi.useFakeTimers();
     let chatAttempts = 0;
     const onProgress = vi.fn();
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (isTagsRequest(String(url))) {
-        return tagsOkResponse();
+        return tagsOkResponse() as Response;
       }
 
       chatAttempts += 1;
@@ -160,14 +179,13 @@ describe("ollamaEnricher", () => {
       const prompt = body.messages?.[0]?.content ?? "";
 
       if (prompt.includes("compact context map")) {
-        return mapPassResponse();
+        return mapPassResponse() as Response;
       }
       if (prompt.includes("reconcile TokenForge LLM findings")) {
-        return reconcilePassResponse();
+        return reconcilePassResponse() as Response;
       }
-      return judgePassResponse();
+      return judgePassResponse() as Response;
     });
-    vi.stubGlobal("fetch", fetchMock);
 
     const pending = ollamaEnricher.enrich({
       root: "/tmp",
@@ -197,15 +215,13 @@ describe("ollamaEnricher", () => {
 
   it("throws RuntimeError with cause after exhausting retries", async () => {
     vi.useFakeTimers();
-    const fetchMock = vi.fn(async (url: string) => {
+    fetchMock.mockImplementation(async (url: string) => {
       if (isTagsRequest(String(url))) {
-        return tagsOkResponse();
+        return tagsOkResponse() as Response;
       }
       throw connectionResetError();
     });
-    vi.stubGlobal("fetch", fetchMock);
 
-    // Pass A soft-fails on transport errors; Pass B propagates after retries.
     const pending = ollamaEnricher.enrich({
       root: "/tmp",
       model: "qwen2.5-coder:7b",
@@ -234,21 +250,16 @@ describe("ollamaEnricher", () => {
 
   it("does not retry AbortError timeouts", async () => {
     let chatCalls = 0;
-    const fetchMock = vi.fn(async (url: string) => {
+    fetchMock.mockImplementation(async (url: string) => {
       if (isTagsRequest(String(url))) {
-        return tagsOkResponse();
+        return tagsOkResponse() as Response;
       }
       chatCalls += 1;
       const error = new Error("This operation was aborted");
       error.name = "AbortError";
       throw error;
     });
-    vi.stubGlobal("fetch", fetchMock);
 
-    // Pass A soft-fails on AbortError mapped... wait: AbortError is converted
-    // to RuntimeError inside callOllamaChat before Pass A catch. Pass A catches
-    // any error from callModel including RuntimeError timeout. So Pass A falls
-    // back, then Pass B hits the same AbortError → RuntimeError timeout.
     await expect(
       ollamaEnricher.enrich({
         root: "/tmp",
@@ -270,15 +281,95 @@ describe("ollamaEnricher", () => {
       return true;
     });
 
-    // Pass A one attempt + Pass B one attempt (no retries on AbortError).
+    // Pass A + Pass B (AbortError is never retried inside withRetries).
     expect(chatCalls).toBe(2);
   });
 
+  it("maps UND_ERR_HEADERS_TIMEOUT to a timeout without transient retries", async () => {
+    const onProgress = vi.fn();
+    let chatCalls = 0;
+    fetchMock.mockImplementation(async (url: string) => {
+      if (isTagsRequest(String(url))) {
+        return tagsOkResponse() as Response;
+      }
+      chatCalls += 1;
+      throw headersTimeoutError();
+    });
+
+    await expect(
+      ollamaEnricher.enrich({
+        root: "/tmp",
+        model: "qwen2.5-coder:7b",
+        endpoint: "http://127.0.0.1:11434",
+        timeoutMs: 60_000,
+        onProgress,
+        candidates: [
+          {
+            path: "README.md",
+            bytes: 800,
+            estTokens: 200,
+            excerpt: "# Demo",
+          },
+        ],
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(RuntimeError);
+      expect(String((error as Error).message)).toMatch(/timed out after 60s/);
+      return true;
+    });
+
+    // Pass A + Pass B — one attempt each, no undici-timeout retries.
+    expect(chatCalls).toBe(2);
+    expect(
+      onProgress.mock.calls.some(([message]) =>
+        String(message).includes("transient error, retrying"),
+      ),
+    ).toBe(false);
+  });
+
+  it("passes --llm-timeout through to fetchWithTimeout for chat calls", async () => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (isTagsRequest(String(url))) {
+        return tagsOkResponse() as Response;
+      }
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        messages?: { content?: string }[];
+      };
+      const prompt = body.messages?.[0]?.content ?? "";
+      if (prompt.includes("compact context map")) {
+        return mapPassResponse() as Response;
+      }
+      if (prompt.includes("reconcile TokenForge LLM findings")) {
+        return reconcilePassResponse() as Response;
+      }
+      return judgePassResponse() as Response;
+    });
+
+    await ollamaEnricher.enrich({
+      root: "/tmp",
+      model: "qwen2.5-coder:7b",
+      endpoint: "http://127.0.0.1:11434",
+      timeoutMs: 120_000,
+      candidates: [
+        {
+          path: "README.md",
+          bytes: 800,
+          estTokens: 200,
+          excerpt: "# Demo",
+        },
+      ],
+    });
+
+    const chatCall = fetchMock.mock.calls.find(
+      ([url]) => !isTagsRequest(String(url)),
+    );
+    expect(chatCall?.[2]).toBe(120_000);
+  });
+
   it("fails fast when preflight /api/tags is unreachable", async () => {
-    const fetchMock = vi.fn(async () => {
+    fetchMock.mockImplementation(async () => {
       throw connectionResetError();
     });
-    vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       ollamaEnricher.enrich({
