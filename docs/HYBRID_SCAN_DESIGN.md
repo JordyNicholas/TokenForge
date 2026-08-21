@@ -119,7 +119,7 @@ When the CLI writes a scan report, it includes:
 The dashboard exposes three **boards** (Combined / Heuristic / LLM) that read
 from `layers` when present, or synthesize from legacy `findings` + `source`.
 The Findings view lists paths with source, reason, confidence, and truncated
-detail; a detail drawer shows the explanation plus copy-only suggestion.
+detail; a detail drawer shows the explanation plus suggestion (feeds policy-pack synthesis; not a source edit).
 `kept` / `review` rows appear on the LLM (and Combined) board and are labeled
 as not counted in saved tokens.
 
@@ -130,7 +130,8 @@ as not counted in saved tokens.
 | `source` | `heuristic \| llm \| combined` | Provenance |
 | `confidence` | 0–1 number | LLM confidence |
 | `detail` | string | Human-readable LLM explanation |
-| `suggestion` | `{ kind, summary }` | Copy-only advice. TokenForge **never applies** this |
+| `suggestion` | `{ kind, summary }` | Advice for Prove UX **and** lean policy-pack synthesis. Never used to rewrite `AGENTS.md` / rules sources |
+
 
 `suggestion.kind` allowlist: `exclude_from_context`, `trim_instructions`, `dedupe_rules`, `add_ignore`, `review`. Unknown kinds are dropped at parse time. Code snippets (`suggestion.snippet`) are **deferred** — not in the v0 contract.
 
@@ -252,8 +253,11 @@ Enrichers request JSON matching an internal schema (not yet in the public report
 
 Adapters map `verdict: exclude` → `action: excluded` and attach bytes/tokens from candidates.
 `suggestion` is copied onto the finding when `kind` is allowlisted; snippets and
-unknown kinds are dropped. TokenForge does **not** apply suggestions — `apply`
-still writes provider policy packs only.
+unknown kinds are dropped. TokenForge does **not** rewrite repo instruction
+sources from suggestions. `apply` writes the provider policy pack: exclusions
+from `action: excluded`, and a **synthesized** lean `*-instructions.md` from
+the combined report (`synthesizeLeanInstructions` in `risk-core`) — heuristic
+excludes, hygiene summaries, and optional hybrid `analysisOverview` themes.
 
 Prompt rules forbid architecture, API, or product refactors.
 
@@ -266,18 +270,23 @@ Prompt rules forbid architecture, API, or product refactors.
 | `hybrid` + `codex` | Yes — candidate excerpts via Codex CLI | ChatGPT plan limits |
 | `hybrid` + `anthropic` | Yes — candidate excerpts | Per-provider API usage |
 
-UX/docs must state this before external enrichment runs. Do **not** auto-apply LLM
-findings or suggestions; `apply` continues to use the merged report with existing
-exclusion rules (policy pack only). The dashboard copies advice; it does not write
-source files.
+UX/docs must state this before external enrichment runs. Do **not** auto-edit
+`AGENTS.md` / vendor rules from LLM suggestions. `apply` synthesizes the
+provider policy pack from the **combined** merged report (exclusions + lean
+instructions). The dashboard still surfaces suggestion text for managers; it
+does not write source files.
 
 ## Honesty (pitch)
 
 - **Default scan does not use AI.**
 - Hybrid adds an **optional semantic pass** on a bounded candidate set.
 - We still do **not** intercept any agent’s private context pipeline.
-- LLM suggestions are **recommendations** (kind + summary) on the Token Risk JSON.
-  TokenForge does not apply them.
+- LLM suggestions are **recommendations** on the Token Risk JSON. They feed the
+  **policy-pack instructions** synthesizer; they are **not** patched into
+  `AGENTS.md` / `.cursor/rules`.
+- TokenForge does **not** meter vendor Chat/Agent “reasoning vs writing” tokens;
+  Detect/Fix act on **context waste** (paths + instruction bloat), not live
+  billing breakdowns.
 
 ## Implementation map (board)
 

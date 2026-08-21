@@ -20,6 +20,7 @@ export {
   MAX_ANALYSIS_OVERVIEW_CAVEATS,
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
+  MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
 export { selectEnrichmentCandidates } from "./candidates/candidates";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
@@ -47,6 +48,11 @@ export {
   resolveSuggestion,
   templateSuggestion,
 } from "./advise/suggest";
+export {
+  synthesizeLeanInstructions,
+  type SynthesizeLeanInstructionsOptions,
+} from "./advise/instructions";
+export { collapseExclusionPaths } from "./policy/collapse";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { primaryReason, scoreRisk } from "./score/score";
