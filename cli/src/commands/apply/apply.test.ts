@@ -51,6 +51,20 @@ describe("apply / init on noisy-app", () => {
     expect(exclusions).not.toContain("dist/bundle.js");
   });
 
+  it("forwards hybrid mode into init scan (noop enricher)", async () => {
+    const result = await initRepo({
+      root: fixtureRoot,
+      provider: "copilot",
+      mode: "hybrid",
+    });
+
+    expect(result.report.scan).toMatchObject({
+      mode: "hybrid",
+      llm: { backend: "noop" },
+    });
+    expect(result.report.layers?.llm).toBeDefined();
+  });
+
   it("returns usage exit code 2 for a stubbed provider", async () => {
     const captured = captureIo();
     const code = await runCli(

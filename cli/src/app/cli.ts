@@ -20,8 +20,8 @@ Options:
   --repo <name>         Repo label (default: directory name)
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
-  --mode <mode>         heuristic | hybrid (default: heuristic)
-  --llm <spec>          LLM enricher backend[:model] (hybrid only)
+  --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
+  --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
                         e.g. codex or ollama:qwen2.5-coder:7b; omit for noop
   --llm-endpoint <url>  Override Ollama/Anthropic API base URL (not Codex)
   --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)

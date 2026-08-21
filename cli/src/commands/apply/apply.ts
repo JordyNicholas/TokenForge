@@ -16,6 +16,12 @@ export type ApplyOptions = {
   dryRun?: boolean;
   team?: string;
   repo?: string;
+  /** Scan enricher flags — used by `init` and by `apply` when no report exists yet. */
+  mode?: string;
+  llm?: string;
+  llmEndpoint?: string;
+  llmTimeout?: string;
+  externalDataConsent?: boolean;
   /** When set (init), skip a second walk. */
   report?: TokenRiskReport;
 };
@@ -64,6 +70,11 @@ async function resolveReport(
     team: options.team,
     repo: options.repo,
     provider,
+    mode: options.mode,
+    llm: options.llm,
+    llmEndpoint: options.llmEndpoint,
+    llmTimeout: options.llmTimeout,
+    externalDataConsent: options.externalDataConsent,
   });
   return { ...scanned.report, provider };
 }
@@ -99,6 +110,11 @@ export async function initRepo(options: ApplyOptions): Promise<ApplyResult> {
     team: options.team,
     repo: options.repo,
     provider,
+    mode: options.mode,
+    llm: options.llm,
+    llmEndpoint: options.llmEndpoint,
+    llmTimeout: options.llmTimeout,
+    externalDataConsent: options.externalDataConsent,
   });
   return applyPolicy({ ...options, provider, report: scanned.report });
 }
