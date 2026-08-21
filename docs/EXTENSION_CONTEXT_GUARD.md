@@ -15,9 +15,12 @@ open editors and lets you Filter high-bleed tabs out of the live estimate.
 TokenForge’s estimate and export file only — it does not close tabs or rewrite
 Copilot/Cursor/Claude config by itself (that is CLI **Fix** / `tokenforge apply`).
 
-Default Detect is **heuristic-only**. Optional LLM enrichment in the extension is
-Future ([issue #48](https://github.com/JordyNicholas/TokenForge/issues/48)); hybrid
-scan lives in the CLI today ([`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)).
+Default Detect is **heuristic-only**. Optional LLM enrichment on instruction
+paths is **opt-in** (`tokenforge.llmEnrichment` + command
+**TokenForge: Enrich instruction paths**) and writes hybrid `layers` /
+`scan.llm` into `.tokenforge/last-scan.json` without changing live Keep/Filter
+scoring. Backends reuse `@tokenforge/enrichers` (noop, Ollama, Anthropic, Codex) —
+same port as the CLI ([`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)).
 
 ## Quick start
 
@@ -35,7 +38,7 @@ Open the repo root → **Run Extension** (F5) → Extension Development Host →
 | Status bar | Compact `TokenForge: … at risk` (click focuses the panel) |
 | **At-risk tabs** tree | Pending / Kept / Filtered (+ Approaching idle) with Keep, Filter, Restore |
 | **Risk pulse** webview | Live before → after → saved **after** you Filter; otherwise “at risk now” |
-| Toolbar | Refresh, Export, Reveal last-scan, Clear decisions |
+| Toolbar | Refresh, Export, Reveal last-scan, Clear decisions, Enrich instruction paths (opt-in) |
 
 ## Scoring rules
 

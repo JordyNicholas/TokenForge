@@ -243,6 +243,6 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Pass A map diagnostics + repair | #72 | `TF#72-passa-map-repair` |
 | Dashboard boards + this runbook | #47, #23 | `TF#47-dashboard-boards` |
 
-#42 (candidate + merge) and #43 (enricher port) shipped with #41 (both closed). Remaining hybrid work is F1 (#60): **#45 ∥ #46 → #48**.
+#42 (candidate + merge) and #43 (enricher port) shipped with #41 (both closed). F1 (#60) hybrid backends + extension enrich (#45/#46/#66/#48) are shipped.
 
 **Merge order on `main`:** #41 (done) → scan-layers → Ollama → dashboard boards.

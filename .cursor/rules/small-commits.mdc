@@ -1,0 +1,16 @@
+---
+description: Prefer small, ordered, single-concern git commits for traceability
+alwaysApply: true
+---
+
+# Small commits (global)
+
+When committing (only if the user asked, or as part of an explicit ship/PR request):
+
+- **One concern per commit.** Prefer several small commits over one large mixed commit.
+- **Order for readability.** Commit in dependency order (e.g. extract shared package → kernel export → adapter wiring → docs/tests), so `git log` narrates the change.
+- **Never batch unrelated work** (refactor + feature + docs + chore) into a single commit when it can be split cleanly.
+- **Message focuses on why** for that slice only; do not summarize the whole feature in every commit.
+- If work is mid-flight across layers, **commit each finished slice before starting the next** rather than accumulating a giant working tree.
+
+This applies to all agents and all TokenForge workspaces.

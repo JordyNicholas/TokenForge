@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
-import { RuntimeError, UsageError } from "../../app/errors";
+import { RuntimeError, UsageError } from "../errors";
 import {
   buildCodexEnvironment,
   createCodexEnricher,

@@ -1,4 +1,5 @@
 import { commands, workspace, window, type ExtensionContext } from "vscode";
+import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
@@ -165,6 +166,17 @@ export function activate(context: ExtensionContext): void {
     await commands.executeCommand(`${RISK_PANEL_VIEW_ID}.focus`);
   });
 
+  const enrichInstructions = commands.registerCommand(
+    "tokenforge.enrichInstructions",
+    async () => {
+      try {
+        await enrichInstructionPathsCommand(session);
+      } catch (error) {
+        void window.showErrorMessage(formatError("Instruction enrichment failed", error));
+      }
+    },
+  );
+
   context.subscriptions.push(
     keep,
     filter,
@@ -177,6 +189,7 @@ export function activate(context: ExtensionContext): void {
     enableAutoFilter,
     disableAutoFilter,
     focusPanel,
+    enrichInstructions,
   );
 }
 

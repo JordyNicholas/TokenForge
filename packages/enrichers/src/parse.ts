@@ -1,5 +1,5 @@
 import type { TokenRiskFinding } from "@tokenforge/risk-core";
-import { UsageError } from "../app/errors";
+import { UsageError } from "./errors";
 import type {
   EnrichmentCandidate,
   LlmStructuredFinding,

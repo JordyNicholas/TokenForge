@@ -1,4 +1,4 @@
-import { RuntimeError } from "../../app/errors";
+import { RuntimeError } from "../errors";
 import {
   ANTHROPIC_API_VERSION,
   ANTHROPIC_BATCH_SIZE,

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RuntimeError } from "../../app/errors";
+import { RuntimeError } from "../errors";
 import { anthropicEnricher } from "./anthropic";
 
 describe("anthropicEnricher", () => {

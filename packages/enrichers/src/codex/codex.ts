@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { RuntimeError, UsageError } from "../../app/errors";
+import { RuntimeError, UsageError } from "../errors";
 import {
   CODEX_BATCH_SIZE,
   CODEX_STATUS_TIMEOUT_MS,

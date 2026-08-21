@@ -22,7 +22,7 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
-export { selectEnrichmentCandidates } from "./candidates/candidates";
+export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/candidates";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export { estimateTokens } from "./estimate/estimate";
 export {

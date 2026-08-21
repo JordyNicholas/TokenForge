@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ProviderId, TokenRiskReport } from "@tokenforge/risk-core";
+import type { ProviderId, ScanLlmMetadata, TokenRiskFinding, TokenRiskReport } from "@tokenforge/risk-core";
 import { workspace } from "vscode";
 import type { RiskSession } from "../session/riskSession";
 import { assertValidLastScan, buildLastScanReport } from "./buildLastScan";
@@ -19,6 +19,12 @@ export type ExportLastScanResult = {
   afterTokens: number;
   /** False when the on-disk report already matched (timestamp ignored). */
   wrote: boolean;
+};
+
+export type WriteLastScanHybrid = {
+  llmFindings: readonly TokenRiskFinding[];
+  llmMeta: ScanLlmMetadata;
+  llmCandidateTokens: number;
 };
 
 function workspaceRoot(): string {
@@ -69,6 +75,7 @@ async function readExistingFingerprint(reportPath: string): Promise<string | und
 export async function writeLastScan(
   session: RiskSession,
   nowMs: number = Date.now(),
+  hybrid?: WriteLastScanHybrid,
 ): Promise<ExportLastScanResult> {
   const root = workspaceRoot();
   const report = assertValidLastScan(
@@ -79,6 +86,9 @@ export async function writeLastScan(
       team: teamLabel(),
       provider: providerId(),
       timestamp: new Date(nowMs).toISOString(),
+      llmFindings: hybrid?.llmFindings,
+      llmMeta: hybrid?.llmMeta,
+      llmCandidateTokens: hybrid?.llmCandidateTokens,
     }),
   );
 
@@ -90,7 +100,7 @@ export async function writeLastScan(
   const nextFingerprint = lastScanFingerprint(report);
   const previousFingerprint = await readExistingFingerprint(reportPath);
 
-  if (previousFingerprint === nextFingerprint) {
+  if (previousFingerprint === nextFingerprint && !hybrid) {
     return {
       reportPath,
       savedTokens: report.totals.savedTokens,
@@ -109,4 +119,8 @@ export async function writeLastScan(
     afterTokens: report.totals.afterTokens,
     wrote: true,
   };
+}
+
+export function resolveWorkspaceRoot(): string {
+  return workspaceRoot();
 }

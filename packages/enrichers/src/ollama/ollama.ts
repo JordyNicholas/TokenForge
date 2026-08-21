@@ -1,4 +1,4 @@
-import { RuntimeError } from "../../app/errors";
+import { RuntimeError } from "../errors";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import {
   formatFetchFailure,

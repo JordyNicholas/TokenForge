@@ -18,7 +18,8 @@ function basename(path: string): string {
   return segments[segments.length - 1] ?? path;
 }
 
-function isInstructionPath(path: string): boolean {
+/** True for AGENTS.md / CLAUDE.md / copilot-instructions / .cursor|rules paths. */
+export function isInstructionPath(path: string): boolean {
   const normalized = path.replaceAll("\\", "/");
   const name = basename(normalized).toLowerCase();
   if (INSTRUCTION_FILE_NAMES.has(name)) {
