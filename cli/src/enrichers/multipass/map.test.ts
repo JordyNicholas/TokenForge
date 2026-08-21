@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EnrichmentCandidate } from "../types";
-import { parseRepoContextMap } from "./map";
+import { evaluateRepoContextMap, parseRepoContextMap } from "./map";
 
 const candidates: EnrichmentCandidate[] = [
   {
@@ -56,8 +56,48 @@ describe("parseRepoContextMap", () => {
   });
 
   it("returns null when there are no candidates", () => {
+    expect(parseRepoContextMap({ hubs: ["AGENTS.md"] }, [])).toBeNull();
+  });
+});
+
+describe("evaluateRepoContextMap", () => {
+  it("reports not_object", () => {
+    expect(evaluateRepoContextMap(null, candidates)).toMatchObject({
+      ok: false,
+      reason: "not_object",
+    });
+  });
+
+  it("reports empty_signal when arrays are empty", () => {
     expect(
-      parseRepoContextMap({ hubs: ["AGENTS.md"] }, []),
-    ).toBeNull();
+      evaluateRepoContextMap(
+        { hubs: [], clusters: [], batchHints: [], suspects: [] },
+        candidates,
+      ),
+    ).toMatchObject({
+      ok: false,
+      reason: "empty_signal",
+    });
+  });
+
+  it("reports no_known_paths when all paths are invented", () => {
+    expect(
+      evaluateRepoContextMap(
+        { hubs: ["missing.md"], clusters: [["a", "b"]], batchHints: [] },
+        candidates,
+      ),
+    ).toMatchObject({
+      ok: false,
+      reason: "no_known_paths",
+    });
+  });
+
+  it("reports no_candidates", () => {
+    expect(
+      evaluateRepoContextMap({ hubs: ["AGENTS.md"] }, []),
+    ).toMatchObject({
+      ok: false,
+      reason: "no_candidates",
+    });
   });
 });

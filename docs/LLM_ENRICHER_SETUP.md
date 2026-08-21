@@ -31,6 +31,13 @@ tokenforge scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
 - Transient mid-scan disconnects (`fetch failed`, `ECONNRESET`, HTTP 502/503/529)
   are retried a few times with short backoff. Timeouts are not retried. Confirm
   the daemon with `curl -s http://127.0.0.1:11434/api/tags` before a long scan.
+- Ollama HTTP calls use undici timeouts aligned to `--llm-timeout` (not the
+  default 300s headers wait). Slow local models need a high enough
+  `--llm-timeout`; `UND_ERR_HEADERS_TIMEOUT` is treated as a request timeout,
+  not a transient retry.
+- Pass A (context map) validates JSON strictly and runs one repair prompt if the
+  map is unusable (`empty_signal`, `no_known_paths`, etc.). Flat batching is only
+  a last resort and skips Pass C — watch for `Pass C skipped` in progress logs.
 
 ## `anthropic` (cloud)
 

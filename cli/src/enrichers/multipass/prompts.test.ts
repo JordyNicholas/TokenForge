@@ -3,6 +3,7 @@ import type { EnrichmentCandidate, LlmStructuredFinding } from "../types";
 import {
   buildJudgePrompt,
   buildMapPrompt,
+  buildMapRepairPrompt,
   buildReconcilePrompt,
   formatRepoContextMap,
   isInstructionPath,
@@ -50,6 +51,23 @@ describe("buildMapPrompt", () => {
     expect(prompt).not.toContain("export const app = true;");
     expect(prompt).toContain("Do not suggest architecture");
     expect(prompt).toContain("never README, RULEBOOK");
+    expect(prompt).toContain("all four keys required");
+    expect(prompt).toContain("Example using paths from THIS inventory");
+    expect(prompt).toContain('"hubs":["AGENTS.md"]');
+  });
+});
+
+describe("buildMapRepairPrompt", () => {
+  it("includes validation detail and previous output", () => {
+    const prompt = buildMapRepairPrompt(
+      candidates,
+      '{"hubs":[]}',
+      "empty_signal: Pass A JSON had no usable hubs",
+    );
+    expect(prompt).toContain("Repair your previous RepoContextMap");
+    expect(prompt).toContain("empty_signal");
+    expect(prompt).toContain('{"hubs":[]}');
+    expect(prompt).toContain("AGENTS.md");
   });
 });
 

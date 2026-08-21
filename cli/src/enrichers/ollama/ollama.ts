@@ -1,8 +1,10 @@
 import { RuntimeError } from "../../app/errors";
+import { fetchWithTimeout } from "../fetchWithTimeout";
 import {
   formatFetchFailure,
   isTransientFetchError,
   isTransientHttpStatus,
+  isUndiciRequestTimeout,
   TransientHttpError,
   withRetries,
 } from "../httpRetry";
@@ -46,6 +48,13 @@ function cannotReachMessage(endpoint: string, error: unknown): string {
   );
 }
 
+function timeoutMessage(timeoutMs: number): string {
+  return (
+    `Ollama request timed out after ${Math.round(timeoutMs / 1000)}s. ` +
+    "On slower hardware, retry with a higher --llm-timeout (seconds) or scan a smaller folder."
+  );
+}
+
 function shouldRetryOllama(error: unknown): boolean {
   if (error instanceof RuntimeError) {
     return false;
@@ -64,10 +73,14 @@ async function preflightOllama(endpoint: string): Promise<void> {
   );
 
   try {
-    const response = await fetch(tagsUrl(endpoint), {
-      method: "GET",
-      signal: controller.signal,
-    });
+    const response = await fetchWithTimeout(
+      tagsUrl(endpoint),
+      {
+        method: "GET",
+        signal: controller.signal,
+      },
+      OLLAMA_PREFLIGHT_TIMEOUT_MS,
+    );
     if (!response.ok) {
       throw new RuntimeError(
         `Cannot reach Ollama at ${endpoint}. Preflight /api/tags returned ${response.status}.`,
@@ -94,23 +107,28 @@ async function callOllamaChatOnce(
   model: string,
   prompt: string,
   signal: AbortSignal,
+  timeoutMs: number,
 ): Promise<string> {
-  const response = await fetch(chatUrl(endpoint), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      format: "json",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    }),
-    signal,
-  });
+  const response = await fetchWithTimeout(
+    chatUrl(endpoint),
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        format: "json",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
+      signal,
+    },
+    timeoutMs,
+  );
 
   if (!response.ok) {
     const body = await response.text();
@@ -147,6 +165,7 @@ async function callOllamaChat(
             model,
             prompt,
             controller.signal,
+            timeoutMs,
           );
         } finally {
           clearTimeout(timer);
@@ -171,11 +190,11 @@ async function callOllamaChat(
     if (error instanceof TransientHttpError) {
       throw new RuntimeError(error.message);
     }
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new RuntimeError(
-        `Ollama request timed out after ${Math.round(timeoutMs / 1000)}s. ` +
-          "On slower hardware, retry with a higher --llm-timeout (seconds) or scan a smaller folder.",
-      );
+    if (
+      (error instanceof Error && error.name === "AbortError") ||
+      isUndiciRequestTimeout(error)
+    ) {
+      throw new RuntimeError(timeoutMessage(timeoutMs));
     }
     throw new RuntimeError(cannotReachMessage(endpoint, error));
   }
