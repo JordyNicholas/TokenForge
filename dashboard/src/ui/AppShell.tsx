@@ -11,6 +11,7 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import Chip from "@mui/material/Chip";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -19,27 +20,29 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
+  LLM_BOARD_LOCKED_HINT,
+  SCAN_LAYER_HINTS,
   SCAN_LAYER_LABELS,
-  seedHasLlmLayer,
+  layerActionableFindingCount,
   parseBoardLayerFromPath,
+  seedHasLlmLayer,
   type ScanLayerId,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
 import { SourceBar } from "./SourceBar";
 import { ThemeControls } from "./ThemeControls";
 
-const DRAWER_WIDTH = 256;
+const DRAWER_WIDTH = 280;
 
 const BOARDS: {
   id: ScanLayerId;
@@ -85,31 +88,120 @@ function BoardLayerToggle({
       }}
       aria-label="Scan board"
     >
-      {BOARDS.map((board) => (
-        <ToggleButton
-          key={board.id}
-          value={board.id}
-          disabled={board.id === "llm" && !hasLlm}
-          aria-label={board.label}
-          sx={{
-            py: size === "small" ? 0.75 : 1,
-            px: size === "small" ? 0.5 : 1,
-            textTransform: "none",
-            gap: 0.5,
-            minWidth: 0,
-            "& .MuiSvgIcon-root": { fontSize: size === "small" ? 16 : 18 },
-          }}
-        >
-          <board.icon />
-          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-            {board.label}
-          </Box>
-          <Box component="span" sx={{ display: { xs: "inline", sm: "none" }, fontSize: "0.7rem" }}>
-            {board.id === "heuristic" ? "Heur." : board.label}
-          </Box>
-        </ToggleButton>
-      ))}
+      {BOARDS.map((board) => {
+        const locked = board.id === "llm" && !hasLlm;
+        const button = (
+          <ToggleButton
+            key={board.id}
+            value={board.id}
+            disabled={locked}
+            aria-label={board.label}
+            sx={{
+              py: size === "small" ? 0.75 : 1,
+              px: size === "small" ? 0.5 : 1,
+              textTransform: "none",
+              gap: 0.5,
+              minWidth: 0,
+              "& .MuiSvgIcon-root": { fontSize: size === "small" ? 16 : 18 },
+            }}
+          >
+            <board.icon />
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+              {board.label}
+            </Box>
+            <Box
+              component="span"
+              sx={{ display: { xs: "inline", sm: "none" }, fontSize: "0.7rem" }}
+            >
+              {board.id === "heuristic" ? "Heur." : board.label}
+            </Box>
+          </ToggleButton>
+        );
+        if (!locked) {
+          return button;
+        }
+        return (
+          <Tooltip key={board.id} title={LLM_BOARD_LOCKED_HINT}>
+            <span style={{ display: "flex", flex: 1, minWidth: 0 }}>{button}</span>
+          </Tooltip>
+        );
+      })}
     </ToggleButtonGroup>
+  );
+}
+
+function ScanBoardList({
+  boardLayer,
+  hasLlm,
+  counts,
+  onSelect,
+}: {
+  boardLayer: ScanLayerId;
+  hasLlm: boolean;
+  counts: Record<ScanLayerId, number>;
+  onSelect: (layer: ScanLayerId) => void;
+}) {
+  return (
+    <List dense sx={{ px: 1, mb: 1 }} aria-label="Scan board">
+      {BOARDS.map((board) => {
+        const locked = board.id === "llm" && !hasLlm;
+        const selected = boardLayer === board.id;
+        const count = counts[board.id];
+        const row = (
+          <ListItem key={board.id} disablePadding sx={{ mb: 0.5 }}>
+            <ListItemButton
+              selected={selected}
+              disabled={locked}
+              onClick={() => onSelect(board.id)}
+              sx={{
+                borderRadius: 2,
+                alignItems: "flex-start",
+                py: 1,
+                border: 1,
+                borderColor: selected ? "primary.main" : "divider",
+                bgcolor: selected ? "action.selected" : "transparent",
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36, mt: 0.25 }}>
+                <board.icon color={selected ? "primary" : "inherit"} fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: selected ? 600 : 500 }}>
+                      {board.label}
+                    </Typography>
+                    {!locked && count > 0 ? (
+                      <Chip size="small" label={count} sx={{ height: 20, fontSize: "0.7rem" }} />
+                    ) : null}
+                  </Box>
+                }
+                secondary={
+                  <Typography variant="caption" color="text.secondary" component="span">
+                    {SCAN_LAYER_HINTS[board.id]}
+                  </Typography>
+                }
+              />
+            </ListItemButton>
+          </ListItem>
+        );
+        if (!locked) {
+          return row;
+        }
+        return (
+          <Tooltip key={board.id} title={LLM_BOARD_LOCKED_HINT} placement="right">
+            <Box>{row}</Box>
+          </Tooltip>
+        );
+      })}
+    </List>
   );
 }
 
@@ -126,6 +218,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const boardBase = `/board/${boardLayer}`;
   const showMobileBoardSwitch = compact && isBoardRoute(location.pathname);
 
+  const counts = useMemo(() => {
+    const reports = seed?.reports ?? [];
+    return {
+      combined: layerActionableFindingCount(reports, "combined"),
+      heuristic: layerActionableFindingCount(reports, "heuristic"),
+      llm: layerActionableFindingCount(reports, "llm"),
+    } satisfies Record<ScanLayerId, number>;
+  }, [seed]);
+
   const selectBoard = (layer: ScanLayerId) => {
     navigate(`/board/${layer}${subpath}`);
   };
@@ -134,8 +235,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: boardBase, label: "Overview", icon: DashboardOutlined, end: true },
     { to: `${boardBase}/heatmap`, label: "Heatmap", icon: GridViewOutlined },
     { to: `${boardBase}/findings`, label: "Findings", icon: FactCheckOutlined },
-    { to: "/assumptions", label: "Assumptions", icon: CalculateOutlined },
+    { to: `${boardBase}/assumptions`, label: "Assumptions", icon: CalculateOutlined },
   ];
+
+  const bottomValue = (() => {
+    if (location.pathname.includes("/assumptions")) {
+      return `${boardBase}/assumptions`;
+    }
+    if (location.pathname.includes("/heatmap")) {
+      return `${boardBase}/heatmap`;
+    }
+    if (location.pathname.includes("/findings")) {
+      return `${boardBase}/findings`;
+    }
+    return boardBase;
+  })();
 
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -155,23 +269,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Typography variant="overline" sx={{ px: 2, color: "text.secondary" }}>
         Scan board
       </Typography>
-      <Tabs
-        value={boardLayer}
-        onChange={(_event, value: ScanLayerId) => selectBoard(value)}
-        variant="fullWidth"
-        sx={{ px: 1, mb: 1, minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0.5 } }}
-      >
-        {BOARDS.map((board) => (
-          <Tab
-            key={board.id}
-            value={board.id}
-            label={board.label}
-            disabled={board.id === "llm" && !hasLlm}
-            icon={<board.icon sx={{ fontSize: 18 }} />}
-            iconPosition="start"
-          />
-        ))}
-      </Tabs>
+      <ScanBoardList
+        boardLayer={boardLayer}
+        hasLlm={hasLlm}
+        counts={counts}
+        onSelect={(layer) => {
+          selectBoard(layer);
+          setMobileOpen(false);
+        }}
+      />
 
       <List sx={{ px: 1, flex: 1 }}>
         {viewNav.map((item) => {
@@ -260,7 +366,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         ) : null}
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }} aria-label="FinOps views">
+      <Box
+        component="nav"
+        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+        aria-label="FinOps views"
+      >
         {compact ? (
           <Drawer
             variant="temporary"
@@ -331,10 +441,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <BottomNavigation
             showLabels
-            value={location.pathname.startsWith("/assumptions") ? "/assumptions" : boardBase}
+            value={bottomValue}
             onChange={(_event, value: string) => navigate(value)}
           >
-            {viewNav.slice(0, 3).map((item) => {
+            {viewNav.map((item) => {
               const Icon = item.icon;
               return (
                 <BottomNavigationAction

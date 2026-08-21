@@ -26,3 +26,13 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   premiumMultiplier: 4,
   realizedWasteShare: 1,
 };
+
+/**
+ * Waste applicability for the pitch ~30% scenario on a high-exclusion fixture.
+ * Displayed savings ≈ scan exclusion × this share.
+ */
+export const PITCH_REALIZED_WASTE_SHARE = 0.3;
+
+export function withPitchScenario(assumptions: Assumptions): Assumptions {
+  return { ...assumptions, realizedWasteShare: PITCH_REALIZED_WASTE_SHARE };
+}

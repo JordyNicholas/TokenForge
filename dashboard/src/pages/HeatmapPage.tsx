@@ -6,8 +6,10 @@ import { useState } from "react";
 import { tokenSavedPercent, SCAN_LAYER_LABELS, SCAN_LAYER_LEADS } from "../domain";
 import { useLayerView } from "../state/useLayerView";
 import { heatFill, resolveColorMode } from "../theme/heat";
+import { EmptyState } from "../ui/EmptyState";
 import { HeatCell } from "../ui/HeatCell";
 import { Page } from "../ui/Page";
+import { PrivacyControls } from "../ui/PrivacyControls";
 import { TeamDetailDialog } from "../ui/TeamDetailDialog";
 
 export function HeatmapPage() {
@@ -23,47 +25,63 @@ export function HeatmapPage() {
       lead={
         <>
           {SCAN_LAYER_LEADS[boardLayer]} Color is each team’s exclusion ratio on this board.{" "}
-          {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed;
-          payments-platform is the noisy outlier. Click a cell for findings.
+          {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed with the pitch
+          Assumptions preset; payments-platform is the noisy outlier. Click a cell for
+          findings.
         </>
       }
     >
-      <Stack direction="row" spacing={1.5} sx={{ maxWidth: 28 * 16, alignItems: "center" }}>
-        <Typography variant="caption" color="text.secondary">
-          Low waste
-        </Typography>
-        <Box
-          sx={{
-            flex: 1,
-            height: 10,
-            borderRadius: 99,
-            background: `linear-gradient(90deg, ${heatFill(0, resolved)}, ${heatFill(100, resolved)})`,
-          }}
-        />
-        <Typography variant="caption" color="text.secondary">
-          High waste
-        </Typography>
-      </Stack>
+      <PrivacyControls />
 
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
-          gap: 2,
-        }}
-      >
-        {reports.map((report) => (
-          <HeatCell
-            key={`${report.team}:${report.repo}`}
-            team={report.team}
-            repo={report.repo}
-            percent={tokenSavedPercent(report.totals)}
-            savedTokens={report.totals.savedTokens}
-            selected={report.team === selectedTeam}
-            onSelect={() => setSelectedTeam(report.team)}
-          />
-        ))}
-      </Box>
+      {reports.length === 0 ? (
+        <EmptyState
+          title="No teams to heat-map"
+          body="Load a multi-team seed or a single Token Risk report to see exclusion heat by team."
+        />
+      ) : (
+        <>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ maxWidth: 28 * 16, alignItems: "center" }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              Low waste
+            </Typography>
+            <Box
+              sx={{
+                flex: 1,
+                height: 10,
+                borderRadius: 99,
+                background: `linear-gradient(90deg, ${heatFill(0, resolved)}, ${heatFill(100, resolved)})`,
+              }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              High waste
+            </Typography>
+          </Stack>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
+              gap: 2,
+            }}
+          >
+            {reports.map((report) => (
+              <HeatCell
+                key={`${report.team}:${report.repo}`}
+                team={report.team}
+                repo={report.repo}
+                percent={tokenSavedPercent(report.totals)}
+                savedTokens={report.totals.savedTokens}
+                selected={report.team === selectedTeam}
+                onSelect={() => setSelectedTeam(report.team)}
+              />
+            ))}
+          </Box>
+        </>
+      )}
 
       <TeamDetailDialog report={selected} onClose={() => setSelectedTeam(null)} />
     </Page>

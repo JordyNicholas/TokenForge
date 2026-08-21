@@ -3,7 +3,8 @@ import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { useColorScheme } from "@mui/material/styles";
-import { formatPercent, formatTokens } from "../domain";
+import { formatPercent, formatTokens, displayPath } from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
 import { heatFill, heatOnFill, resolveColorMode } from "../theme/heat";
 
 export function HeatCell({
@@ -22,6 +23,7 @@ export function HeatCell({
   onSelect?: () => void;
 }) {
   const { mode, systemMode } = useColorScheme();
+  const { redactPaths } = useDashboard();
   const resolved = resolveColorMode(mode, systemMode);
   const color = heatOnFill(resolved);
 
@@ -45,7 +47,7 @@ export function HeatCell({
             {formatPercent(percent)}
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.75, opacity: 0.85 }}>
-            {repo}
+            {displayPath(repo, redactPaths)}
             <br />
             {formatTokens(savedTokens)} tokens avoided
           </Typography>

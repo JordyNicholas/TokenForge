@@ -1,5 +1,14 @@
 export type { Assumptions } from "./assumptions";
-export { DEFAULT_ASSUMPTIONS } from "./assumptions";
+export {
+  DEFAULT_ASSUMPTIONS,
+  PITCH_REALIZED_WASTE_SHARE,
+  withPitchScenario,
+} from "./assumptions";
+export {
+  listHybridScanSummaries,
+  type HybridScanSummary,
+} from "./hybridMeta";
+export { displayPath, isDemoSourceLabel } from "./privacy";
 export {
   SAVED_PERCENT_DIGITS,
   blendedUsdPerMillion,
@@ -25,7 +34,10 @@ export {
 export {
   SCAN_LAYER_LABELS,
   SCAN_LAYER_LEADS,
+  SCAN_LAYER_HINTS,
+  LLM_BOARD_LOCKED_HINT,
   aggregateLayerTotals,
+  layerActionableFindingCount,
   parseScanLayerId,
   parseBoardLayerFromPath,
   reportsForLayer,

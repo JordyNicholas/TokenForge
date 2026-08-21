@@ -6,28 +6,46 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import Link from "@mui/material/Link";
 import {
   SCAN_LAYER_LABELS,
   SCAN_LAYER_LEADS,
+  displayPath,
   formatPercent,
   formatTokens,
   formatUsd,
   getLlmAnalysisOverview,
+  listHybridScanSummaries,
   seedHasLlmLayer,
   tokenSavedPercent,
 } from "../domain";
 import { useLayerView } from "../state/useLayerView";
+import { AfterFixCompareCard } from "../ui/AfterFixCompareCard";
 import { ChartCard } from "../ui/ChartCard";
 import { DataTable } from "../ui/DataTable";
+import { DemoOnboardingBanner } from "../ui/DemoOnboardingBanner";
+import { EmptyState } from "../ui/EmptyState";
+import { GlossaryTip } from "../ui/GlossaryTip";
+import { HybridScanMetaCard } from "../ui/HybridScanMetaCard";
 import { KpiCard, KpiRow } from "../ui/Kpi";
 import { LlmAnalysisOverviewCard } from "../ui/LlmAnalysisOverviewCard";
 import { MixChart } from "../ui/MixChart";
 import { Page } from "../ui/Page";
+import { PrivacyControls } from "../ui/PrivacyControls";
+import { ProveStoryRail } from "../ui/ProveStoryRail";
 import { SavingsChart } from "../ui/SavingsChart";
 import { TeamDetailDialog } from "../ui/TeamDetailDialog";
 
 export function OverviewPage() {
-  const { seed, reports, totals, projection, boardLayer } = useLayerView();
+  const {
+    seed,
+    reports,
+    totals,
+    projection,
+    boardLayer,
+    redactPaths,
+  } = useLayerView();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const selected = reports.find((report) => report.team === selectedTeam) ?? null;
   const llmBoardEmpty =
@@ -45,12 +63,46 @@ export function OverviewPage() {
             : [];
         })
       : [];
+  const hybridSummaries = seed ? listHybridScanSummaries(seed.reports) : [];
+  const singleTeam = reports.length === 1;
 
   return (
     <Page
       title={`${seed?.businessUnit ?? "Business unit"} · ${SCAN_LAYER_LABELS[boardLayer]}`}
-      lead={SCAN_LAYER_LEADS[boardLayer]}
+      lead={
+        <>
+          {SCAN_LAYER_LEADS[boardLayer]}{" "}
+          <GlossaryTip
+            term={SCAN_LAYER_LABELS[boardLayer]}
+            definition={
+              boardLayer === "combined"
+                ? "Merged heuristic + LLM findings used by Fix adapters."
+                : boardLayer === "heuristic"
+                  ? "Deterministic baseline from size, path class, and inactivity."
+                  : "Optional semantic enrichment from a hybrid scan."
+            }
+          />
+        </>
+      }
     >
+      <DemoOnboardingBanner />
+      <ProveStoryRail />
+      <PrivacyControls showNote />
+
+      <Alert severity="success" variant="outlined">
+        Under your assumptions, about{" "}
+        <strong>{formatPercent(projection.scenarioSavedPercent)}</strong> of estimated
+        Chat/Agent tokens look like waste →{" "}
+        <strong>{formatUsd(projection.monthlyUsdSaved)}</strong>/mo.{" "}
+        <Link component={RouterLink} to={`/board/${boardLayer}/assumptions`} underline="hover">
+          Adjust Assumptions
+        </Link>{" "}
+        (scan exclusion {formatPercent(projection.tokenSavedPercent)} × waste applicability).
+      </Alert>
+
+      <AfterFixCompareCard beforeTotals={totals} />
+      <HybridScanMetaCard summaries={hybridSummaries} />
+
       {llmBoardUnavailable ? (
         <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
           No LLM layer in the loaded JSON. Run a hybrid scan (
@@ -91,94 +143,120 @@ export function OverviewPage() {
           hint="Pitch figure on this seed"
         />
         <KpiCard
-          label="Teams"
-          value={String(reports.length)}
-          hint={seed?.businessUnit ?? "Business unit"}
+          label={singleTeam ? "Mode" : "Teams"}
+          value={singleTeam ? "One team" : String(reports.length)}
+          hint={
+            singleTeam
+              ? reports[0]?.repo ?? "Single report"
+              : seed?.businessUnit ?? "Business unit"
+          }
         />
       </KpiRow>
 
-      <Box
-        sx={{
-          display: "grid",
-          gap: 2,
-          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.4fr) minmax(0, 1fr)" },
-        }}
-      >
-        <ChartCard
-          title="Tokens by team"
-          subheader="Click a bar to open that team’s findings"
-        >
-          <SavingsChart reports={reports} onSelectTeam={setSelectedTeam} />
-        </ChartCard>
-        <ChartCard title="Saved vs remaining" subheader="BU roll-up of scan totals">
-          <MixChart totals={totals} />
-        </ChartCard>
-      </Box>
+      {reports.length === 0 ? (
+        <EmptyState
+          title="No teams on this board"
+          body="Load a Token Risk JSON from the CLI or extension, or switch scan board."
+        />
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.4fr) minmax(0, 1fr)" },
+            }}
+          >
+            <ChartCard
+              title="Tokens by team"
+              subheader="Click a bar to open that team’s findings"
+            >
+              <SavingsChart reports={reports} onSelectTeam={setSelectedTeam} />
+            </ChartCard>
+            <ChartCard title="Saved vs remaining" subheader="BU roll-up of scan totals">
+              <MixChart totals={totals} />
+            </ChartCard>
+          </Box>
 
-      <Box>
-        <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
-          Teams in this business unit
-        </Typography>
-        <DataTable>
-          <TableHead>
-            <TableRow>
-              <TableCell>Team</TableCell>
-              <TableCell>Repo</TableCell>
-              <TableCell align="right">Before</TableCell>
-              <TableCell align="right">After</TableCell>
-              <TableCell align="right">Saved</TableCell>
-              <TableCell align="right">Scan %</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {reports.map((report) => (
-              <TableRow
-                key={`${report.team}:${report.repo}`}
-                hover
-                selected={report.team === selectedTeam}
-                onClick={() => setSelectedTeam(report.team)}
-                sx={{ cursor: "pointer" }}
-              >
-                <TableCell>{report.team}</TableCell>
-                <TableCell>{report.repo}</TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                  {formatTokens(report.totals.beforeTokens)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                  {formatTokens(report.totals.afterTokens)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                  {formatTokens(report.totals.savedTokens)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                  {formatPercent(tokenSavedPercent(report.totals))}
-                </TableCell>
-              </TableRow>
-            ))}
-            <TableRow>
-              <TableCell colSpan={2} sx={{ fontWeight: 600 }}>
-                BU total
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                {formatTokens(totals.beforeTokens)}
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                {formatTokens(totals.afterTokens)}
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                {formatTokens(totals.savedTokens)}
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                {formatPercent(projection.tokenSavedPercent)}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </DataTable>
-      </Box>
+          <Box>
+            <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+              {singleTeam ? "Team detail" : "Teams in this business unit"}
+            </Typography>
+            <DataTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Team</TableCell>
+                  <TableCell>Repo</TableCell>
+                  <TableCell align="right">Before</TableCell>
+                  <TableCell align="right">After</TableCell>
+                  <TableCell align="right">Saved</TableCell>
+                  <TableCell align="right">Scan %</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reports.map((report) => (
+                  <TableRow
+                    key={`${report.team}:${report.repo}`}
+                    hover
+                    selected={report.team === selectedTeam}
+                    onClick={() => setSelectedTeam(report.team)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <TableCell>{report.team}</TableCell>
+                    <TableCell>{displayPath(report.repo, redactPaths)}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatTokens(report.totals.beforeTokens)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatTokens(report.totals.afterTokens)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatTokens(report.totals.savedTokens)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatPercent(tokenSavedPercent(report.totals))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow>
+                  <TableCell colSpan={2} sx={{ fontWeight: 600 }}>
+                    {singleTeam ? "Total" : "BU total"}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatTokens(totals.beforeTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatTokens(totals.afterTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatTokens(totals.savedTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatPercent(projection.tokenSavedPercent)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </DataTable>
+          </Box>
+        </>
+      )}
 
       <Alert severity="info" variant="outlined">
         Displayed $ uses editable assumptions (rate, team size, messages/day). Changing
-        those knobs does not rewrite the scan JSON.
+        those knobs does not rewrite the scan JSON. Scan exclusion % comes from this board;
+        scenario $ = exclusion × waste applicability.
       </Alert>
 
       <TeamDetailDialog report={selected} onClose={() => setSelectedTeam(null)} />

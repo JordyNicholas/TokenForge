@@ -19,9 +19,11 @@ import {
   ACTION_LABELS,
   SOURCE_LABELS,
   SUGGESTION_KIND_LABELS,
+  displayPath,
   formatPercent,
   formatTokens,
 } from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
 
 export type FindingDetail = TokenRiskFinding & {
   team: string;
@@ -36,6 +38,7 @@ export function FindingDetailDrawer({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const { redactPaths } = useDashboard();
   const explanation = finding ? explainFinding(finding) : null;
   const suggestion = finding ? resolveSuggestion(finding) : null;
 
@@ -79,10 +82,10 @@ export function FindingDetailDrawer({
                 Finding
               </Typography>
               <Typography variant="h6" sx={{ wordBreak: "break-all" }}>
-                {finding.path}
+                {displayPath(finding.path, redactPaths)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {finding.team} · {finding.repo}
+                {finding.team} · {displayPath(finding.repo, redactPaths)}
               </Typography>
             </Box>
             <IconButton aria-label="Close finding" onClick={onClose} size="small">
