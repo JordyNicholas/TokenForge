@@ -205,6 +205,7 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Ollama timeout | Large repo / slow CPU | Use `--llm-timeout 1800`; scan `docs/` instead of `.` |
 | Mid-scan `Cannot reach Ollama` / `fetch failed` | Daemon briefly refused/reset a connection under load | TokenForge retries transient errors; if it still fails, run `curl -s http://127.0.0.1:11434/api/tags` and restart Ollama, then re-scan |
 | `UND_ERR_HEADERS_TIMEOUT` / timed out after Ns | Model still generating past `--llm-timeout` (non-streaming Ollama) | Increase `--llm-timeout` (seconds); undici headers/body waits now match that value — retries will not help |
+| Pass A `map rejected` / `Pass C skipped` | Model returned empty or invented-path JSON | Repair runs once automatically; if it still fails, flat Pass B continues without map-aware grouping — re-run or try a stronger model |
 | LLM board tabs stuck on Combined | Old dashboard bug (fixed) | Pull latest; URL must change to `/board/heuristic` etc. |
 | LLM board empty | Heuristic-only JSON | Re-run step 2 with `--llm ollama:…` |
 | LLM tab disabled | No LLM findings in loaded file | Load hybrid report from step 2 |
@@ -218,6 +219,7 @@ Hybrid + noop enricher writes `scan.llm.backend: "noop"` and empty `layers.llm.f
 | Separated `layers` in JSON + CLI | #47 (part 1) | `TF#47-scan-layers` |
 | Ollama enricher | #44 | `TF#44-ollama-enricher` |
 | Ollama transient retries + preflight | #70 | `TF#70-ollama-retries` |
+| Pass A map diagnostics + repair | #72 | `TF#72-passa-map-repair` |
 | Dashboard boards + this runbook | #47, #23 | `TF#47-dashboard-boards` |
 
 #42 (candidate + merge) and #43 (enricher port) shipped with #41 (both closed). Remaining hybrid work is F1 (#60): **#45 ∥ #46 → #48**.

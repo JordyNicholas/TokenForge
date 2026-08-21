@@ -35,6 +35,9 @@ tokenforge scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
   default 300s headers wait). Slow local models need a high enough
   `--llm-timeout`; `UND_ERR_HEADERS_TIMEOUT` is treated as a request timeout,
   not a transient retry.
+- Pass A (context map) validates JSON strictly and runs one repair prompt if the
+  map is unusable (`empty_signal`, `no_known_paths`, etc.). Flat batching is only
+  a last resort and skips Pass C — watch for `Pass C skipped` in progress logs.
 
 ## `anthropic` (cloud)
 

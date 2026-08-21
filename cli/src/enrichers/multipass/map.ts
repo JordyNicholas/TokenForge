@@ -41,21 +41,66 @@ function filterPathGroups(
   return groups;
 }
 
+function countRawPathMentions(payload: Record<string, unknown>): number {
+  let count = 0;
+  if (Array.isArray(payload.hubs)) {
+    count += payload.hubs.filter((item) => typeof item === "string").length;
+  }
+  if (Array.isArray(payload.suspects)) {
+    count += payload.suspects.filter((item) => typeof item === "string").length;
+  }
+  for (const key of ["clusters", "batchHints"] as const) {
+    const groups = payload[key];
+    if (!Array.isArray(groups)) {
+      continue;
+    }
+    for (const group of groups) {
+      if (!Array.isArray(group)) {
+        continue;
+      }
+      count += group.filter((item) => typeof item === "string").length;
+    }
+  }
+  return count;
+}
+
+/** Why Pass A JSON was rejected after parse. */
+export type RepoContextMapRejectReason =
+  | "not_object"
+  | "no_candidates"
+  | "no_known_paths"
+  | "empty_signal";
+
+export type RepoContextMapEvaluation =
+  | { ok: true; map: RepoContextMap }
+  | {
+      ok: false;
+      reason: RepoContextMapRejectReason;
+      detail: string;
+    };
+
 /**
- * Parse Pass A JSON into a {@link RepoContextMap}.
- * Returns `null` when the payload is unusable (caller falls back to flat batching).
+ * Validate Pass A JSON into a {@link RepoContextMap} with a reject reason.
  */
-export function parseRepoContextMap(
+export function evaluateRepoContextMap(
   payload: unknown,
   candidates: readonly EnrichmentCandidate[],
-): RepoContextMap | null {
+): RepoContextMapEvaluation {
   if (!isRecord(payload)) {
-    return null;
+    return {
+      ok: false,
+      reason: "not_object",
+      detail: "Pass A payload was not a JSON object.",
+    };
   }
 
   const allowed = new Set(candidates.map((candidate) => candidate.path));
   if (allowed.size === 0) {
-    return null;
+    return {
+      ok: false,
+      reason: "no_candidates",
+      detail: "No enrichment candidates were available to validate paths against.",
+    };
   }
 
   const hubs = filterKnownPaths(payload.hubs, allowed);
@@ -70,7 +115,22 @@ export function parseRepoContextMap(
     suspects.length > 0;
 
   if (!hasSignal) {
-    return null;
+    const rawMentions = countRawPathMentions(payload);
+    if (rawMentions > 0) {
+      return {
+        ok: false,
+        reason: "no_known_paths",
+        detail:
+          `Pass A mentioned ${rawMentions} path(s), but none matched the candidate inventory ` +
+          "(invented or mistyped paths).",
+      };
+    }
+    return {
+      ok: false,
+      reason: "empty_signal",
+      detail:
+        "Pass A JSON had no usable hubs, clusters, batchHints, or suspects.",
+    };
   }
 
   const map: RepoContextMap = {
@@ -81,5 +141,17 @@ export function parseRepoContextMap(
   if (suspects.length > 0) {
     map.suspects = suspects;
   }
-  return map;
+  return { ok: true, map };
+}
+
+/**
+ * Parse Pass A JSON into a {@link RepoContextMap}.
+ * Returns `null` when the payload is unusable (caller falls back to flat batching).
+ */
+export function parseRepoContextMap(
+  payload: unknown,
+  candidates: readonly EnrichmentCandidate[],
+): RepoContextMap | null {
+  const result = evaluateRepoContextMap(payload, candidates);
+  return result.ok ? result.map : null;
 }

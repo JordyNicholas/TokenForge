@@ -19,6 +19,12 @@ export const MIN_OLLAMA_TIMEOUT_MS = 60_000;
 /** Candidates per Ollama request — smaller batches finish sooner on weak GPUs/CPUs. */
 export const OLLAMA_BATCH_SIZE = 2;
 
+/**
+ * Extra Pass A attempts after the first map call fails validation
+ * (repair prompt with the previous output + reject reason).
+ */
+export const PASS_A_REPAIR_ATTEMPTS = 1;
+
 /** How many times to retry a single Ollama request on transient network errors. */
 export const OLLAMA_TRANSIENT_RETRIES = 3;
 

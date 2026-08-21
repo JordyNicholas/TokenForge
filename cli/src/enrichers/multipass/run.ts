@@ -2,12 +2,17 @@ import {
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
+import { PASS_A_REPAIR_ATTEMPTS } from "../limits";
 import type { EnrichmentCandidate, LlmStructuredFinding } from "../types";
 import { groupCandidatesForJudge } from "./group";
-import { parseRepoContextMap } from "./map";
+import {
+  evaluateRepoContextMap,
+  type RepoContextMapEvaluation,
+} from "./map";
 import {
   buildJudgePrompt,
   buildMapPrompt,
+  buildMapRepairPrompt,
   buildReconcilePrompt,
 } from "./prompts";
 import { reconcileFindings } from "./reconcile";
@@ -24,28 +29,91 @@ export type MultiPassEnrichOptions = {
   skipReconcileLlm?: boolean;
 };
 
+function formatPassAReject(
+  evaluation: Extract<RepoContextMapEvaluation, { ok: false }>,
+): string {
+  return `${evaluation.reason}: ${evaluation.detail}`;
+}
+
+function tryParseMap(
+  content: string,
+  candidates: readonly EnrichmentCandidate[],
+):
+  | { ok: true; map: RepoContextMap }
+  | { ok: false; detail: string; previousOutput: string } {
+  let payload: unknown;
+  try {
+    payload = extractJsonPayload(content);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      ok: false,
+      detail: `not_json: ${message}`,
+      previousOutput: content,
+    };
+  }
+
+  const evaluation = evaluateRepoContextMap(payload, candidates);
+  if (evaluation.ok) {
+    return { ok: true, map: evaluation.map };
+  }
+  return {
+    ok: false,
+    detail: formatPassAReject(evaluation),
+    previousOutput: content,
+  };
+}
+
 async function runPassA(
   candidates: readonly EnrichmentCandidate[],
   callModel: CallModelFn,
   onProgress?: (message: string) => void,
 ): Promise<RepoContextMap | null> {
   onProgress?.("LLM enricher: Pass A (context map)…");
-  try {
-    const content = await callModel(buildMapPrompt(candidates));
-    const payload = extractJsonPayload(content);
-    const map = parseRepoContextMap(payload, candidates);
-    if (!map) {
+
+  let previousOutput = "";
+  let lastDetail = "unknown: Pass A did not produce a usable map.";
+
+  for (let attempt = 0; attempt <= PASS_A_REPAIR_ATTEMPTS; attempt += 1) {
+    const isRepair = attempt > 0;
+    try {
+      const prompt = isRepair
+        ? buildMapRepairPrompt(candidates, previousOutput, lastDetail)
+        : buildMapPrompt(candidates);
+      if (isRepair) {
+        onProgress?.(
+          `LLM enricher: Pass A repair ${attempt}/${PASS_A_REPAIR_ATTEMPTS} ` +
+            `(${lastDetail})…`,
+        );
+      }
+      const content = await callModel(prompt);
+      const parsed = tryParseMap(content, candidates);
+      if (parsed.ok) {
+        if (isRepair) {
+          onProgress?.("LLM enricher: Pass A repair succeeded.");
+        }
+        return parsed.map;
+      }
+      previousOutput = parsed.previousOutput;
+      lastDetail = parsed.detail;
       onProgress?.(
-        "LLM enricher: Pass A map unusable — falling back to flat batching.",
+        `LLM enricher: Pass A map rejected (${lastDetail}).`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      lastDetail = `transport: ${message}`;
+      previousOutput = previousOutput || `(transport error: ${message})`;
+      onProgress?.(
+        `LLM enricher: Pass A ${isRepair ? "repair " : ""}failed (${lastDetail}).`,
       );
     }
-    return map;
-  } catch {
-    onProgress?.(
-      "LLM enricher: Pass A failed — falling back to flat batching.",
-    );
-    return null;
   }
+
+  onProgress?.(
+    `LLM enricher: Pass A unusable after repair — falling back to flat batching ` +
+      `(Pass C skipped). Last error: ${lastDetail}`,
+  );
+  return null;
 }
 
 async function runPassB(
@@ -100,7 +168,8 @@ async function runPassC(
 
 /**
  * Map → judge → reconcile enrichment with injected model transport.
- * Pass A / Pass C failures fall back; Pass B transport errors propagate.
+ * Pass A validates + one repair attempt before flat fallback; Pass C soft-fails;
+ * Pass B transport errors propagate.
  */
 export async function runMultiPassEnrich(
   options: MultiPassEnrichOptions,

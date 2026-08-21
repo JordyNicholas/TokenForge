@@ -47,25 +47,74 @@ export function formatRepoContextMap(map: RepoContextMap): string {
   return lines.join("\n");
 }
 
+function buildMapInventoryBlock(
+  candidates: readonly EnrichmentCandidate[],
+): string {
+  return candidates
+    .map((candidate) => {
+      const row = [
+        `- ${candidate.path}`,
+        `  bytes: ${candidate.bytes}`,
+        `  estTokens: ${candidate.estTokens}`,
+      ];
+      if (isInstructionPath(candidate.path)) {
+        row.push("  digest:");
+        row.push("  ```");
+        row.push(
+          `  ${truncateDigest(candidate.excerpt).replaceAll("\n", "\n  ")}`,
+        );
+        row.push("  ```");
+      }
+      return row.join("\n");
+    })
+    .join("\n");
+}
+
+/** Few-shot object using real inventory paths so models copy the exact shape. */
+export function buildMapSchemaExample(
+  candidates: readonly EnrichmentCandidate[],
+): string {
+  const paths = candidates.map((candidate) => candidate.path);
+  const instructionPaths = paths.filter((path) => isInstructionPath(path));
+  const wastePaths = paths.filter(
+    (path) =>
+      /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|composer\.lock|Cargo\.lock|poetry\.lock|Gemfile\.lock)$/i.test(
+        path,
+      ) ||
+      /(^|\/)(dist|build|generated|vendor|node_modules)\//i.test(path),
+  );
+
+  const hub = instructionPaths[0] ?? paths[0] ?? "AGENTS.md";
+  const partner =
+    instructionPaths.find((path) => path !== hub) ??
+    paths.find((path) => path !== hub);
+  const hubs = [hub];
+  const pair = partner ? [hub, partner] : [hub, hub];
+  const clusters = partner ? [pair] : [];
+  const batchHints = partner ? [pair] : [];
+  const suspects = wastePaths.slice(0, 2);
+
+  return JSON.stringify({ hubs, clusters, batchHints, suspects });
+}
+
+const MAP_SCHEMA_RULES: readonly string[] = [
+  "Return JSON only — no markdown fences, no commentary.",
+  "Always include all four keys: hubs, clusters, batchHints, suspects (use [] when empty).",
+  "Copy paths verbatim from the inventory — never invent, rewrite, or shorten paths.",
+  "hubs = always-on agent instruction / rules centers (include RULEBOOK-style standards docs if present).",
+  "clusters = groups of 2+ inventory paths that likely overlap or duplicate guidance.",
+  "batchHints = groups of 2+ inventory paths that must be compared together in a later pass.",
+  "suspects = only clear waste candidates (lockfiles, generated/vendored code, dumps) — never README, RULEBOOK, ADRs/DECISIONS, ENVIRONMENTS, OpenAPI/API contracts, or similar docs.",
+  "If the inventory includes any instruction/rules path, hubs MUST be non-empty and batchHints SHOULD group related instruction files when 2+ exist.",
+  "Prefer small arrays. Empty arrays are allowed only when genuinely nothing fits that key.",
+];
+
 /**
  * Pass A — build a structured map of context hubs and duplicate clusters.
  * Digests are included only for instruction / rules paths.
  */
 export function buildMapPrompt(candidates: readonly EnrichmentCandidate[]): string {
-  const inventory = candidates.map((candidate) => {
-    const row = [
-      `- ${candidate.path}`,
-      `  bytes: ${candidate.bytes}`,
-      `  estTokens: ${candidate.estTokens}`,
-    ];
-    if (isInstructionPath(candidate.path)) {
-      row.push("  digest:");
-      row.push("  ```");
-      row.push(`  ${truncateDigest(candidate.excerpt).replaceAll("\n", "\n  ")}`);
-      row.push("  ```");
-    }
-    return row.join("\n");
-  });
+  const example = buildMapSchemaExample(candidates);
 
   return [
     "You build a compact context map for TokenForge (AI coding FinOps).",
@@ -73,19 +122,53 @@ export function buildMapPrompt(candidates: readonly EnrichmentCandidate[]): stri
     "Do not judge exclude/keep yet. Do not suggest architecture or product refactors.",
     "Remember: later passes must cut token bleed without stripping needed documentation.",
     "",
-    "Return JSON only with this shape:",
+    "Return JSON only with this exact shape (all four keys required):",
     '{"hubs":["path"],"clusters":[["path","path"]],"batchHints":[["path","path"]],"suspects":["path"]}',
     "",
+    "Example using paths from THIS inventory (replace values with your judgment; keep keys/types identical):",
+    example,
+    "",
     "Rules:",
-    "- Use exact paths from the inventory only.",
-    "- hubs = always-on agent instruction / rules centers (include RULEBOOK-style standards docs if present).",
-    "- clusters = groups that likely overlap or duplicate guidance.",
-    "- batchHints = groups that must be compared together in a later pass.",
-    "- suspects = only clear waste candidates (lockfiles, generated/vendored code, dumps) — never README, RULEBOOK, ADRs/DECISIONS, ENVIRONMENTS, OpenAPI/API contracts, or similar docs.",
-    "- Prefer small arrays. Omit empty optional fields if unused.",
+    ...MAP_SCHEMA_RULES.map((rule) => `- ${rule}`),
     "",
     "Candidate inventory:",
-    inventory.join("\n"),
+    buildMapInventoryBlock(candidates),
+  ].join("\n");
+}
+
+/**
+ * Pass A repair — ask the model to fix a rejected map using validation feedback.
+ */
+export function buildMapRepairPrompt(
+  candidates: readonly EnrichmentCandidate[],
+  previousOutput: string,
+  validationDetail: string,
+): string {
+  const clipped =
+    previousOutput.length > 4_000
+      ? `${previousOutput.slice(0, 4_000)}\n…(truncated)`
+      : previousOutput;
+
+  return [
+    "Repair your previous RepoContextMap for TokenForge.",
+    "Your last JSON failed validation and cannot be used.",
+    "",
+    `Validation error: ${validationDetail}`,
+    "",
+    "Return corrected JSON only with this exact shape (all four keys required):",
+    '{"hubs":["path"],"clusters":[["path","path"]],"batchHints":[["path","path"]],"suspects":["path"]}',
+    "",
+    "Example using paths from THIS inventory:",
+    buildMapSchemaExample(candidates),
+    "",
+    "Rules:",
+    ...MAP_SCHEMA_RULES.map((rule) => `- ${rule}`),
+    "",
+    "Previous output:",
+    clipped,
+    "",
+    "Candidate inventory:",
+    buildMapInventoryBlock(candidates),
   ].join("\n");
 }
 

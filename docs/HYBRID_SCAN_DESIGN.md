@@ -193,7 +193,7 @@ Pass C (1 call)  → reconcile findings (no file bodies) + deterministic safety 
 | Rule | Behaviour |
 | --- | --- |
 | Context carry | Compact **map artifact** on later prompts — not full chat history |
-| Pass A failure | Fall back to today’s flat chunking for Pass B; skip Pass C LLM |
+| Pass A failure | Diagnose reason; one schema repair call; then flat Pass B + skip Pass C LLM |
 | Pass C failure | Keep Pass B findings; still run deterministic reconcile |
 | Grouping | Prefer `batchHints` / `clusters` together, then leftovers by size |
 | Safety net | Dedupe by path; downgrade unsupported `redundant_instructions` |

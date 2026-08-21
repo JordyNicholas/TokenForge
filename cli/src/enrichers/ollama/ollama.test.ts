@@ -281,8 +281,8 @@ describe("ollamaEnricher", () => {
       return true;
     });
 
-    // Pass A + Pass B (AbortError is never retried inside withRetries).
-    expect(chatCalls).toBe(2);
+    // Pass A + Pass A repair + Pass B (AbortError is never retried inside withRetries).
+    expect(chatCalls).toBe(3);
   });
 
   it("maps UND_ERR_HEADERS_TIMEOUT to a timeout without transient retries", async () => {
@@ -318,8 +318,8 @@ describe("ollamaEnricher", () => {
       return true;
     });
 
-    // Pass A + Pass B — one attempt each, no undici-timeout retries.
-    expect(chatCalls).toBe(2);
+    // Pass A + repair + Pass B — one attempt each, no undici-timeout retries.
+    expect(chatCalls).toBe(3);
     expect(
       onProgress.mock.calls.some(([message]) =>
         String(message).includes("transient error, retrying"),

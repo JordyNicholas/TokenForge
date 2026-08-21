@@ -20,6 +20,7 @@ export {
   OLLAMA_PREFLIGHT_TIMEOUT_MS,
   OLLAMA_RETRY_BASE_DELAY_MS,
   OLLAMA_TRANSIENT_RETRIES,
+  PASS_A_REPAIR_ATTEMPTS,
   parseLlmTimeoutSeconds,
   resolveAnthropicTimeoutMs,
   resolveCodexTimeoutMs,
@@ -41,9 +42,11 @@ export { getEnricher } from "./registry";
 export {
   buildJudgePrompt,
   buildMapPrompt,
+  buildMapRepairPrompt,
   buildReconcilePrompt,
   chunkCandidates,
   groupCandidatesForJudge,
+  evaluateRepoContextMap,
   parseRepoContextMap,
   reconcileFindings,
   runMultiPassEnrich,
@@ -52,6 +55,8 @@ export type {
   CallModelFn,
   MultiPassEnrichOptions,
   RepoContextMap,
+  RepoContextMapEvaluation,
+  RepoContextMapRejectReason,
 } from "./multipass";
 export type {
   EnrichmentCandidate,

@@ -1,8 +1,17 @@
 export { chunkCandidates, groupCandidatesForJudge } from "./group";
-export { parseRepoContextMap } from "./map";
+export {
+  evaluateRepoContextMap,
+  parseRepoContextMap,
+} from "./map";
+export type {
+  RepoContextMapEvaluation,
+  RepoContextMapRejectReason,
+} from "./map";
 export {
   buildJudgePrompt,
   buildMapPrompt,
+  buildMapRepairPrompt,
+  buildMapSchemaExample,
   buildReconcilePrompt,
   formatRepoContextMap,
   isInstructionPath,
