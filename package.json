@@ -17,6 +17,7 @@
     "tokenforge:scan": "node ./cli/bin/tokenforge.mjs scan fixtures/noisy-app",
     "tokenforge:apply": "node ./cli/bin/tokenforge.mjs apply fixtures/noisy-app",
     "tokenforge:init": "node ./cli/bin/tokenforge.mjs init fixtures/noisy-app",
+    "tokenforge:prove": "bash ./scripts/prove-scan.sh",
     "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
     "tokenforge:dashboard:build": "npm run build -w @tokenforge/dashboard",
     "tokenforge:dashboard:preview": "npm run preview -w @tokenforge/dashboard",
