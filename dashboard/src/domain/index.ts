@@ -47,7 +47,34 @@ export {
   type ScanLayerId,
 } from "./layers";
 export {
+  boardScopeBase,
+  boardSubpath,
+  boardViewSuffix,
+  parseTeamIdFromPath,
+} from "./teamScope";
+export {
+  ARCHITECTURE_LABELS,
+  architectureForTeam,
+  tokensByArchitecture,
+  isArchitectureStyle,
+  type ArchitectureBucket,
+  type ArchitectureStyle,
+} from "./architecture";
+export {
+  isUsageMetrics,
+  usageForTeam,
+  type UsageMetrics,
+  type UsageTeamRow,
+} from "./usage";
+export {
+  compactionAdvice,
+  routingAdvice,
+  type CompactionAdvice,
+  type RoutingAdvice,
+} from "./advisory";
+export {
   DEMO_SEED_URL,
+  DEMO_USAGE_URL,
   SeedLoadError,
   aggregateTotals,
   errorMessage,

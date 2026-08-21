@@ -3,6 +3,17 @@
 Short answers for judges and collaborators. Aligns with [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
 See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 
+## Competitive landscape?
+
+| Category | What they optimise | Gap vs TokenForge |
+| --- | --- | --- |
+| Agent memory / continuity (e.g. Claude Auto Memory, Cursor Memories) | Quality & recall for **one** agent | Do not remove billable low-value context or prove $ saved |
+| Cloud / infra FinOps | Cloud $ (compute, K8s, SaaS) | Blind to **IDE/repo AI-context** waste |
+| LLM ops / prompt observability | API traces, latency, prompt $ | Not coding-agent **tab + exclusion** governance |
+| Vendor usage dashboards | Show Copilot/Cursor spend | Report spend; **do not Detect→Fix** wasteful context |
+
+**Unique wedge:** Token Risk model → provider policy packs → manager-facing $ proof, with **global BU and per-team/repo** Prove across architecture styles (microservices, serverless, data platforms).
+
 ## vs Claude Auto Memory?
 
 | Auto Memory | TokenForge |
@@ -17,7 +28,7 @@ See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 
 **Default: no.** `tokenforge scan` is heuristic — file size, path class, inactivity, and `estTokens ≈ ceil(bytes / 4)`.
 
-**Optional Phase 2: hybrid mode** (`--mode hybrid`) runs the same baseline plus an LLM **enricher** on a bounded candidate set (instruction files, borderline configs, top-N paths). Backends are pluggable:
+**Optional hybrid mode** (`--mode hybrid`) runs the same baseline plus an LLM **enricher** on a bounded candidate set (instruction files, borderline configs, top-N paths). Backends are pluggable:
 
 - **Local** — Ollama / Qwen 2.5-Coder (data stays on machine)
 - **External** — Codex CLI with the user's ChatGPT login, or Anthropic with an org-approved key (excerpts may leave the machine)
@@ -34,9 +45,15 @@ Full design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, model mix) applied to demo scan totals — not a universal production SLA. See `fixtures/expected/noisy-app-totals.json` and `dashboard/public/demo-seed.json`.
 
+Demo seed also includes **imported usage** credits/$ (issue #27 thin) — file/demo import, not live vendor billing APIs.
+
 ## Completions vs Chat/Agent metering?
 
 TokenForge targets **metered Chat/Agent / AI-credit** workflows where context size drives cost — not unlimited inline completions.
+
+## Per-team vs global Prove?
+
+Dashboard **Global** rolls up the business unit. Sidebar **Scope** opens one team/repo. Architecture tags (microservices, serverless, data-platform) show waste across estate styles. Assumptions stay BU-global.
 
 ## Pitch deck
 

@@ -79,23 +79,25 @@ npm run tokenforge:apply -- --dry-run
 
 ### Beat 3 — Dashboard / Prove (~90–120s)
 
-- Switch to the already-running dashboard tab (**Overview** page): call out the KPI
-  row, the `SavingsChart`, and the `MixChart` across the 4 seeded teams.
-- Navigate to **Assumptions** (`/assumptions`): show rate / team size / msgs-per-day /
+- Switch to the already-running dashboard tab (**Overview** / Global scope): call out the KPI
+  row, the `SavingsChart`, architecture mix, and the **Imported usage** badge (demo credits/$ —
+  not a live billing API).
+- Click a team (e.g. `payments-platform`) in the sidebar or chart — show **team-scoped** KPIs
+  and repo isolation, then return to **Global (BU)**.
+- Navigate to **Assumptions** (`/assumptions` or board path): show rate / team size / msgs-per-day /
   model-mix inputs recomputing $ saved live.
 - Set **waste applicability** (`realizedWasteShare`) to **~0.3** and call out: *"This
   is what turns the ~99.8% raw ratio into our pitch's ~30% scenario number — it's an
   editable assumption, not a vendor billing API."*
-- Optional stretch (only if time remains): load the scan-report.json you just
-  generated (`fixtures/noisy-app/.tokenforge/scan-report.json`) into the dashboard via
-  its file/URL loader, to show the CLI feeding the dashboard live instead of the
-  static seed.
+- Optional stretch: note **Adjacent levers** (compaction / routing advisories) only if asked —
+  do not lead with them. Optional: load a fresh `scan-report.json` via the file/URL loader.
 
 ### Close — Auto Memory sound bite (~15–20s)
 
 > *"They help the agent remember. We help the organization stop bleeding tokens."*
 
 Full comparison table: [`PITCH_FAQ.md` — vs Claude Auto Memory](./PITCH_FAQ.md#vs-claude-auto-memory).
+Competition map: [`PITCH_FAQ.md` — Competitive landscape](./PITCH_FAQ.md#competitive-landscape).
 
 ## Timing checklist
 
@@ -103,7 +105,7 @@ Full comparison table: [`PITCH_FAQ.md` — vs Claude Auto Memory](./PITCH_FAQ.md
 | --- | --- |
 | Extension toast | 60–75s |
 | CLI scan + apply | 120–150s |
-| Dashboard + Assumptions | 90–120s |
+| Dashboard Global → team → Assumptions | 90–120s |
 | Auto Memory close | 15–20s |
 | **Total** | **≤5 min** |
 

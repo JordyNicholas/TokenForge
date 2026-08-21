@@ -1,13 +1,14 @@
 import type { ProviderId } from "@tokenforge/risk-core";
 import { UsageError } from "../app/errors";
+import { claudeAdapter } from "./claude/claude";
 import { copilotAdapter } from "./copilot/copilot";
+import { cursorAdapter } from "./cursor/cursor";
 import { genericAdapter } from "./generic/generic";
 import type { ProviderAdapter } from "./types";
 
-const STUBBED = new Set<ProviderId>(["cursor", "claude"]);
-
 /**
- * Resolve a Fix adapter. Copilot is the MVP default; cursor/claude are stubs.
+ * Resolve a Fix adapter. Copilot is the apply/init default; cursor/claude/generic
+ * write provider-native instruction + exclusion candidate files locally.
  */
 export function getAdapter(id: ProviderId): ProviderAdapter {
   if (id === "copilot") {
@@ -16,10 +17,11 @@ export function getAdapter(id: ProviderId): ProviderAdapter {
   if (id === "generic") {
     return genericAdapter;
   }
-  if (STUBBED.has(id)) {
-    throw new UsageError(
-      `${id} adapter is stubbed in this MVP. Use --provider copilot (default) or generic.`,
-    );
+  if (id === "cursor") {
+    return cursorAdapter;
+  }
+  if (id === "claude") {
+    return claudeAdapter;
   }
   throw new UsageError(`Unknown provider "${id}".`);
 }

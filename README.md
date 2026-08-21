@@ -97,7 +97,9 @@ npm run tokenforge -- init path/to/repo --mode hybrid --provider generic
 `.github/copilot-instructions.md` + exclusion candidates). The instructions file
 is **synthesized from the combined scan report** (heuristic + optional LLM
 findings/themes), not a fixed template — still byte-capped so it cannot become
-another fat always-on context file. Cursor/Claude adapters are stubbed;
+another fat always-on context file. Cursor and Claude adapters write local
+rules / `CLAUDE.md` + exclusion candidates (same findings, different paths).
+Org-scale apply is local `tokenforge org-pack` aggregation — not a vendor org API.
 `--provider generic` writes a vendor-neutral pack. `init` forwards `--mode` /
 `--llm` into the scan step (same as `scan`).
 

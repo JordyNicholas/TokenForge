@@ -63,20 +63,20 @@ Phase 2 (open). Former catch-all #7 was split:
 | #54 | Dashboard: finding details + heuristic explanations |
 | #55 | Advisory finding suggestions (copy-only) |
 
-### Phase 2 — open
+### Phase 2 — open / shipped slices
 
-| Issue | Title | Epic | Order |
+| Issue | Title | Epic | Status |
 | --- | --- | --- | --- |
-| #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | F1 #60 | 1a (∥ #46, #66) |
-| #46 | CLI: Anthropic enricher | F1 #60 | 1b (∥ #45, #66) |
-| #66 | CLI: multi-pass local-first LLM enrich (map → judge → reconcile) | F1 #60 | 1c (∥ #45, #46; Ollama-first) |
+| #45 | CLI: Codex CLI enricher | F1 #60 | Done |
+| #46 | CLI: Anthropic enricher | F1 #60 | Done |
+| #66 | CLI: multi-pass local-first LLM enrich | F1 #60 | Done |
 | #48 | Extension: optional LLM enricher | F1 #60 | Done |
-| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | 1 |
-| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | 2 |
-| #25 | Chat history compaction assistant | F3 #62 | 1 (do not pitch) |
-| #26 | Intelligent model routing | F3 #62 | 2 (do not pitch) |
+| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Thin slice shipped:** demo/file usage import in Prove (not live vendor APIs) |
+| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push) |
+| #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
+| #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
 
-#49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story.
+#49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story. Exec-board pitch refresh + per-team Prove landed with the F2/F3 thin slices above.
 
 ## Build order
 
@@ -85,7 +85,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-2. **F2** (#61) — **#27** → **#28** (after F1 if hybrid findings should show in org Prove)
-3. **F3** (#62) — **#25** → **#26** (do not start while F1 is open; do not pitch)
+2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; remaining = live billing sync + remote org apply APIs
+3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).

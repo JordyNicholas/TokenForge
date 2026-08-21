@@ -9,7 +9,7 @@ import { OverviewPage } from "./pages/OverviewPage";
 import { useDashboard } from "./state/DashboardProvider";
 import { AppShell } from "./ui/AppShell";
 
-function BoardRoutes() {
+function BoardViewRoutes() {
   return (
     <Routes>
       <Route index element={<OverviewPage />} />
@@ -17,6 +17,15 @@ function BoardRoutes() {
       <Route path="findings" element={<FindingsPage />} />
       <Route path="assumptions" element={<AssumptionsPage />} />
       <Route path="offenders" element={<Navigate to="findings" replace />} />
+    </Routes>
+  );
+}
+
+function BoardRoutes() {
+  return (
+    <Routes>
+      <Route path="team/:teamId/*" element={<BoardViewRoutes />} />
+      <Route path="*" element={<BoardViewRoutes />} />
     </Routes>
   );
 }
