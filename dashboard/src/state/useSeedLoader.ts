@@ -4,6 +4,7 @@ import {
   DEMO_SEED_URL,
   aggregateTotals,
   errorMessage,
+  resolveBootSourceUrl,
   type DashboardSeed,
 } from "../domain";
 import {
@@ -41,10 +42,6 @@ export function useSeedLoader() {
     }
   }, [applySeed, fail]);
 
-  useEffect(() => {
-    void resetToDemo();
-  }, [resetToDemo]);
-
   const loadFromFile = useCallback(
     async (file: File) => {
       try {
@@ -66,6 +63,22 @@ export function useSeedLoader() {
     },
     [applySeed, fail],
   );
+
+  useEffect(() => {
+    const bootSrc = resolveBootSourceUrl();
+    if (!bootSrc) {
+      void resetToDemo();
+      return;
+    }
+    void (async () => {
+      try {
+        applySeed(await fetchDashboardDocument(bootSrc), bootSrc);
+      } catch (error) {
+        fail(error);
+        await resetToDemo();
+      }
+    })();
+  }, [applySeed, fail, resetToDemo]);
 
   return useMemo(() => {
     const reports = seed?.reports ?? [];

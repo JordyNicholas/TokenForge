@@ -41,5 +41,6 @@ export {
   errorMessage,
   isDashboardSeed,
   parseDashboardDocument,
+  resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";

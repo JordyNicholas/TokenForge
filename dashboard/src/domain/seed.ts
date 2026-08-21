@@ -65,3 +65,29 @@ export function errorMessage(error: unknown): string {
   }
   return String(error);
 }
+
+/**
+ * Resolve `?src=` from the page URL for boot-time seed load.
+ * Allows same-origin absolute paths (`/last-scan.json`) and http(s) URLs.
+ * Returns null when missing or unsafe (caller should fall back to demo seed).
+ */
+export function resolveBootSourceUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  const raw = new URLSearchParams(search).get("src")?.trim();
+  if (!raw) {
+    return null;
+  }
+  if (raw.startsWith("/") && !raw.startsWith("//")) {
+    return raw;
+  }
+  try {
+    const url = new URL(raw);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.href;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}

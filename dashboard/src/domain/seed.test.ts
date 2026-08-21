@@ -9,6 +9,7 @@ import { tokensByFileClass, listFindings, topOffenders } from "./offenders";
 import {
   aggregateTotals,
   parseDashboardDocument,
+  resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";
 
@@ -92,5 +93,22 @@ describe("tokensByFileClass", () => {
     expect(buckets.map((bucket) => bucket.fileClass)).toEqual(
       expect.arrayContaining(["lockfile", "generated", "config"]),
     );
+  });
+});
+
+describe("resolveBootSourceUrl", () => {
+  it("accepts same-origin paths and http(s) URLs", () => {
+    expect(resolveBootSourceUrl("?src=/last-scan.json")).toBe("/last-scan.json");
+    expect(resolveBootSourceUrl("?src=https://example.com/r.json")).toBe(
+      "https://example.com/r.json",
+    );
+  });
+
+  it("rejects missing or unsafe values", () => {
+    expect(resolveBootSourceUrl("")).toBeNull();
+    expect(resolveBootSourceUrl("?other=1")).toBeNull();
+    expect(resolveBootSourceUrl("?src=javascript:alert(1)")).toBeNull();
+    expect(resolveBootSourceUrl("?src=//evil.example/x")).toBeNull();
+    expect(resolveBootSourceUrl("?src=file:///tmp/x.json")).toBeNull();
   });
 });
