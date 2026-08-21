@@ -31,6 +31,7 @@ export {
   reportsForLayer,
   reportHasHybridLlm,
   seedHasLlmLayer,
+  getLlmAnalysisOverview,
   type ScanLayerId,
 } from "./layers";
 export {

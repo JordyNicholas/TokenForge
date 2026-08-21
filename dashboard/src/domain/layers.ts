@@ -1,6 +1,7 @@
 import {
   reportForLayer,
   resolveScanLayer,
+  type LlmAnalysisOverview,
   type ScanLayerId,
   type TokenRiskReport,
   type TokenRiskTotals,
@@ -74,4 +75,11 @@ export function reportHasHybridLlm(report: TokenRiskReport): boolean {
     return true;
   }
   return resolveScanLayer(report, "llm").findings.length > 0;
+}
+
+/** Optional Pass C analysis capsule from `scan.llm.analysisOverview`. */
+export function getLlmAnalysisOverview(
+  report: TokenRiskReport,
+): LlmAnalysisOverview | undefined {
+  return report.scan?.llm?.analysisOverview;
 }

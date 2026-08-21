@@ -99,5 +99,6 @@ describe("buildReconcilePrompt", () => {
     expect(prompt).not.toContain("Always run lint before commit.");
     expect(prompt).toContain("Drop findings that exclude documentation");
     expect(prompt).toContain("preserving repository functionality and documentation");
+    expect(prompt).toContain("analysisOverview");
   });
 });

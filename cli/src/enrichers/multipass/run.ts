@@ -1,4 +1,8 @@
 import {
+  parseLlmAnalysisOverview,
+  type LlmAnalysisOverview,
+} from "@tokenforge/risk-core";
+import {
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
@@ -27,6 +31,11 @@ export type MultiPassEnrichOptions = {
   onProgress?: (message: string) => void;
   /** When true, skip the Pass C LLM call (still runs deterministic reconcile). */
   skipReconcileLlm?: boolean;
+};
+
+export type MultiPassEnrichResult = {
+  findings: LlmStructuredFinding[];
+  analysisOverview?: LlmAnalysisOverview;
 };
 
 function formatPassAReject(
@@ -62,6 +71,38 @@ function tryParseMap(
     detail: formatPassAReject(evaluation),
     previousOutput: content,
   };
+}
+
+/** Deterministic capsule when Pass C did not return a usable overview. */
+export function buildFallbackAnalysisOverview(input: {
+  mapAvailable: boolean;
+  findingCount: number;
+  candidateCount: number;
+}): LlmAnalysisOverview {
+  const caveats: string[] = [];
+  if (!input.mapAvailable) {
+    caveats.push(
+      "Pass A context map was unavailable; candidates were judged in flat batches and Pass C reconcile was skipped.",
+    );
+  }
+  const summary = input.mapAvailable
+    ? `Hybrid LLM enrich reviewed ${input.candidateCount} candidate path(s) with a context map and produced ${input.findingCount} finding(s). Per-path verdicts remain the source of truth for Fix.`
+    : `Hybrid LLM enrich reviewed ${input.candidateCount} candidate path(s) without a usable context map and produced ${input.findingCount} finding(s). Cross-file reconcile was skipped; per-path verdicts remain the source of truth for Fix.`;
+
+  return parseLlmAnalysisOverview({
+    summary,
+    themes: input.findingCount > 0 ? ["hybrid enrich"] : ["no llm findings"],
+    caveats,
+  })!;
+}
+
+function overviewFromPayload(payload: unknown): LlmAnalysisOverview | undefined {
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    return undefined;
+  }
+  return parseLlmAnalysisOverview(
+    (payload as { analysisOverview?: unknown }).analysisOverview,
+  );
 }
 
 async function runPassA(
@@ -146,9 +187,12 @@ async function runPassC(
   candidates: readonly EnrichmentCandidate[],
   callModel: CallModelFn,
   onProgress?: (message: string) => void,
-): Promise<LlmStructuredFinding[]> {
+): Promise<{
+  findings: LlmStructuredFinding[];
+  analysisOverview?: LlmAnalysisOverview;
+}> {
   if (findings.length === 0) {
-    return [];
+    return { findings: [] };
   }
 
   onProgress?.("LLM enricher: Pass C (reconcile)…");
@@ -156,13 +200,16 @@ async function runPassC(
     const content = await callModel(buildReconcilePrompt(map, findings));
     const payload = extractJsonPayload(content);
     const reconciled = parseStructuredFindings(payload, candidates);
-    // If the model returns nothing usable, keep Pass B findings.
-    return reconciled.length > 0 ? reconciled : [...findings];
+    const analysisOverview = overviewFromPayload(payload);
+    return {
+      findings: reconciled.length > 0 ? reconciled : [...findings],
+      analysisOverview,
+    };
   } catch {
     onProgress?.(
       "LLM enricher: Pass C failed — keeping Pass B findings.",
     );
-    return [...findings];
+    return { findings: [...findings] };
   }
 }
 
@@ -173,12 +220,12 @@ async function runPassC(
  */
 export async function runMultiPassEnrich(
   options: MultiPassEnrichOptions,
-): Promise<LlmStructuredFinding[]> {
+): Promise<MultiPassEnrichResult> {
   const { candidates, callModel, batchSize, onProgress, skipReconcileLlm } =
     options;
 
   if (candidates.length === 0) {
-    return [];
+    return { findings: [] };
   }
 
   const map = await runPassA(candidates, callModel, onProgress);
@@ -191,15 +238,28 @@ export async function runMultiPassEnrich(
   );
 
   let findings = judged;
+  let analysisOverview: LlmAnalysisOverview | undefined;
   if (map && !skipReconcileLlm) {
-    findings = await runPassC(
+    const reconciled = await runPassC(
       map,
       judged,
       candidates,
       callModel,
       onProgress,
     );
+    findings = reconciled.findings;
+    analysisOverview = reconciled.analysisOverview;
   }
 
-  return reconcileFindings(map, findings);
+  const reconciled = reconcileFindings(map, findings);
+  return {
+    findings: reconciled,
+    analysisOverview:
+      analysisOverview ??
+      buildFallbackAnalysisOverview({
+        mapAvailable: map !== null,
+        findingCount: reconciled.length,
+        candidateCount: candidates.length,
+      }),
+  };
 }

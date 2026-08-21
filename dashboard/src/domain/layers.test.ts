@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateLayerTotals,
+  getLlmAnalysisOverview,
   parseBoardLayerFromPath,
   reportHasHybridLlm,
   reportsForLayer,
@@ -121,5 +122,28 @@ describe("dashboard layer helpers", () => {
   it("aggregates totals per board", () => {
     const totals = aggregateLayerTotals([sampleReport], "combined");
     expect(totals.savedTokens).toBe(300);
+  });
+
+  it("reads analysisOverview from scan.llm", () => {
+    const overview = {
+      summary: "Lockfiles and overlapping agent rules dominate waste.",
+      themes: ["lockfiles"],
+    };
+    expect(
+      getLlmAnalysisOverview({
+        ...sampleReport,
+        scan: {
+          mode: "hybrid",
+          llm: {
+            backend: "ollama",
+            model: "qwen2.5-coder:7b",
+            durationMs: 1000,
+            candidatesSent: 3,
+            analysisOverview: overview,
+          },
+        },
+      }),
+    ).toEqual(overview);
+    expect(getLlmAnalysisOverview(sampleReport)).toBeUndefined();
   });
 });

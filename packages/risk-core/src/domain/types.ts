@@ -86,12 +86,24 @@ export type TokenRiskFinding = {
   suggestion?: FindingSuggestion;
 };
 
+/** Bounded LLM narrative for hybrid Prove UX — not a second findings list. */
+export type LlmAnalysisOverview = {
+  /** 3–6 sentence capsule of what the enricher concluded. */
+  summary: string;
+  /** Optional short theme tags (e.g. redundant instructions). */
+  themes?: string[];
+  /** Optional quality caveats (e.g. Pass A flat-batch fallback). */
+  caveats?: string[];
+};
+
 export type ScanLlmMetadata = {
   backend: LlmBackendId;
   model: string;
   endpoint?: string;
   durationMs: number;
   candidatesSent: number;
+  /** Short Pass C capsule for Prove / dashboard LLM board (optional). */
+  analysisOverview?: LlmAnalysisOverview;
 };
 
 export type ScanMetadata = {

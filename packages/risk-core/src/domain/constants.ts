@@ -70,3 +70,18 @@ export const SUGGESTION_KINDS = [
   "add_ignore",
   "review",
 ] as const;
+
+/** Max characters for `scan.llm.analysisOverview.summary`. */
+export const MAX_ANALYSIS_OVERVIEW_SUMMARY_CHARS = 800;
+
+/** Max characters per theme tag. */
+export const MAX_ANALYSIS_OVERVIEW_THEME_CHARS = 48;
+
+/** Max theme tags on an analysis overview. */
+export const MAX_ANALYSIS_OVERVIEW_THEMES = 6;
+
+/** Max characters per caveat string. */
+export const MAX_ANALYSIS_OVERVIEW_CAVEAT_CHARS = 160;
+
+/** Max caveat strings on an analysis overview. */
+export const MAX_ANALYSIS_OVERVIEW_CAVEATS = 4;

@@ -152,11 +152,17 @@ Heuristic findings get deterministic explanations and template suggestions in `r
     "model": "qwen2.5-coder:7b",
     "endpoint": "http://localhost:11434",
     "durationMs": 842,
-    "candidatesSent": 12
+    "candidatesSent": 12,
+    "analysisOverview": {
+      "summary": "3–6 sentence capsule of enricher conclusions (optional).",
+      "themes": ["lockfiles", "redundant instructions"],
+      "caveats": ["optional quality notes"]
+    }
   }
 }
 ```
 
+`analysisOverview` is optional Prove metadata (dashboard LLM board). Fix adapters ignore it and still use per-path findings.
 Example: [`schemas/examples/scan-report.hybrid.v0.json`](./schemas/examples/scan-report.hybrid.v0.json).
 
 ## LLM enricher port (CLI)
