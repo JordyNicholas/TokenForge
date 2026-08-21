@@ -1,33 +1,39 @@
 import Box from "@mui/material/Box";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useColorScheme } from "@mui/material/styles";
-import { useState } from "react";
-import { tokenSavedPercent, SCAN_LAYER_LABELS, SCAN_LAYER_LEADS } from "../domain";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import {
+  ARCHITECTURE_LABELS,
+  architectureForTeam,
+  boardScopeBase,
+  tokenSavedPercent,
+  SCAN_LAYER_LABELS,
+  SCAN_LAYER_LEADS,
+} from "../domain";
 import { useLayerView } from "../state/useLayerView";
 import { heatFill, resolveColorMode } from "../theme/heat";
 import { EmptyState } from "../ui/EmptyState";
 import { HeatCell } from "../ui/HeatCell";
 import { Page } from "../ui/Page";
 import { PrivacyControls } from "../ui/PrivacyControls";
-import { TeamDetailDialog } from "../ui/TeamDetailDialog";
 
 export function HeatmapPage() {
-  const { seed, reports, boardLayer } = useLayerView();
+  const navigate = useNavigate();
+  const { seed, reports, boardLayer, teamId, scopeLabel } = useLayerView();
   const { mode, systemMode } = useColorScheme();
   const resolved = resolveColorMode(mode, systemMode);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const selected = reports.find((report) => report.team === selectedTeam) ?? null;
 
   return (
     <Page
-      title={`Team heatmap · ${SCAN_LAYER_LABELS[boardLayer]}`}
+      title={`Team heatmap · ${scopeLabel}`}
       lead={
         <>
           {SCAN_LAYER_LEADS[boardLayer]} Color is each team’s exclusion ratio on this board.{" "}
           {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed with the pitch
-          Assumptions preset; payments-platform is the noisy outlier. Click a cell for
-          findings.
+          Assumptions preset; payments-platform is the noisy outlier. Click a cell to open
+          that team’s dashboard.
         </>
       }
     >
@@ -68,22 +74,38 @@ export function HeatmapPage() {
               gap: 2,
             }}
           >
-            {reports.map((report) => (
-              <HeatCell
-                key={`${report.team}:${report.repo}`}
-                team={report.team}
-                repo={report.repo}
-                percent={tokenSavedPercent(report.totals)}
-                savedTokens={report.totals.savedTokens}
-                selected={report.team === selectedTeam}
-                onSelect={() => setSelectedTeam(report.team)}
-              />
-            ))}
+            {reports.map((report) => {
+              const arch = architectureForTeam(report.team, seed?.architectures);
+              return (
+                <HeatCell
+                  key={`${report.team}:${report.repo}`}
+                  team={
+                    arch
+                      ? `${report.team} · ${ARCHITECTURE_LABELS[arch]}`
+                      : report.team
+                  }
+                  repo={report.repo}
+                  percent={tokenSavedPercent(report.totals)}
+                  savedTokens={report.totals.savedTokens}
+                  selected={report.team === teamId}
+                  onSelect={() => navigate(boardScopeBase(boardLayer, report.team))}
+                />
+              );
+            })}
           </Box>
+          {teamId ? (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              <Link
+                component={RouterLink}
+                to={boardScopeBase(boardLayer, null)}
+                underline="hover"
+              >
+                ← Back to global BU heatmap
+              </Link>
+            </Typography>
+          ) : null}
         </>
       )}
-
-      <TeamDetailDialog report={selected} onClose={() => setSelectedTeam(null)} />
     </Page>
   );
 }

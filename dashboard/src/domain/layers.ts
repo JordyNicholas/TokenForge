@@ -51,8 +51,6 @@ export function layerActionableFindingCount(
 
 const LAYER_IDS = new Set<ScanLayerId>(["heuristic", "llm", "combined"]);
 
-const BOARD_PATH_RE = /^\/board\/(combined|heuristic|llm)(?:\/|$)/;
-
 export function parseScanLayerId(value: string | undefined): ScanLayerId | undefined {
   if (value !== undefined && LAYER_IDS.has(value as ScanLayerId)) {
     return value as ScanLayerId;
@@ -60,11 +58,13 @@ export function parseScanLayerId(value: string | undefined): ScanLayerId | undef
   return undefined;
 }
 
-/** Read the active scan board from a React Router pathname (works outside matched routes). */
-export function parseBoardLayerFromPath(pathname: string): ScanLayerId {
-  const match = pathname.match(BOARD_PATH_RE);
-  return parseScanLayerId(match?.[1]) ?? "combined";
-}
+export {
+  boardScopeBase,
+  boardSubpath,
+  boardViewSuffix,
+  parseBoardLayerFromPath,
+  parseTeamIdFromPath,
+} from "./teamScope";
 
 export function reportsForLayer(
   reports: readonly TokenRiskReport[],

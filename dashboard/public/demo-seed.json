@@ -1,5 +1,42 @@
 {
   "businessUnit": "Retail Banking",
+  "architectures": {
+    "payments-platform": "microservices",
+    "checkout": "serverless",
+    "platform-services": "microservices",
+    "data-eng": "data-platform"
+  },
+  "usage": {
+    "source": "demo",
+    "providerLabel": "multi-provider (demo import)",
+    "period": "2026-08",
+    "teams": [
+      {
+        "team": "payments-platform",
+        "creditsUsed": 12400,
+        "estimatedUsd": 1860
+      },
+      {
+        "team": "checkout",
+        "creditsUsed": 8200,
+        "estimatedUsd": 1230
+      },
+      {
+        "team": "platform-services",
+        "creditsUsed": 6100,
+        "estimatedUsd": 915
+      },
+      {
+        "team": "data-eng",
+        "creditsUsed": 4500,
+        "estimatedUsd": 675
+      }
+    ],
+    "totals": {
+      "creditsUsed": 31200,
+      "estimatedUsd": 4680
+    }
+  },
   "reports": [
     {
       "source": "cli",

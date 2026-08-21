@@ -30,11 +30,15 @@ import { useTheme } from "@mui/material/styles";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  LLM_BOARD_LOCKED_HINT,
+  ARCHITECTURE_LABELS,
+  boardScopeBase,
+  boardSubpath,
+  parseBoardLayerFromPath,
+  parseTeamIdFromPath,
   SCAN_LAYER_HINTS,
   SCAN_LAYER_LABELS,
+  LLM_BOARD_LOCKED_HINT,
   layerActionableFindingCount,
-  parseBoardLayerFromPath,
   seedHasLlmLayer,
   type ScanLayerId,
 } from "../domain";
@@ -53,12 +57,6 @@ const BOARDS: {
   { id: "heuristic", label: SCAN_LAYER_LABELS.heuristic, icon: RuleOutlined },
   { id: "llm", label: SCAN_LAYER_LABELS.llm, icon: PsychologyOutlined },
 ];
-
-function boardSubpath(pathname: string): string {
-  const match = pathname.match(/^\/board\/(?:combined|heuristic|llm)(\/.*)?$/);
-  const rest = match?.[1];
-  return rest && rest.length > 0 ? rest : "";
-}
 
 function isBoardRoute(pathname: string): boolean {
   return pathname.startsWith("/board/");
@@ -212,11 +210,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { seed } = useDashboard();
   const location = useLocation();
   const boardLayer = parseBoardLayerFromPath(location.pathname);
+  const teamId = parseTeamIdFromPath(location.pathname);
   const navigate = useNavigate();
   const hasLlm = seed ? seedHasLlmLayer(seed.reports) : false;
   const subpath = boardSubpath(location.pathname);
-  const boardBase = `/board/${boardLayer}`;
+  const boardBase = boardScopeBase(boardLayer, teamId);
   const showMobileBoardSwitch = compact && isBoardRoute(location.pathname);
+  const teams = useMemo(() => {
+    const names = [...new Set((seed?.reports ?? []).map((report) => report.team))];
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [seed]);
 
   const counts = useMemo(() => {
     const reports = seed?.reports ?? [];
@@ -229,6 +232,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const selectBoard = (layer: ScanLayerId) => {
     navigate(`/board/${layer}${subpath}`);
+  };
+
+  const selectTeamScope = (next: string | null) => {
+    const view = boardSubpath(location.pathname).replace(/^\/team\/[^/]+/, "") || "";
+    navigate(boardScopeBase(boardLayer, next) + view);
   };
 
   const viewNav = [
@@ -264,7 +272,58 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Typography variant="caption" color="text.secondary">
           {seed?.businessUnit ?? "Loading…"}
         </Typography>
+        <Chip
+          size="small"
+          sx={{ mt: 0.5 }}
+          color={teamId ? "primary" : "default"}
+          label={teamId ? `Team · ${teamId}` : "Global · all teams"}
+        />
       </Toolbar>
+
+      <Typography variant="overline" sx={{ px: 2, color: "text.secondary" }}>
+        Scope
+      </Typography>
+      <List dense sx={{ px: 1, mb: 1 }} aria-label="Team scope">
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={!teamId}
+            onClick={() => {
+              selectTeamScope(null);
+              setMobileOpen(false);
+            }}
+            sx={{ borderRadius: 2 }}
+          >
+            <ListItemText
+              primary="Global (BU)"
+              secondary="All teams · architecture roll-up"
+            />
+          </ListItemButton>
+        </ListItem>
+        {teams.map((team) => {
+          const arch = seed?.architectures?.[team];
+          return (
+            <ListItem key={team} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                selected={teamId === team}
+                onClick={() => {
+                  selectTeamScope(team);
+                  setMobileOpen(false);
+                }}
+                sx={{ borderRadius: 2 }}
+              >
+                <ListItemText
+                  primary={team}
+                  secondary={
+                    arch
+                      ? ARCHITECTURE_LABELS[arch]
+                      : seed?.reports.find((r) => r.team === team)?.repo
+                  }
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
 
       <Typography variant="overline" sx={{ px: 2, color: "text.secondary" }}>
         Scan board
@@ -282,7 +341,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <List sx={{ px: 1, flex: 1 }}>
         {viewNav.map((item) => {
           const selected = item.end
-            ? location.pathname === item.to
+            ? location.pathname === item.to ||
+              location.pathname === `${item.to}/`
             : location.pathname.startsWith(item.to);
           const Icon = item.icon;
           return (
@@ -347,7 +407,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               </>
             ) : (
               <Typography variant="body2" color="text.secondary" noWrap>
-                {seed?.businessUnit ?? "Business unit"} · {SCAN_LAYER_LABELS[boardLayer]} board
+                {seed?.businessUnit ?? "Business unit"} ·{" "}
+                {teamId ? `Team ${teamId}` : "Global"} · {SCAN_LAYER_LABELS[boardLayer]}
               </Typography>
             )}
           </Box>
