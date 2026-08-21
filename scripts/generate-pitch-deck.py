@@ -24,60 +24,65 @@ SLIDES = [
         "• missing exclusions",
     ),
     (
+        "Market landscape",
+        "Agent memory (Auto Memory, Cursor Memories) — continuity, not $ waste\n"
+        "Cloud / infra FinOps — blind to IDE/repo AI-context waste\n"
+        "LLM ops / prompt observability — API traces, not coding-agent hygiene\n"
+        "Vendor usage dashboards — show spend; do not Detect → Fix waste",
+    ),
+    (
+        "Why TokenForge is different",
+        "Auto Memory: enriches continuity for one agent\n"
+        "TokenForge: cuts billable waste for the enterprise\n"
+        "Unique: Token Risk → policy pack → $ proof\n"
+        "  + global BU and per-team/repo Prove across architectures\n"
+        "Sound bite: They help the agent remember.\n"
+        "  We help the organisation stop bleeding tokens.",
+    ),
+    (
         "Who it's for",
         "Eng Manager / FinOps — buyer (ROI, team waste, projected $)\n"
         "Developer — user (IDE risk signal + one-click repo fix)\n"
-        "Platform / DevEx — rollout (CLI + policy pack at scale)",
+        "Platform / DevEx — rollout (CLI + org policy pack at scale)",
     ),
     (
         "Core loop",
-        "1. Detect — score risky context (provider-agnostic)\n"
+        "1. Detect — score risky context (provider-agnostic; hybrid optional)\n"
         "2. Fix — lean instructions + exclusions via adapters\n"
-        "3. Prove — Tokens Saved dashboard ($ / credits / tokens)",
+        "   (Copilot, Cursor, Claude, generic) + org-pack aggregation\n"
+        "3. Prove — global BU + per-team dashboards\n"
+        "   (microservices / serverless / data platforms)",
     ),
     (
-        "Detect: two layers",
-        "Default: heuristic scan (fast, offline, deterministic)\n"
-        "• file size × inactivity × filetype class\n"
-        "• estTokens ≈ ceil(bytes / 4)\n\n"
-        "Optional Phase 2: hybrid enrichment\n"
-        "• same baseline + LLM semantic pass on bounded candidates\n"
-        "• local (Ollama / Qwen) or external (OpenAI, Anthropic, …)",
+        "Live demo (≤5 min)",
+        "Noisy IDE tabs → Context Guard risk drops\n"
+        "CLI scan → apply policy pack\n"
+        "Dashboard Global → team drill-down → architecture mix\n"
+        "Assumptions → ~30% scenario · imported usage badge\n"
+        "Close: memory products ≠ FinOps control loop",
     ),
     (
-        "Hybrid scan honesty",
-        "Default scan does NOT use AI.\n"
-        "Hybrid is opt-in (--mode hybrid).\n"
-        "Token math stays heuristic — not model guesses.\n"
-        "External enrichers may send candidate excerpts off-machine.\n"
-        "We advise / exclude — we do not intercept agent pipelines.",
+        "Honesty & trust",
+        "We advise / exclude — we do not intercept agent pipelines.\n"
+        "Default scan is heuristic (no AI); hybrid is opt-in.\n"
+        "~30% = editable assumptions × scan totals — not a universal SLA.\n"
+        "Usage metrics = file/demo import — not live vendor billing APIs.\n"
+        "Pitch Chat/Agent metering — not unlimited completions.",
     ),
     (
-        "Architecture",
-        "Ports & adapters (hexagonal)\n"
-        "Kernel: packages/risk-core\n"
-        "Edges: extension (Detect), CLI adapters (Fix + LLM enrichers), dashboard (Prove)\n"
-        "Integration: .tokenforge/scan-report.json",
+        "Roadmap",
+        "Shipped (demo): per-team Prove, usage import, org-pack,\n"
+        "  Cursor/Claude adapters, compaction/routing advisories\n"
+        "Next (true org scale): live billing sync per provider;\n"
+        "  remote org exclusion apply APIs\n"
+        "Do not lead pitch: chat compaction · model routing as products",
     ),
     (
-        "MVP demo (≤5 min)",
-        "Noisy IDE tabs → extension risk drops\n"
-        "CLI tokenforge init → policy pack\n"
-        "Dashboard → ~30% scenario on demo seed\n"
-        "Sound bite: They help the agent remember. We help the org stop bleeding tokens.",
-    ),
-    (
-        "Not Auto Memory",
-        "Auto Memory: enriches continuity for one agent\n"
-        "TokenForge: cuts billable waste for the enterprise\n"
-        "Metric: tokens avoided / AI credits / $ — not memory quality",
-    ),
-    (
-        "Roadmap (Phase 2)",
-        "Shipped: heuristic default, Ollama hybrid, dashboard LLM boards\n"
-        "F1 Hybrid Detect: OpenAI-compat + Anthropic enrichers, then extension hook\n"
-        "F2 Org scale: live usage/billing (per provider) → org policy apply\n"
-        "F3 Adjacent (do not pitch): chat compaction · model routing",
+        "Ask",
+        "Category: AI Coding FinOps for metered coding agents.\n"
+        "Next proof: pilot on one business unit.\n"
+        "They help the agent remember.\n"
+        "We help the organisation stop bleeding tokens.",
     ),
 ]
 
