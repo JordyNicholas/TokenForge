@@ -6,7 +6,9 @@ export {
   MAX_INSTRUCTION_BYTES,
 } from "./limits";
 export { collapseExclusionPaths } from "./exclusions";
+export { claudeAdapter } from "./claude/claude";
 export { copilotAdapter } from "./copilot/copilot";
+export { cursorAdapter } from "./cursor/cursor";
 export { genericAdapter } from "./generic/generic";
 export { getAdapter } from "./registry";
 export type { PolicyFile, ProviderAdapter } from "./types";

@@ -65,13 +65,13 @@ describe("apply / init on noisy-app", () => {
     expect(result.report.layers?.llm).toBeDefined();
   });
 
-  it("returns usage exit code 2 for a stubbed provider", async () => {
+  it("applies cursor adapter on dry-run", async () => {
     const captured = captureIo();
     const code = await runCli(
       ["apply", fixtureRoot, "--provider", "cursor", "--dry-run"],
       captured.io,
     );
-    expect(code).toBe(2);
-    expect(captured.stderr).toContain("stubbed");
+    expect(code).toBe(0);
+    expect(captured.stdout + captured.stderr).toMatch(/\.cursor\//);
   });
 });

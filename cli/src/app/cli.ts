@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
+import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
 import { writeScanReport } from "../io/report-file";
 import { formatScanTable } from "../output/table";
@@ -11,15 +12,18 @@ import { UsageError, isCliError } from "./errors";
 const USAGE = `Usage: tokenforge <command> [root] [options]
 
 Commands:
-  scan [root]    Score high-risk paths and write .tokenforge/scan-report.json
-  apply [root]   Write lean instructions + exclusion candidates (provider adapter)
-  init [root]    scan + apply
+  scan [root]         Score high-risk paths and write .tokenforge/scan-report.json
+  apply [root]        Write lean instructions + exclusion candidates (provider adapter)
+  init [root]         scan + apply
+  org-pack <seed.json>
+                      Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
 
 Options:
   --team <name>         Team label (default: local)
   --repo <name>         Repo label (default: directory name)
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
+  --out <dir>           Output root for org-pack (default: cwd)
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
                         e.g. codex or ollama:qwen2.5-coder:7b; omit for noop
@@ -96,6 +100,7 @@ export async function runCli(
         team: { type: "string" },
         repo: { type: "string" },
         provider: { type: "string" },
+        out: { type: "string" },
         mode: { type: "string" },
         llm: { type: "string" },
         "llm-endpoint": { type: "string" },
@@ -160,6 +165,46 @@ export async function runCli(
         Boolean(values.json),
       );
       return savingsExitCode(applied.report.totals);
+    }
+
+    if (command === "org-pack") {
+      if (!rootArg) {
+        throw new UsageError("org-pack requires a seed JSON path.\n" + USAGE);
+      }
+      const pack = await applyOrgPack({
+        seedPath: rootArg,
+        outRoot: values.out,
+        provider: values.provider,
+        dryRun: values["dry-run"],
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              businessUnit: pack.businessUnit,
+              provider: pack.provider,
+              totals: pack.report.totals,
+              files: pack.files.map((file) => file.path),
+              dryRun: pack.dryRun,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        const sink = io.stdout;
+        sink.write(
+          `org-pack ${pack.businessUnit} · ${pack.provider}` +
+            `${pack.dryRun ? " (dry-run)" : ""}\n`,
+        );
+        sink.write(
+          pack.dryRun ? "would write:\n" : `wrote under ${pack.outDir}:\n`,
+        );
+        for (const file of pack.files) {
+          sink.write(`  ${file.path}\n`);
+        }
+      }
+      return savingsExitCode(pack.report.totals);
     }
 
     throw new UsageError(`Unknown command "${command}".\n` + USAGE);
