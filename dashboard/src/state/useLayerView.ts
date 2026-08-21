@@ -19,50 +19,28 @@ export function useBoardLayer(): ScanLayerId {
 /** Layer-scoped reports, totals, and projection for the active board. */
 export function useLayerView() {
   const boardLayer = useBoardLayer();
-  const {
-    seed,
-    assumptions,
-    sourceLabel,
-    loadError,
-    patchAssumptions,
-    loadFromFile,
-    loadFromUrl,
-    resetToDemo,
-  } = useDashboard();
+  const dashboard = useDashboard();
+  const { seed, assumptions } = dashboard;
 
-  return useMemo(() => {
+  const layer = useMemo(() => {
     const baseReports = seed?.reports ?? [];
     const reports = reportsForLayer(baseReports, boardLayer);
-    const totals = seed ? aggregateLayerTotals(baseReports, boardLayer) : {
-      beforeTokens: 0,
-      afterTokens: 0,
-      savedTokens: 0,
-    };
+    const totals = seed
+      ? aggregateLayerTotals(baseReports, boardLayer)
+      : {
+          beforeTokens: 0,
+          afterTokens: 0,
+          savedTokens: 0,
+        };
     const projection = projectSavings(totals, assumptions);
+    return { reports, totals, projection };
+  }, [boardLayer, seed, assumptions]);
 
-    return {
-      seed,
-      boardLayer,
-      reports,
-      totals,
-      projection,
-      assumptions,
-      sourceLabel,
-      loadError,
-      patchAssumptions,
-      loadFromFile,
-      loadFromUrl,
-      resetToDemo,
-    };
-  }, [
+  return {
+    ...dashboard,
     boardLayer,
-    seed,
-    assumptions,
-    sourceLabel,
-    loadError,
-    patchAssumptions,
-    loadFromFile,
-    loadFromUrl,
-    resetToDemo,
-  ]);
+    reports: layer.reports,
+    totals: layer.totals,
+    projection: layer.projection,
+  };
 }

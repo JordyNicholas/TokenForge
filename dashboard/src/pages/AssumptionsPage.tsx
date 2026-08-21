@@ -1,11 +1,16 @@
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
 import {
+  PITCH_REALIZED_WASTE_SHARE,
+  SCAN_LAYER_LABELS,
   formatPercent,
   formatUsd,
   type Assumptions,
 } from "../domain";
-import { useDashboard } from "../state/DashboardProvider";
+import { useLayerView } from "../state/useLayerView";
+import { GlossaryTip } from "../ui/GlossaryTip";
 import { KpiCard, KpiRow } from "../ui/Kpi";
 import { NumberField } from "../ui/NumberField";
 import { Page } from "../ui/Page";
@@ -90,13 +95,49 @@ const FIELDS: Field[] = [
 ];
 
 export function AssumptionsPage() {
-  const { assumptions, projection, patchAssumptions, totals } = useDashboard();
+  const {
+    assumptions,
+    projection,
+    patchAssumptions,
+    applyPitchScenario,
+    totals,
+    boardLayer,
+  } = useLayerView();
 
   return (
     <Page
-      title="Assumptions"
-      lead="Tokens → $ is scenario math on the loaded totals. The pitch ~30% is this calculator, not a production SLA."
+      title={`Assumptions · ${SCAN_LAYER_LABELS[boardLayer]}`}
+      lead={
+        <>
+          Tokens → $ is scenario math on the{" "}
+          <GlossaryTip
+            term="active scan board"
+            definition="Totals follow Combined, Heuristic, or LLM — same board as Overview."
+          />
+          . The pitch ~30% is this calculator, not a production SLA.
+        </>
+      }
     >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
+      >
+        <Alert severity="info" variant="outlined" sx={{ flex: 1 }}>
+          Using <strong>{SCAN_LAYER_LABELS[boardLayer]}</strong> board totals (
+          {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()}{" "}
+          tokens). Displayed savings ={" "}
+          <GlossaryTip
+            term="exclusion × applicability"
+            definition="Scan exclusion % from the board, times waste applicability so you can model how much of billed Chat/Agent traffic this waste class covers."
+          />
+          .
+        </Alert>
+        <Button variant="contained" onClick={applyPitchScenario} sx={{ flexShrink: 0 }}>
+          Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%)
+        </Button>
+      </Stack>
+
       <KpiRow>
         <KpiCard
           label="Scenario savings"
@@ -116,13 +157,6 @@ export function AssumptionsPage() {
           hint="Per million tokens"
         />
       </KpiRow>
-
-      <Alert severity="info" variant="outlined">
-        Scan exclusion on these totals is {formatPercent(projection.tokenSavedPercent)} (
-        {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()} tokens).
-        Displayed savings = exclusion × applicability. Drag a slider to update $ live; rate and
-        mix do not change the percent.
-      </Alert>
 
       <Box
         component="form"

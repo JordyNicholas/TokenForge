@@ -1,8 +1,8 @@
 import { createTheme } from "@mui/material/styles";
-import { DASHBOARD_STYLES, type DashboardStyleId } from "./styles";
+import { TOKENFORGE_BRAND } from "./styles";
 
-export function createAppTheme(styleId: DashboardStyleId) {
-  const style = DASHBOARD_STYLES[styleId];
+export function createAppTheme() {
+  const brand = TOKENFORGE_BRAND;
 
   return createTheme({
     cssVariables: {
@@ -12,18 +12,18 @@ export function createAppTheme(styleId: DashboardStyleId) {
     colorSchemes: {
       light: {
         palette: {
-          primary: { main: style.light.primary },
-          secondary: { main: style.light.secondary },
+          primary: { main: brand.light.primary },
+          secondary: { main: brand.light.secondary },
           background: {
-            default: style.light.background,
-            paper: style.light.paper,
+            default: brand.light.background,
+            paper: brand.light.paper,
           },
         },
       },
       dark: {
         palette: {
-          primary: { main: style.dark.primary },
-          secondary: { main: style.dark.secondary },
+          primary: { main: brand.dark.primary },
+          secondary: { main: brand.dark.secondary },
           background: {
             default: "#121212",
             paper: "#1E1E1E",

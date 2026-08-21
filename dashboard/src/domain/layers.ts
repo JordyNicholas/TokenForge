@@ -24,6 +24,31 @@ export const SCAN_LAYER_LEADS: Record<ScanLayerId, string> = {
     "Semantic enrichment from the optional hybrid pass (local or external model).",
 };
 
+/** Short manager-facing hints for scan-board rows and tooltips. */
+export const SCAN_LAYER_HINTS: Record<ScanLayerId, string> = {
+  combined: "Merged baseline + optional semantic pass",
+  heuristic: "Deterministic baseline — no model",
+  llm: "Optional semantic enrichment",
+};
+
+export const LLM_BOARD_LOCKED_HINT =
+  "Run a hybrid scan (tokenforge scan --mode hybrid) and load the report to unlock.";
+
+/** Count actionable findings on a layer (excluded / filtered). */
+export function layerActionableFindingCount(
+  reports: readonly TokenRiskReport[],
+  layerId: ScanLayerId,
+): number {
+  return reportsForLayer(reports, layerId).reduce((sum, report) => {
+    return (
+      sum +
+      report.findings.filter(
+        (finding) => finding.action === "excluded" || finding.action === "filtered",
+      ).length
+    );
+  }, 0);
+}
+
 const LAYER_IDS = new Set<ScanLayerId>(["heuristic", "llm", "combined"]);
 
 const BOARD_PATH_RE = /^\/board\/(combined|heuristic|llm)(?:\/|$)/;

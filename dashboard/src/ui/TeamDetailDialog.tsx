@@ -20,12 +20,14 @@ import { useState } from "react";
 import {
   ACTION_LABELS,
   SOURCE_LABELS,
+  displayPath,
   formatPercent,
   formatTokens,
   getLlmAnalysisOverview,
   tokenSavedPercent,
   truncateText,
 } from "../domain";
+import { useDashboard } from "../state/DashboardProvider";
 import { FindingDetailDrawer } from "./FindingDetailDrawer";
 import { LlmAnalysisOverviewCard } from "./LlmAnalysisOverviewCard";
 
@@ -36,6 +38,7 @@ export function TeamDetailDialog({
   report: TokenRiskReport | null;
   onClose: () => void;
 }) {
+  const { redactPaths } = useDashboard();
   const [finding, setFinding] = useState<(TokenRiskFinding & { team: string; repo: string }) | null>(
     null,
   );
@@ -53,7 +56,7 @@ export function TeamDetailDialog({
             <DialogTitle>
               {report.team}
               <Typography variant="body2" color="text.secondary">
-                {report.repo}
+                {displayPath(report.repo, redactPaths)}
               </Typography>
             </DialogTitle>
             <DialogContent>
@@ -92,7 +95,7 @@ export function TeamDetailDialog({
                       }
                     >
                       <TableCell sx={{ wordBreak: "break-all" }}>
-                        {row.path}
+                        {displayPath(row.path, redactPaths)}
                         {row.action === "kept" ? (
                           <Chip
                             size="small"

@@ -15,6 +15,7 @@ function BoardRoutes() {
       <Route index element={<OverviewPage />} />
       <Route path="heatmap" element={<HeatmapPage />} />
       <Route path="findings" element={<FindingsPage />} />
+      <Route path="assumptions" element={<AssumptionsPage />} />
       <Route path="offenders" element={<Navigate to="findings" replace />} />
     </Routes>
   );
@@ -28,7 +29,10 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/board/combined" replace />} />
           <Route path="/board/:layerId/*" element={<BoardRoutes />} />
-          <Route path="/assumptions" element={<AssumptionsPage />} />
+          <Route
+            path="/assumptions"
+            element={<Navigate to="/board/combined/assumptions" replace />}
+          />
           <Route path="*" element={<Navigate to="/board/combined" replace />} />
         </Routes>
       ) : (
