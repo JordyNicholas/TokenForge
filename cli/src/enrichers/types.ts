@@ -1,5 +1,6 @@
 import type {
   FindingReason,
+  LlmAnalysisOverview,
   LlmBackendId,
   TokenRiskFinding,
 } from "@tokenforge/risk-core";
@@ -33,6 +34,7 @@ export type LlmEnrichmentResult = {
     endpoint?: string;
     durationMs: number;
     candidatesSent: number;
+    analysisOverview?: LlmAnalysisOverview;
   };
 };
 

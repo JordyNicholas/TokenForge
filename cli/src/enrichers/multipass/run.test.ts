@@ -26,7 +26,7 @@ describe("runMultiPassEnrich", () => {
         callModel,
         batchSize: 2,
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({ findings: [] });
     expect(callModel).not.toHaveBeenCalled();
   });
 
@@ -50,6 +50,12 @@ describe("runMultiPassEnrich", () => {
               detail: "Duplicates AGENTS.md",
             },
           ],
+          analysisOverview: {
+            summary:
+              "Instruction overlap between AGENTS.md and the Cursor testing rule; keep unique bullets only.",
+            themes: ["redundant instructions"],
+            caveats: [],
+          },
         });
       }
       return JSON.stringify({
@@ -70,19 +76,21 @@ describe("runMultiPassEnrich", () => {
       });
     });
 
-    const findings = await runMultiPassEnrich({
+    const result = await runMultiPassEnrich({
       candidates,
       callModel,
       batchSize: 2,
     });
 
     expect(callModel).toHaveBeenCalledTimes(3);
-    expect(findings).toHaveLength(1);
-    expect(findings[0]).toMatchObject({
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({
       path: ".cursor/rules/testing.mdc",
       reason: "redundant_instructions",
       confidence: 0.95,
     });
+    expect(result.analysisOverview?.summary).toMatch(/Instruction overlap/);
+    expect(result.analysisOverview?.themes).toContain("redundant instructions");
   });
 
   it("repairs Pass A after empty_signal then continues map-aware", async () => {
@@ -124,7 +132,7 @@ describe("runMultiPassEnrich", () => {
       });
     });
 
-    const findings = await runMultiPassEnrich({
+    const result = await runMultiPassEnrich({
       candidates,
       callModel,
       batchSize: 2,
@@ -133,7 +141,8 @@ describe("runMultiPassEnrich", () => {
 
     expect(mapCalls).toBe(2);
     expect(callModel).toHaveBeenCalledTimes(4); // map + repair + judge + reconcile
-    expect(findings[0]?.path).toBe(".cursor/rules/testing.mdc");
+    expect(result.findings[0]?.path).toBe(".cursor/rules/testing.mdc");
+    expect(result.analysisOverview?.summary.length).toBeGreaterThan(0);
     expect(
       onProgress.mock.calls.some(([message]) =>
         String(message).includes("empty_signal"),
@@ -167,7 +176,7 @@ describe("runMultiPassEnrich", () => {
       });
     });
 
-    const findings = await runMultiPassEnrich({
+    const result = await runMultiPassEnrich({
       candidates,
       callModel,
       batchSize: 2,
@@ -176,8 +185,9 @@ describe("runMultiPassEnrich", () => {
 
     // map + repair + one flat Pass B batch
     expect(callModel).toHaveBeenCalledTimes(3);
-    expect(findings).toHaveLength(1);
-    expect(findings[0]?.path).toBe("AGENTS.md");
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]?.path).toBe("AGENTS.md");
+    expect(result.analysisOverview?.caveats?.[0]).toMatch(/Pass A context map/);
     expect(
       onProgress.mock.calls.some(([message]) =>
         String(message).includes("Pass C skipped"),
@@ -210,7 +220,7 @@ describe("runMultiPassEnrich", () => {
       });
     });
 
-    const findings = await runMultiPassEnrich({
+    const result = await runMultiPassEnrich({
       candidates,
       callModel,
       batchSize: 2,
@@ -218,7 +228,7 @@ describe("runMultiPassEnrich", () => {
 
     // Pass A + repair + Pass B
     expect(callModel.mock.calls.length).toBe(3);
-    expect(findings).toHaveLength(1);
-    expect(findings[0]?.path).toBe("AGENTS.md");
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]?.path).toBe("AGENTS.md");
   });
 });

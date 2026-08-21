@@ -237,7 +237,10 @@ export const ollamaEnricher: LlmEnricher = {
       callModel: (prompt) =>
         callOllamaChat(endpoint, input.model, prompt, timeoutMs, progress),
     });
-    const findings = mapStructuredFindings(structured, input.candidates);
+    const findings = mapStructuredFindings(
+      structured.findings,
+      input.candidates,
+    );
 
     progress?.(
       `LLM enricher: finished in ${Math.round((Date.now() - started) / 1000)}s ` +
@@ -252,6 +255,7 @@ export const ollamaEnricher: LlmEnricher = {
         endpoint,
         durationMs: Date.now() - started,
         candidatesSent: input.candidates.length,
+        analysisOverview: structured.analysisOverview,
       },
     };
   },

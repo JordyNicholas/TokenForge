@@ -54,10 +54,12 @@ export {
 export type {
   CallModelFn,
   MultiPassEnrichOptions,
+  MultiPassEnrichResult,
   RepoContextMap,
   RepoContextMapEvaluation,
   RepoContextMapRejectReason,
 } from "./multipass";
+
 export type {
   EnrichmentCandidate,
   LlmEnricher,

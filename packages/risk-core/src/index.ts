@@ -13,6 +13,11 @@ export {
   SCORE_WEIGHT_INACTIVE,
   SCORE_WEIGHT_SIZE,
   SUGGESTION_KINDS,
+  MAX_ANALYSIS_OVERVIEW_SUMMARY_CHARS,
+  MAX_ANALYSIS_OVERVIEW_THEME_CHARS,
+  MAX_ANALYSIS_OVERVIEW_THEMES,
+  MAX_ANALYSIS_OVERVIEW_CAVEAT_CHARS,
+  MAX_ANALYSIS_OVERVIEW_CAVEATS,
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
 } from "./domain/constants";
@@ -33,6 +38,10 @@ export {
 } from "./layers/resolve";
 export { explainFinding } from "./advise/explain";
 export {
+  isLlmAnalysisOverview,
+  parseLlmAnalysisOverview,
+} from "./advise/overview";
+export {
   isFindingSuggestion,
   isSuggestionKind,
   resolveSuggestion,
@@ -48,6 +57,7 @@ export type {
   FindingReason,
   FindingSource,
   FindingSuggestion,
+  LlmAnalysisOverview,
   LlmBackendId,
   ProviderId,
   RiskAssessment,

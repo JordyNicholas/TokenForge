@@ -22,10 +22,12 @@ import {
   SOURCE_LABELS,
   formatPercent,
   formatTokens,
+  getLlmAnalysisOverview,
   tokenSavedPercent,
   truncateText,
 } from "../domain";
 import { FindingDetailDrawer } from "./FindingDetailDrawer";
+import { LlmAnalysisOverviewCard } from "./LlmAnalysisOverviewCard";
 
 export function TeamDetailDialog({
   report,
@@ -61,6 +63,12 @@ export function TeamDetailDialog({
                 <Stat label="Saved" value={formatTokens(report.totals.savedTokens)} />
                 <Stat label="Scan" value={formatPercent(tokenSavedPercent(report.totals))} />
               </Stack>
+              {(() => {
+                const overview = getLlmAnalysisOverview(report);
+                return overview ? (
+                  <LlmAnalysisOverviewCard overview={overview} />
+                ) : null;
+              })()}
               <Table size="small">
                 <TableHead>
                   <TableRow>

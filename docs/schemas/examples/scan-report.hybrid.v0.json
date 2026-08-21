@@ -54,7 +54,12 @@
       "model": "qwen2.5-coder:7b",
       "endpoint": "http://127.0.0.1:11434",
       "durationMs": 842,
-      "candidatesSent": 8
+      "candidatesSent": 8,
+      "analysisOverview": {
+        "summary": "Hybrid enrichment flagged package-lock.json-class waste and overlapping agent instructions. AGENTS.md duplicates lint/test guidance already in README.md; the Cursor testing rule overlaps but was kept for team use. Documentation and standards paths were not recommended for exclusion.",
+        "themes": ["lockfiles", "redundant instructions"],
+        "caveats": ["Overview is advisory; Fix still uses per-path findings only."]
+      }
     }
   }
 }

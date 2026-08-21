@@ -12,6 +12,7 @@ import {
   formatPercent,
   formatTokens,
   formatUsd,
+  getLlmAnalysisOverview,
   seedHasLlmLayer,
   tokenSavedPercent,
 } from "../domain";
@@ -19,6 +20,7 @@ import { useLayerView } from "../state/useLayerView";
 import { ChartCard } from "../ui/ChartCard";
 import { DataTable } from "../ui/DataTable";
 import { KpiCard, KpiRow } from "../ui/Kpi";
+import { LlmAnalysisOverviewCard } from "../ui/LlmAnalysisOverviewCard";
 import { MixChart } from "../ui/MixChart";
 import { Page } from "../ui/Page";
 import { SavingsChart } from "../ui/SavingsChart";
@@ -34,6 +36,15 @@ export function OverviewPage() {
     reports.every((report) => report.findings.length === 0);
   const llmBoardUnavailable =
     boardLayer === "llm" && seed !== null && !seedHasLlmLayer(seed.reports);
+  const llmOverviews =
+    boardLayer === "llm"
+      ? reports.flatMap((report) => {
+          const overview = getLlmAnalysisOverview(report);
+          return overview
+            ? [{ team: report.team, repo: report.repo, overview }]
+            : [];
+        })
+      : [];
 
   return (
     <Page
@@ -52,6 +63,17 @@ export function OverviewPage() {
           path (e.g. <code>docs/</code>) or increase <code>--llm-timeout</code> on slower hardware.
         </Alert>
       ) : null}
+      {llmOverviews.map(({ team, repo, overview }) => (
+        <LlmAnalysisOverviewCard
+          key={`${team}:${repo}`}
+          overview={overview}
+          title={
+            llmOverviews.length > 1
+              ? `Model analysis · ${team}`
+              : "Model analysis"
+          }
+        />
+      ))}
       <KpiRow>
         <KpiCard
           label="Tokens saved"

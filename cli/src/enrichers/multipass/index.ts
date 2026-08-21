@@ -17,6 +17,10 @@ export {
   isInstructionPath,
 } from "./prompts";
 export { reconcileFindings, relatedPathsInMap } from "./reconcile";
-export { runMultiPassEnrich } from "./run";
-export type { CallModelFn, MultiPassEnrichOptions } from "./run";
+export { runMultiPassEnrich, buildFallbackAnalysisOverview } from "./run";
+export type {
+  CallModelFn,
+  MultiPassEnrichOptions,
+  MultiPassEnrichResult,
+} from "./run";
 export type { RepoContextMap } from "./types";

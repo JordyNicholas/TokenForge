@@ -1,3 +1,4 @@
+import { isLlmAnalysisOverview } from "../advise/overview";
 import { isFindingSuggestion } from "../advise/suggest";
 import type {
   FindingAction,
@@ -141,7 +142,9 @@ function isScanMetadata(value: unknown): value is ScanMetadata {
     typeof value.llm.durationMs === "number" &&
     Number.isFinite(value.llm.durationMs) &&
     value.llm.durationMs >= 0 &&
-    isNonNegativeInt(value.llm.candidatesSent)
+    isNonNegativeInt(value.llm.candidatesSent) &&
+    (value.llm.analysisOverview === undefined ||
+      isLlmAnalysisOverview(value.llm.analysisOverview))
   );
 }
 
