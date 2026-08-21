@@ -85,3 +85,9 @@ export const MAX_ANALYSIS_OVERVIEW_CAVEAT_CHARS = 160;
 
 /** Max caveat strings on an analysis overview. */
 export const MAX_ANALYSIS_OVERVIEW_CAVEATS = 4;
+
+/**
+ * Hard cap for synthesized provider instruction files so the policy pack
+ * cannot become another fat always-on context file.
+ */
+export const MAX_LEAN_INSTRUCTION_BYTES = 2_048;

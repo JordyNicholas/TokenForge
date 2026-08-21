@@ -82,7 +82,8 @@ export type TokenRiskFinding = {
   confidence?: number;
   /** Human-readable LLM explanation. */
   detail?: string;
-  /** Optional copy-only advice. Never applied by TokenForge. */
+  /** Optional advice for Prove UX and policy-pack synthesis.
+   * Never used to rewrite AGENTS.md / rules sources. */
   suggestion?: FindingSuggestion;
 };
 
