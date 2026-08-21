@@ -28,6 +28,9 @@ tokenforge scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
 - `--llm-endpoint <url>` — override the daemon URL (default `http://127.0.0.1:11434`).
 - `--llm-timeout <sec>` — per-batch timeout in seconds (default 900).
 - `TOKENFORGE_OLLAMA_TIMEOUT_MS` — env var fallback for the same timeout.
+- Transient mid-scan disconnects (`fetch failed`, `ECONNRESET`, HTTP 502/503/529)
+  are retried a few times with short backoff. Timeouts are not retried. Confirm
+  the daemon with `curl -s http://127.0.0.1:11434/api/tags` before a long scan.
 
 ## `anthropic` (cloud)
 

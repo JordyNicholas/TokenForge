@@ -1,7 +1,17 @@
 import { RuntimeError } from "../../app/errors";
 import {
+  formatFetchFailure,
+  isTransientFetchError,
+  isTransientHttpStatus,
+  TransientHttpError,
+  withRetries,
+} from "../httpRetry";
+import {
   DEFAULT_OLLAMA_ENDPOINT,
   OLLAMA_BATCH_SIZE,
+  OLLAMA_PREFLIGHT_TIMEOUT_MS,
+  OLLAMA_RETRY_BASE_DELAY_MS,
+  OLLAMA_TRANSIENT_RETRIES,
   resolveOllamaTimeoutMs,
 } from "../limits";
 import { runMultiPassEnrich } from "../multipass";
@@ -9,6 +19,7 @@ import { mapStructuredFindings } from "../parse";
 import type { LlmEnricher } from "../types";
 
 const OLLAMA_CHAT_PATH = "/api/chat";
+const OLLAMA_TAGS_PATH = "/api/tags";
 
 type OllamaChatResponse = {
   message?: {
@@ -16,8 +27,106 @@ type OllamaChatResponse = {
   };
 };
 
+function baseUrl(endpoint: string): string {
+  return endpoint.replace(/\/$/, "");
+}
+
 function chatUrl(endpoint: string): string {
-  return `${endpoint.replace(/\/$/, "")}${OLLAMA_CHAT_PATH}`;
+  return `${baseUrl(endpoint)}${OLLAMA_CHAT_PATH}`;
+}
+
+function tagsUrl(endpoint: string): string {
+  return `${baseUrl(endpoint)}${OLLAMA_TAGS_PATH}`;
+}
+
+function cannotReachMessage(endpoint: string, error: unknown): string {
+  return (
+    `Cannot reach Ollama at ${endpoint}. Is the daemon running? ` +
+    formatFetchFailure(error)
+  );
+}
+
+function shouldRetryOllama(error: unknown): boolean {
+  if (error instanceof RuntimeError) {
+    return false;
+  }
+  if (error instanceof TransientHttpError) {
+    return true;
+  }
+  return isTransientFetchError(error);
+}
+
+async function preflightOllama(endpoint: string): Promise<void> {
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    OLLAMA_PREFLIGHT_TIMEOUT_MS,
+  );
+
+  try {
+    const response = await fetch(tagsUrl(endpoint), {
+      method: "GET",
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new RuntimeError(
+        `Cannot reach Ollama at ${endpoint}. Preflight /api/tags returned ${response.status}.`,
+      );
+    }
+  } catch (error) {
+    if (error instanceof RuntimeError) {
+      throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new RuntimeError(
+        `Cannot reach Ollama at ${endpoint}. Preflight timed out after ` +
+          `${Math.round(OLLAMA_PREFLIGHT_TIMEOUT_MS / 1000)}s. Is the daemon running?`,
+      );
+    }
+    throw new RuntimeError(cannotReachMessage(endpoint, error));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callOllamaChatOnce(
+  endpoint: string,
+  model: string,
+  prompt: string,
+  signal: AbortSignal,
+): Promise<string> {
+  const response = await fetch(chatUrl(endpoint), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      model,
+      stream: false,
+      format: "json",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    const detail = `Ollama request failed (${response.status}): ${body.slice(0, 300)}`;
+    if (isTransientHttpStatus(response.status)) {
+      throw new TransientHttpError(response.status, detail);
+    }
+    throw new RuntimeError(detail);
+  }
+
+  const payload = (await response.json()) as OllamaChatResponse;
+  const content = payload.message?.content?.trim();
+  if (!content) {
+    throw new RuntimeError("Ollama returned an empty response.");
+  }
+  return content;
 }
 
 async function callOllamaChat(
@@ -25,44 +134,42 @@ async function callOllamaChat(
   model: string,
   prompt: string,
   timeoutMs: number,
+  onProgress?: (message: string) => void,
 ): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const response = await fetch(chatUrl(endpoint), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        model,
-        stream: false,
-        format: "json",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new RuntimeError(
-        `Ollama request failed (${response.status}): ${body.slice(0, 300)}`,
-      );
-    }
-
-    const payload = (await response.json()) as OllamaChatResponse;
-    const content = payload.message?.content?.trim();
-    if (!content) {
-      throw new RuntimeError("Ollama returned an empty response.");
-    }
-    return content;
+    return await withRetries(
+      async () => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          return await callOllamaChatOnce(
+            endpoint,
+            model,
+            prompt,
+            controller.signal,
+          );
+        } finally {
+          clearTimeout(timer);
+        }
+      },
+      {
+        attempts: OLLAMA_TRANSIENT_RETRIES,
+        baseDelayMs: OLLAMA_RETRY_BASE_DELAY_MS,
+        shouldRetry: shouldRetryOllama,
+        onRetry: ({ attempt, attempts, delayMs, error }) => {
+          onProgress?.(
+            `LLM enricher: Ollama transient error, retrying ${attempt + 1}/${attempts} ` +
+              `in ${delayMs}ms (${formatFetchFailure(error)})…`,
+          );
+        },
+      },
+    );
   } catch (error) {
     if (error instanceof RuntimeError) {
       throw error;
+    }
+    if (error instanceof TransientHttpError) {
+      throw new RuntimeError(error.message);
     }
     if (error instanceof Error && error.name === "AbortError") {
       throw new RuntimeError(
@@ -70,12 +177,7 @@ async function callOllamaChat(
           "On slower hardware, retry with a higher --llm-timeout (seconds) or scan a smaller folder.",
       );
     }
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new RuntimeError(
-      `Cannot reach Ollama at ${endpoint}. Is the daemon running? ${reason}`,
-    );
-  } finally {
-    clearTimeout(timer);
+    throw new RuntimeError(cannotReachMessage(endpoint, error));
   }
 }
 
@@ -101,6 +203,9 @@ export const ollamaEnricher: LlmEnricher = {
       };
     }
 
+    progress?.(`LLM enricher: checking Ollama at ${endpoint}…`);
+    await preflightOllama(endpoint);
+
     progress?.(
       `LLM enricher: multi-pass Ollama (${input.candidates.length} candidate(s), ` +
         `timeout ${Math.round(timeoutMs / 1000)}s per request)…`,
@@ -111,7 +216,7 @@ export const ollamaEnricher: LlmEnricher = {
       batchSize: OLLAMA_BATCH_SIZE,
       onProgress: progress,
       callModel: (prompt) =>
-        callOllamaChat(endpoint, input.model, prompt, timeoutMs),
+        callOllamaChat(endpoint, input.model, prompt, timeoutMs, progress),
     });
     const findings = mapStructuredFindings(structured, input.candidates);
 
