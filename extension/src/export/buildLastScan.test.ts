@@ -83,4 +83,46 @@ describe("buildLastScanReport", () => {
     expect(pending.findings[0]?.action).toBe("kept");
     expect(kept.totals.savedTokens).toBe(0);
   });
+
+  it("emits hybrid layers when LLM findings are supplied", () => {
+    const registry = new TabRegistry();
+    const now = Date.now();
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+
+    const report = assertValidLastScan(
+      buildLastScanReport({
+        tabs: registry.list(now),
+        decisionFor: () => "filtered",
+        repo: "repo",
+        team: "team",
+        provider: "generic",
+        timestamp: "2026-08-20T12:00:00.000Z",
+        llmFindings: [
+          {
+            path: "AGENTS.md",
+            reason: "redundant_instructions",
+            bytes: 800,
+            estTokens: 200,
+            action: "excluded",
+            source: "llm",
+          },
+        ],
+        llmMeta: {
+          backend: "noop",
+          model: "none",
+          durationMs: 1,
+          candidatesSent: 1,
+        },
+        llmCandidateTokens: 200,
+      }),
+    );
+
+    expect(report.scan?.mode).toBe("hybrid");
+    expect(report.layers?.llm.findings).toHaveLength(1);
+    expect(report.findings.some((finding) => finding.source === "llm")).toBe(true);
+  });
 });

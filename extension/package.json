@@ -20,6 +20,7 @@
     "vscode:prepublish": "npm run build"
   },
   "dependencies": {
+    "@tokenforge/enrichers": "*",
     "@tokenforge/risk-core": "*"
   },
   "activationEvents": [
@@ -113,6 +114,12 @@
         "command": "tokenforge.focusRiskPanel",
         "title": "Focus Risk Panel",
         "category": "TokenForge"
+      },
+      {
+        "command": "tokenforge.enrichInstructions",
+        "title": "Enrich instruction paths (optional LLM)",
+        "category": "TokenForge",
+        "icon": "$(sparkle)"
       }
     ],
     "menus": {
@@ -146,6 +153,11 @@
           "command": "tokenforge.clearFilters",
           "when": "view == tokenforge.riskPanel",
           "group": "navigation@4"
+        },
+        {
+          "command": "tokenforge.enrichInstructions",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [
@@ -210,6 +222,33 @@
             "generic"
           ],
           "description": "Fix adapter id recorded in last-scan.json (scoring ignores this)."
+        },
+        "tokenforge.llmEnrichment": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Opt-in. When enabled, TokenForge: Enrich instruction paths may call an LLM enricher. Live Context Guard scoring stays heuristic."
+        },
+        "tokenforge.llm": {
+          "type": "string",
+          "default": "noop",
+          "description": "LLM backend spec (same as CLI --llm), e.g. ollama:qwen2.5-coder:7b, anthropic:claude-sonnet-4-5, codex, or noop."
+        },
+        "tokenforge.llmEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Optional override for Ollama/Anthropic endpoint. Empty uses backend defaults."
+        },
+        "tokenforge.llmTimeout": {
+          "type": "number",
+          "default": 120,
+          "description": "Per-batch enricher timeout in seconds."
+        },
+        "tokenforge.allowExternalLlm": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Allow Anthropic/Codex enrichers to send instruction excerpts off this machine. Local Ollama does not require this."
         }
       }
     }
