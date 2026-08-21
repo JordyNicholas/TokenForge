@@ -146,9 +146,29 @@ Show that **combined** layer drives policy output:
 npm run tokenforge -- apply . --dry-run --provider generic
 ```
 
+Or scan + apply in one step (hybrid flags are forwarded into the scan):
+
+```bash
+npm run tokenforge -- init . --mode hybrid --llm ollama:qwen2.5-coder:7b --provider generic --dry-run
+```
+
 **Expected:** Planned exclusion / instruction files reference combined findings; no LLM SDK in `risk-core`.
 
 ## 4. Dashboard — three boards
+
+### Fast path — Detect → Prove
+
+After a heuristic or hybrid scan, stage the report and open Prove preloaded:
+
+```bash
+npm run tokenforge:prove -- scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
+```
+
+This copies `.tokenforge/scan-report.json` → `dashboard/public/last-scan.json`,
+starts the dashboard if needed, and opens `/board/combined?src=/last-scan.json`.
+(`tokenforge:scan` / `:apply` / `:init` remain **noisy-app demo shortcuts** only.)
+
+### Manual path
 
 Start the Prove adapter:
 
@@ -160,14 +180,15 @@ Open the URL printed (usually `http://localhost:5173`).
 
 ### 4a. Demo seed (offline)
 
-- Default load: `dashboard/public/demo-seed.json`.
+- Default load: `dashboard/public/demo-seed.json` (when `?src=` is absent).
 - **Combined / Heuristic** boards show BU KPIs.
 - **LLM** board is enabled when a report includes LLM findings (demo seed includes a kept `AGENTS.md` review row).
 - **Findings** lists paths; click a row for explanation + copy-only suggestion. `/offenders` redirects here.
 
 ### 4b. Load hybrid scan JSON
 
-1. Use **Load JSON** (toolbar) → select `.tokenforge/scan-report.json` from step 2.
+1. Use **Load JSON** (toolbar) → select `.tokenforge/scan-report.json` from step 2,
+   **or** open with `?src=/last-scan.json` after `tokenforge:prove`.
 2. Sidebar **Scan board** tabs:
    - **Combined** — merged heuristic + LLM totals and findings.
    - **Heuristic** — lockfiles / oversized only.

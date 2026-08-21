@@ -61,6 +61,15 @@ npm test
 npm run tokenforge:scan
 ```
 
+`tokenforge:scan` / `:apply` / `:init` are **demo shortcuts** hardcoded to
+`fixtures/noisy-app`. For any other path (or hybrid flags), use the flexible
+entry:
+
+```bash
+npm run tokenforge -- scan path/to/repo
+npm run tokenforge -- init path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
+```
+
 `tokenforge scan` scores paths with risk-core, prints a findings table, and writes
 `.tokenforge/scan-report.json` (v0 Token Risk contract). Default mode is
 **heuristic-only** (no AI). Optional hybrid enrichment is documented in
@@ -81,11 +90,13 @@ npm run tokenforge -- scan fixtures/noisy-app --mode hybrid --llm ollama:qwen2.5
 ```bash
 npm run tokenforge:apply -- --dry-run
 npm run tokenforge:init
+npm run tokenforge -- init path/to/repo --mode hybrid --provider generic
 ```
 
 `apply` / `init` write a **provider adapter** pack (MVP default: Copilot
 `.github/copilot-instructions.md` + exclusion candidates). Cursor/Claude adapters
-are stubbed; `--provider generic` writes a vendor-neutral pack.
+are stubbed; `--provider generic` writes a vendor-neutral pack. `init` forwards
+`--mode` / `--llm` into the scan step (same as `scan`).
 
 `--json` prints machine totals (`beforeTokens`, `afterTokens`, `savedTokens`,
 `savedPercent`) for demo scripts and the dashboard seed. Human output includes
@@ -101,7 +112,19 @@ npm run tokenforge:dashboard
 Serves the Tokens Saved layout (Overview, Heatmap, Offenders, Assumptions).
 Assumptions convert token totals → $ live (rate, team size, msgs/day, model
 mix). The pitch ~30% is that scenario on `dashboard/public/demo-seed.json`
-(offline). Optionally load a CLI/extension `scan-report.json` via file or URL.
+(offline). Optionally load a CLI/extension `scan-report.json` via file or URL,
+or boot with `?src=/last-scan.json`.
+
+**Detect → Prove in one step** (heuristic or hybrid):
+
+```bash
+npm run tokenforge:prove -- scan fixtures/noisy-app
+npm run tokenforge:prove -- scan path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
+```
+
+Runs the CLI, stages `.tokenforge/scan-report.json` as
+`dashboard/public/last-scan.json`, starts the dashboard if needed, and opens
+`/board/combined?src=/last-scan.json`.
 
 ```bash
 npm run tokenforge:dashboard:build
