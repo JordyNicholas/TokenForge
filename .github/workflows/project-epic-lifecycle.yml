@@ -23,8 +23,9 @@ permissions:
   issues: write
 
 concurrency:
-  group: project-epic-${{ github.event.issue.number }}
-  cancel-in-progress: true
+  # Serialize sibling story closes so only one job closes the parent epic.
+  group: project-epic-lifecycle
+  cancel-in-progress: false
 
 env:
   PROJECT_NUMBER: '2'
@@ -105,14 +106,41 @@ jobs:
             echo "Epic still has open stories — leave it open."
             exit 0
           fi
+
+          # Re-read parent state (siblings may close in parallel).
+          PARENT_STATE=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) { state }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '.data.repository.issue.state // empty')
+
           if [[ "$PARENT_STATE" == "CLOSED" ]]; then
             echo "Parent epic #$PARENT is already closed."
             exit 0
           fi
 
-          gh issue close "$PARENT" --repo "$REPO" \
-            --comment "All child stories are closed. Closing this epic so the board moves it to **Epics Finished**."
-          echo "Closed parent epic #$PARENT"
+          if gh issue close "$PARENT" --repo "$REPO" \
+            --comment "All child stories are closed. Closing this epic so the board moves it to **Epics Finished**."; then
+            echo "Closed parent epic #$PARENT"
+            exit 0
+          fi
+
+          # Race: another sibling job closed it between the check and close.
+          PARENT_STATE=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) { state }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '.data.repository.issue.state // empty')
+          if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+            echo "Parent epic #$PARENT already closed by a concurrent job — OK."
+            exit 0
+          fi
+          echo "::error::Failed to close parent epic #$PARENT (state=$PARENT_STATE)"
+          exit 1
 
   sync-epic-status:
     name: Sync Epic board Status
