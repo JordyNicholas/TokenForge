@@ -1,5 +1,5 @@
 import type { LlmBackendId } from "@tokenforge/risk-core";
-import { UsageError } from "../app/errors";
+import { UsageError } from "./errors";
 import { anthropicEnricher } from "./anthropic/anthropic";
 import { codexEnricher } from "./codex/codex";
 import { noopEnricher } from "./noop/noop";

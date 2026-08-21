@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RuntimeError } from "../../app/errors";
+import { RuntimeError } from "../errors";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import { ollamaEnricher } from "./ollama";
 
