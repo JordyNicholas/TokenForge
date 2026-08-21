@@ -1,8 +1,14 @@
+import {
+  MAX_LEAN_INSTRUCTION_BYTES,
+  collapseExclusionPaths,
+  synthesizeLeanInstructions,
+  type TokenRiskReport,
+} from "@tokenforge/risk-core";
 import { RuntimeError } from "../app/errors";
 import type { PolicyFile } from "./types";
 
-/** Hard cap so policy packs cannot become another fat always-on context file. */
-export const MAX_INSTRUCTION_BYTES = 2_048;
+/** @deprecated Prefer MAX_LEAN_INSTRUCTION_BYTES from risk-core. */
+export const MAX_INSTRUCTION_BYTES = MAX_LEAN_INSTRUCTION_BYTES;
 
 export const COPILOT_INSTRUCTIONS_PATH = ".github/copilot-instructions.md";
 export const COPILOT_EXCLUSIONS_PATH = ".github/copilot-exclusion-candidates.yml";
@@ -19,4 +25,36 @@ export function assertLeanInstruction(file: PolicyFile): PolicyFile {
     );
   }
   return file;
+}
+
+export function renderExclusionYaml(
+  report: TokenRiskReport,
+  headerLines: readonly string[],
+): string {
+  const lines = collapseExclusionPaths(
+    report.findings
+      .filter((finding) => finding.action === "excluded")
+      .map((finding) => finding.path),
+  ).map((path) => `  - ${path}`);
+
+  return `${headerLines.join("\n")}
+provider: ${report.provider}
+repo: ${JSON.stringify(report.repo)}
+paths:
+${lines.join("\n") || "  []"}
+`;
+}
+
+export function renderInstructionsFile(
+  report: TokenRiskReport,
+  path: string,
+  title: string,
+): PolicyFile {
+  return assertLeanInstruction({
+    path,
+    contents: synthesizeLeanInstructions(report, {
+      title,
+      maxBytes: MAX_INSTRUCTION_BYTES,
+    }),
+  });
 }

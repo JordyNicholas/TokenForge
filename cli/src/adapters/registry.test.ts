@@ -53,6 +53,9 @@ describe("getAdapter", () => {
     expect(Buffer.byteLength(instructions?.contents ?? "", "utf8")).toBeLessThanOrEqual(
       MAX_INSTRUCTION_BYTES,
     );
+    expect(instructions?.contents).toContain("## Do not load");
+    expect(instructions?.contents).toContain("package-lock.json");
+    expect(instructions?.contents).toContain("## Prefer");
     expect(exclusions?.contents).toContain("package-lock.json");
     expect(exclusions?.contents).toContain(
       "src/shared/infra/database/client/**",
