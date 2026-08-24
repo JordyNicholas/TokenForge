@@ -38,7 +38,7 @@ export function FutureLeversCard({
         <Typography variant="body2" sx={{ mt: 0.5 }}>
           {compact.detail}
         </Typography>
-        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
           Issue #25 · advisory only — no vendor chat access
         </Typography>
       </Alert>
