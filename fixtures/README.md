@@ -15,6 +15,7 @@ wired through `cli/src/test/helpers.ts`, and covered by tests under
 | `lean-app/` | Precision (negative control): a small, healthy repo with no lockfile/generated/oversized paths produces `savedPercent` at 0% — TokenForge doesn't manufacture savings. | `expected/lean-app-totals.json` |
 | `borderline-app/` | Precision (stress test): two legitimately large files (a hand-maintained `.ts` type surface, a real i18n config) still get `oversized` → `excluded`, and an unrelated `rules/` directory still gets prioritized for LLM enrichment. Documents two concrete heuristic gaps — see `docs/HEURISTICS_AUDIT.md` B1-B3. | `expected/borderline-app-totals.json` |
 | `instructions-app/` | Hybrid/LLM candidate routing: verbose, duplicated `AGENTS.md`/`CLAUDE.md`/`.cursorrules`/`copilot-instructions.md` files stay out of the heuristic-only layer but are correctly prioritized as enrichment candidates for `--mode hybrid`. | `expected/instructions-app-totals.json` |
+| `semantic-duplicates-app/` | Semantic redundancy stress test: the same rules/logic repeated but *paraphrased* every time (no shared sentences across instruction files, no shared code between duplicate source pairs) — checks whether hybrid-mode enrichment reasons about meaning instead of matching text. | `expected/semantic-duplicates-app-totals.json` |
 
 ## Adding a new fixture
 
