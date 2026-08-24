@@ -19,6 +19,7 @@ import {
   projectSavings,
   resolveBootAfterUsageUrl,
   listUsagePeriods,
+  normalizeUsagePeriodPair,
   upsertUsageSnapshot,
   withPitchScenario,
   type Assumptions,
@@ -79,6 +80,9 @@ export type DashboardState = {
   compareBaselineUsage: UsageMetrics | null;
   compareAfterUsage: UsageMetrics | null;
   usageSnapshotLabel: (period: string) => string | null;
+  /** True when baseline/after picks were swapped to chronological order. */
+  usagePeriodsAutoCorrected: boolean;
+  dismissUsagePeriodAutoCorrected: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -120,7 +124,23 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [usageSnapshotLabels, setUsageSnapshotLabels] = useState<Record<string, string>>({});
   const [baselinePeriod, setBaselinePeriodState] = useState<string | null>(null);
   const [afterPeriod, setAfterPeriodState] = useState<string | null>(null);
+  const [usagePeriodsAutoCorrected, setUsagePeriodsAutoCorrected] = useState(false);
+  const baselinePeriodRef = useRef<string | null>(null);
+  const afterPeriodRef = useRef<string | null>(null);
+  baselinePeriodRef.current = baselinePeriod;
+  afterPeriodRef.current = afterPeriod;
   const skipCompareClearOnMount = useRef(true);
+
+  const applyPeriodPair = useCallback((baseline: string | null, after: string | null) => {
+    const normalized = normalizeUsagePeriodPair(baseline, after);
+    setBaselinePeriodState(normalized.baselinePeriod);
+    setAfterPeriodState(normalized.afterPeriod);
+    setUsagePeriodsAutoCorrected(normalized.inverted);
+  }, []);
+
+  const dismissUsagePeriodAutoCorrected = useCallback(() => {
+    setUsagePeriodsAutoCorrected(false);
+  }, []);
 
   const projection = useMemo(
     () => projectSavings(loaded.totals, assumptions),
@@ -144,23 +164,34 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
   }, []);
 
-  const beginAfterUsageCompare = useCallback((usage: UsageMetrics, label: string) => {
-    setAfterUsage(usage);
-    setAfterUsageLabel(label);
-    setAfterUsageError(null);
-    setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
-    setUsageSnapshots((current) => upsertUsageSnapshot(current, usage));
-    setUsageSnapshotLabels((current) => ({ ...current, [usage.period]: label }));
-    setAfterPeriodState(usage.period);
-  }, []);
+  const beginAfterUsageCompare = useCallback(
+    (usage: UsageMetrics, label: string) => {
+      setAfterUsage(usage);
+      setAfterUsageLabel(label);
+      setAfterUsageError(null);
+      setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
+      setUsageSnapshots((current) => upsertUsageSnapshot(current, usage));
+      setUsageSnapshotLabels((current) => ({ ...current, [usage.period]: label }));
+      const baseline =
+        baselinePeriodRef.current ?? loaded.seed?.usage?.period ?? null;
+      applyPeriodPair(baseline, usage.period);
+    },
+    [applyPeriodPair, loaded.seed?.usage?.period],
+  );
 
-  const setBaselinePeriod = useCallback((period: string) => {
-    setBaselinePeriodState(period);
-  }, []);
+  const setBaselinePeriod = useCallback(
+    (period: string) => {
+      applyPeriodPair(period, afterPeriodRef.current);
+    },
+    [applyPeriodPair],
+  );
 
-  const setAfterPeriod = useCallback((period: string) => {
-    setAfterPeriodState(period);
-  }, []);
+  const setAfterPeriod = useCallback(
+    (period: string) => {
+      applyPeriodPair(baselinePeriodRef.current, period);
+    },
+    [applyPeriodPair],
+  );
 
   useEffect(() => {
     const usage = loaded.seed?.usage;
@@ -180,19 +211,26 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [usageSnapshots],
   );
 
+  const effectivePeriods = useMemo(
+    () => normalizeUsagePeriodPair(baselinePeriod, afterPeriod),
+    [baselinePeriod, afterPeriod],
+  );
+
   const compareBaselineUsage = useMemo(() => {
-    if (baselinePeriod && usageSnapshots[baselinePeriod]) {
-      return usageSnapshots[baselinePeriod] ?? null;
+    const period = effectivePeriods.baselinePeriod;
+    if (period && usageSnapshots[period]) {
+      return usageSnapshots[period] ?? null;
     }
     return loaded.seed?.usage ?? null;
-  }, [baselinePeriod, usageSnapshots, loaded.seed?.usage]);
+  }, [effectivePeriods.baselinePeriod, usageSnapshots, loaded.seed?.usage]);
 
   const compareAfterUsage = useMemo(() => {
-    if (afterPeriod && usageSnapshots[afterPeriod]) {
-      return usageSnapshots[afterPeriod] ?? null;
+    const period = effectivePeriods.afterPeriod;
+    if (period && usageSnapshots[period]) {
+      return usageSnapshots[period] ?? null;
     }
     return afterUsage;
-  }, [afterPeriod, usageSnapshots, afterUsage]);
+  }, [effectivePeriods.afterPeriod, usageSnapshots, afterUsage]);
 
   const usageSnapshotLabel = useCallback(
     (period: string) => usageSnapshotLabels[period] ?? null,
@@ -286,6 +324,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setAfterUsageError(null);
     setCompareAssumptionsFreeze(null);
     setAfterPeriodState(null);
+    setUsagePeriodsAutoCorrected(false);
     if (loaded.seed?.usage) {
       const usage = loaded.seed.usage;
       setUsageSnapshots({ [usage.period]: usage });
@@ -364,6 +403,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       compareBaselineUsage,
       compareAfterUsage,
       usageSnapshotLabel,
+      usagePeriodsAutoCorrected,
+      dismissUsagePeriodAutoCorrected,
     }),
     [
       loaded,
@@ -396,6 +437,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       compareBaselineUsage,
       compareAfterUsage,
       usageSnapshotLabel,
+      usagePeriodsAutoCorrected,
+      dismissUsagePeriodAutoCorrected,
     ],
   );
 

@@ -88,6 +88,11 @@ export {
   type VarianceBoardRow,
 } from "./varianceBoard";
 export {
+  compareUsagePeriodKeys,
+  normalizeUsagePeriodPair,
+  type NormalizedUsagePeriodPair,
+} from "./usagePeriodOrder";
+export {
   UsageLoadError,
   normalizeUsageMetrics,
   parseUsageCsv,
