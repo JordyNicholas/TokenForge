@@ -147,7 +147,15 @@ Keep `source: "import"` for real files. Do not invent a second schema.
 
 ## Out of scope (do not demo as done)
 
-- Live vendor usage APIs (Wave B / #89–#94)
+- Live vendor sync (Wave B / #90): org admin `GITHUB_TOKEN` →
+
+```bash
+npm run tokenforge -- usage-pull --org YOUR_ORG --period 2026-08 --json
+# or write UsageMetrics for Prove import:
+npm run tokenforge -- usage-pull --org YOUR_ORG --period 2026-08 --out .tokenforge/usage-2026-08.json
+```
+
+File/demo import remains the fallback when live APIs are unavailable.
 - Apply change markers / cohorts / auto-calibrated `realizedWasteShare` (Wave C)
 - Remote org policy push (#99)
 
