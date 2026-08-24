@@ -1,5 +1,7 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import { UsageError } from "../../app/errors";
+import { writeUsageMetricsFiles } from "../../io/usage-file";
 import { getUsageProvider } from "../../usage/registry";
 import type { UsageProviderId } from "../../usage/types";
 
@@ -10,16 +12,21 @@ export type UsagePullOptions = {
   teamScope?: string;
   /** Required for fixture provider. */
   fixtureFile?: string;
+  /** Explicit output path (`--out`). */
   outPath?: string;
+  /** Repo root for default `.tokenforge/usage-YYYY-MM.json` writes (#94). */
+  root?: string;
 };
 
 export type UsagePullResult = {
   provider: UsageProviderId;
   outPath?: string;
+  periodPath?: string;
+  latestPath?: string;
   metrics: Awaited<ReturnType<ReturnType<typeof getUsageProvider>["fetchUsage"]>>;
 };
 
-/** On-demand usage pull for Prove (#90 adapter; #94 adds scheduling). */
+/** On-demand usage pull for Prove (#90 adapter; #94 adds `.tokenforge/` persistence). */
 export async function pullUsage(options: UsagePullOptions): Promise<UsagePullResult> {
   const period = options.period?.trim();
   if (!period) {
@@ -40,13 +47,29 @@ export async function pullUsage(options: UsagePullOptions): Promise<UsagePullRes
     teamScope: options.teamScope ?? null,
   });
 
-  if (options.outPath) {
+  let periodPath: string | undefined;
+  let latestPath: string | undefined;
+  let outPath = options.outPath;
+
+  if (options.root) {
+    const written = await writeUsageMetricsFiles({
+      root: options.root,
+      metrics,
+      explicitOutPath: options.outPath,
+    });
+    periodPath = written.periodPath;
+    latestPath = written.latestPath;
+    outPath = options.outPath ?? written.periodPath;
+  } else if (options.outPath) {
+    await mkdir(dirname(options.outPath), { recursive: true });
     await writeFile(options.outPath, `${JSON.stringify(metrics, null, 2)}\n`, "utf8");
   }
 
   return {
     provider: options.provider,
-    outPath: options.outPath,
+    outPath,
+    periodPath,
+    latestPath,
     metrics,
   };
 }
