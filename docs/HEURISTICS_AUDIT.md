@@ -135,14 +135,18 @@ downstream consumers (dashboard, adapters) don't have to read
 - `walkFiles`'s symlink skip (`cli/src/commands/scan/scan.ts:103-105`) has no
   test confirming a symlinked large file is excluded rather than crashing or
   double-counting.
-- `tallyLlmTotals`/`tallyCombinedTotals` (`packages/risk-core/src/layers/
+- ~~`tallyLlmTotals`/`tallyCombinedTotals` (`packages/risk-core/src/layers/
   totals.ts`) don't handle a `verdict: "review"` finding explicitly — it's
   neither `excluded` nor `filtered`, so it's silently excluded from savings
-  math; untested.
+  math; untested.~~ **Covered** — see B10. The behavior turned out to be
+  correct (a path you cannot delete must not count as a saving), and it is now
+  pinned in `packages/risk-core/src/layers/layers.test.ts` and
+  `cli/src/commands/scan/scan.hybrid.test.ts`. It became load-bearing with B9,
+  since `duplicate_logic` is always `review`.
 
-None of these gaps are fixed in this round (audit-only, per scope); they're
-listed so a future pass can turn each into a targeted unit test alongside
-whichever heuristic change it's motivated by.
+The remaining gaps are not fixed (audit-only, per this doc's original scope);
+they're listed so a future pass can turn each into a targeted unit test
+alongside whichever heuristic change it's motivated by.
 
 ## B8 — `source`-class files had no path into LLM candidate selection
 
@@ -232,3 +236,41 @@ requested in the prompt. It maps to suggestion kind `review` so it stays out of
 **Still open (deliberate):** `SUGGESTION_KINDS` contains only context-removal
 actions — there is no `extract_shared_helper` / `consolidate_duplicate_logic`
 kind, so the advice rides on `review` plus prose.
+
+## B10 — no test seam for hybrid enrichment; the LLM path only ever ran empty
+
+**Status:** Fixed.
+
+**Where:** `cli/src/commands/scan/scan.ts` (`runHybridEnrichment`,
+`ScanOptions`), `packages/enrichers/src/registry.ts`.
+
+**Previous behavior:** `runHybridEnrichment` resolved
+`getEnricher(spec.backend)` directly, and the registry is a fixed switch over
+four real backends. With no injection point, the four CLI tests running
+`mode: "hybrid"` could only use `noop`, which returns zero findings. So the
+wiring from candidates through the enricher, `mergeFindings`, `buildScanLayers`
+and the totals was **only ever exercised with an empty findings array** —
+every one of those units had its own test, but the seam between them had none.
+
+**Risk:** the entire hybrid output path — which layer a finding lands in, what
+`scan.llm` metadata is recorded, and above all the savings arithmetic — was
+unverified end to end. B9 made this sharper: `duplicate_logic` is always
+`verdict: review` → `action: "kept"`, so 100% of that feature's findings travel
+the one branch of the totals filter that B7 had already flagged as untested.
+
+**Fix:** added an optional `ScanOptions.enricher`, following the convention
+already set by `now?: Date` and `onProgress`. The production registry is
+untouched and omitting the option still resolves it, so the pre-existing hybrid
+tests pass unchanged. `cli/src/commands/scan/scan.hybrid.test.ts` then drives a
+scripted enricher against `fixtures/semantic-duplicates-app` to pin layer
+routing, `scan.llm` metadata, and three totals cases: excluded counts, kept
+does not, and a mixed batch counts only the excluded path.
+
+The savings assertions were checked for teeth by temporarily folding `kept`
+into the `tallyLlmTotals` filter — both go red, so they are guarding real
+behavior rather than restating it.
+
+**Noted while writing the tests:** `src/validators/isValidEmail.js` is *not* an
+enrichment candidate for that fixture. At 193 bytes it is the smallest of its 7
+source files, one more than `DEFAULT_SOURCE_CANDIDATE_COUNT` (5) — the B8
+bucket working to budget, as documented in the fixture README.
