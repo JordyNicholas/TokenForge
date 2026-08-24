@@ -23,6 +23,12 @@ const candidates: EnrichmentCandidate[] = [
     estTokens: 200,
     excerpt: "export const app = true;",
   },
+  {
+    path: "config/locales.json",
+    bytes: 900,
+    estTokens: 225,
+    excerpt: '{"hello":"world"}',
+  },
 ];
 
 const map: RepoContextMap = {
@@ -41,14 +47,19 @@ describe("isInstructionPath", () => {
 });
 
 describe("buildMapPrompt", () => {
-  it("includes inventory and digests only for instruction paths", () => {
+  it("digests instruction and source paths, but not other classes", () => {
     const prompt = buildMapPrompt(candidates);
     expect(prompt).toContain("AGENTS.md");
     expect(prompt).toContain("src/app.ts");
     expect(prompt).toContain("digest:");
     expect(prompt).toContain("Always run lint before commit.");
     expect(prompt).toContain("…(truncated)");
-    expect(prompt).not.toContain("export const app = true;");
+    // Source files need a digest too: without content, Pass A sees only a path
+    // and a byte count and cannot cluster them by meaning.
+    expect(prompt).toContain("export const app = true;");
+    // Still scoped — a config file is listed but not digested.
+    expect(prompt).toContain("config/locales.json");
+    expect(prompt).not.toContain('{"hello":"world"}');
     expect(prompt).toContain("Do not suggest architecture");
     expect(prompt).toContain("never README, RULEBOOK");
     expect(prompt).toContain("all four keys required");

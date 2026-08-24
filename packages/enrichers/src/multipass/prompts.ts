@@ -1,4 +1,5 @@
 import {
+  classifyFiletype,
   INSTRUCTION_FILE_NAMES,
   INSTRUCTION_PATH_SEGMENTS,
 } from "@tokenforge/risk-core";
@@ -47,6 +48,16 @@ export function formatRepoContextMap(map: RepoContextMap): string {
   return lines.join("\n");
 }
 
+/**
+ * Paths worth a content digest in the Pass A map prompt.
+ * Instruction files (to spot duplicated guidance) plus source files (to spot
+ * duplicated logic) — without a digest the model sees only a path and a byte
+ * count, which is not enough to cluster anything by meaning.
+ */
+function deservesMapDigest(path: string): boolean {
+  return isInstructionPath(path) || classifyFiletype(path) === "source";
+}
+
 function buildMapInventoryBlock(
   candidates: readonly EnrichmentCandidate[],
 ): string {
@@ -57,7 +68,7 @@ function buildMapInventoryBlock(
         `  bytes: ${candidate.bytes}`,
         `  estTokens: ${candidate.estTokens}`,
       ];
-      if (isInstructionPath(candidate.path)) {
+      if (deservesMapDigest(candidate.path)) {
         row.push("  digest:");
         row.push("  ```");
         row.push(
