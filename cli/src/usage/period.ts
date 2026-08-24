@@ -33,3 +33,10 @@ export function daysInUsagePeriod(period: UsagePeriod): string[] {
   }
   return days;
 }
+
+/** Inclusive UTC epoch bounds for a billing month. */
+export function usagePeriodEpochBounds(period: UsagePeriod): { startMs: number; endMs: number } {
+  const startMs = Date.UTC(period.year, period.month - 1, 1, 0, 0, 0, 0);
+  const endMs = Date.UTC(period.year, period.month, 0, 23, 59, 59, 999);
+  return { startMs, endMs };
+}
