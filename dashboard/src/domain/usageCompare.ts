@@ -1,9 +1,13 @@
 /**
- * Baseline vs after-Fix period compare for Prove (#86).
+ * Baseline vs after-Fix period compare for Prove (#86 + #87 freeze).
  * Local/imported billed usage + scan estimate — not live vendor sync.
  */
 import type { TokenRiskTotals } from "@tokenforge/risk-core";
-import type { Assumptions } from "./assumptions";
+import {
+  assumptionsEqual,
+  cloneAssumptions,
+  type Assumptions,
+} from "./assumptions";
 import { projectSavings } from "./calculator";
 import { usageForTeam, type UsageMetrics } from "./usage";
 
@@ -17,7 +21,7 @@ export type UsagePeriodSlice = {
 export type UsagePeriodCompare = {
   baseline: UsagePeriodSlice;
   after: UsagePeriodSlice;
-  /** Projected $ reduction from the baseline scan × current assumptions. */
+  /** Projected $ reduction from the baseline scan × frozen (or live) assumptions. */
   estimatedUsdReduction: number;
   /** Baseline billed $ − after billed $ (positive = bill went down). */
   actualBilledChange: number;
@@ -25,6 +29,11 @@ export type UsagePeriodCompare = {
   varianceUsd: number;
   periodMismatch: boolean;
   providerMismatch: boolean;
+  /** Assumptions used for estimated $ (prefer freeze when present). */
+  assumptionsUsed: Assumptions;
+  assumptionsFrozen: boolean;
+  /** True when live knobs differ from the freeze used for estimate $. */
+  liveAssumptionsDrift: boolean;
 };
 
 export function usagePeriodSlice(
@@ -45,24 +54,31 @@ export function usagePeriodSlice(
 
 /**
  * Three Prove KPIs for a baseline/after usage pair.
- * Estimated reduction uses the baseline (or active) scan totals and live assumptions;
- * freezing those knobs is #87.
+ * Estimated reduction prefers a frozen Assumptions snapshot (#87) so edited knobs
+ * cannot silently rewrite a saved compare run.
  */
 export function compareUsagePeriods(input: {
   baselineUsage: UsageMetrics;
   afterUsage: UsageMetrics;
   teamId: string | null;
   baselineTotals: TokenRiskTotals;
-  assumptions: Assumptions;
+  /** Live Assumptions panel values. */
+  liveAssumptions: Assumptions;
+  /** Snapshot frozen when the compare run was saved; null → use live. */
+  frozenAssumptions?: Assumptions | null;
 }): UsagePeriodCompare | null {
   const baseline = usagePeriodSlice(input.baselineUsage, input.teamId);
   const after = usagePeriodSlice(input.afterUsage, input.teamId);
   if (!baseline || !after) {
     return null;
   }
+  const assumptionsFrozen = Boolean(input.frozenAssumptions);
+  const assumptionsUsed = cloneAssumptions(
+    input.frozenAssumptions ?? input.liveAssumptions,
+  );
   const estimatedUsdReduction = projectSavings(
     input.baselineTotals,
-    input.assumptions,
+    assumptionsUsed,
   ).monthlyUsdSaved;
   const actualBilledChange = baseline.estimatedUsd - after.estimatedUsd;
   return {
@@ -73,5 +89,10 @@ export function compareUsagePeriods(input: {
     varianceUsd: actualBilledChange - estimatedUsdReduction,
     periodMismatch: baseline.period !== after.period,
     providerMismatch: baseline.providerLabel !== after.providerLabel,
+    assumptionsUsed,
+    assumptionsFrozen,
+    liveAssumptionsDrift: assumptionsFrozen
+      ? !assumptionsEqual(assumptionsUsed, input.liveAssumptions)
+      : false,
   };
 }
