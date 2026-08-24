@@ -35,6 +35,32 @@ describe("scanRepo (semantic-duplicates-app, paraphrased redundancy stress test)
     );
   });
 
+  it("also surfaces most of the duplicate source-code pairs as candidates via the source-fairness bucket (B8)", async () => {
+    const { assessments } = await scanRepo({ root: semanticDuplicatesAppRoot });
+    const candidates = selectEnrichmentCandidates(assessments);
+    const candidatePaths = candidates.map((candidate) => candidate.path);
+
+    // The real regression proof for B8 is
+    // packages/risk-core/src/candidates/candidates.test.ts, which shapes a
+    // repo where small source files would otherwise be crowded out entirely.
+    // This fixture only has 7 source files total (6 duplicates + the
+    // src/index.js control), one more than the default sourceTopCount (5),
+    // so — honestly, not by design — the single smallest duplicate file
+    // (isValidEmail.js, 193 bytes) misses the guarantee bucket here, same as
+    // the control file. That's the bucket's bounded budget working as
+    // intended, not a bug: this is a fairness improvement, not a promise
+    // that every source file in every repo becomes a candidate.
+    expect(candidatePaths).toEqual(
+      expect.arrayContaining([
+        "src/utils/checkEmailFormat.js",
+        "src/format/formatCurrency.js",
+        "src/helpers/toMoneyString.js",
+        "src/http/fetchWithRetry.js",
+        "src/network/retryRequest.js",
+      ]),
+    );
+  });
+
   it("records hybrid scan metadata with the noop enricher", async () => {
     const { report } = await scanRepo({
       root: semanticDuplicatesAppRoot,
