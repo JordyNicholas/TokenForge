@@ -47,6 +47,14 @@ Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, mod
 
 Demo seed also includes **imported usage** credits/$ (issue #27 thin) — file/demo import, not live vendor billing APIs.
 
+## Estimate vs actual billed usage?
+
+**Today:** Prove projects $ from scan totals × editable assumptions, and can show **imported** usage beside that projection. Before/after Fix compare is a **local scan snapshot** diff — not the vendor invoice.
+
+**Next (F2 / #61):** Wave A adds FinOps export import + baseline/after variance; Wave B adds per-provider live usage adapters + a variance board; Wave C adds apply markers, cohorts, and assumption calibration. Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+
+**Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**. We do not meter the agent’s private pipeline.
+
 ## Completions vs Chat/Agent metering?
 
 TokenForge targets **metered Chat/Agent / AI-credit** workflows where context size drives cost — not unlimited inline completions.
