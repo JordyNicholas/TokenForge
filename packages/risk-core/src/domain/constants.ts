@@ -44,6 +44,14 @@ export const TOKEN_RISK_REPORT_SCHEMA_PATH =
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
 
+/**
+ * Guaranteed minimum count of `source`-class files sampled into LLM
+ * candidates by size within their own class, so they don't have to
+ * out-compete every other file class in the global top-files ranking.
+ * See docs/HEURISTICS_AUDIT.md B8.
+ */
+export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
+
 /** Borderline config/unknown paths at or above this size are LLM candidates. */
 export const MIN_BORDERLINE_BYTES = 4_096;
 
