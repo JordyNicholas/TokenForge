@@ -145,17 +145,33 @@ Canonical JSON matches `UsageMetrics` in `dashboard/src/domain/usage.ts`:
 
 Keep `source: "import"` for real files. Do not invent a second schema.
 
-## Out of scope (do not demo as done)
+## Live usage sync (Wave B / #94)
 
-- Live vendor sync (Wave B / #90): org admin `GITHUB_TOKEN` →
+On-demand or scheduled pull into `.tokenforge/` (same `UsageMetrics` contract; `source: "sync"`):
 
 ```bash
-npm run tokenforge -- usage-pull --org YOUR_ORG --period 2026-08 --json
-# or write UsageMetrics for Prove import:
-npm run tokenforge -- usage-pull --org YOUR_ORG --period 2026-08 --out .tokenforge/usage-2026-08.json
+# One-shot sync (writes .tokenforge/usage-YYYY-MM.json + usage-latest.json)
+npm run tokenforge -- usage-sync --usage-provider copilot --org YOUR_ORG --period 2026-08
+
+# Optional repo-local config (see docs/schemas/examples/usage-sync.v0.json)
+# .tokenforge/usage-sync.json → { "provider": "copilot", "org": "YOUR_ORG" }
+npm run tokenforge -- usage-sync
+
+# Stage + open Prove variance board
+npm run tokenforge:usage-sync -- --usage-provider copilot --org YOUR_ORG --period 2026-08
+TOKENFORGE_USAGE_SLOT=baseline npm run tokenforge:usage-sync -- --usage-provider copilot --org YOUR_ORG --period 2026-08
 ```
 
-File/demo import remains the fallback when live APIs are unavailable.
+Cron example (monthly, Copilot org):
+
+```cron
+0 6 2 * * cd /path/to/repo && npm run tokenforge -- usage-sync --usage-provider copilot --org YOUR_ORG >> /var/log/tokenforge-usage-sync.log 2>&1
+```
+
+Providers: `copilot` (`GITHUB_TOKEN`). File/demo import remains the fallback when live APIs are unavailable.
+
+## Out of scope (do not demo as done)
+
 - Apply change markers / cohorts / auto-calibrated `realizedWasteShare` (Wave C)
 - Remote org policy push (#99)
 
