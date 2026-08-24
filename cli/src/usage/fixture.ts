@@ -1,11 +1,11 @@
 import { readFile } from "node:fs/promises";
 import {
   isUsageMetrics,
-  totalsFromUsageTeams,
   type UsageMetrics,
 } from "@tokenforge/risk-core";
 import { RuntimeError, UsageError } from "../app/errors";
 import type { FetchUsageQuery, UsageProvider } from "./types";
+import { applyTeamScope } from "./scope";
 
 export type FixtureUsageProviderOptions = {
   /** Path to a UsageMetrics JSON document (file adapter). */
@@ -18,20 +18,6 @@ export type FixtureUsageProviderOptions = {
    */
   org?: string;
 };
-
-function filterByTeamScope(metrics: UsageMetrics, teamScope: string): UsageMetrics {
-  const teams = metrics.teams.filter((row) => row.team === teamScope);
-  if (teams.length === 0) {
-    throw new UsageError(
-      `Fixture usage has no team "${teamScope}" for period ${metrics.period}.`,
-    );
-  }
-  return {
-    ...metrics,
-    teams,
-    totals: totalsFromUsageTeams(teams),
-  };
-}
 
 async function loadMetrics(options: FixtureUsageProviderOptions): Promise<UsageMetrics> {
   if (options.metrics) {
@@ -103,7 +89,7 @@ export function createFixtureUsageProvider(
 
       const scope = query.teamScope?.trim();
       if (scope) {
-        return filterByTeamScope(metrics, scope);
+        return applyTeamScope(metrics, scope);
       }
       return metrics;
     },
