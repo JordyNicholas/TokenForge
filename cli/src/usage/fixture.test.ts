@@ -71,5 +71,6 @@ describe("UsageProvider fixture adapter", () => {
 
   it("rejects unknown usage provider ids", () => {
     expect(() => getUsageProvider("unknown-vendor")).toThrow(/Supported:/i);
+    expect(() => getUsageProvider("codex")).toThrow(/no org billing API/i);
   });
 });
