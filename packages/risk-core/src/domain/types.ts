@@ -11,7 +11,13 @@ export type FindingReason =
   | "oversized"
   | "semantic_bloat"
   | "redundant_instructions"
-  | "low_signal_config";
+  | "low_signal_config"
+  /**
+   * Two or more source paths implementing the same behavior. Advisory only:
+   * never pair this with `action: "excluded"` — hiding one copy from agent
+   * context is not a fix, since both are still imported and executed.
+   */
+  | "duplicate_logic";
 
 export type FindingAction = "filtered" | "excluded" | "kept";
 

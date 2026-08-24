@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenforge.dev/schema/risk-event/v1",
-  "title": "TokenForge Token Risk report (v1)",
-  "description": "Shared Detect/Fix → Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v1 is a strict superset of v0 (risk-event.v0.schema.json, frozen): it adds the duplicate_logic finding reason, so every valid v0 report is still valid here.",
+  "$id": "https://tokenforge.dev/schema/risk-event/v0",
+  "title": "TokenForge Token Risk report (v0 — frozen)",
+  "description": "FROZEN historical contract. Superseded by risk-event.schema.json (v1), which is a strict superset adding the duplicate_logic finding reason. Kept so external consumers pinned to v0 can still validate reports produced before that change. Do not add to this file.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -53,15 +53,13 @@
         "path": { "type": "string", "minLength": 1 },
         "reason": {
           "type": "string",
-          "description": "duplicate_logic is advisory-only: two or more source paths implementing the same behavior. It never carries action \"excluded\" — hiding one copy from agent context is not a fix, since both are still imported.",
           "enum": [
             "inactive_tab",
             "high_risk_filetype",
             "oversized",
             "semantic_bloat",
             "redundant_instructions",
-            "low_signal_config",
-            "duplicate_logic"
+            "low_signal_config"
           ]
         },
         "bytes": { "type": "integer", "minimum": 0 },

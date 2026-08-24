@@ -50,6 +50,8 @@ function heuristicExplanation(
       return "Agent instructions here likely duplicate guidance already present in the repo.";
     case "low_signal_config":
       return "This config looks like low-signal context: billable tokens without much help for the agent.";
+    case "duplicate_logic":
+      return "The hybrid pass found another path implementing the same behavior as this one. Two copies of the same logic cost tokens twice and drift apart over time — but excluding either from context is not the fix, since both are still imported.";
   }
 }
 

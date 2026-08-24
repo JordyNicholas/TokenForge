@@ -33,13 +33,24 @@ export const SCORE_WEIGHT_CLASS = 0.45;
 export const SCORE_WEIGHT_SIZE = 0.35;
 export const SCORE_WEIGHT_INACTIVE = 0.2;
 
-/** Canonical Token Risk report schema `$id` (v0). */
+/** Canonical Token Risk report schema `$id` (current: v1). */
 export const TOKEN_RISK_REPORT_SCHEMA_ID =
-  "https://tokenforge.dev/schema/risk-event/v0";
+  "https://tokenforge.dev/schema/risk-event/v1";
 
 /** Repo-relative JSON Schema path. Single source of truth for all surfaces. */
 export const TOKEN_RISK_REPORT_SCHEMA_PATH =
   "docs/schemas/risk-event.schema.json";
+
+/**
+ * Frozen predecessor contract. v1 is a strict superset (it only adds the
+ * `duplicate_logic` reason), so every v0 report still validates against v1 —
+ * the reverse is not true. Kept for external consumers pinned to v0.
+ */
+export const TOKEN_RISK_REPORT_SCHEMA_V0_ID =
+  "https://tokenforge.dev/schema/risk-event/v0";
+
+export const TOKEN_RISK_REPORT_SCHEMA_V0_PATH =
+  "docs/schemas/risk-event.v0.schema.json";
 
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;

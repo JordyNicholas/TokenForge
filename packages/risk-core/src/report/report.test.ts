@@ -7,6 +7,8 @@ import { describe, expect, it } from "vitest";
 import {
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V0_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V0_PATH,
 } from "../domain/constants";
 import { isTokenRiskReport } from "./report";
 
@@ -21,9 +23,12 @@ describe("Token Risk JSON schema", () => {
     $id: string;
   };
   const example = readJson("docs/schemas/examples/scan-report.v0.json");
+  const v0Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V0_PATH) as { $id: string };
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
+  // Compiled once: Ajv caches by $id and throws on a duplicate compile.
+  const validateV0 = ajv.compile(v0Schema);
 
   it("uses the published $id", () => {
     expect(schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_ID);
@@ -100,6 +105,43 @@ describe("Token Risk JSON schema", () => {
     };
     expect(validate(invalid)).toBe(false);
     expect(isTokenRiskReport(invalid)).toBe(false);
+  });
+
+  it("keeps v1 a strict superset of the frozen v0 contract", () => {
+    expect(v0Schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_V0_ID);
+
+    // Superset property: anything valid under v0 must still validate under v1.
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json");
+    expect(validateV0(example)).toBe(true);
+    expect(validate(example)).toBe(true);
+    expect(validateV0(hybrid)).toBe(true);
+    expect(validate(hybrid)).toBe(true);
+  });
+
+  it("accepts duplicate_logic under v1 only", () => {
+    const base = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      findings: Array<Record<string, unknown>>;
+    };
+    const withDuplicateLogic = {
+      ...base,
+      findings: [
+        {
+          ...base.findings[1],
+          path: "src/utils/checkEmailFormat.js",
+          reason: "duplicate_logic",
+          action: "kept",
+          suggestion: {
+            kind: "review",
+            summary: "Consolidate with src/validators/isValidEmail.js.",
+          },
+        },
+      ],
+    };
+
+    // The whole point of the version bump: v1 accepts it, pinned v0 does not.
+    expect(validate(withDuplicateLogic)).toBe(true);
+    expect(isTokenRiskReport(withDuplicateLogic)).toBe(true);
+    expect(validateV0(withDuplicateLogic)).toBe(false);
   });
 
   it("rejects a report missing totals", () => {

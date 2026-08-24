@@ -98,12 +98,19 @@ TokenForge/
     └── src/{domain,data,state,pages,ui}/
 ```
 
-## JSON contract (v0)
+## JSON contract (v1)
 
 Formal schema (shared by CLI scan-report, extension last-scan export, and dashboard loader):
 [`docs/schemas/risk-event.schema.json`](./schemas/risk-event.schema.json)
-(`$id`: `https://tokenforge.dev/schema/risk-event/v0`).
+(`$id`: `https://tokenforge.dev/schema/risk-event/v1`).
 Example document: [`docs/schemas/examples/scan-report.v0.json`](./schemas/examples/scan-report.v0.json).
+
+v1 is a **strict superset** of v0: it only adds the `duplicate_logic` finding
+reason, so every valid v0 report still validates against v1. The predecessor
+contract stays frozen at
+[`docs/schemas/risk-event.v0.schema.json`](./schemas/risk-event.v0.schema.json)
+for external consumers pinned to it — a report using `duplicate_logic` will not
+validate there.
 
 ```json
 {

@@ -31,6 +31,7 @@ const REASONS = new Set<FindingReason>([
   "semantic_bloat",
   "redundant_instructions",
   "low_signal_config",
+  "duplicate_logic",
 ]);
 const ACTIONS = new Set<FindingAction>(["filtered", "excluded", "kept"]);
 const FINDING_SOURCES = new Set<FindingSource>(["heuristic", "llm", "combined"]);

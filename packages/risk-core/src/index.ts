@@ -21,6 +21,8 @@ export {
   MAX_ANALYSIS_OVERVIEW_CAVEATS,
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V0_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V0_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
 export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/candidates";
