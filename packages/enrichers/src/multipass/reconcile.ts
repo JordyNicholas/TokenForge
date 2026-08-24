@@ -36,10 +36,20 @@ function dedupeByPath(
   return [...byPath.values()];
 }
 
+/** Confidence bump when the map corroborates a cross-file claim. */
+function strengthen(finding: LlmStructuredFinding): LlmStructuredFinding {
+  const base = finding.confidence ?? 0.7;
+  return {
+    ...finding,
+    confidence: Math.min(0.95, Math.round((base + 0.05) * 100) / 100),
+  };
+}
+
 /**
  * Deterministic safety net after Pass B / Pass C.
  * - Dedupes by path (keeps higher confidence)
  * - Downgrades `redundant_instructions` when the map has no related sibling
+ * - Weakens (never relabels) an uncorroborated `duplicate_logic` claim
  * - Slightly strengthens confidence when redundancy is map-supported
  */
 export function reconcileFindings(
@@ -52,16 +62,32 @@ export function reconcileFindings(
   }
 
   return deduped.map((finding) => {
-    if (finding.reason !== "redundant_instructions") {
+    if (
+      finding.reason !== "redundant_instructions" &&
+      finding.reason !== "duplicate_logic"
+    ) {
       return finding;
     }
 
     const related = relatedPathsInMap(map, finding.path);
     if (related.size > 0) {
+      return strengthen(finding);
+    }
+
+    // Unlike instructions, an uncorroborated duplicate_logic claim is NOT
+    // relabelled: semantic_bloat asserts something different (low unique
+    // signal) about application code, and it is the label that invites
+    // exclusion. Pass B also sees fuller excerpts than Pass A's digests, so
+    // it can legitimately spot a pair the map missed — weaken the claim,
+    // don't rewrite or delete it.
+    if (finding.reason === "duplicate_logic") {
       const base = finding.confidence ?? 0.7;
       return {
         ...finding,
-        confidence: Math.min(0.95, Math.round((base + 0.05) * 100) / 100),
+        confidence: Math.max(0, Math.round((base - 0.15) * 100) / 100),
+        detail:
+          finding.detail ??
+          "Duplicate-logic claim was not corroborated by the context map; treated as lower confidence.",
       };
     }
 

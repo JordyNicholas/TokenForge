@@ -5,7 +5,10 @@ import type { RepoContextMap } from "./types";
 
 const map: RepoContextMap = {
   hubs: ["AGENTS.md"],
-  clusters: [["AGENTS.md", ".cursor/rules/testing.mdc"]],
+  clusters: [
+    ["AGENTS.md", ".cursor/rules/testing.mdc"],
+    ["src/utils/checkEmailFormat.js", "src/validators/isValidEmail.js"],
+  ],
   batchHints: [["AGENTS.md", ".cursor/rules/testing.mdc"]],
 };
 
@@ -68,6 +71,42 @@ describe("reconcileFindings", () => {
       path: "lonely.md",
       reason: "semantic_bloat",
       detail: "Claims a duplicate elsewhere",
+    });
+  });
+
+  it("strengthens map-supported duplicate_logic", () => {
+    const findings: LlmStructuredFinding[] = [
+      {
+        path: "src/utils/checkEmailFormat.js",
+        verdict: "review",
+        reason: "duplicate_logic",
+        confidence: 0.8,
+      },
+    ];
+
+    expect(reconcileFindings(map, findings)[0]).toMatchObject({
+      reason: "duplicate_logic",
+      confidence: 0.85,
+    });
+  });
+
+  it("weakens an uncorroborated duplicate_logic without relabelling it", () => {
+    // Must NOT become semantic_bloat: that asserts something different about
+    // application code, and it is the label that invites exclusion.
+    const findings: LlmStructuredFinding[] = [
+      {
+        path: "src/lonely-helper.js",
+        verdict: "review",
+        reason: "duplicate_logic",
+        confidence: 0.9,
+      },
+    ];
+
+    expect(reconcileFindings(map, findings)[0]).toMatchObject({
+      path: "src/lonely-helper.js",
+      reason: "duplicate_logic",
+      verdict: "review",
+      confidence: 0.75,
     });
   });
 });
