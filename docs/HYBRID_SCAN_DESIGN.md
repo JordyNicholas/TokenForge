@@ -140,8 +140,14 @@ Heuristic findings get deterministic explanations and template suggestions in `r
 **New `reason` values** (LLM-only findings):
 
 - `semantic_bloat`
-- `redundant_instructions`
+- `redundant_instructions` — overlapping agent instruction/rules files only
 - `low_signal_config`
+- `duplicate_logic` — the source-code counterpart: 2+ source paths implementing
+  the same behavior under different names. **Advisory only**: always
+  `verdict: review` (coerced in `parseStructuredFindings` if a model returns
+  `exclude`), because both copies are still imported and executed, so hiding one
+  from agent context fixes nothing. Added in schema **v1**; see
+  `docs/schemas/risk-event.v0.schema.json` for the frozen predecessor.
 
 **Report** (optional):
 

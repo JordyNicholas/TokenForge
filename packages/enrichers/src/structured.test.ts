@@ -41,6 +41,59 @@ describe("extractJsonPayload", () => {
 });
 
 describe("parseStructuredFindings", () => {
+  const sourceCandidates: EnrichmentCandidate[] = [
+    {
+      path: "src/utils/checkEmailFormat.js",
+      bytes: 395,
+      estTokens: 99,
+      excerpt: "export function checkEmailFormat(input) {}",
+    },
+  ];
+
+  it("keeps duplicate_logic rows", () => {
+    const rows = parseStructuredFindings(
+      {
+        findings: [
+          {
+            path: "src/utils/checkEmailFormat.js",
+            verdict: "review",
+            reason: "duplicate_logic",
+            confidence: 0.8,
+            detail: "Same behavior as src/validators/isValidEmail.js",
+          },
+        ],
+      },
+      sourceCandidates,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      reason: "duplicate_logic",
+      verdict: "review",
+    });
+  });
+
+  it("coerces a duplicate_logic exclude verdict down to review", () => {
+    // Both copies are still imported, so excluding one fixes nothing —
+    // a model that ignores the prompt rule must not be trusted.
+    const rows = parseStructuredFindings(
+      {
+        findings: [
+          {
+            path: "src/utils/checkEmailFormat.js",
+            verdict: "exclude",
+            reason: "duplicate_logic",
+            confidence: 0.9,
+          },
+        ],
+      },
+      sourceCandidates,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.verdict).toBe("review");
+  });
+
   it("keeps exclude rows with known paths", () => {
     const rows = parseStructuredFindings(
       {

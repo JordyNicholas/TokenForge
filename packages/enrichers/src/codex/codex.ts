@@ -33,6 +33,7 @@ const CODEX_OUTPUT_SCHEMA = {
               "semantic_bloat",
               "redundant_instructions",
               "low_signal_config",
+              "duplicate_logic",
             ],
           },
           confidence: { type: ["number", "null"], minimum: 0, maximum: 1 },

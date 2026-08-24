@@ -1,4 +1,5 @@
 import {
+  classifyFiletype,
   INSTRUCTION_FILE_NAMES,
   INSTRUCTION_PATH_SEGMENTS,
 } from "@tokenforge/risk-core";
@@ -47,6 +48,16 @@ export function formatRepoContextMap(map: RepoContextMap): string {
   return lines.join("\n");
 }
 
+/**
+ * Paths worth a content digest in the Pass A map prompt.
+ * Instruction files (to spot duplicated guidance) plus source files (to spot
+ * duplicated logic) — without a digest the model sees only a path and a byte
+ * count, which is not enough to cluster anything by meaning.
+ */
+function deservesMapDigest(path: string): boolean {
+  return isInstructionPath(path) || classifyFiletype(path) === "source";
+}
+
 function buildMapInventoryBlock(
   candidates: readonly EnrichmentCandidate[],
 ): string {
@@ -57,7 +68,7 @@ function buildMapInventoryBlock(
         `  bytes: ${candidate.bytes}`,
         `  estTokens: ${candidate.estTokens}`,
       ];
-      if (isInstructionPath(candidate.path)) {
+      if (deservesMapDigest(candidate.path)) {
         row.push("  digest:");
         row.push("  ```");
         row.push(
@@ -102,7 +113,7 @@ const MAP_SCHEMA_RULES: readonly string[] = [
   "Always include all four keys: hubs, clusters, batchHints, suspects (use [] when empty).",
   "Copy paths verbatim from the inventory — never invent, rewrite, or shorten paths.",
   "hubs = always-on agent instruction / rules centers (include RULEBOOK-style standards docs if present).",
-  "clusters = groups of 2+ inventory paths that likely overlap or duplicate guidance.",
+  "clusters = groups of 2+ inventory paths that likely overlap: either duplicate guidance (instruction/rules files) or implement the same behavior as each other (source files, e.g. two validators or two retry helpers under different names).",
   "batchHints = groups of 2+ inventory paths that must be compared together in a later pass.",
   "suspects = only clear waste candidates (lockfiles, generated/vendored code, dumps) — never README, RULEBOOK, ADRs/DECISIONS, ENVIRONMENTS, OpenAPI/API contracts, or similar docs.",
   "If the inventory includes any instruction/rules path, hubs MUST be non-empty and batchHints SHOULD group related instruction files when 2+ exist.",
@@ -119,6 +130,7 @@ export function buildMapPrompt(candidates: readonly EnrichmentCandidate[]): stri
   return [
     "You build a compact context map for TokenForge (AI coding FinOps).",
     "Goal: identify always-on instruction hubs and likely duplicate clusters.",
+    "Duplicates come in two forms: instruction files repeating the same guidance in different words, and source files implementing the same behavior under different names. Use the digests to judge both.",
     "Do not judge exclude/keep yet. Do not suggest architecture or product refactors.",
     "Remember: later passes must cut token bleed without stripping needed documentation.",
     "",
@@ -210,11 +222,12 @@ export function buildReconcilePrompt(
     "You may adjust verdict/reason/detail/suggestion only when justified by the map.",
     "",
     "Return JSON only with this shape:",
-    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}],"analysisOverview":{"summary":"3 to 6 sentences on what the enricher concluded","themes":["short theme"],"caveats":["optional caveat"]}}',
+    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}],"analysisOverview":{"summary":"3 to 6 sentences on what the enricher concluded","themes":["short theme"],"caveats":["optional caveat"]}}',
     "",
     "Rules:",
     ...ENRICHMENT_POLICY_RULES.map((rule) => `- ${rule}`),
     "- Prefer redundant_instructions only when both related paths appear in hubs/clusters/batchHints or in the findings list.",
+    "- Same gate for duplicate_logic: name the other implementation in detail, and only claim it when both paths appear in clusters/batchHints or in the findings list.",
     "- Drop findings that exclude documentation/standards/API contracts; convert those to keep (omit) or review + trim_instructions.",
     "- Drop or soften contradictory claims that the map does not support.",
     "- verdict keep = omit from findings unless you must note it.",
