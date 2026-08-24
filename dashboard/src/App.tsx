@@ -6,6 +6,7 @@ import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { FindingsPage } from "./pages/FindingsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
 import { OverviewPage } from "./pages/OverviewPage";
+import { VarianceBoardPage } from "./pages/VarianceBoardPage";
 import { useDashboard } from "./state/DashboardProvider";
 import { AppShell } from "./ui/AppShell";
 
@@ -15,6 +16,7 @@ function BoardViewRoutes() {
       <Route index element={<OverviewPage />} />
       <Route path="heatmap" element={<HeatmapPage />} />
       <Route path="findings" element={<FindingsPage />} />
+      <Route path="variance" element={<VarianceBoardPage />} />
       <Route path="assumptions" element={<AssumptionsPage />} />
       <Route path="offenders" element={<Navigate to="findings" replace />} />
     </Routes>

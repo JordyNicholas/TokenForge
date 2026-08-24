@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import type { TokenRiskTotals } from "@tokenforge/risk-core";
 import {
   compareUsagePeriods,
+  formatGapPercent,
   formatUsd,
   summarizeAssumptionsFreeze,
   type Assumptions,
@@ -16,7 +17,7 @@ import { useDashboard } from "../state/DashboardProvider";
 import { KpiCard, KpiRow } from "./Kpi";
 
 export function UsagePeriodCompareCard({
-  baselineUsage,
+  baselineUsage: baselineUsageProp,
   baselineTotals,
   assumptions,
   teamId,
@@ -32,15 +33,20 @@ export function UsagePeriodCompareCard({
     clearAfterUsage,
     compareAssumptionsFreeze,
     freezeCompareAssumptions,
+    compareBaselineUsage,
+    compareAfterUsage,
   } = useDashboard();
 
-  if (!baselineUsage || !afterUsage) {
+  const baselineUsage = compareBaselineUsage ?? baselineUsageProp;
+  const afterUsageResolved = compareAfterUsage ?? afterUsage;
+
+  if (!baselineUsage || !afterUsageResolved) {
     return null;
   }
 
   const compare = compareUsagePeriods({
     baselineUsage,
-    afterUsage,
+    afterUsage: afterUsageResolved,
     teamId,
     baselineTotals,
     liveAssumptions: assumptions,
@@ -140,6 +146,11 @@ export function UsagePeriodCompareCard({
           label="Variance"
           value={signed(compare.varianceUsd)}
           hint="Actual − estimated"
+        />
+        <KpiCard
+          label="Gap"
+          value={formatGapPercent(compare.gapPercent)}
+          hint="% of estimated reduction"
         />
       </KpiRow>
     </Alert>
