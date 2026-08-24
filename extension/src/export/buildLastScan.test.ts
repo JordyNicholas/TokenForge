@@ -4,7 +4,7 @@ import { TabRegistry } from "../tabs/registry";
 import { assertValidLastScan, buildLastScanReport } from "./buildLastScan";
 
 describe("buildLastScanReport", () => {
-  it("marks filtered tabs as saved and validates against the v0 contract", () => {
+  it("marks filtered tabs as saved and validates against the Token Risk contract", () => {
     const registry = new TabRegistry();
     const now = Date.now();
 
