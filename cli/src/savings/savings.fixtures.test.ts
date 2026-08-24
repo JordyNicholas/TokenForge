@@ -8,6 +8,8 @@ import {
   instructionsAppRoot,
   leanAppExpectedTotalsPath,
   leanAppRoot,
+  semanticDuplicatesAppExpectedTotalsPath,
+  semanticDuplicatesAppRoot,
 } from "../test/helpers";
 import { savedPercent } from "./savings";
 
@@ -24,6 +26,11 @@ describe.each([
   ["lean-app", leanAppRoot, leanAppExpectedTotalsPath],
   ["borderline-app", borderlineAppRoot, borderlineAppExpectedTotalsPath],
   ["instructions-app", instructionsAppRoot, instructionsAppExpectedTotalsPath],
+  [
+    "semantic-duplicates-app",
+    semanticDuplicatesAppRoot,
+    semanticDuplicatesAppExpectedTotalsPath,
+  ],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {
     const seed = await loadSeed(expectedTotalsPath);

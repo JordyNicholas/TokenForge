@@ -89,6 +89,22 @@ npm run tokenforge -- scan fixtures/instructions-app \
   --llm ollama:qwen2.5-coder:7b
 ```
 
+**Paraphrase check:** `fixtures/instructions-app`'s duplication is a single
+paragraph copy-pasted verbatim, which a plain string match could catch
+without real semantic reasoning. `fixtures/semantic-duplicates-app` states
+the same rules in different words every time (no two instruction files
+share a sentence) and adds three pairs of source files that re-implement
+the same behavior differently instead of sharing one implementation. Point
+hybrid mode at it the same way to check whether `redundant_instructions` /
+`semantic_bloat` findings actually catch paraphrased duplication, not just
+literal repeats:
+
+```bash
+npm run tokenforge -- scan fixtures/semantic-duplicates-app \
+  --mode hybrid \
+  --llm ollama:qwen2.5-coder:7b
+```
+
 **Expected**
 
 - Runs **several minutes to 30+ minutes** on low-spec hardware — say this upfront.

@@ -33,6 +33,16 @@ export const instructionsAppExpectedTotalsPath = resolve(
   "fixtures/expected/instructions-app-totals.json",
 );
 
+/**
+ * Semantic redundancy stress test: paraphrased (never verbatim) instruction
+ * files plus source files that re-implement the same behavior differently.
+ */
+export const semanticDuplicatesAppRoot = resolve(repoRoot, "fixtures/semantic-duplicates-app");
+export const semanticDuplicatesAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/semantic-duplicates-app-totals.json",
+);
+
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });

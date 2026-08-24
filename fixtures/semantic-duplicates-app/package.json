@@ -1,0 +1,10 @@
+{
+  "name": "semantic-duplicates-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Synthetic TokenForge demo app — paraphrased (not verbatim) duplicate rules and duplicate logic for hybrid scan.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}
