@@ -10,6 +10,7 @@ const LLM_REASONS = new Set<FindingReason>([
   "semantic_bloat",
   "redundant_instructions",
   "low_signal_config",
+  "duplicate_logic",
 ]);
 
 const VERDICTS = new Set<LlmStructuredFinding["verdict"]>([
@@ -29,6 +30,8 @@ export const ENRICHMENT_POLICY_RULES: readonly string[] = [
   "For oversized but useful docs/instructions, prefer verdict review with suggestion.kind trim_instructions or dedupe_rules — never exclude the whole file.",
   "When unsure whether a path is waste or needed documentation, choose keep or review — never exclude.",
   "redundant_instructions applies only to overlapping agent instruction/rules files — never to generated code, scripts, or general docs.",
+  "duplicate_logic is the source-code counterpart: two or more source paths implementing the same behavior under different names. Name the other path in detail.",
+  "duplicate_logic is ALWAYS verdict review, never exclude — both copies are still imported and executed, so hiding one from context fixes nothing. Its suggestion.kind must be review.",
   "low_signal_config is for noisy machine config dumps — not for human-facing docs or API contracts.",
   "Do not exclude a path merely because it is 'not the file being edited' or 'infrastructure-related'.",
 ];
@@ -58,7 +61,7 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "For each path, decide whether it is low-value billable context for Chat/Agent workflows.",
     "",
     "Return JSON only with this shape:",
-    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}]}',
+    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}]}',
     "",
     "Rules:",
     "- Use exact paths from the input.",
@@ -143,9 +146,18 @@ export function parseStructuredFindings(
         ? (item.reason as FindingReason)
         : "semantic_bloat";
 
+    // Invariant, enforced here because every backend funnels through this
+    // parser: duplicate_logic is advisory only. Both copies are still
+    // imported, so excluding one from context fixes nothing. A model that
+    // ignores the prompt rule gets coerced rather than trusted.
+    const verdict =
+      reason === "duplicate_logic"
+        ? "review"
+        : (item.verdict as LlmStructuredFinding["verdict"]);
+
     rows.push({
       path: item.path,
-      verdict: item.verdict as LlmStructuredFinding["verdict"],
+      verdict,
       reason,
       confidence: clampConfidence(item.confidence),
       detail: typeof item.detail === "string" ? item.detail : undefined,
