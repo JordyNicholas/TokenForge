@@ -71,12 +71,22 @@ Phase 2 (open). Former catch-all #7 was split:
 | #46 | CLI: Anthropic enricher | F1 #60 | Done |
 | #66 | CLI: multi-pass local-first LLM enrich | F1 #60 | Done |
 | #48 | Extension: optional LLM enricher | F1 #60 | Done |
+| #114 | Core: suggestion vocabulary for duplicated code | F1 #60 | **Open** — advice for `duplicate_logic` findings currently rides on `review` + prose. Filed with a design caveat: it adds vocabulary only, since `apply` stays policy-pack-only per #60 |
 | #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Thin slice shipped:** demo/file usage import in Prove (not live vendor APIs). **Remaining:** Waves A–C in [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) |
 | #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push). **Remaining:** remote org apply APIs + pilot pack path |
 | #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
 | #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
 
 #49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story. Exec-board pitch refresh + per-team Prove landed with the F2/F3 thin slices above.
+
+A hybrid-scan hardening run landed on `main` outside the epic structure, driven
+by one stress fixture: #105 (`fixtures/semantic-duplicates-app` — duplicates
+that are paraphrased rather than copy-pasted) exposed three gaps, each fixed and
+audited in [`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md) — #108 (B8: `source`
+files could not reach LLM candidate selection), #110 (B9: no reason code for
+duplicated *logic*, only duplicated *instructions*), #112 (B10: no test seam, so
+the hybrid merge/totals path only ever ran with zero findings). #114 above is the
+fourth gap from the same run, left open by choice.
 
 ### F2 attractiveness backlog (filed under #61)
 
