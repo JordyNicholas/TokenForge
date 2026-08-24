@@ -39,6 +39,7 @@ export async function pullUsage(options: UsagePullOptions): Promise<UsagePullRes
       options.provider === "copilot" || options.provider === undefined
         ? { org: options.org }
         : undefined,
+    cursor: options.provider === "cursor" ? { organizationId: options.org } : undefined,
   });
 
   const metrics = await provider.fetchUsage({

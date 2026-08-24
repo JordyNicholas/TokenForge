@@ -168,7 +168,7 @@ Cron example (monthly, Copilot org):
 0 6 2 * * cd /path/to/repo && npm run tokenforge -- usage-sync --usage-provider copilot --org YOUR_ORG >> /var/log/tokenforge-usage-sync.log 2>&1
 ```
 
-Providers: `copilot` (`GITHUB_TOKEN`). File/demo import remains the fallback when live APIs are unavailable.
+Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_abc123`). File/demo import remains the fallback when live APIs are unavailable.
 
 ## Out of scope (do not demo as done)
 

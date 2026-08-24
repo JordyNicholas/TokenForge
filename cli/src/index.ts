@@ -21,9 +21,11 @@ export {
 export {
   createFixtureUsageProvider,
   createCopilotUsageProvider,
+  createCursorUsageProvider,
   getUsageProvider,
   parseUsagePeriod,
   type CopilotUsageProviderOptions,
+  type CursorUsageProviderOptions,
   type FetchUsageQuery,
   type FixtureUsageProviderOptions,
   type ResolveUsageProviderOptions,
