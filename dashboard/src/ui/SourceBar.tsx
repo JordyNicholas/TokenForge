@@ -41,6 +41,9 @@ export function SourceBar() {
     loadUsageFromFile,
     resetUsageToDemo,
     clearUsage,
+    afterUsageLabel,
+    loadAfterUsageFromFile,
+    clearAfterUsage,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -50,6 +53,7 @@ export function SourceBar() {
   const fileRef = useRef<HTMLInputElement>(null);
   const afterFixRef = useRef<HTMLInputElement>(null);
   const usageRef = useRef<HTMLInputElement>(null);
+  const afterUsageRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -96,7 +100,7 @@ export function SourceBar() {
         </Tooltip>
       ) : null}
       {usageLabel ? (
-        <Tooltip title={`Billed usage: ${usageLabel}`}>
+        <Tooltip title={`Baseline billed usage: ${usageLabel}`}>
           <Chip
             size="small"
             color="success"
@@ -104,6 +108,18 @@ export function SourceBar() {
             label={shortSource(usageLabel)}
             onDelete={clearUsage}
             sx={{ maxWidth: 140, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
+      {afterUsageLabel ? (
+        <Tooltip title={`After-period billed usage: ${afterUsageLabel}`}>
+          <Chip
+            size="small"
+            color="success"
+            variant="outlined"
+            label={`after ${shortSource(afterUsageLabel)}`}
+            onDelete={clearAfterUsage}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
           />
         </Tooltip>
       ) : null}
@@ -195,8 +211,22 @@ export function SourceBar() {
             <ReceiptLongOutlined fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Import usage CSV/JSON…"
+            primary="Import baseline usage CSV/JSON…"
             secondary="FinOps export → UsageMetrics (not live billing)"
+          />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            afterUsageRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <ReceiptLongOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Import after-period usage…"
+            secondary="Second bill window for estimate vs actual (#86)"
           />
         </MenuItem>
         <MenuItem
@@ -217,7 +247,17 @@ export function SourceBar() {
               clearUsage();
             }}
           >
-            Clear imported usage
+            Clear baseline usage
+          </MenuItem>
+        ) : null}
+        {afterUsageLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearAfterUsage();
+            }}
+          >
+            Clear after-period usage
           </MenuItem>
         ) : null}
       </Menu>
@@ -258,6 +298,21 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadUsageFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={afterUsageRef}
+        type="file"
+        hidden
+        accept="application/json,.json,text/csv,.csv"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadAfterUsageFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }

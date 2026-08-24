@@ -42,6 +42,7 @@ import { PrivacyControls } from "../ui/PrivacyControls";
 import { ProveStoryRail } from "../ui/ProveStoryRail";
 import { SavingsChart } from "../ui/SavingsChart";
 import { UsageMetricsCard } from "../ui/UsageMetricsCard";
+import { UsagePeriodCompareCard } from "../ui/UsagePeriodCompareCard";
 
 export function OverviewPage() {
   const navigate = useNavigate();
@@ -107,6 +108,13 @@ export function OverviewPage() {
       <PrivacyControls showNote />
 
       <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />
+
+      <UsagePeriodCompareCard
+        baselineUsage={seed?.usage}
+        baselineTotals={totals}
+        assumptions={assumptions}
+        teamId={teamId}
+      />
 
       <Alert severity="success" variant="outlined">
         Under your assumptions, about{" "}

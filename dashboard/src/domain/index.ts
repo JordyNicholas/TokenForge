@@ -67,6 +67,12 @@ export {
   type UsageTeamRow,
 } from "./usage";
 export {
+  compareUsagePeriods,
+  usagePeriodSlice,
+  type UsagePeriodCompare,
+  type UsagePeriodSlice,
+} from "./usageCompare";
+export {
   UsageLoadError,
   normalizeUsageMetrics,
   parseUsageCsv,
@@ -88,6 +94,7 @@ export {
   errorMessage,
   isDashboardSeed,
   parseDashboardDocument,
+  resolveBootAfterUsageUrl,
   resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";

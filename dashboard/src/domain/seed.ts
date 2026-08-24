@@ -119,14 +119,14 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
- * Resolve `?src=` from the page URL for boot-time seed load.
- * Allows same-origin absolute paths (`/last-scan.json`) and http(s) URLs.
- * Returns null when missing or unsafe (caller should fall back to demo seed).
+ * Resolve a same-origin path or http(s) URL from a query param.
+ * Returns null when missing or unsafe.
  */
-export function resolveBootSourceUrl(
+export function resolveBootResourceUrl(
+  param: string,
   search: string = typeof window !== "undefined" ? window.location.search : "",
 ): string | null {
-  const raw = new URLSearchParams(search).get("src")?.trim();
+  const raw = new URLSearchParams(search).get(param)?.trim();
   if (!raw) {
     return null;
   }
@@ -142,4 +142,24 @@ export function resolveBootSourceUrl(
     return null;
   }
   return null;
+}
+
+/**
+ * Resolve `?src=` from the page URL for boot-time seed load.
+ * Allows same-origin absolute paths (`/last-scan.json`) and http(s) URLs.
+ * Returns null when missing or unsafe (caller should fall back to demo seed).
+ */
+export function resolveBootSourceUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("src", search);
+}
+
+/**
+ * Resolve `?afterUsage=` for boot-time after-period billed usage (#86).
+ */
+export function resolveBootAfterUsageUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("afterUsage", search);
 }
