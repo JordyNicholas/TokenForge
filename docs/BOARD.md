@@ -83,7 +83,7 @@ Phase 2 (open). Former catch-all #7 was split:
 Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).  
 Epic **#61 reopened**; stories below are sub-issues. Implement Wave A first (`TF#85-…` etc.).
 
-#### Wave A — Manual reconciliation (next)
+#### Wave A — Manual reconciliation
 
 | Issue | Title | Extends |
 | --- | --- | --- |
@@ -91,6 +91,8 @@ Epic **#61 reopened**; stories below are sub-issues. Implement Wave A first (`TF
 | #86 | Prove: baseline + after-Fix period compare (usage + scan) | #27 |
 | #87 | Prove: freeze Assumptions snapshot with a compare run | #17 / #27 |
 | #88 | Docs + demo: one-team pilot runbook (baseline → apply → import bill) | #23 / #61 |
+
+Pilot path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
 #### Wave B — Live sync + variance
 
@@ -126,7 +128,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-2. **F2** (#61, reopened) — thin demo slices for **#27** / **#28** shipped; **next = Wave A (#85–#88)** (manual estimate vs imported bill), then Wave B (#89–#94), then Wave C (#95–#98). Remotes for **#28** (#99/#100) can overlap Wave B once Wave A is demoable. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
+2. **F2** (#61, reopened) — thin demo slices for **#27** / **#28** shipped; **Wave A (#85–#88)** is the manual estimate vs imported bill path ([`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)), then Wave B (#89–#94), then Wave C (#95–#98). Remotes for **#28** (#99/#100) can overlap Wave B once Wave A is demoable. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).

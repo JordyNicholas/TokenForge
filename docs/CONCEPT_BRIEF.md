@@ -3,6 +3,7 @@
 *(Hackathon one-pager · board / team aligned)*
 
 See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
+One-team estimate vs imported bill: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
 ## Category
 

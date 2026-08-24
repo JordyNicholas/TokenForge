@@ -201,8 +201,8 @@ org-level exclusion/policy apply APIs — do **not** lead the pitch with these.
 Hybrid scan design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 **Prove attractiveness (estimate vs actual):** thin usage import is shipped under
-#27; closing the FinOps gap is sequenced as Wave A (manual reconcile) → Wave B
-(live adapters + variance board) → Wave C (attribution / calibration) under
-epic #61. Action plan + proposed board stories:
+#27; Wave A is the manual reconcile path (import bill, period compare, freeze,
+[`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)). Wave B is live adapters + variance board;
+Wave C is attribution / calibration — epic #61. Action plan:
 [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) ·
 [`docs/BOARD.md`](./BOARD.md).

@@ -6,6 +6,10 @@ teammate can run the whole demo from this doc alone, with no other context.
 
 Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
 
+One-team **pilot** (baseline usage → apply → import a later bill, estimate vs actual):
+[`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md). That path is for FinOps / sales, not the ≤5-min
+hackathon clock.
+
 > **Honesty note:** the VS Code extension ships **Context Guard** — status bar
 > at-risk readout, TokenForge sidebar (Pending / Kept / Filtered + Risk pulse),
 > Keep/Filter actions, and auto-export of `.tokenforge/last-scan.json`. It
@@ -91,6 +95,8 @@ npm run tokenforge:apply -- --dry-run
   editable assumption, not a vendor billing API."*
 - Optional stretch: note **Adjacent levers** (compaction / routing advisories) only if asked —
   do not lead with them. Optional: load a fresh `scan-report.json` via the file/URL loader.
+- If a FinOps judge asks “vs the invoice?”: one sentence — import a period export, then
+  [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) (billed usage compare, not live sync).
 
 ### Close — Auto Memory sound bite (~15–20s)
 

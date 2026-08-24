@@ -13,6 +13,7 @@ Read first:
 4. [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
 5. [`docs/BOARD.md`](docs/BOARD.md) — epic/story map; F2 Prove attractiveness waves
 6. [`docs/USAGE_RECONCILIATION_PLAN.md`](docs/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
+7. [`docs/PILOT_RUNBOOK.md`](docs/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
 
 ## Delivery rules
 
