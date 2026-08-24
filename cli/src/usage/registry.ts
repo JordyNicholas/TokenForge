@@ -1,15 +1,18 @@
 import { UsageError } from "../app/errors";
 import { createFixtureUsageProvider, type FixtureUsageProviderOptions } from "./fixture";
+import { createCopilotUsageProvider, type CopilotUsageProviderOptions } from "./copilot/copilot";
 import type { UsageProvider, UsageProviderId } from "./types";
 
 export type ResolveUsageProviderOptions = {
   /** Required when id is `fixture`. */
   fixture?: FixtureUsageProviderOptions;
+  /** Options for live Copilot org billing sync (#90). */
+  copilot?: CopilotUsageProviderOptions;
 };
 
 /**
- * Resolve a Prove usage adapter. Only `fixture` ships in #89;
- * live vendor adapters land in #90–#92.
+ * Resolve a Prove usage adapter.
+ * `fixture` = file/demo; `copilot` = org billing + Copilot metrics (#90).
  */
 export function getUsageProvider(
   id: UsageProviderId,
@@ -23,7 +26,10 @@ export function getUsageProvider(
     }
     return createFixtureUsageProvider(options.fixture);
   }
+  if (id === "copilot") {
+    return createCopilotUsageProvider(options.copilot ?? {});
+  }
   throw new UsageError(
-    `Unknown usage provider "${id}". Wave B #89 ships fixture only; live adapters are #90+.`,
+    `Unknown usage provider "${id}". Supported: fixture, copilot.`,
   );
 }
