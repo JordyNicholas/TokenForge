@@ -18,3 +18,12 @@ export {
   COPILOT_EXCLUSIONS_PATH,
   MAX_INSTRUCTION_BYTES,
 } from "./adapters";
+export {
+  createFixtureUsageProvider,
+  getUsageProvider,
+  type FetchUsageQuery,
+  type FixtureUsageProviderOptions,
+  type ResolveUsageProviderOptions,
+  type UsageProvider,
+  type UsageProviderId,
+} from "./usage";
