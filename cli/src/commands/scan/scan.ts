@@ -279,7 +279,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
   };
 
   if (!isTokenRiskReport(report)) {
-    throw new RuntimeError("Scan produced a report that failed the v0 contract.");
+    throw new RuntimeError("Scan produced a report that failed the Token Risk contract.");
   }
 
   return { report, reportPath: scanReportPath(root), assessments };
