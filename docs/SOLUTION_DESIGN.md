@@ -40,6 +40,7 @@ or a vendor:
 | Token Risk JSON (v0, below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
 | Provider-adapter interface (CLI) | Fix-out port. Same findings → vendor-native instruction/exclusion files. |
 | LLM-enricher interface (CLI) | Optional Detect enrichment. Heuristic findings + semantic LLM findings → merged report. |
+| UsageProvider interface (CLI) | Prove usage in-port. `fetchUsage({ org, period, teamScope }) → UsageMetrics`. Fixture/file first; live vendor adapters later. Dashboard stays vendor-blind. |
 
 Surfaces do **not** call each other at runtime. They pass a file
 (`.tokenforge/scan-report.json`, `.tokenforge/last-scan.json`). That is
@@ -52,6 +53,7 @@ file-based integration, not RPC or events.
 | Extension (Context Guard) | Detect in | VS Code extension host |
 | CLI + provider adapters | Fix out | Node |
 | CLI + LLM enrichers | Detect enrich (optional) | Node — local or external model |
+| CLI + UsageProvider adapters | Prove usage in (Wave B) | Node — fixture now; live vendors later |
 | Dashboard (Tokens Saved) | Prove out | React / Vite |
 
 Dependency rule: **consumers → core**, never the reverse, and never
@@ -91,7 +93,7 @@ TokenForge/
 │   └── expected/           # pinned scan totals per fixture
 ├── extension/              # VS Code Context Guard
 ├── cli/                    # tokenforge init | scan | apply
-│   └── src/{app,commands,adapters,io,output,savings}/
+│   └── src/{app,commands,adapters,usage,io,output,savings}/
 └── dashboard/              # React ROI UI
     └── src/{domain,data,state,pages,ui}/
 ```

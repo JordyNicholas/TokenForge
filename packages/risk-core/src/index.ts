@@ -56,6 +56,11 @@ export { collapseExclusionPaths } from "./policy/collapse";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { primaryReason, scoreRisk } from "./score/score";
+export {
+  isUsageMetrics,
+  totalsFromUsageTeams,
+  usageForTeam,
+} from "./usage/usage";
 export type { FindingExplanation } from "./advise/explain";
 export type {
   FiletypeRiskClass,
@@ -80,3 +85,8 @@ export type {
   TokenRiskReport,
   TokenRiskTotals,
 } from "./domain/types";
+export type {
+  UsageMetrics,
+  UsageSource,
+  UsageTeamRow,
+} from "./usage/usage";

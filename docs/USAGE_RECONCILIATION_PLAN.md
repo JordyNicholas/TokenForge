@@ -32,7 +32,10 @@ Buyers already understand Detect → Fix. They hesitate when Prove stops at assu
 | Live vendor usage/billing sync | **Remaining** | #27 under #61 |
 | Remote org policy apply APIs | **Remaining** | #28 under #61 |
 
-Shared contract to extend (do not fork): `dashboard/src/domain/usage.ts` → period, team, credits, estimatedUsd, providerLabel, source.
+Shared contract to extend (do not fork): `UsageMetrics` in `@tokenforge/risk-core`
+(re-exported from `dashboard/src/domain/usage.ts`) → period, team, credits, estimatedUsd,
+providerLabel, source (`demo` \| `import` \| `sync`). Example:
+[`docs/schemas/examples/usage-metrics.v0.json`](./schemas/examples/usage-metrics.v0.json).
 
 ## Architecture (ports & adapters)
 
@@ -43,8 +46,8 @@ Prove variance view  →  Estimated vs Actual vs Gap  (+ frozen assumptions)
 Apply marker         →  Attribution window for cohorts
 ```
 
-- **Kernel / risk-core:** stays agnostic (no billing SDKs).
-- **Usage adapters:** CLI or small Prove edge module — same pattern as Fix adapters.
+- **Kernel / risk-core:** stays agnostic (no billing SDKs); owns the `UsageMetrics` JSON shape + guards.
+- **Usage adapters:** CLI `UsageProvider` port (`cli/src/usage`) — same pattern as Fix adapters. #89 ships fixture/file; #90+ add live vendors.
 - **Dashboard:** reads canonical usage + estimate; never owns vendor auth.
 
 ---
