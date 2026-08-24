@@ -53,7 +53,12 @@ the heuristic layer — same shape as `fixtures/instructions-app`. See
    (`packages/risk-core/src/candidates/candidates.ts`) still puts all four
    instruction files first via `isInstructionPath` basename matching, even
    though none of their content is byte-identical — path-based routing is
-   unaffected by paraphrasing.
+   unaffected by paraphrasing. The six duplicate `src/**` files also reach
+   candidate selection via a dedicated `source`-class bucket
+   (`docs/HEURISTICS_AUDIT.md` B8) — though the bucket has its own bounded
+   budget, so this fixture alone isn't big enough to prove the fix under
+   real-world load; see `packages/risk-core/src/candidates/candidates.test.ts`
+   for that.
 3. **Hybrid mode** (`--mode hybrid`): with a real LLM backend, this is the
    fixture to point at manually to check whether `redundant_instructions` /
    `semantic_bloat` findings actually catch paraphrased rules and

@@ -64,7 +64,9 @@ describe("selectEnrichmentCandidates", () => {
       }),
     ];
 
-    const selected = selectEnrichmentCandidates(assessments, { topCount: 2 });
+    // sourceTopCount: 0 isolates this case to the topEligible bucket alone —
+    // the source-fairness bucket (see below) is covered by its own tests.
+    const selected = selectEnrichmentCandidates(assessments, { topCount: 2, sourceTopCount: 0 });
 
     expect(selected.map((item) => item.path)).toEqual(["src/big-a.ts", "src/big-b.ts"]);
     expect(selected.some((item) => item.fileClass === "lockfile")).toBe(false);
@@ -93,6 +95,53 @@ describe("selectEnrichmentCandidates", () => {
     const selected = selectEnrichmentCandidates(assessments);
 
     expect(selected).toHaveLength(30);
+  });
+
+  it("gives small source files a fair chance even when the repo is dominated by bigger files (B8)", () => {
+    // Shaped like a real repo, not the tiny fixture: a handful of big
+    // config/unknown docs that would otherwise fill every topEligible slot,
+    // plus a couple of small source utilities well under MIN_BORDERLINE_BYTES.
+    const bigDocs = Array.from({ length: 12 }, (_, index) =>
+      assessment(`docs/notes-${index}.md`, 20_000 - index, { fileClass: "unknown" }),
+    );
+    const smallSourceFiles = [
+      assessment("src/validators/isValidEmail.js", 180, { fileClass: "source" }),
+      assessment("src/utils/checkEmailFormat.js", 350, { fileClass: "source" }),
+    ];
+
+    const selected = selectEnrichmentCandidates([...bigDocs, ...smallSourceFiles]);
+    const selectedPaths = selected.map((item) => item.path);
+
+    expect(selectedPaths).toContain("src/validators/isValidEmail.js");
+    expect(selectedPaths).toContain("src/utils/checkEmailFormat.js");
+  });
+
+  it("caps the source-fairness bucket at sourceTopCount, largest-first", () => {
+    const sourceFiles = Array.from({ length: 8 }, (_, index) =>
+      assessment(`src/util-${index}.js`, 1_000 - index * 10, { fileClass: "source" }),
+    );
+
+    const selected = selectEnrichmentCandidates(sourceFiles, {
+      topCount: 0,
+      sourceTopCount: 3,
+    });
+
+    expect(selected.map((item) => item.path)).toEqual([
+      "src/util-0.js",
+      "src/util-1.js",
+      "src/util-2.js",
+    ]);
+  });
+
+  it("dedupes a source file that also lands in the topEligible bucket", () => {
+    const assessments = [
+      assessment("src/big.js", 50_000, { fileClass: "source" }),
+      assessment("src/small.js", 200, { fileClass: "source" }),
+    ];
+
+    const selected = selectEnrichmentCandidates(assessments, { topCount: 1, sourceTopCount: 2 });
+
+    expect(selected.map((item) => item.path)).toEqual(["src/big.js", "src/small.js"]);
   });
 
   it("dedupes a path that qualifies for multiple buckets, keeping instruction priority", () => {
