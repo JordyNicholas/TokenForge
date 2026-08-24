@@ -4,8 +4,8 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/semantic-duplicates-app",
   "totals": {
-    "beforeTokens": 6043,
-    "afterTokens": 6043,
+    "beforeTokens": 6101,
+    "afterTokens": 6101,
     "savedTokens": 0
   },
   "savedPercent": 0

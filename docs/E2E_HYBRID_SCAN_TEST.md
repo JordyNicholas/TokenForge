@@ -97,7 +97,8 @@ share a sentence) and adds three pairs of source files that re-implement
 the same behavior differently instead of sharing one implementation. Point
 hybrid mode at it the same way to check whether `redundant_instructions` /
 `semantic_bloat` findings actually catch paraphrased duplication, not just
-literal repeats:
+literal repeats — and whether the `src/**` pairs come back as
+`duplicate_logic` (always `verdict: review`, never `exclude`):
 
 ```bash
 npm run tokenforge -- scan fixtures/semantic-duplicates-app \

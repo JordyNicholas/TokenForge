@@ -186,3 +186,49 @@ fairness/visibility fix only — it does not attempt to detect duplication
 itself (that stays the LLM pass's job) and does not guarantee every source
 file in a large repo becomes a candidate, only that `source` competes on
 the same terms `config`/`unknown` already did.
+
+## B9 — the LLM pass could not express duplicated *logic*, only duplicated *instructions*
+
+**Status:** Fixed.
+
+**Where:** `packages/enrichers/src/multipass/prompts.ts`,
+`packages/enrichers/src/structured.ts`,
+`packages/enrichers/src/multipass/reconcile.ts`,
+`packages/risk-core/src/domain/types.ts`.
+
+**Previous behavior:** B8 got `source` files as far as the enrichment
+candidate list, but every layer downstream was written for agent guidance:
+
+1. `buildMapInventoryBlock` attached a content `digest:` **only** for
+   instruction paths, so Pass A saw source candidates as a path and a byte
+   count — no content, therefore no way to cluster them by meaning.
+2. `MAP_SCHEMA_RULES` defined `clusters` as paths that "overlap or duplicate
+   guidance".
+3. `FindingReason` offered only `semantic_bloat | redundant_instructions |
+   low_signal_config`, and `ENRICHMENT_POLICY_RULES` correctly forbade using
+   `redundant_instructions` for code — so there was no legal way to report it.
+4. `reconcileFindings` downgraded any uncorroborated `redundant_instructions`
+   to `semantic_bloat`, and per (1)/(2) a source pair rarely reached the map.
+
+**Demonstrated by:** `fixtures/semantic-duplicates-app/src/**` — three pairs of
+files implementing the same behavior under different names.
+
+**Risk:** duplicated helper logic is a common, real source of token waste and
+drift, and the pipeline was structurally unable to name it. Overloading
+`redundant_instructions` instead would have meant deleting a guardrail that
+exists to stop a model recommending real application code be excluded.
+
+**Fix:** added a `duplicate_logic` reason (report schema **v0 → v1**; the
+predecessor is frozen at `docs/schemas/risk-event.v0.schema.json`, and v1 is a
+strict superset). Pass A now digests `source`-class paths too; the Pass A/B/C
+prompts and the Codex structured-output schema learned the reason; and the
+reconcile net weakens an uncorroborated claim rather than relabelling it.
+
+The reason is **advisory only and never `exclude`** — enforced in
+`parseStructuredFindings` (the choke point every backend shares), not merely
+requested in the prompt. It maps to suggestion kind `review` so it stays out of
+`HYGIENE_KINDS` and can never leak into a synthesized lean AGENTS.md.
+
+**Still open (deliberate):** `SUGGESTION_KINDS` contains only context-removal
+actions — there is no `extract_shared_helper` / `consolidate_duplicate_logic`
+kind, so the advice rides on `review` plus prose.

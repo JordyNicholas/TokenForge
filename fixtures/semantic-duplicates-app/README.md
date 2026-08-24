@@ -59,9 +59,13 @@ the heuristic layer — same shape as `fixtures/instructions-app`. See
    budget, so this fixture alone isn't big enough to prove the fix under
    real-world load; see `packages/risk-core/src/candidates/candidates.test.ts`
    for that.
-3. **Hybrid mode** (`--mode hybrid`): with a real LLM backend, this is the
-   fixture to point at manually to check whether `redundant_instructions` /
-   `semantic_bloat` findings actually catch paraphrased rules and
+3. **Hybrid mode** (`--mode hybrid`): the `src/**` pairs should come back as
+   `duplicate_logic` — a reason added specifically for this shape
+   (`docs/HEURISTICS_AUDIT.md` B9), always `verdict: review` and never
+   `exclude`, since both copies are still imported. With a real LLM backend,
+   this is the fixture to point at manually to check whether
+   `redundant_instructions` / `semantic_bloat` findings actually catch
+   paraphrased rules and
    re-implemented logic, not just literal repeats — see
    `docs/E2E_HYBRID_SCAN_TEST.md`. Not automated here, for the same reason
    `instructions-app` isn't: LLM output is non-deterministic.
