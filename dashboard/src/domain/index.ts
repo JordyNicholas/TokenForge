@@ -65,8 +65,10 @@ export {
 } from "./architecture";
 export {
   isUsageMetrics,
+  totalsFromUsageTeams,
   usageForTeam,
   type UsageMetrics,
+  type UsageSource,
   type UsageTeamRow,
 } from "./usage";
 export {
