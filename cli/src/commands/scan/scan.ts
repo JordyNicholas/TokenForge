@@ -21,6 +21,7 @@ import {
   parseLlmSpec,
   parseLlmTimeoutSeconds,
   type EnrichmentCandidate,
+  type LlmEnricher,
 } from "../../enrichers";
 import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
 
@@ -45,6 +46,12 @@ export type ScanOptions = {
   externalDataConsent?: boolean;
   onProgress?: (message: string) => void;
   now?: Date;
+  /**
+   * Override the enricher resolved from `llm`. Tests only — no CLI flag sets
+   * this. Without it the hybrid merge/totals path can only ever be exercised
+   * with the noop backend, i.e. with zero findings.
+   */
+  enricher?: LlmEnricher;
 };
 
 export type ScanResult = {
@@ -168,7 +175,7 @@ async function runHybridEnrichment(
   scan: ScanMetadata;
 }> {
   const spec = parseLlmSpec(options.llm);
-  const enricher = getEnricher(spec.backend as LlmBackendId);
+  const enricher = options.enricher ?? getEnricher(spec.backend as LlmBackendId);
   const candidateAssessments = selectEnrichmentCandidates(assessments);
   const candidates = await Promise.all(
     candidateAssessments.map((assessment) => loadCandidateExcerpt(root, assessment)),
