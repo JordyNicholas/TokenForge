@@ -115,6 +115,7 @@ export {
   isDashboardSeed,
   parseDashboardDocument,
   resolveBootAfterUsageUrl,
+  resolveBootUsageUrl,
   resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";
