@@ -1,0 +1,68 @@
+# .cursorrules
+
+## Rules for this repo
+
+Short, direct versions of the same working agreements documented elsewhere
+in this repo — read AGENTS.md or CLAUDE.md for the longer explanation of
+any of these, plus a few extra house rules below.
+
+- Do not commit until `npm test` comes back green. No exceptions for "it's
+  just a small change" — small changes break suites too.
+- A good commit message says what changed and why, not just "fix stuff." If
+  you can't summarize the change in one line, it's probably two commits
+  pretending to be one.
+- One idea per pull request. If it touches two unrelated things, split it
+  into two PRs instead of bundling them together for convenience.
+- Destructive changes — deletes, drops, force-pushes — need a check-in
+  first. Ask, then act, never the other way around, even under a deadline.
+- If a function is doing three things, it should probably be three
+  functions. Long functions hide bugs in the middle where nobody looks
+  closely enough to notice.
+- Lint clean, always — no PR should carry unresolved warnings into review.
+  Fix them before you ask for eyes, not after.
+- Don't introduce a new dependency for something the standard library
+  already covers. Check `Intl`, `URL`, and friends before reaching for npm.
+- Match the existing indentation style in each file you touch, even when it
+  differs from your editor's default settings — consistency beats personal
+  preference here.
+- Name branches after the ticket they close so anyone scanning the branch
+  list can tell what's in flight without opening each one.
+- Don't leave `console.log` debugging statements in committed code — strip
+  them out before you open the PR, not after someone flags it in review.
+- Delete a branch once its PR merges. A remote full of months-old dead
+  branches makes it hard to tell what's actually still being worked on.
+- Never commit a secret, even in a comment or a "temporary" test fixture.
+  If one leaks, rotate it — deleting the line later does not undo the leak.
+- Read the actual error message before asking in chat. Half the time it's
+  already sitting right there in the terminal output, unread.
+- Search for an existing helper before writing a new validator, formatter,
+  or retry wrapper. Duplicate implementations of the same logic just mean
+  twice the bugs to fix later, and only one copy ever gets the fix.
+- Squash fixup commits before requesting review; a clean history is much
+  easier to bisect later when something breaks in production.
+- Prefer named exports over default exports so a rename doesn't silently
+  break an import somewhere else in the codebase.
+- Write the test for a bug fix first, watch it fail, then fix the code —
+  it's the only way to prove the test actually catches the regression.
+- Keep third-party API keys out of `.cursorrules` and every other tracked
+  file. This file is documentation, not a secrets store.
+- Run `npm run typecheck` locally before pushing; don't rely on CI to
+  surface the first type error for you.
+- Prefer relative imports within a package and workspace imports across
+  packages — never mix the two styles in the same file.
+- Reply to review comments within a day when you can. A PR sitting open
+  for a week with unanswered feedback quietly blocks whoever's waiting on
+  it, even if nobody says so out loud.
+- Rebase feature branches onto the latest default branch before requesting
+  review, so the diff a reviewer sees matches what will actually merge.
+- Keep generated files (build output, lockfiles) out of hand-written pull
+  requests — regenerate them in CI instead of committing them by hand.
+- Open unfinished work as a draft PR, and only flip it to ready once it's
+  actually done. A draft marked ready too early just wastes a reviewer's
+  attention on something that isn't finished yet.
+- Don't merge your own pull request without at least one approval, even
+  for a change that feels obviously safe. The rule exists for the changes
+  that turn out not to be obvious after all.
+- Tag the relevant reviewer explicitly rather than posting into a channel
+  and hoping someone notices — explicit beats implicit for anything time
+  sensitive.
