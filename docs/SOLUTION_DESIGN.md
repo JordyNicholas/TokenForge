@@ -199,3 +199,10 @@ Hybrid scan (local **and** external LLM enrichers), chat history compaction,
 intelligent model routing, live usage/billing sync **per provider**,
 org-level exclusion/policy apply APIs — do **not** lead the pitch with these.
 Hybrid scan design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+
+**Prove attractiveness (estimate vs actual):** thin usage import is shipped under
+#27; closing the FinOps gap is sequenced as Wave A (manual reconcile) → Wave B
+(live adapters + variance board) → Wave C (attribution / calibration) under
+epic #61. Action plan + proposed board stories:
+[`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) ·
+[`docs/BOARD.md`](./BOARD.md).

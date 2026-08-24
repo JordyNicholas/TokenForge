@@ -11,6 +11,8 @@ Read first:
 2. [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) — stack + MVP design
 3. [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
 4. [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
+5. [`docs/BOARD.md`](docs/BOARD.md) — epic/story map; F2 Prove attractiveness waves
+6. [`docs/USAGE_RECONCILIATION_PLAN.md`](docs/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
 
 ## Delivery rules
 
