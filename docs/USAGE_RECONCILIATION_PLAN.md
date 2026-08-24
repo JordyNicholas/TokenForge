@@ -64,7 +64,7 @@ Waves are ordered for **attractiveness first**: each wave is demoable and shippa
 | #87 | Prove: freeze Assumptions snapshot with a compare run | #17 / #27 | Estimates stay auditable when knobs change later |
 | #88 | Docs + demo: one-team pilot runbook (baseline → apply → import bill) | #23 / #61 | Sales/pilot path that is honest and repeatable |
 
-**Exit criteria:** Demo with a real-shaped export (sanitized fixture) shows variance; pitch can say “import your bill, compare to estimate” without claiming live sync.
+**Exit criteria:** Demo with a real-shaped export (sanitized fixture) shows variance; pitch can say “import your bill, compare to estimate” without claiming live sync. Repeatable script: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
 ### Wave B — Live sync + variance product (mostly cover the gap)
 

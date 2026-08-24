@@ -49,11 +49,18 @@ Demo seed also includes **imported usage** credits/$ (issue #27 thin) — file/d
 
 ## Estimate vs actual billed usage?
 
-**Today:** Prove projects $ from scan totals × editable assumptions, and can show **imported** usage beside that projection. Before/after Fix compare is a **local scan snapshot** diff — not the vendor invoice.
+**Today (Wave A):** Prove projects $ from scan totals × Assumptions, imports a FinOps
+CSV/JSON as billed usage, and can compare **baseline vs after-period** (estimated
+reduction, actual billed change, variance) with Assumptions frozen on that run. Demo
+fixtures: `dashboard/public/sample-usage.csv` and `sample-usage-after.csv`. Repeatable
+path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
-**Next (F2 / #61):** Wave A adds FinOps export import + baseline/after variance; Wave B adds per-provider live usage adapters + a variance board; Wave C adds apply markers, cohorts, and assumption calibration. Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+**Not yet:** live vendor billing APIs (Wave B), apply markers / cohorts / calibrated
+waste share (Wave C). Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
 
-**Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**. We do not meter the agent’s private pipeline.
+**Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**.
+We do not meter the agent’s private pipeline. File import is not live Copilot/Cursor/Claude
+sync.
 
 ## Completions vs Chat/Agent metering?
 

@@ -18,6 +18,7 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | E2E hybrid scan test | [`docs/E2E_HYBRID_SCAN_TEST.md`](docs/E2E_HYBRID_SCAN_TEST.md) |
 | Pitch FAQ (vs Auto Memory) | [`docs/PITCH_FAQ.md`](docs/PITCH_FAQ.md) |
 | Demo runbook (≤5 min script) | [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md) |
+| One-team pilot (estimate vs imported bill) | [`docs/PILOT_RUNBOOK.md`](docs/PILOT_RUNBOOK.md) |
 | Context Guard (extension) | [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
 | PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
