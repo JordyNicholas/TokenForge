@@ -49,7 +49,7 @@ Use when you only need to **show variance**, not a live apply.
 5. Data source → **Import after-period usage…** and choose `dashboard/public/sample-usage-after.csv`  
    **or** boot  
    `http://localhost:5173/board/combined/team/payments-platform?afterUsage=/sample-usage-after.csv`
-6. Call out the three KPIs: **Estimated reduction**, **Actual billed change**, **Variance**.
+6. Call out the three KPIs on **Overview** or open **Variance** in the sidebar for the full BU/team board with period picker.
 7. Call out **Assumptions frozen** (rate, team size, msgs/day, waste share, model mix). Edit
    Assumptions (e.g. Pitch ~30%) and show that estimated $ **does not rewrite** until
    **Re-freeze Assumptions**.

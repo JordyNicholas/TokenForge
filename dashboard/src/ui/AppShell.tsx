@@ -1,4 +1,5 @@
 import { TOKEN_RISK_REPORT_SCHEMA_ID } from "@tokenforge/risk-core";
+import BalanceOutlined from "@mui/icons-material/BalanceOutlined";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
 import FactCheckOutlined from "@mui/icons-material/FactCheckOutlined";
@@ -258,6 +259,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const viewNav = [
     { to: boardBase, label: "Overview", icon: DashboardOutlined, end: true },
+    { to: `${boardBase}/variance`, label: "Variance", icon: BalanceOutlined },
     { to: `${boardBase}/heatmap`, label: "Heatmap", icon: GridViewOutlined },
     { to: `${boardBase}/findings`, label: "Findings", icon: FactCheckOutlined },
     { to: `${boardBase}/assumptions`, label: "Assumptions", icon: CalculateOutlined },
@@ -266,6 +268,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bottomValue = (() => {
     if (location.pathname.includes("/assumptions")) {
       return `${boardBase}/assumptions`;
+    }
+    if (location.pathname.includes("/variance")) {
+      return `${boardBase}/variance`;
     }
     if (location.pathname.includes("/heatmap")) {
       return `${boardBase}/heatmap`;

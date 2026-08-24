@@ -78,6 +78,16 @@ export {
   type UsagePeriodSlice,
 } from "./usageCompare";
 export {
+  buildVarianceBoard,
+  defaultAfterPeriod,
+  listUsagePeriods,
+  upsertUsageSnapshot,
+  formatGapPercent,
+  varianceGapPercent,
+  type VarianceBoard,
+  type VarianceBoardRow,
+} from "./varianceBoard";
+export {
   UsageLoadError,
   normalizeUsageMetrics,
   parseUsageCsv,

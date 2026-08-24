@@ -10,6 +10,7 @@ import {
 } from "./assumptions";
 import { projectSavings } from "./calculator";
 import { usageForTeam, type UsageMetrics } from "./usage";
+import { varianceGapPercent } from "./varianceGap";
 
 export type UsagePeriodSlice = {
   creditsUsed: number;
@@ -27,6 +28,8 @@ export type UsagePeriodCompare = {
   actualBilledChange: number;
   /** actualBilledChange − estimatedUsdReduction. */
   varianceUsd: number;
+  /** Variance as % of estimated reduction; null when estimate is zero. */
+  gapPercent: number | null;
   periodMismatch: boolean;
   providerMismatch: boolean;
   /** Assumptions used for estimated $ (prefer freeze when present). */
@@ -81,12 +84,14 @@ export function compareUsagePeriods(input: {
     assumptionsUsed,
   ).monthlyUsdSaved;
   const actualBilledChange = baseline.estimatedUsd - after.estimatedUsd;
+  const varianceUsd = actualBilledChange - estimatedUsdReduction;
   return {
     baseline,
     after,
     estimatedUsdReduction,
     actualBilledChange,
-    varianceUsd: actualBilledChange - estimatedUsdReduction,
+    varianceUsd,
+    gapPercent: varianceGapPercent(varianceUsd, estimatedUsdReduction),
     periodMismatch: baseline.period !== after.period,
     providerMismatch: baseline.providerLabel !== after.providerLabel,
     assumptionsUsed,
