@@ -59,6 +59,7 @@ describe("compareUsagePeriods", () => {
     expect(compare!.varianceUsd).toBe(
       compare!.actualBilledChange - compare!.estimatedUsdReduction,
     );
+    expect(compare!.gapPercent).not.toBeNull();
     expect(compare!.periodMismatch).toBe(true);
     expect(compare!.providerMismatch).toBe(false);
     expect(compare!.assumptionsFrozen).toBe(false);
