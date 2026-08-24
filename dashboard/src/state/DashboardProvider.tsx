@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -12,11 +13,15 @@ import {
   DEFAULT_ASSUMPTIONS,
   aggregateTotals,
   isDemoSourceLabel,
+  parseUsageFile,
+  parseUsageText,
   projectSavings,
+  resolveBootAfterUsageUrl,
   withPitchScenario,
   type Assumptions,
   type DashboardSeed,
   type Projection,
+  type UsageMetrics,
 } from "../domain";
 import { useSeedLoader } from "./useSeedLoader";
 
@@ -51,6 +56,11 @@ export type DashboardState = {
   loadUsageFromFile: (file: File) => Promise<void>;
   resetUsageToDemo: () => Promise<void>;
   clearUsage: () => void;
+  /** After-period billed usage for baseline → after variance (#86). */
+  afterUsage: UsageMetrics | null;
+  afterUsageLabel: string | null;
+  loadAfterUsageFromFile: (file: File) => Promise<void>;
+  clearAfterUsage: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -81,6 +91,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   );
   const [afterFixSeed, setAfterFixSeed] = useState<DashboardSeed | null>(null);
   const [afterFixLabel, setAfterFixLabel] = useState<string | null>(null);
+  const [afterUsage, setAfterUsage] = useState<UsageMetrics | null>(null);
+  const [afterUsageLabel, setAfterUsageLabel] = useState<string | null>(null);
+  const [afterUsageError, setAfterUsageError] = useState<string | null>(null);
+  const skipCompareClearOnMount = useRef(true);
 
   const projection = useMemo(
     () => projectSavings(loaded.totals, assumptions),
@@ -123,24 +137,88 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setAfterFixLabel(null);
   }, []);
 
+  const clearAfterUsage = useCallback(() => {
+    setAfterUsage(null);
+    setAfterUsageLabel(null);
+    setAfterUsageError(null);
+  }, []);
+
   const loadAfterFixFile = useCallback(async (file: File) => {
     const { parseDashboardFile } = await import("../data/loadDocument");
     const next = await parseDashboardFile(file);
     setAfterFixSeed(next);
     setAfterFixLabel(file.name);
+    if (next.usage) {
+      setAfterUsage(next.usage);
+      setAfterUsageLabel(`${file.name} · usage`);
+      setAfterUsageError(null);
+    }
   }, []);
 
-  // Clear after-Fix compare when primary seed changes.
+  const loadAfterUsageFromFile = useCallback(async (file: File) => {
+    try {
+      const usage = await parseUsageFile(file);
+      setAfterUsage(usage);
+      setAfterUsageLabel(file.name);
+      setAfterUsageError(null);
+    } catch (error) {
+      setAfterUsageError(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }, []);
+
+  // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
+  // so `?afterUsage=` can land alongside the demo/boot seed).
   useEffect(() => {
+    if (skipCompareClearOnMount.current) {
+      skipCompareClearOnMount.current = false;
+      return;
+    }
     setAfterFixSeed(null);
     setAfterFixLabel(null);
+    setAfterUsage(null);
+    setAfterUsageLabel(null);
+    setAfterUsageError(null);
   }, [loaded.sourceLabel]);
 
+  // Optional `?afterUsage=/sample-usage-after.csv` for demo / Prove handoff.
+  useEffect(() => {
+    const bootAfter = resolveBootAfterUsageUrl();
+    if (!bootAfter) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(bootAfter);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${bootAfter} (${response.status})`);
+        }
+        const usage = parseUsageText(await response.text(), bootAfter);
+        if (cancelled) {
+          return;
+        }
+        setAfterUsage(usage);
+        setAfterUsageLabel(bootAfter);
+        setAfterUsageError(null);
+      } catch (error) {
+        if (!cancelled) {
+          setAfterUsageError(error instanceof Error ? error.message : String(error));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const isDemoSource = isDemoSourceLabel(loaded.sourceLabel);
+  const loadError = loaded.loadError ?? afterUsageError;
 
   const value = useMemo(
     () => ({
       ...loaded,
+      loadError,
       assumptions,
       projection,
       isDemoSource,
@@ -155,9 +233,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       clearAfterFix,
       patchAssumptions,
       applyPitchScenario,
+      afterUsage,
+      afterUsageLabel,
+      loadAfterUsageFromFile,
+      clearAfterUsage,
     }),
     [
       loaded,
+      loadError,
       assumptions,
       projection,
       isDemoSource,
@@ -172,6 +255,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       clearAfterFix,
       patchAssumptions,
       applyPitchScenario,
+      afterUsage,
+      afterUsageLabel,
+      loadAfterUsageFromFile,
+      clearAfterUsage,
     ],
   );
 

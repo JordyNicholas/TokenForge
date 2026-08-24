@@ -94,4 +94,10 @@ describe("parseUsageText", () => {
       "2026-08",
     );
   });
+
+  it("loads the after-period sample export", () => {
+    const usage = parseUsageText(readPublic("sample-usage-after.csv"), "after.csv");
+    expect(usage.period).toBe("2026-09");
+    expect(usage.totals.estimatedUsd).toBe(3795);
+  });
 });

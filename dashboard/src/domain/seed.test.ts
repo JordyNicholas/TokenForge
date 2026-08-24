@@ -9,6 +9,7 @@ import { tokensByFileClass, listFindings, topOffenders } from "./offenders";
 import {
   aggregateTotals,
   parseDashboardDocument,
+  resolveBootAfterUsageUrl,
   resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";
@@ -116,5 +117,14 @@ describe("resolveBootSourceUrl", () => {
     expect(resolveBootSourceUrl("?src=javascript:alert(1)")).toBeNull();
     expect(resolveBootSourceUrl("?src=//evil.example/x")).toBeNull();
     expect(resolveBootSourceUrl("?src=file:///tmp/x.json")).toBeNull();
+  });
+});
+
+describe("resolveBootAfterUsageUrl", () => {
+  it("accepts same-origin after-usage paths", () => {
+    expect(resolveBootAfterUsageUrl("?afterUsage=/sample-usage-after.csv")).toBe(
+      "/sample-usage-after.csv",
+    );
+    expect(resolveBootAfterUsageUrl("?src=/last-scan.json")).toBeNull();
   });
 });
