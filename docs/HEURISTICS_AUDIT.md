@@ -143,3 +143,46 @@ downstream consumers (dashboard, adapters) don't have to read
 None of these gaps are fixed in this round (audit-only, per scope); they're
 listed so a future pass can turn each into a targeted unit test alongside
 whichever heuristic change it's motivated by.
+
+## B8 — `source`-class files had no path into LLM candidate selection
+
+**Status:** Fixed (unlike B1-B7, which remain audit-only per this doc's
+original scope).
+
+**Where:** `packages/risk-core/src/candidates/candidates.ts`
+(`isBorderline`, `selectEnrichmentCandidates`).
+
+**Previous behavior:** `isBorderline` only considered `fileClass` `"config"`
+or `"unknown"` — `"source"` was excluded outright, and there was no
+equivalent of `isInstructionPath` for source code. The only remaining path,
+`topEligible`, ranked every eligible file (any class) by raw byte size in
+one global list capped at `topCount` (default 10). A small source utility
+file (a validator, a formatter, a retry wrapper — routinely a few hundred
+bytes) lost that ranking to literally any bigger file elsewhere in the repo,
+regardless of class. In practice this meant `source` files essentially never
+reached the LLM enrichment pass on their own merit in any repo bigger than a
+handful of files.
+
+**Demonstrated by:** `fixtures/semantic-duplicates-app/src/**` — six small
+(<600 byte) source files, deliberately shaped like real-world duplicate
+utility code. The fixture alone was too small to expose the bug (everything
+fit under the old caps anyway); the real regression proof is
+`packages/risk-core/src/candidates/candidates.test.ts`, which shapes a repo
+with several large docs and a couple of small source files and confirms the
+small ones survive selection.
+
+**Risk:** the hybrid/LLM enrichment pass could only ever "see" application
+source code that happened to be unusually large — structurally blind to
+small/medium source files, which is where duplicate helper logic most often
+accumulates.
+
+**Fix:** added `topSourceEligible`, a bucket ranked within the `source`
+class alone (no byte floor), inserted into `selectEnrichmentCandidates`'s
+priority order right after `instruction` and before the (still uncapped,
+B4) `borderline` bucket, so it can't be starved before the global
+`maxCandidates` cap. New `DEFAULT_SOURCE_CANDIDATE_COUNT` /
+`sourceTopCount` option controls its size (default 5). This is a
+fairness/visibility fix only — it does not attempt to detect duplication
+itself (that stays the LLM pass's job) and does not guarantee every source
+file in a large repo becomes a candidate, only that `source` competes on
+the same terms `config`/`unknown` already did.
