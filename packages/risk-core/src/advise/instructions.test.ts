@@ -74,6 +74,30 @@ describe("synthesizeLeanInstructions", () => {
     expect(utf8Bytes(md)).toBeLessThanOrEqual(MAX_LEAN_INSTRUCTION_BYTES);
   });
 
+  it("keeps duplicate_logic findings out of the instruction hygiene section", () => {
+    // duplicate_logic is about application code, so it must never become a
+    // bullet in a synthesized AGENTS.md. Its suggestion kind is `review`
+    // precisely so it falls outside HYGIENE_KINDS.
+    const withDuplicateLogic: TokenRiskReport = {
+      ...heuristicReport,
+      findings: [
+        ...heuristicReport.findings,
+        {
+          path: "src/utils/checkEmailFormat.js",
+          reason: "duplicate_logic",
+          bytes: 395,
+          estTokens: 99,
+          action: "kept",
+          source: "llm",
+        },
+      ],
+    };
+
+    const md = synthesizeLeanInstructions(withDuplicateLogic);
+    expect(md).not.toContain("## Instruction hygiene");
+    expect(md).not.toContain("checkEmailFormat");
+  });
+
   it("is deterministic for the same report", () => {
     const a = synthesizeLeanInstructions(heuristicReport);
     const b = synthesizeLeanInstructions(heuristicReport);
