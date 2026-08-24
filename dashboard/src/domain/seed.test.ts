@@ -28,6 +28,12 @@ describe("demo-seed.json", () => {
     expect(demoSeed().reports.every(isTokenRiskReport)).toBe(true);
   });
 
+  it("embeds demo usage that matches demo-usage.json", () => {
+    const usage = demoSeed().usage;
+    expect(usage?.source).toBe("demo");
+    expect(usage?.totals.creditsUsed).toBe(31200);
+  });
+
   it("hits 30.0% on default assumptions", () => {
     const totals = aggregateTotals(demoSeed().reports);
     expect(tokenSavedPercent(totals)).toBe(30);
