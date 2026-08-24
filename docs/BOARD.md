@@ -71,12 +71,53 @@ Phase 2 (open). Former catch-all #7 was split:
 | #46 | CLI: Anthropic enricher | F1 #60 | Done |
 | #66 | CLI: multi-pass local-first LLM enrich | F1 #60 | Done |
 | #48 | Extension: optional LLM enricher | F1 #60 | Done |
-| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Thin slice shipped:** demo/file usage import in Prove (not live vendor APIs) |
-| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push) |
+| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Thin slice shipped:** demo/file usage import in Prove (not live vendor APIs). **Remaining:** Waves A–C in [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) |
+| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push). **Remaining:** remote org apply APIs + pilot pack path |
 | #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
 | #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
 
 #49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story. Exec-board pitch refresh + per-team Prove landed with the F2/F3 thin slices above.
+
+### F2 attractiveness backlog (proposed — file under #61)
+
+Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).  
+**File these as child issues of epic #61**, then replace “proposed” with real numbers in this table.
+
+#### Wave A — Manual reconciliation (next)
+
+| Status | Suggested title | Extends |
+| --- | --- | --- |
+| Proposed | Prove: usage CSV/JSON import UX (FinOps export → `UsageMetrics`) | #27 |
+| Proposed | Prove: baseline + after-Fix period compare (usage + scan) | #27 |
+| Proposed | Prove: freeze Assumptions snapshot with a compare run | #17 / #27 |
+| Proposed | Docs + demo: one-team pilot runbook (baseline → apply → import bill) | #23 / #61 |
+
+#### Wave B — Live sync + variance
+
+| Status | Suggested title | Extends |
+| --- | --- | --- |
+| Proposed | Prove port: `UsageProvider` interface + fixture adapter | #27 |
+| Proposed | CLI/Prove: first enterprise usage adapter (Copilot or org default) | #27 |
+| Proposed | CLI/Prove: Cursor usage adapter | #27 |
+| Proposed | CLI/Prove: Claude / Codex usage adapter (as APIs allow) | #27 |
+| Proposed | Prove: variance board (BU + team) + period picker | #27 / #18 |
+| Proposed | Prove: scheduled / on-demand usage sync | #27 |
+
+#### Wave C — Attribution & calibration
+
+| Status | Suggested title | Extends |
+| --- | --- | --- |
+| Proposed | CLI: apply/org-pack writes Prove change marker | #28 / #27 |
+| Proposed | Prove: cohort compare (Fix-on vs control) | #61 |
+| Proposed | Prove: auto-suggest `realizedWasteShare` from variance history | #17 / #27 |
+| Proposed | Pitch/FAQ: estimate vs actual honesty + pilot KPI card | #24 |
+
+#### Parallel (#28)
+
+| Status | Suggested title | Extends |
+| --- | --- | --- |
+| Proposed | Remote org content-exclusion / policy apply API (per provider) | #28 |
+| Proposed | Org pilot pack: scan → apply → prove variance (single path) | #28 / #27 |
 
 ## Build order
 
@@ -85,7 +126,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; remaining = live billing sync + remote org apply APIs
+2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; **next attractiveness unlock = Wave A** (manual estimate vs imported bill), then Wave B (live sync + variance board), then Wave C (attribution). Remotes for **#28** can overlap Wave B once Wave A is demoable. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 
-Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
