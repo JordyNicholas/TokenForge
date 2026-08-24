@@ -1,3 +1,4 @@
+import type { ProviderId } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
 import { UsageError } from "../app/errors";
 import {
@@ -9,9 +10,15 @@ import {
 } from "./index";
 
 describe("getAdapter", () => {
-  it("stubs cursor and claude", () => {
-    expect(() => getAdapter("cursor")).toThrow(UsageError);
-    expect(() => getAdapter("claude")).toThrow(UsageError);
+  it("resolves every supported provider", () => {
+    const providers: ProviderId[] = ["copilot", "generic", "cursor", "claude"];
+    for (const provider of providers) {
+      expect(getAdapter(provider).id).toBe(provider);
+    }
+  });
+
+  it("rejects an unknown provider", () => {
+    expect(() => getAdapter("nope" as ProviderId)).toThrow(UsageError);
   });
 
   it("renders a short Copilot instruction file", () => {
