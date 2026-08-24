@@ -40,6 +40,7 @@ export async function pullUsage(options: UsagePullOptions): Promise<UsagePullRes
         ? { org: options.org }
         : undefined,
     cursor: options.provider === "cursor" ? { organizationId: options.org } : undefined,
+    claude: options.provider === "claude" ? {} : undefined,
   });
 
   const metrics = await provider.fetchUsage({

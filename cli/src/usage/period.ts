@@ -40,3 +40,15 @@ export function usagePeriodEpochBounds(period: UsagePeriod): { startMs: number; 
   const endMs = Date.UTC(period.year, period.month, 0, 23, 59, 59, 999);
   return { startMs, endMs };
 }
+
+/** RFC 3339 half-open interval `[startingAt, endingAt)` for vendor cost APIs. */
+export function usagePeriodRfc3339Bounds(period: UsagePeriod): {
+  startingAt: string;
+  endingAt: string;
+} {
+  const startingAt = `${period.label}-01T00:00:00Z`;
+  const nextYear = period.month === 12 ? period.year + 1 : period.year;
+  const nextMonth = period.month === 12 ? 1 : period.month + 1;
+  const endingAt = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01T00:00:00Z`;
+  return { startingAt, endingAt };
+}

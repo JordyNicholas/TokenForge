@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { UsageError } from "../app/errors";
-import { daysInUsagePeriod, parseUsagePeriod, usagePeriodEpochBounds } from "./period";
+import { daysInUsagePeriod, parseUsagePeriod, usagePeriodEpochBounds, usagePeriodRfc3339Bounds } from "./period";
 
 describe("parseUsagePeriod", () => {
   it("parses YYYY-MM and counts days", () => {
@@ -23,6 +23,10 @@ describe("parseUsagePeriod", () => {
     expect(usagePeriodEpochBounds(period)).toEqual({
       startMs: Date.UTC(2026, 7, 1, 0, 0, 0, 0),
       endMs: Date.UTC(2026, 7, 31, 23, 59, 59, 999),
+    });
+    expect(usagePeriodRfc3339Bounds(period)).toEqual({
+      startingAt: "2026-08-01T00:00:00Z",
+      endingAt: "2026-09-01T00:00:00Z",
     });
   });
 });

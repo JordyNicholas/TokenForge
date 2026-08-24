@@ -28,7 +28,7 @@ Options:
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
   --usage-provider <id>
-                        fixture | copilot | cursor (usage-pull/sync; default: copilot)
+                        fixture | copilot | cursor | claude (usage-pull/sync; default: copilot)
   --period <YYYY-MM>    Billing period for usage-pull / usage-sync
   --org <slug>          GitHub org (Copilot) or Cursor organizationId
   --file <path>         UsageMetrics fixture file (usage-pull with fixture)
