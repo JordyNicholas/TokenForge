@@ -21,6 +21,7 @@ import {
   parseLlmSpec,
   parseLlmTimeoutSeconds,
   type EnrichmentCandidate,
+  type LlmEnricher,
 } from "../../enrichers";
 import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
 
@@ -45,6 +46,12 @@ export type ScanOptions = {
   externalDataConsent?: boolean;
   onProgress?: (message: string) => void;
   now?: Date;
+  /**
+   * Override the enricher resolved from `llm`. Tests only — no CLI flag sets
+   * this. Without it the hybrid merge/totals path can only ever be exercised
+   * with the noop backend, i.e. with zero findings.
+   */
+  enricher?: LlmEnricher;
 };
 
 export type ScanResult = {
@@ -160,7 +167,6 @@ async function loadCandidateExcerpt(
 async function runHybridEnrichment(
   root: string,
   assessments: RiskAssessment[],
-  heuristicFindings: TokenRiskFinding[],
   options: ScanOptions,
 ): Promise<{
   llmFindings: TokenRiskFinding[];
@@ -168,7 +174,7 @@ async function runHybridEnrichment(
   scan: ScanMetadata;
 }> {
   const spec = parseLlmSpec(options.llm);
-  const enricher = getEnricher(spec.backend as LlmBackendId);
+  const enricher = options.enricher ?? getEnricher(spec.backend as LlmBackendId);
   const candidateAssessments = selectEnrichmentCandidates(assessments);
   const candidates = await Promise.all(
     candidateAssessments.map((assessment) => loadCandidateExcerpt(root, assessment)),
@@ -247,7 +253,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
   let scan: ScanMetadata | undefined;
 
   if (mode === "hybrid") {
-    const hybrid = await runHybridEnrichment(root, assessments, heuristicFindings, options);
+    const hybrid = await runHybridEnrichment(root, assessments, options);
     llmFindings = hybrid.llmFindings;
     llmCandidateTokens = hybrid.llmCandidateTokens;
     scan = hybrid.scan;
@@ -273,7 +279,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
   };
 
   if (!isTokenRiskReport(report)) {
-    throw new RuntimeError("Scan produced a report that failed the v0 contract.");
+    throw new RuntimeError("Scan produced a report that failed the Token Risk contract.");
   }
 
   return { report, reportPath: scanReportPath(root), assessments };

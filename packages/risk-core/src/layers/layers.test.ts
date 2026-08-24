@@ -46,6 +46,59 @@ describe("buildScanLayers", () => {
   });
 });
 
+describe("kept findings and savings math", () => {
+  // docs/HEURISTICS_AUDIT.md B7 flagged `review` verdicts as untested. They map
+  // to action "kept" (packages/enrichers/src/parse.ts), and duplicate_logic is
+  // always review — so this is the path every such finding takes.
+  function keptFinding(path: string, estTokens: number): TokenRiskFinding {
+    return {
+      path,
+      reason: "duplicate_logic",
+      bytes: estTokens * 4,
+      estTokens,
+      action: "kept",
+      source: "llm",
+    };
+  }
+
+  it("excludes kept findings from tallyLlmTotals savings", () => {
+    const totals = tallyLlmTotals(900, [keptFinding("src/dup.js", 300)]);
+    expect(totals).toEqual({
+      beforeTokens: 900,
+      afterTokens: 900,
+      savedTokens: 0,
+    });
+  });
+
+  it("counts only excluded paths when kept and excluded findings mix", () => {
+    const totals = tallyLlmTotals(900, [
+      keptFinding("src/dup.js", 300),
+      finding("dump.json", 200, "llm"),
+    ]);
+    expect(totals.savedTokens).toBe(200);
+  });
+
+  it("leaves a kept path inside combined afterTokens", () => {
+    const assessments = [
+      assessment("src/dup.js", 300, false),
+      assessment("src/other.js", 100, false),
+    ];
+    const layers = buildScanLayers({
+      assessments,
+      heuristicFindings: [],
+      llmFindings: [keptFinding("src/dup.js", 300)],
+      llmCandidateTokens: 400,
+    });
+
+    // No phantom savings: the file is still imported, so it stays counted.
+    expect(layers.combined.totals).toEqual({
+      beforeTokens: 400,
+      afterTokens: 400,
+      savedTokens: 0,
+    });
+  });
+});
+
 describe("resolveScanLayers", () => {
   it("reads explicit layers when present", () => {
     const report = {
