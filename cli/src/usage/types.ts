@@ -14,7 +14,7 @@ export type FetchUsageQuery = {
   teamScope?: string | null;
 };
 
-export type UsageProviderId = "fixture" | string;
+export type UsageProviderId = "fixture" | "copilot" | string;
 
 export type UsageProvider = {
   id: UsageProviderId;

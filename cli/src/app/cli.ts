@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
+import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
 import { writeScanReport } from "../io/report-file";
 import { formatScanTable } from "../output/table";
@@ -17,12 +18,19 @@ Commands:
   init [root]         scan + apply
   org-pack <seed.json>
                       Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
+  usage-pull          Fetch billed usage into UsageMetrics JSON (Wave B / #90)
 
 Options:
   --team <name>         Team label (default: local)
   --repo <name>         Repo label (default: directory name)
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
+  --usage-provider <id>
+                        fixture | copilot (usage-pull only; default: copilot)
+  --period <YYYY-MM>    Billing period for usage-pull
+  --org <slug>          GitHub org for usage-pull (Copilot live sync)
+  --file <path>         UsageMetrics fixture file (usage-pull with fixture)
+  --out <path>          Write UsageMetrics JSON (usage-pull)
   --out <dir>           Output root for org-pack (default: cwd)
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
@@ -100,6 +108,10 @@ export async function runCli(
         team: { type: "string" },
         repo: { type: "string" },
         provider: { type: "string" },
+        "usage-provider": { type: "string" },
+        period: { type: "string" },
+        org: { type: "string" },
+        file: { type: "string" },
         out: { type: "string" },
         mode: { type: "string" },
         llm: { type: "string" },
@@ -165,6 +177,31 @@ export async function runCli(
         Boolean(values.json),
       );
       return savingsExitCode(applied.report.totals);
+    }
+
+    if (command === "usage-pull") {
+      const usageProvider = values["usage-provider"] ?? "copilot";
+      const result = await pullUsage({
+        provider: usageProvider,
+        org: values.org,
+        period: values.period ?? "",
+        teamScope: values.team,
+        fixtureFile: values.file,
+        outPath: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(result.metrics, null, 2)}\n`);
+      } else {
+        io.stdout.write(
+          `usage-pull ${result.provider} · ${result.metrics.period} · ` +
+            `${result.metrics.totals.creditsUsed} credits · ` +
+            `$${result.metrics.totals.estimatedUsd}\n`,
+        );
+        if (result.outPath) {
+          io.stdout.write(`wrote ${result.outPath}\n`);
+        }
+      }
+      return 0;
     }
 
     if (command === "org-pack") {

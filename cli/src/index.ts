@@ -20,10 +20,15 @@ export {
 } from "./adapters";
 export {
   createFixtureUsageProvider,
+  createCopilotUsageProvider,
   getUsageProvider,
+  parseUsagePeriod,
+  type CopilotUsageProviderOptions,
   type FetchUsageQuery,
   type FixtureUsageProviderOptions,
   type ResolveUsageProviderOptions,
   type UsageProvider,
   type UsageProviderId,
 } from "./usage";
+export { pullUsage, type UsagePullOptions, type UsagePullResult } from "./commands/usage-pull/usage-pull";
+
