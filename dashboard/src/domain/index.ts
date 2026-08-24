@@ -67,6 +67,14 @@ export {
   type UsageTeamRow,
 } from "./usage";
 export {
+  UsageLoadError,
+  normalizeUsageMetrics,
+  parseUsageCsv,
+  parseUsageFile,
+  parseUsageJson,
+  parseUsageText,
+} from "./parseUsage";
+export {
   compactionAdvice,
   routingAdvice,
   type CompactionAdvice,

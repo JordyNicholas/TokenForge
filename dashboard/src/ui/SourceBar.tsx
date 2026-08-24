@@ -1,6 +1,7 @@
 import CompareArrowsOutlined from "@mui/icons-material/CompareArrowsOutlined";
 import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
+import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
@@ -36,6 +37,10 @@ export function SourceBar() {
     afterFixLabel,
     loadAfterFixFile,
     clearAfterFix,
+    usageLabel,
+    loadUsageFromFile,
+    resetUsageToDemo,
+    clearUsage,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -44,6 +49,7 @@ export function SourceBar() {
   const [localError, setLocalError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const afterFixRef = useRef<HTMLInputElement>(null);
+  const usageRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -85,6 +91,18 @@ export function SourceBar() {
             variant="outlined"
             label={`vs ${shortSource(afterFixLabel)}`}
             onDelete={clearAfterFix}
+            sx={{ maxWidth: 140, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
+      {usageLabel ? (
+        <Tooltip title={`Billed usage: ${usageLabel}`}>
+          <Chip
+            size="small"
+            color="success"
+            variant="outlined"
+            label={shortSource(usageLabel)}
+            onDelete={clearUsage}
             sx={{ maxWidth: 140, display: { xs: "none", md: "inline-flex" } }}
           />
         </Tooltip>
@@ -163,6 +181,45 @@ export function SourceBar() {
             Clear after-Fix compare
           </MenuItem>
         ) : null}
+        <Divider />
+        <MenuItem disabled>
+          <Typography variant="overline">Prove billed usage</Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            usageRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <ReceiptLongOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Import usage CSV/JSON…"
+            secondary="FinOps export → UsageMetrics (not live billing)"
+          />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            void resetUsageToDemo();
+          }}
+        >
+          <ListItemText
+            primary="Reset to demo usage"
+            secondary="Keep the current scan; restore demo billed credits"
+          />
+        </MenuItem>
+        {usageLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearUsage();
+            }}
+          >
+            Clear imported usage
+          </MenuItem>
+        ) : null}
       </Menu>
       <input
         ref={fileRef}
@@ -186,6 +243,21 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadAfterFixFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={usageRef}
+        type="file"
+        hidden
+        accept="application/json,.json,text/csv,.csv"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadUsageFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }

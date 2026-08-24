@@ -56,6 +56,7 @@ export function OverviewPage() {
     redactPaths,
     assumptions,
     patchAssumptions,
+    usageLabel,
   } = useLayerView();
   const llmBoardEmpty =
     boardLayer === "llm" &&
@@ -105,7 +106,7 @@ export function OverviewPage() {
       <ProveStoryRail />
       <PrivacyControls showNote />
 
-      <UsageMetricsCard usage={seed?.usage} teamId={teamId} />
+      <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />
 
       <Alert severity="success" variant="outlined">
         Under your assumptions, about{" "}

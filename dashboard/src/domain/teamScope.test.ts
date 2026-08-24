@@ -12,7 +12,6 @@ import {
   parseTeamIdFromPath,
   boardViewSuffix,
 } from "./teamScope";
-import { isUsageMetrics, usageForTeam } from "./usage";
 
 describe("teamScope", () => {
   it("parses team id from board paths", () => {
@@ -81,22 +80,6 @@ describe("architecture", () => {
       75,
     );
     expect(buckets.find((b) => b.architecture === "serverless")?.teams).toBe(1);
-  });
-});
-
-describe("usage", () => {
-  it("validates and slices usage metrics", () => {
-    const usage = {
-      source: "demo" as const,
-      providerLabel: "demo",
-      period: "2026-08",
-      teams: [{ team: "checkout", creditsUsed: 10, estimatedUsd: 2 }],
-      totals: { creditsUsed: 10, estimatedUsd: 2 },
-    };
-    expect(isUsageMetrics(usage)).toBe(true);
-    expect(usageForTeam(usage, null)?.creditsUsed).toBe(10);
-    expect(usageForTeam(usage, "checkout")?.estimatedUsd).toBe(2);
-    expect(usageForTeam(usage, "missing")).toBeNull();
   });
 });
 

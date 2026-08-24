@@ -47,6 +47,10 @@ export type DashboardState = {
   loadFromFile: (file: File) => Promise<void>;
   loadFromUrl: (url: string) => Promise<void>;
   resetToDemo: () => Promise<void>;
+  usageLabel: string | null;
+  loadUsageFromFile: (file: File) => Promise<void>;
+  resetUsageToDemo: () => Promise<void>;
+  clearUsage: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);

@@ -1,6 +1,6 @@
 /**
- * Provider-agnostic usage import for Prove (#27 thin slice).
- * Not a live vendor billing API — demo / file import only.
+ * Provider-agnostic billed usage for Prove (#27 thin + #85 import UX).
+ * File/demo import only — not a live vendor billing API.
  */
 export type UsageTeamRow = {
   team: string;
