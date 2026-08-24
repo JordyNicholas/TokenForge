@@ -1,12 +1,14 @@
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { TokenRiskTotals } from "@tokenforge/risk-core";
 import {
   compareUsagePeriods,
   formatUsd,
+  summarizeAssumptionsFreeze,
   type Assumptions,
   type UsageMetrics,
 } from "../domain";
@@ -24,7 +26,13 @@ export function UsagePeriodCompareCard({
   assumptions: Assumptions;
   teamId: string | null;
 }) {
-  const { afterUsage, afterUsageLabel, clearAfterUsage } = useDashboard();
+  const {
+    afterUsage,
+    afterUsageLabel,
+    clearAfterUsage,
+    compareAssumptionsFreeze,
+    freezeCompareAssumptions,
+  } = useDashboard();
 
   if (!baselineUsage || !afterUsage) {
     return null;
@@ -35,7 +43,8 @@ export function UsagePeriodCompareCard({
     afterUsage,
     teamId,
     baselineTotals,
-    assumptions,
+    liveAssumptions: assumptions,
+    frozenAssumptions: compareAssumptionsFreeze,
   });
 
   if (!compare) {
@@ -61,16 +70,46 @@ export function UsagePeriodCompareCard({
           Baseline → after billed usage
           {teamId ? ` · ${teamId}` : " · BU"}
         </AlertTitle>
-        <Button size="small" color="inherit" onClick={clearAfterUsage}>
-          Clear after usage
-        </Button>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          {compare.assumptionsFrozen ? (
+            <Button size="small" color="inherit" onClick={freezeCompareAssumptions}>
+              Re-freeze Assumptions
+            </Button>
+          ) : (
+            <Button size="small" color="inherit" onClick={freezeCompareAssumptions}>
+              Freeze Assumptions
+            </Button>
+          )}
+          <Button size="small" color="inherit" onClick={clearAfterUsage}>
+            Clear after usage
+          </Button>
+        </Stack>
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
         {compare.baseline.period} → {compare.after.period}
-        {afterUsageLabel ? ` · ${afterUsageLabel}` : ""}. Estimated $ uses the baseline
-        scan × current Assumptions. This is billed usage compare — not agent pipeline
-        metering, and not live vendor sync.
+        {afterUsageLabel ? ` · ${afterUsageLabel}` : ""}. Estimated $ uses{" "}
+        {compare.assumptionsFrozen ? "frozen" : "live"} Assumptions × the baseline scan.
+        This is billed usage compare — not agent pipeline metering, and not live vendor
+        sync.
       </Typography>
+      {compare.assumptionsFrozen ? (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ alignItems: { sm: "center" }, mb: 1 }}
+        >
+          <Chip size="small" color="success" variant="outlined" label="Assumptions frozen" />
+          <Typography variant="caption" color="text.secondary">
+            {summarizeAssumptionsFreeze(compare.assumptionsUsed)}
+          </Typography>
+        </Stack>
+      ) : null}
+      {compare.liveAssumptionsDrift ? (
+        <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
+          Live Assumptions changed since this compare was frozen. Estimated $ and variance
+          still use the freeze — re-freeze to adopt the current knobs.
+        </Typography>
+      ) : null}
       {compare.periodMismatch || compare.providerMismatch ? (
         <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
           {[
@@ -90,7 +129,7 @@ export function UsagePeriodCompareCard({
         <KpiCard
           label="Estimated reduction"
           value={formatUsd(compare.estimatedUsdReduction)}
-          hint="Scan × assumptions"
+          hint={compare.assumptionsFrozen ? "Scan × frozen assumptions" : "Scan × assumptions"}
         />
         <KpiCard
           label="Actual billed change"

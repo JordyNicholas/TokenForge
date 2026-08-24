@@ -2,6 +2,9 @@ export type { Assumptions } from "./assumptions";
 export {
   DEFAULT_ASSUMPTIONS,
   PITCH_REALIZED_WASTE_SHARE,
+  assumptionsEqual,
+  cloneAssumptions,
+  summarizeAssumptionsFreeze,
   withPitchScenario,
 } from "./assumptions";
 export {

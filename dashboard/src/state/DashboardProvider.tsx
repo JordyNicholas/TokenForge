@@ -12,6 +12,7 @@ import type { TokenRiskReport, TokenRiskTotals } from "@tokenforge/risk-core";
 import {
   DEFAULT_ASSUMPTIONS,
   aggregateTotals,
+  cloneAssumptions,
   isDemoSourceLabel,
   parseUsageFile,
   parseUsageText,
@@ -61,6 +62,12 @@ export type DashboardState = {
   afterUsageLabel: string | null;
   loadAfterUsageFromFile: (file: File) => Promise<void>;
   clearAfterUsage: () => void;
+  /**
+   * Assumptions frozen with the active compare run (#87).
+   * Variance estimate $ uses this snapshot, not live knobs.
+   */
+  compareAssumptionsFreeze: Assumptions | null;
+  freezeCompareAssumptions: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -83,6 +90,8 @@ function readBool(key: string, fallback: boolean): boolean {
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const loaded = useSeedLoader();
   const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
+  const assumptionsRef = useRef(assumptions);
+  assumptionsRef.current = assumptions;
   const [redactPaths, setRedactPathsState] = useState(() =>
     readBool(REDACT_STORAGE_KEY, false),
   );
@@ -94,6 +103,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [afterUsage, setAfterUsage] = useState<UsageMetrics | null>(null);
   const [afterUsageLabel, setAfterUsageLabel] = useState<string | null>(null);
   const [afterUsageError, setAfterUsageError] = useState<string | null>(null);
+  const [compareAssumptionsFreeze, setCompareAssumptionsFreeze] =
+    useState<Assumptions | null>(null);
   const skipCompareClearOnMount = useRef(true);
 
   const projection = useMemo(
@@ -112,6 +123,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const applyPitchScenario = useCallback(() => {
     setAssumptions((current) => withPitchScenario(current));
+  }, []);
+
+  const freezeCompareAssumptions = useCallback(() => {
+    setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
+  }, []);
+
+  const beginAfterUsageCompare = useCallback((usage: UsageMetrics, label: string) => {
+    setAfterUsage(usage);
+    setAfterUsageLabel(label);
+    setAfterUsageError(null);
+    setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
   }, []);
 
   const setRedactPaths = useCallback((next: boolean) => {
@@ -141,31 +163,33 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setAfterUsage(null);
     setAfterUsageLabel(null);
     setAfterUsageError(null);
+    setCompareAssumptionsFreeze(null);
   }, []);
 
-  const loadAfterFixFile = useCallback(async (file: File) => {
-    const { parseDashboardFile } = await import("../data/loadDocument");
-    const next = await parseDashboardFile(file);
-    setAfterFixSeed(next);
-    setAfterFixLabel(file.name);
-    if (next.usage) {
-      setAfterUsage(next.usage);
-      setAfterUsageLabel(`${file.name} · usage`);
-      setAfterUsageError(null);
-    }
-  }, []);
+  const loadAfterFixFile = useCallback(
+    async (file: File) => {
+      const { parseDashboardFile } = await import("../data/loadDocument");
+      const next = await parseDashboardFile(file);
+      setAfterFixSeed(next);
+      setAfterFixLabel(file.name);
+      if (next.usage) {
+        beginAfterUsageCompare(next.usage, `${file.name} · usage`);
+      }
+    },
+    [beginAfterUsageCompare],
+  );
 
-  const loadAfterUsageFromFile = useCallback(async (file: File) => {
-    try {
-      const usage = await parseUsageFile(file);
-      setAfterUsage(usage);
-      setAfterUsageLabel(file.name);
-      setAfterUsageError(null);
-    } catch (error) {
-      setAfterUsageError(error instanceof Error ? error.message : String(error));
-      throw error;
-    }
-  }, []);
+  const loadAfterUsageFromFile = useCallback(
+    async (file: File) => {
+      try {
+        beginAfterUsageCompare(await parseUsageFile(file), file.name);
+      } catch (error) {
+        setAfterUsageError(error instanceof Error ? error.message : String(error));
+        throw error;
+      }
+    },
+    [beginAfterUsageCompare],
+  );
 
   // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
   // so `?afterUsage=` can land alongside the demo/boot seed).
@@ -179,6 +203,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setAfterUsage(null);
     setAfterUsageLabel(null);
     setAfterUsageError(null);
+    setCompareAssumptionsFreeze(null);
   }, [loaded.sourceLabel]);
 
   // Optional `?afterUsage=/sample-usage-after.csv` for demo / Prove handoff.
@@ -198,9 +223,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (cancelled) {
           return;
         }
-        setAfterUsage(usage);
-        setAfterUsageLabel(bootAfter);
-        setAfterUsageError(null);
+        beginAfterUsageCompare(usage, bootAfter);
       } catch (error) {
         if (!cancelled) {
           setAfterUsageError(error instanceof Error ? error.message : String(error));
@@ -210,7 +233,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [beginAfterUsageCompare]);
 
   const isDemoSource = isDemoSourceLabel(loaded.sourceLabel);
   const loadError = loaded.loadError ?? afterUsageError;
@@ -237,6 +260,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       afterUsageLabel,
       loadAfterUsageFromFile,
       clearAfterUsage,
+      compareAssumptionsFreeze,
+      freezeCompareAssumptions,
     }),
     [
       loaded,
@@ -259,6 +284,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       afterUsageLabel,
       loadAfterUsageFromFile,
       clearAfterUsage,
+      compareAssumptionsFreeze,
+      freezeCompareAssumptions,
     ],
   );
 

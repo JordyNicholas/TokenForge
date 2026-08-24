@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ASSUMPTIONS } from "./assumptions";
+import {
+  DEFAULT_ASSUMPTIONS,
+  assumptionsEqual,
+  cloneAssumptions,
+  withPitchScenario,
+} from "./assumptions";
 import { compareUsagePeriods, usagePeriodSlice } from "./usageCompare";
 import type { UsageMetrics } from "./usage";
 
@@ -25,6 +30,12 @@ const afterUsage: UsageMetrics = {
   totals: { creditsUsed: 16200, estimatedUsd: 2430 },
 };
 
+const totals = {
+  beforeTokens: 1_000_000,
+  afterTokens: 700_000,
+  savedTokens: 300_000,
+};
+
 describe("usagePeriodSlice", () => {
   it("returns BU totals or a team row", () => {
     expect(usagePeriodSlice(baselineUsage, null)?.estimatedUsd).toBe(3090);
@@ -39,12 +50,8 @@ describe("compareUsagePeriods", () => {
       baselineUsage,
       afterUsage,
       teamId: null,
-      baselineTotals: {
-        beforeTokens: 1_000_000,
-        afterTokens: 700_000,
-        savedTokens: 300_000,
-      },
-      assumptions: DEFAULT_ASSUMPTIONS,
+      baselineTotals: totals,
+      liveAssumptions: DEFAULT_ASSUMPTIONS,
     });
     expect(compare).not.toBeNull();
     expect(compare!.actualBilledChange).toBe(660);
@@ -54,6 +61,8 @@ describe("compareUsagePeriods", () => {
     );
     expect(compare!.periodMismatch).toBe(true);
     expect(compare!.providerMismatch).toBe(false);
+    expect(compare!.assumptionsFrozen).toBe(false);
+    expect(compare!.liveAssumptionsDrift).toBe(false);
   });
 
   it("scopes actual billed change to a team", () => {
@@ -66,10 +75,42 @@ describe("compareUsagePeriods", () => {
         afterTokens: 80_000,
         savedTokens: 20_000,
       },
-      assumptions: DEFAULT_ASSUMPTIONS,
+      liveAssumptions: DEFAULT_ASSUMPTIONS,
     });
     expect(compare!.actualBilledChange).toBe(270);
     expect(compare!.baseline.period).toBe("2026-08");
     expect(compare!.after.period).toBe("2026-09");
+  });
+
+  it("keeps estimate $ on the freeze when live knobs change (#87)", () => {
+    const frozen = cloneAssumptions(DEFAULT_ASSUMPTIONS);
+    const live = withPitchScenario(DEFAULT_ASSUMPTIONS);
+    const withFreeze = compareUsagePeriods({
+      baselineUsage,
+      afterUsage,
+      teamId: null,
+      baselineTotals: totals,
+      liveAssumptions: live,
+      frozenAssumptions: frozen,
+    });
+    const liveOnly = compareUsagePeriods({
+      baselineUsage,
+      afterUsage,
+      teamId: null,
+      baselineTotals: totals,
+      liveAssumptions: live,
+    });
+    expect(withFreeze!.assumptionsFrozen).toBe(true);
+    expect(withFreeze!.liveAssumptionsDrift).toBe(true);
+    expect(withFreeze!.estimatedUsdReduction).not.toBe(liveOnly!.estimatedUsdReduction);
+    expect(assumptionsEqual(withFreeze!.assumptionsUsed, frozen)).toBe(true);
+    const frozenOnly = compareUsagePeriods({
+      baselineUsage,
+      afterUsage,
+      teamId: null,
+      baselineTotals: totals,
+      liveAssumptions: frozen,
+    });
+    expect(withFreeze!.estimatedUsdReduction).toBe(frozenOnly!.estimatedUsdReduction);
   });
 });
