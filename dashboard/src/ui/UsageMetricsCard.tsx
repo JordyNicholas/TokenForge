@@ -56,14 +56,21 @@ export function UsageMetricsCard({
         </Box>
         <Chip
           size="small"
-          label={usage.source === "demo" ? "Demo import" : "File import"}
+          label={
+            usage.source === "demo"
+              ? "Demo import"
+              : usage.source === "sync"
+                ? "Live sync"
+                : "File import"
+          }
           color="success"
           variant="outlined"
         />
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-        Billed usage compare from an imported export — not live Copilot/Cursor/Claude
-        sync, and not metering of any agent pipeline.
+        {usage.source === "sync"
+          ? "Billed usage compare from a synced vendor export — not agent pipeline metering."
+          : "Billed usage compare from an imported export — not live Copilot/Cursor/Claude sync, and not metering of any agent pipeline."}
       </Typography>
     </Alert>
   );

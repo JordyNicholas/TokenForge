@@ -70,6 +70,6 @@ describe("UsageProvider fixture adapter", () => {
   });
 
   it("rejects unknown usage provider ids", () => {
-    expect(() => getUsageProvider("copilot")).toThrow(/fixture only/i);
+    expect(() => getUsageProvider("unknown-vendor")).toThrow(/Supported:/i);
   });
 });

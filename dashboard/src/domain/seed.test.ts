@@ -10,6 +10,7 @@ import {
   aggregateTotals,
   parseDashboardDocument,
   resolveBootAfterUsageUrl,
+  resolveBootUsageUrl,
   resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";
@@ -126,5 +127,12 @@ describe("resolveBootAfterUsageUrl", () => {
       "/sample-usage-after.csv",
     );
     expect(resolveBootAfterUsageUrl("?src=/last-scan.json")).toBeNull();
+  });
+});
+
+describe("resolveBootUsageUrl", () => {
+  it("accepts same-origin baseline usage paths", () => {
+    expect(resolveBootUsageUrl("?usage=/usage-2026-08.json")).toBe("/usage-2026-08.json");
+    expect(resolveBootUsageUrl("?afterUsage=/sample-usage-after.csv")).toBeNull();
   });
 });

@@ -31,4 +31,16 @@ export {
   type UsageProviderId,
 } from "./usage";
 export { pullUsage, type UsagePullOptions, type UsagePullResult } from "./commands/usage-pull/usage-pull";
+export { syncUsage, type UsageSyncOptions, type UsageSyncResult } from "./commands/usage-sync/usage-sync";
+export {
+  usageMetricsPath,
+  usageLatestPath,
+  usageSyncConfigPath,
+} from "./io/paths";
+export { syncUsage, type UsageSyncOptions, type UsageSyncResult } from "./commands/usage-sync/usage-sync";
+export {
+  usageMetricsPath,
+  usageLatestPath,
+  usageSyncConfigPath,
+} from "./io/paths";
 

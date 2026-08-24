@@ -7,7 +7,9 @@ import {
   errorMessage,
   parseUsageFile,
   parseUsageJson,
+  parseUsageText,
   resolveBootSourceUrl,
+  resolveBootUsageUrl,
   type DashboardSeed,
   type UsageMetrics,
 } from "../domain";
@@ -129,6 +131,25 @@ export function useSeedLoader() {
     [applyUsage, fail, seed],
   );
 
+  const loadUsageFromUrl = useCallback(
+    async (url: string) => {
+      if (!seed) {
+        fail(new Error("Load a scan report before importing billed usage."));
+        return;
+      }
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${url} (${response.status})`);
+        }
+        applyUsage(parseUsageText(await response.text(), url), url);
+      } catch (error) {
+        fail(error);
+      }
+    },
+    [applyUsage, fail, seed],
+  );
+
   const resetUsageToDemo = useCallback(async () => {
     if (!seed) {
       fail(new Error("Load a scan report before restoring demo usage."));
@@ -165,6 +186,15 @@ export function useSeedLoader() {
     })();
   }, [applySeed, fail, resetToDemo]);
 
+  // Optional `?usage=` for synced baseline handoff (#94).
+  useEffect(() => {
+    const bootUsage = resolveBootUsageUrl();
+    if (!bootUsage || !seed) {
+      return;
+    }
+    void loadUsageFromUrl(bootUsage);
+  }, [loadUsageFromUrl, seed]);
+
   return useMemo(() => {
     const reports = seed?.reports ?? [];
     const totals = seed ? aggregateTotals(reports) : EMPTY_TOTALS;
@@ -178,6 +208,7 @@ export function useSeedLoader() {
       loadFromFile,
       loadFromUrl,
       loadUsageFromFile,
+      loadUsageFromUrl,
       resetUsageToDemo,
       clearUsage,
       resetToDemo,
@@ -190,6 +221,7 @@ export function useSeedLoader() {
     loadFromFile,
     loadFromUrl,
     loadUsageFromFile,
+    loadUsageFromUrl,
     resetUsageToDemo,
     clearUsage,
     resetToDemo,

@@ -163,3 +163,12 @@ export function resolveBootAfterUsageUrl(
 ): string | null {
   return resolveBootResourceUrl("afterUsage", search);
 }
+
+/**
+ * Resolve `?usage=` for boot-time baseline billed usage (#94 Prove handoff).
+ */
+export function resolveBootUsageUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("usage", search);
+}

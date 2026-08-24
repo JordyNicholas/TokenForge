@@ -4,6 +4,7 @@ import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
+import { syncUsage } from "../commands/usage-sync/usage-sync";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
 import { writeScanReport } from "../io/report-file";
 import { formatScanTable } from "../output/table";
@@ -19,6 +20,7 @@ Commands:
   org-pack <seed.json>
                       Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
   usage-pull          Fetch billed usage into UsageMetrics JSON (Wave B / #90)
+  usage-sync [root]   Pull usage via UsageProvider into .tokenforge/ (Wave B / #94)
 
 Options:
   --team <name>         Team label (default: local)
@@ -26,11 +28,11 @@ Options:
   --provider <id>       copilot | cursor | claude | generic
                         scan default: generic; apply/init default: copilot
   --usage-provider <id>
-                        fixture | copilot (usage-pull only; default: copilot)
-  --period <YYYY-MM>    Billing period for usage-pull
-  --org <slug>          GitHub org for usage-pull (Copilot live sync)
+                        fixture | copilot (usage-pull/sync; default: copilot)
+  --period <YYYY-MM>    Billing period for usage-pull / usage-sync
+  --org <slug>          GitHub org for usage-pull / usage-sync (Copilot)
   --file <path>         UsageMetrics fixture file (usage-pull with fixture)
-  --out <path>          Write UsageMetrics JSON (usage-pull)
+  --out <path>          Write UsageMetrics JSON (usage-pull; also copied when --root set)
   --out <dir>           Output root for org-pack (default: cwd)
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
@@ -188,6 +190,7 @@ export async function runCli(
         teamScope: values.team,
         fixtureFile: values.file,
         outPath: values.out,
+        root: rootArg ? root : undefined,
       });
       if (values.json) {
         io.stdout.write(`${JSON.stringify(result.metrics, null, 2)}\n`);
@@ -199,6 +202,39 @@ export async function runCli(
         );
         if (result.outPath) {
           io.stdout.write(`wrote ${result.outPath}\n`);
+        }
+        if (result.latestPath && result.latestPath !== result.outPath) {
+          io.stdout.write(`wrote ${result.latestPath}\n`);
+        }
+      }
+      return 0;
+    }
+
+    if (command === "usage-sync") {
+      const usageProvider = values["usage-provider"];
+      const syncRoot = resolve(rootArg ?? process.cwd());
+      const result = await syncUsage({
+        root: syncRoot,
+        provider: usageProvider,
+        org: values.org,
+        period: values.period,
+        teamScope: values.team,
+        fixtureFile: values.file,
+        outPath: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(result.metrics, null, 2)}\n`);
+      } else {
+        io.stdout.write(
+          `usage-sync ${result.provider} · ${result.period} · ` +
+            `${result.metrics.totals.creditsUsed} credits · ` +
+            `$${result.metrics.totals.estimatedUsd}\n`,
+        );
+        if (result.periodPath) {
+          io.stdout.write(`wrote ${result.periodPath}\n`);
+        }
+        if (result.latestPath) {
+          io.stdout.write(`wrote ${result.latestPath}\n`);
         }
       }
       return 0;
