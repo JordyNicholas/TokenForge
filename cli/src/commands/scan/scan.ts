@@ -167,7 +167,6 @@ async function loadCandidateExcerpt(
 async function runHybridEnrichment(
   root: string,
   assessments: RiskAssessment[],
-  heuristicFindings: TokenRiskFinding[],
   options: ScanOptions,
 ): Promise<{
   llmFindings: TokenRiskFinding[];
@@ -254,7 +253,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
   let scan: ScanMetadata | undefined;
 
   if (mode === "hybrid") {
-    const hybrid = await runHybridEnrichment(root, assessments, heuristicFindings, options);
+    const hybrid = await runHybridEnrichment(root, assessments, options);
     llmFindings = hybrid.llmFindings;
     llmCandidateTokens = hybrid.llmCandidateTokens;
     scan = hybrid.scan;
