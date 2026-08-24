@@ -27,7 +27,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, useRef, type ReactNode } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   ARCHITECTURE_LABELS,
@@ -207,6 +207,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const appBarObserver = useRef<ResizeObserver | null>(null);
+  const [appBarHeight, setAppBarHeight] = useState(64);
   const { seed } = useDashboard();
   const location = useLocation();
   const boardLayer = parseBoardLayerFromPath(location.pathname);
@@ -216,6 +218,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const subpath = boardSubpath(location.pathname);
   const boardBase = boardScopeBase(boardLayer, teamId);
   const showMobileBoardSwitch = compact && isBoardRoute(location.pathname);
+
+  const attachAppBar = useCallback((node: HTMLElement | null) => {
+    appBarObserver.current?.disconnect();
+    appBarObserver.current = null;
+    if (!node) {
+      return;
+    }
+    const syncHeight = () => {
+      setAppBarHeight(Math.ceil(node.getBoundingClientRect().height));
+    };
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(node);
+    appBarObserver.current = observer;
+  }, []);
   const teams = useMemo(() => {
     const names = [...new Set((seed?.reports ?? []).map((report) => report.team))];
     return names.sort((a, b) => a.localeCompare(b));
@@ -376,6 +393,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <AppBar
+        ref={attachAppBar}
         position="fixed"
         sx={{
           borderBottom: 1,
@@ -471,9 +489,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           bgcolor: "background.default",
         }}
       >
-        <Toolbar
+        <Box
+          aria-hidden
+          data-testid="app-bar-spacer"
           sx={{
-            minHeight: showMobileBoardSwitch ? 112 : undefined,
+            flexShrink: 0,
+            height: appBarHeight,
+            minHeight: showMobileBoardSwitch ? Math.max(appBarHeight, 128) : appBarHeight,
           }}
         />
         <Box
