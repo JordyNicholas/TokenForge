@@ -18,7 +18,7 @@ const STEPS = [
   },
   {
     label: "Prove",
-    body: "Show tokens avoided and $ under editable assumptions.",
+    body: "Reconcile estimated savings with imported or synced billed usage for a period.",
     icon: QueryStatsOutlined,
   },
 ] as const;

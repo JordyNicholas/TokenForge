@@ -524,7 +524,7 @@ def honesty_slide(prs: Presentation) -> None:
         ("We don’t", "Intercept any vendor’s private Chat/Agent pipeline."),
         ("Default scan", "Heuristic only — no AI. Hybrid enrich is explicit and bounded."),
         ("~30%", "Scenario math on the demo seed — not a universal SLA."),
-        ("Usage import", "Demo / file metrics today. Live billing sync is next."),
+        ("Usage", "Import or live sync into UsageMetrics. Estimate vs bill + cohort note."),
         ("Metering", "Chat / Agent / AI credits — not unlimited completions."),
     ]
     card_w = Inches(5.85)
@@ -551,10 +551,10 @@ def roadmap_slide(prs: Presentation) -> None:
         Inches(5.85),
         Inches(3.8),
         "Shipped for the hackathon demo",
-        "Per-team + global Prove\nArchitecture tags + usage import\nOrg-pack + Cursor/Claude adapters\nAdvisory levers (do not lead the pitch)",
+        "Per-team + global Prove\nArchitecture tags + usage import/sync\nVariance board + change markers + cohort\nOrg-pack + Cursor/Claude adapters\nAdvisory levers (do not lead the pitch)",
         accent=TEAL,
         title_size=16,
-        body_size=15,
+        body_size=14,
     )
     add_card(
         slide,
@@ -563,7 +563,7 @@ def roadmap_slide(prs: Presentation) -> None:
         Inches(5.85),
         Inches(3.8),
         "Next if we keep building",
-        "Live billing sync per provider\nRemote org exclusion apply APIs\nKeep Detect → Fix → Prove as the spine",
+        "Remote org exclusion apply APIs\nOrg pilot pack (scan → apply → prove)\nKeep Detect → Fix → Prove as the spine",
         accent=ACCENT_WARM,
         title_size=16,
         body_size=15,
