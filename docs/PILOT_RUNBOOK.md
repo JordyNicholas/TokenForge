@@ -194,7 +194,7 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Claiming a public Copilot/Cursor/Claude API pushed org exclusions (see #99 `org-apply` honesty)
+- Claiming a public Copilot/Cursor/Claude API pushed org exclusions (`org-apply` stages + honesty; fixture simulates apply)
 - Hosted TokenForge backend / database
 
 ## Reset

@@ -39,5 +39,8 @@ describe("ProveChangeMarker contract (risk-core)", () => {
     expect(buildPackId("org-pack", "cursor", "Retail Banking")).toBe(
       "org-pack:cursor:Retail Banking",
     );
+    expect(buildPackId("org-apply", "copilot", "acme")).toBe(
+      "org-apply:copilot:acme",
+    );
   });
 });

@@ -9,4 +9,9 @@ export {
   type PilotPackOptions,
   type PilotPackResult,
 } from "./pilot/pilot";
+export {
+  applyOrgRemote,
+  type OrgApplyOptions,
+  type OrgApplyResult,
+} from "./org-apply/org-apply";
 export { parseProviderId, scanRepo, type ScanOptions, type ScanResult } from "./scan/scan";
