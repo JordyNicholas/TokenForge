@@ -5,6 +5,11 @@ export {
   type OrgPackResult,
 } from "./org-pack/org-pack";
 export {
+  runPilotPack,
+  type PilotPackOptions,
+  type PilotPackResult,
+} from "./pilot/pilot";
+export {
   applyOrgRemote,
   type OrgApplyOptions,
   type OrgApplyResult,

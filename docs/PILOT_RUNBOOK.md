@@ -38,6 +38,23 @@ JSON may be a full `UsageMetrics` document, nested `{ "usage": { … } }`, or a 
 CSV needs team / credits / $ columns (aliases: `org`/`repo`, `tokens`/`credits`, `cost`/`usd`).
 Optional `# period:` and `# providerLabel:` comment lines.
 
+## One-command path (#100)
+
+Lowest-friction wedge — scan, local apply (with Prove change marker), stage Prove:
+
+```bash
+npm run tokenforge:pilot -- fixtures/noisy-app --team payments-platform
+```
+
+Dry-run apply (scan + planned files only):
+
+```bash
+npm run tokenforge:pilot -- fixtures/noisy-app --dry-run
+```
+
+Opens Overview with `?afterUsage=/sample-usage-after.csv` so variance KPIs appear.
+Import a real baseline bill when you have one. Remote org push is separate (`org-apply` / #99).
+
 ## Fast path (sanitized fixture, ~3 min)
 
 Use when you only need to **show variance**, not a live apply.
@@ -177,8 +194,8 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Org pilot pack single path (#100)
-- Claiming a public Copilot/Cursor/Claude API pushed org exclusions (org-apply stages + honesty; fixture simulates apply)
+- Claiming a public Copilot/Cursor/Claude API pushed org exclusions (`org-apply` stages + honesty; fixture simulates apply)
+- Hosted TokenForge backend / database
 
 ## Reset
 

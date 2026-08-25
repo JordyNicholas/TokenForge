@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
+import { runPilotPack } from "../commands/pilot/pilot";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { proveChangeLatestPath } from "../io/paths";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
@@ -19,6 +20,7 @@ Commands:
   scan [root]         Score high-risk paths and write .tokenforge/scan-report.json
   apply [root]        Write lean instructions + exclusion candidates (provider adapter)
   init [root]         scan + apply
+  pilot [root]        Org pilot pack: scan → apply → Prove-ready (#100)
   org-pack <seed.json>
                       Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
   org-apply [root]    Stage / push org content exclusions via PolicyApplyProvider (#99)
@@ -29,7 +31,7 @@ Options:
   --team <name>         Team label (default: local)
   --repo <name>         Repo label (default: directory name)
   --provider <id>       copilot | cursor | claude | generic
-                        scan default: generic; apply/init/org-apply default: copilot
+                        scan default: generic; apply/init/pilot/org-apply default: copilot
   --apply-provider <id> fixture | copilot | cursor | claude (org-apply; default: --provider)
   --usage-provider <id>
                         fixture | copilot | cursor | claude (usage-pull/sync; default: copilot)
@@ -44,6 +46,7 @@ Options:
   --llm-endpoint <url>  Override Ollama/Anthropic API base URL (not Codex)
   --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)
   --allow-external      Confirm that bounded source excerpts may leave this machine
+  --skip-apply          Pilot: scan only (still writes report)
   --dry-run             Print planned policy files; do not write them
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
@@ -129,6 +132,7 @@ export async function runCli(
         "llm-endpoint": { type: "string" },
         "llm-timeout": { type: "string" },
         "allow-external": { type: "boolean", default: false },
+        "skip-apply": { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
       },
@@ -189,6 +193,41 @@ export async function runCli(
         applied.changeMarker ? proveChangeLatestPath(root) : undefined,
       );
       return savingsExitCode(applied.report.totals);
+    }
+
+    if (command === "pilot") {
+      const pilot = await runPilotPack({
+        ...common,
+        provider: values.provider ?? "copilot",
+        dryRun: values["dry-run"],
+        skipApply: values["skip-apply"],
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              steps: pilot.steps,
+              totals: pilot.report.totals,
+              reportPath: pilot.reportPath,
+              dryRun: pilot.dryRun,
+              changeMarker: pilot.changeMarker,
+              files: pilot.apply?.files.map((file) => file.path) ?? [],
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        const sink = io.stdout;
+        sink.write(`pilot ${pilot.report.team} · ${pilot.report.provider}\n`);
+        for (const step of pilot.steps) {
+          sink.write(`  ${step}\n`);
+        }
+        if (pilot.changeMarker) {
+          sink.write(`wrote ${proveChangeLatestPath(root)}\n`);
+        }
+      }
+      return savingsExitCode(pilot.report.totals);
     }
 
     if (command === "usage-pull") {
