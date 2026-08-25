@@ -111,6 +111,10 @@ Then apply for real if the pilot allows writing files (Copilot adapter by defaul
 
 - Show lean instructions + exclusion candidates under `fixtures/noisy-app/.github/`
   (or the selected adapter’s files).
+- Apply / org-pack also write a Prove **change marker** under
+  `.tokenforge/prove-change-latest.json` (plus append-only `prove-changes.jsonl`) —
+  timestamp, provider, pack id — to bound before/after billing windows. Cohort
+  compare still lands in Wave C (#96).
 - Optional: Data source → **Load after-Fix report…** with a second scan JSON for the
   **scan** before/after card (token snapshot). Usage variance still needs the **after bill**.
 
@@ -172,7 +176,7 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Apply change markers / cohorts / auto-calibrated `realizedWasteShare` (Wave C)
+- Cohort compare / auto-calibrated `realizedWasteShare` (Wave C remaining: #96–#98)
 - Remote org policy push (#99)
 
 ## Reset

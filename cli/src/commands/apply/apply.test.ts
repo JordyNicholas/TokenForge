@@ -1,6 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { isProveChangeMarker } from "@tokenforge/risk-core";
 import {
   COPILOT_EXCLUSIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
@@ -16,6 +17,7 @@ describe("apply / init on noisy-app", () => {
   it("dry-run does not write policy files", async () => {
     const result = await applyPolicy({ root: fixtureRoot, dryRun: true });
     expect(result.dryRun).toBe(true);
+    expect(result.changeMarker).toBeUndefined();
     expect(result.report.totals.afterTokens).toBeLessThan(result.report.totals.beforeTokens);
     await expect(stat(resolve(fixtureRoot, ".github"))).rejects.toMatchObject({
       code: "ENOENT",
@@ -34,6 +36,25 @@ describe("apply / init on noisy-app", () => {
     expect(result.report.provider).toBe("copilot");
     expect(result.report.totals.afterTokens).toBeLessThan(result.report.totals.beforeTokens);
     expect(result.report.totals.beforeTokens).toBeGreaterThan(0);
+    expect(result.changeMarker).toMatchObject({
+      provider: "copilot",
+      packId: "apply:copilot",
+      action: "apply",
+      team: "payments-platform",
+      repo: "fixtures/noisy-app",
+    });
+    expect(isProveChangeMarker(result.changeMarker)).toBe(true);
+
+    const latest = JSON.parse(
+      await readFile(resolve(fixtureRoot, ".tokenforge/prove-change-latest.json"), "utf8"),
+    ) as unknown;
+    expect(isProveChangeMarker(latest)).toBe(true);
+
+    const trail = await readFile(
+      resolve(fixtureRoot, ".tokenforge/prove-changes.jsonl"),
+      "utf8",
+    );
+    expect(isProveChangeMarker(JSON.parse(trail.trim()))).toBe(true);
 
     const instructions = await readFile(
       resolve(fixtureRoot, COPILOT_INSTRUCTIONS_PATH),

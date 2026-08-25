@@ -1,8 +1,9 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { isProveChangeMarker } from "@tokenforge/risk-core";
 import { applyOrgPack } from "./org-pack";
 import { getAdapter } from "../../adapters";
 
@@ -19,6 +20,7 @@ describe("org-pack", () => {
     expect(result.businessUnit).toBe("Retail Banking");
     expect(result.report.totals.savedTokens).toBeGreaterThan(0);
     expect(result.files.length).toBeGreaterThan(0);
+    expect(result.changeMarker).toBeUndefined();
     expect(result.files.every((file) => file.path.includes("org-policy"))).toBe(
       true,
     );
@@ -36,6 +38,18 @@ describe("org-pack", () => {
       expect(result.files.some((file) => file.path.includes(".cursor"))).toBe(
         true,
       );
+      expect(result.changeMarker).toMatchObject({
+        provider: "cursor",
+        packId: "org-pack:cursor:Retail Banking",
+        action: "org-pack",
+        businessUnit: "Retail Banking",
+      });
+      expect(isProveChangeMarker(result.changeMarker)).toBe(true);
+
+      const latest = JSON.parse(
+        await readFile(join(dir, ".tokenforge/prove-change-latest.json"), "utf8"),
+      ) as unknown;
+      expect(isProveChangeMarker(latest)).toBe(true);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -1,7 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import {
+  buildPackId,
   isTokenRiskReport,
+  type ProveChangeMarker,
   type ProviderId,
   type TokenRiskFinding,
   type TokenRiskReport,
@@ -9,6 +11,7 @@ import {
 } from "@tokenforge/risk-core";
 import { getAdapter, type PolicyFile } from "../../adapters";
 import { RuntimeError, UsageError } from "../../app/errors";
+import { writeProveChangeMarker } from "../../io/change-marker-file";
 import { parseProviderId } from "../scan/scan";
 
 export type OrgPackOptions = {
@@ -27,6 +30,8 @@ export type OrgPackResult = {
   files: PolicyFile[];
   outDir: string;
   dryRun: boolean;
+  /** Prove trail event written on successful org-pack (#95). */
+  changeMarker?: ProveChangeMarker;
 };
 
 type SeedLike = {
@@ -138,12 +143,24 @@ export async function applyOrgPack(options: OrgPackOptions): Promise<OrgPackResu
     ].join("\n"),
   }));
 
+  let changeMarker: ProveChangeMarker | undefined;
   if (!dryRun) {
     for (const file of files) {
       const abs = safePolicyPath(outRoot, file.path);
       await mkdir(dirname(abs), { recursive: true });
       await writeFile(abs, file.contents, "utf8");
     }
+    const marker: ProveChangeMarker = {
+      timestamp: new Date().toISOString(),
+      provider,
+      packId: buildPackId("org-pack", provider, seed.businessUnit),
+      action: "org-pack",
+      team: report.team,
+      businessUnit: seed.businessUnit,
+      repo: report.repo,
+    };
+    await writeProveChangeMarker(outRoot, marker);
+    changeMarker = marker;
   }
 
   return {
@@ -153,5 +170,6 @@ export async function applyOrgPack(options: OrgPackOptions): Promise<OrgPackResu
     files,
     outDir: join(outRoot, outDirRel),
     dryRun,
+    changeMarker,
   };
 }

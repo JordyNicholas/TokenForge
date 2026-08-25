@@ -64,6 +64,10 @@ export {
   totalsFromUsageTeams,
   usageForTeam,
 } from "./usage/usage";
+export {
+  buildPackId,
+  isProveChangeMarker,
+} from "./usage/changeMarker";
 export type { FindingExplanation } from "./advise/explain";
 export type {
   FiletypeRiskClass,
@@ -93,3 +97,7 @@ export type {
   UsageSource,
   UsageTeamRow,
 } from "./usage/usage";
+export type {
+  ProveChangeAction,
+  ProveChangeMarker,
+} from "./usage/changeMarker";

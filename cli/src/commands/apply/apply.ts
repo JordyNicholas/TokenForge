@@ -1,8 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import type { ProviderId, TokenRiskReport } from "@tokenforge/risk-core";
+import {
+  buildPackId,
+  type ProveChangeMarker,
+  type ProviderId,
+  type TokenRiskReport,
+} from "@tokenforge/risk-core";
 import { getAdapter, type PolicyFile } from "../../adapters";
 import { RuntimeError } from "../../app/errors";
+import { writeProveChangeMarker } from "../../io/change-marker-file";
 import { scanReportPath } from "../../io/paths";
 import {
   tryReadScanReport,
@@ -31,6 +37,8 @@ export type ApplyResult = {
   reportPath: string;
   files: PolicyFile[];
   dryRun: boolean;
+  /** Prove trail event written on successful apply (#95). */
+  changeMarker?: ProveChangeMarker;
 };
 
 function safePolicyPath(root: string, relativePath: string): string {
@@ -92,14 +100,25 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   const reportPath = scanReportPath(root);
   const dryRun = Boolean(options.dryRun);
 
+  let changeMarker: ProveChangeMarker | undefined;
   if (!dryRun) {
     await writeScanReport(reportPath, report);
     for (const file of files) {
       await writePolicyFile(root, file);
     }
+    const marker: ProveChangeMarker = {
+      timestamp: new Date().toISOString(),
+      provider,
+      packId: buildPackId("apply", provider),
+      action: "apply",
+      team: report.team,
+      repo: report.repo,
+    };
+    await writeProveChangeMarker(root, marker);
+    changeMarker = marker;
   }
 
-  return { report, reportPath, files, dryRun };
+  return { report, reportPath, files, dryRun, changeMarker };
 }
 
 /** scan + apply. */

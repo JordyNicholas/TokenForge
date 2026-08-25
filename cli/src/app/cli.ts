@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
+import { proveChangeLatestPath } from "../io/paths";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { syncUsage } from "../commands/usage-sync/usage-sync";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
@@ -80,6 +81,7 @@ function printApply(
   dryRun: boolean,
   reportPath: string,
   json: boolean,
+  changeMarkerPath?: string,
 ): void {
   printReport(io, scan.report, scan, json);
   const sink = json ? io.stderr : io.stdout;
@@ -91,6 +93,9 @@ function printApply(
   }
   for (const file of files) {
     sink.write(`  ${file.path}\n`);
+  }
+  if (changeMarkerPath) {
+    sink.write(`  ${changeMarkerPath}\n`);
   }
 }
 
@@ -177,6 +182,7 @@ export async function runCli(
         applied.dryRun,
         applied.reportPath,
         Boolean(values.json),
+        applied.changeMarker ? proveChangeLatestPath(root) : undefined,
       );
       return savingsExitCode(applied.report.totals);
     }
@@ -259,6 +265,7 @@ export async function runCli(
               totals: pack.report.totals,
               files: pack.files.map((file) => file.path),
               dryRun: pack.dryRun,
+              changeMarker: pack.changeMarker,
             },
             null,
             2,
@@ -266,6 +273,7 @@ export async function runCli(
         );
       } else {
         const sink = io.stdout;
+        const packRoot = resolve(values.out ?? process.cwd());
         sink.write(
           `org-pack ${pack.businessUnit} · ${pack.provider}` +
             `${pack.dryRun ? " (dry-run)" : ""}\n`,
@@ -275,6 +283,9 @@ export async function runCli(
         );
         for (const file of pack.files) {
           sink.write(`  ${file.path}\n`);
+        }
+        if (pack.changeMarker) {
+          sink.write(`  ${proveChangeLatestPath(packRoot)}\n`);
         }
       }
       return savingsExitCode(pack.report.totals);
