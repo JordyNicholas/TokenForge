@@ -177,7 +177,7 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Auto-calibrated `realizedWasteShare` / pitch KPI card (Wave C remaining: #97–#98)
+- Pitch/FAQ honesty KPI card refresh (Wave C remaining: #98)
 - Remote org policy push (#99)
 
 ## Reset

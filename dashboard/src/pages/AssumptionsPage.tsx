@@ -14,6 +14,7 @@ import { GlossaryTip } from "../ui/GlossaryTip";
 import { KpiCard, KpiRow } from "../ui/Kpi";
 import { NumberField } from "../ui/NumberField";
 import { Page } from "../ui/Page";
+import { WasteShareSuggestBanner } from "../ui/WasteShareSuggestBanner";
 
 type Field = {
   key: keyof Assumptions;
@@ -137,6 +138,8 @@ export function AssumptionsPage() {
           Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%)
         </Button>
       </Stack>
+
+      <WasteShareSuggestBanner />
 
       <KpiRow>
         <KpiCard
