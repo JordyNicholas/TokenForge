@@ -177,7 +177,8 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Remote org policy push (#99) and org pilot pack command (#100)
+- Org pilot pack single path (#100)
+- Claiming a public Copilot/Cursor/Claude API pushed org exclusions (org-apply stages + honesty; fixture simulates apply)
 
 ## Reset
 

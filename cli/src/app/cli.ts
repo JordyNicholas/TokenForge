@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
+import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { proveChangeLatestPath } from "../io/paths";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { syncUsage } from "../commands/usage-sync/usage-sync";
@@ -20,6 +21,7 @@ Commands:
   init [root]         scan + apply
   org-pack <seed.json>
                       Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
+  org-apply [root]    Stage / push org content exclusions via PolicyApplyProvider (#99)
   usage-pull          Fetch billed usage into UsageMetrics JSON (Wave B / #90)
   usage-sync [root]   Pull usage via UsageProvider into .tokenforge/ (Wave B / #94)
 
@@ -27,11 +29,12 @@ Options:
   --team <name>         Team label (default: local)
   --repo <name>         Repo label (default: directory name)
   --provider <id>       copilot | cursor | claude | generic
-                        scan default: generic; apply/init default: copilot
+                        scan default: generic; apply/init/org-apply default: copilot
+  --apply-provider <id> fixture | copilot | cursor | claude (org-apply; default: --provider)
   --usage-provider <id>
                         fixture | copilot | cursor | claude (usage-pull/sync; default: copilot)
   --period <YYYY-MM>    Billing period for usage-pull / usage-sync
-  --org <slug>          GitHub org (Copilot) or Cursor organizationId
+  --org <slug>          GitHub org (Copilot) or Cursor organizationId (required for org-apply)
   --file <path>         UsageMetrics fixture file (usage-pull with fixture)
   --out <path>          Write UsageMetrics JSON (usage-pull; also copied when --root set)
   --out <dir>           Output root for org-pack (default: cwd)
@@ -115,6 +118,7 @@ export async function runCli(
         team: { type: "string" },
         repo: { type: "string" },
         provider: { type: "string" },
+        "apply-provider": { type: "string" },
         "usage-provider": { type: "string" },
         period: { type: "string" },
         org: { type: "string" },
@@ -289,6 +293,53 @@ export async function runCli(
         }
       }
       return savingsExitCode(pack.report.totals);
+    }
+
+    if (command === "org-apply") {
+      if (!values.org?.trim()) {
+        throw new UsageError("org-apply requires --org <slug>.\n" + USAGE);
+      }
+      const remote = await applyOrgRemote({
+        root,
+        org: values.org,
+        provider: values.provider,
+        applyProvider: values["apply-provider"],
+        businessUnit: values.team,
+        dryRun: values["dry-run"],
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              org: remote.apply.org,
+              provider: remote.apply.provider,
+              status: remote.apply.status,
+              message: remote.apply.message,
+              paths: remote.apply.paths,
+              stagedDir: remote.stagedDir,
+              changeMarker: remote.changeMarker,
+              dryRun: remote.dryRun,
+              totals: remote.report.totals,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        const sink = io.stdout;
+        sink.write(
+          `org-apply ${remote.apply.org} · ${remote.apply.provider} · ${remote.apply.status}` +
+            `${remote.dryRun ? " (dry-run)" : ""}\n`,
+        );
+        sink.write(`${remote.apply.message}\n`);
+        if (remote.stagedDir) {
+          sink.write(`staged ${remote.stagedDir}\n`);
+        }
+        if (remote.changeMarker) {
+          sink.write(`wrote ${proveChangeLatestPath(root)}\n`);
+        }
+      }
+      return savingsExitCode(remote.report.totals);
     }
 
     throw new UsageError(`Unknown command "${command}".\n` + USAGE);

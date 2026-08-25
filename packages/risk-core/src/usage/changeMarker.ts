@@ -3,7 +3,7 @@
  * Bounds before/after billing windows — not a claim of 100% causal invoice delta.
  */
 
-export type ProveChangeAction = "apply" | "org-pack";
+export type ProveChangeAction = "apply" | "org-pack" | "org-apply";
 
 export type ProveChangeMarker = {
   /** ISO-8601 when the pack was written. */
@@ -42,7 +42,11 @@ export function isProveChangeMarker(value: unknown): value is ProveChangeMarker 
   if (typeof value.packId !== "string" || !value.packId) {
     return false;
   }
-  if (value.action !== "apply" && value.action !== "org-pack") {
+  if (
+    value.action !== "apply" &&
+    value.action !== "org-pack" &&
+    value.action !== "org-apply"
+  ) {
     return false;
   }
   return (
@@ -57,8 +61,8 @@ export function buildPackId(
   provider: string,
   businessUnit?: string,
 ): string {
-  if (action === "org-pack" && businessUnit) {
-    return `org-pack:${provider}:${businessUnit}`;
+  if ((action === "org-pack" || action === "org-apply") && businessUnit) {
+    return `${action}:${provider}:${businessUnit}`;
   }
   return `${action}:${provider}`;
 }
