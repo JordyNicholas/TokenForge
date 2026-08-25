@@ -119,15 +119,13 @@ Update when stories are filed. Intended sequence under **#61**:
 ```text
 F1 (#60) complete
     ↓
-Wave A (#85–#88)     ← next attractiveness unlock
+Wave A (#85–#88)     ← done
     ↓
-Wave B first live adapter (#90) + variance board (#93)  ← closes the hard #27 gap
+Wave B (#89–#94)     ← done (live adapters + variance + sync)
     ↓
-Wave B remaining adapters + sync
+Wave C attribution / calibration (#95–#98)  ← next
     ↓
-Wave C attribution / calibration
-    ↓
-#28 remote org apply (can overlap Wave B once Wave A is demoable)
+#28 remote org apply (#99/#100) — can overlap Wave C
 ```
 
 Do **not** wait on Wave C to sell Wave A/B: each wave is a buyer-visible increment.
@@ -145,7 +143,7 @@ For usage/variance stories, prefer:
 
 Stories **#85–#100** are filed as sub-issues of epic **#61** (reopened). Repo automation expects **one issue per PR** (`TF#<n>-slug`, `Closes #<n>`).
 
-1. Pick the next open Wave A issue (#85 first).  
+1. Pick the next open Wave C issue (#95 first), or Parallel (#100) if overlapping.  
 2. Branch `TF#<n>-slug`; PR body `Closes #<n>` (do **not** `Closes #61` until children are done).  
 3. Keep labels `phase:future`; board column To-Do → In Progress via the PR workflow.  
 4. Implement in dependency order; small commits.

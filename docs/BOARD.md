@@ -72,8 +72,8 @@ Phase 2 (open). Former catch-all #7 was split:
 | #66 | CLI: multi-pass local-first LLM enrich | F1 #60 | Done |
 | #48 | Extension: optional LLM enricher | F1 #60 | Done |
 | #114 | Core: suggestion vocabulary for duplicated code | F1 #60 | **Open** — advice for `duplicate_logic` findings currently rides on `review` + prose. Filed with a design caveat: it adds vocabulary only, since `apply` stays policy-pack-only per #60 |
-| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Thin slice shipped:** demo/file usage import in Prove (not live vendor APIs). **Remaining:** Waves A–C in [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) |
-| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push). **Remaining:** remote org apply APIs + pilot pack path |
+| #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Shipped through Wave B:** import + live `UsageProvider` adapters (fixture/Copilot/Cursor/Claude) + variance board + `usage-sync`. **Remaining under #61:** Wave C attribution (#95–#98) |
+| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push). **Remaining:** remote org apply APIs + pilot pack path (#99/#100); apply markers land with Wave C #95 |
 | #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
 | #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
 
@@ -91,9 +91,9 @@ fourth gap from the same run, left open by choice.
 ### F2 attractiveness backlog (filed under #61)
 
 Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).  
-Epic **#61 reopened**; stories below are sub-issues. Implement Wave A first (`TF#85-…` etc.).
+Epic **#61** — Wave A (#85–#88) and Wave B (#89–#94) closed; Wave C + Parallel remain. Implement with `TF#<n>-…` branches.
 
-#### Wave A — Manual reconciliation
+#### Wave A — Manual reconciliation (done)
 
 | Issue | Title | Extends |
 | --- | --- | --- |
@@ -104,7 +104,7 @@ Epic **#61 reopened**; stories below are sub-issues. Implement Wave A first (`TF
 
 Pilot path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
-#### Wave B — Live sync + variance
+#### Wave B — Live sync + variance (done)
 
 | Issue | Title | Extends |
 | --- | --- | --- |
@@ -115,7 +115,7 @@ Pilot path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 | #93 | Prove: variance board (BU + team) + period picker | #27 / #18 |
 | #94 | Prove: scheduled / on-demand usage sync | #27 |
 
-#### Wave C — Attribution & calibration
+#### Wave C — Attribution & calibration (next)
 
 | Issue | Title | Extends |
 | --- | --- | --- |
@@ -138,7 +138,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-2. **F2** (#61, reopened) — thin demo slices for **#27** / **#28** shipped; **Wave A (#85–#88)** is the manual estimate vs imported bill path ([`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)), then Wave B (#89–#94), then Wave C (#95–#98). Remotes for **#28** (#99/#100) can overlap Wave B once Wave A is demoable. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
+2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; **Wave A (#85–#88)** and **Wave B (#89–#94)** closed. **Next:** Wave C (#95–#98) attribution/calibration; remotes for **#28** (#99/#100) can run in parallel. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
