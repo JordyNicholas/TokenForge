@@ -113,8 +113,9 @@ Then apply for real if the pilot allows writing files (Copilot adapter by defaul
   (or the selected adapter’s files).
 - Apply / org-pack also write a Prove **change marker** under
   `.tokenforge/prove-change-latest.json` (plus append-only `prove-changes.jsonl`) —
-  timestamp, provider, pack id — to bound before/after billing windows. Cohort
-  compare still lands in Wave C (#96).
+  timestamp, provider, pack id — to bound before/after billing windows.
+- On the variance board, load markers (or demo markers) for **Fix-on vs control**
+  cohort compare (#96). Invoice delta is still not 100% causal.
 - Optional: Data source → **Load after-Fix report…** with a second scan JSON for the
   **scan** before/after card (token snapshot). Usage variance still needs the **after bill**.
 
@@ -176,7 +177,7 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Cohort compare / auto-calibrated `realizedWasteShare` (Wave C remaining: #96–#98)
+- Auto-calibrated `realizedWasteShare` / pitch KPI card (Wave C remaining: #97–#98)
 - Remote org policy push (#99)
 
 ## Reset
