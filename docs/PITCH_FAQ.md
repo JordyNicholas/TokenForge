@@ -45,22 +45,29 @@ Full design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, model mix) applied to demo scan totals — not a universal production SLA. See `fixtures/expected/noisy-app-totals.json` and `dashboard/public/demo-seed.json`.
 
-Demo seed also includes **imported usage** credits/$ (issue #27 thin) — file/demo import, not live vendor billing APIs.
+Demo seed also includes **imported usage** credits/$ — file/demo import plus optional
+live sync via CLI adapters — not a claim that we meter the agent’s private pipeline.
 
 ## Estimate vs actual billed usage?
 
-**Today (Wave A):** Prove projects $ from scan totals × Assumptions, imports a FinOps
-CSV/JSON as billed usage, and can compare **baseline vs after-period** (estimated
+**Wave A (shipped):** Prove projects $ from scan totals × Assumptions, imports a FinOps
+CSV/JSON as billed usage, and compares **baseline vs after-period** (estimated
 reduction, actual billed change, variance) with Assumptions frozen on that run. Demo
 fixtures: `dashboard/public/sample-usage.csv` and `sample-usage-after.csv`. Repeatable
 path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 
-**Not yet:** live vendor billing APIs (Wave B), apply markers / cohorts / calibrated
-waste share (Wave C). Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+**Wave B (shipped):** `UsageProvider` port + Copilot / Cursor / Claude adapters,
+`usage-pull` / `usage-sync`, and a BU/team **variance board** with period picker.
+File/demo import remains the fallback.
+
+**Wave C (shipped):** apply/org-pack **change markers**, Fix-on vs control **cohort**
+compare, auto-suggest `realizedWasteShare` from variance, and this FAQ + Overview
+**pilot KPI card**. Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
 
 **Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**.
-We do not meter the agent’s private pipeline. File import is not live Copilot/Cursor/Claude
-sync.
+We do not meter the agent’s private pipeline. Cohort tags reduce “was that TokenForge?”
+noise — they do **not** prove 100% of an invoice delta was caused by TokenForge.
+Live sync still needs org-approved credentials; import works offline.
 
 ## Completions vs Chat/Agent metering?
 

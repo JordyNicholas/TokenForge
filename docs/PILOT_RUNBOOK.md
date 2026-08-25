@@ -177,8 +177,7 @@ Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_ab
 
 ## Out of scope (do not demo as done)
 
-- Pitch/FAQ honesty KPI card refresh (Wave C remaining: #98)
-- Remote org policy push (#99)
+- Remote org policy push (#99) and org pilot pack command (#100)
 
 ## Reset
 
