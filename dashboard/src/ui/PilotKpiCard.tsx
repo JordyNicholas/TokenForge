@@ -98,7 +98,7 @@ export function PilotKpiCard({
         />
         <KpiCard
           label="Gap"
-          value={formatGapPercent(compare.gapPercent) ?? "—"}
+          value={formatGapPercent(compare.gapPercent)}
           hint="% of estimate"
         />
       </KpiRow>
