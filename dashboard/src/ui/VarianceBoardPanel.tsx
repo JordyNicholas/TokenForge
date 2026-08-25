@@ -18,6 +18,7 @@ import {
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
 import { DataTable } from "./DataTable";
+import { CohortCompareCard } from "./CohortCompareCard";
 import { KpiCard, KpiRow } from "./Kpi";
 import { UsagePeriodPicker } from "./UsagePeriodPicker";
 
@@ -144,6 +145,7 @@ export function VarianceBoardPanel({
           knobs.
         </Alert>
       ) : null}
+      <CohortCompareCard board={board} />
       <KpiRow>
         <KpiCard
           label={teamId ? "Team · estimated reduction" : "BU · estimated reduction"}

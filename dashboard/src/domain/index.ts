@@ -78,6 +78,21 @@ export {
   type UsagePeriodSlice,
 } from "./usageCompare";
 export {
+  COHORT_HONESTY_NOTE,
+  annotateVarianceRow,
+  cohortForTeam,
+  compareCohorts,
+  fixOnTeamsFromMarkers,
+  type CohortCompare,
+  type CohortId,
+  type CohortSummary,
+} from "./cohortCompare";
+export {
+  ChangeMarkerLoadError,
+  parseChangeMarkersFile,
+  parseChangeMarkersJson,
+} from "./parseChangeMarkers";
+export {
   buildVarianceBoard,
   defaultAfterPeriod,
   listUsagePeriods,

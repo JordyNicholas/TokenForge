@@ -13,7 +13,10 @@ import {
   DEFAULT_ASSUMPTIONS,
   aggregateTotals,
   cloneAssumptions,
+  fixOnTeamsFromMarkers,
   isDemoSourceLabel,
+  parseChangeMarkersFile,
+  parseChangeMarkersJson,
   parseUsageFile,
   parseUsageText,
   projectSavings,
@@ -27,6 +30,7 @@ import {
   type Projection,
   type UsageMetrics,
 } from "../domain";
+import type { ProveChangeMarker } from "@tokenforge/risk-core";
 import { useSeedLoader } from "./useSeedLoader";
 
 const REDACT_STORAGE_KEY = "tokenforge-redact-paths";
@@ -83,6 +87,13 @@ export type DashboardState = {
   /** True when baseline/after picks were swapped to chronological order. */
   usagePeriodsAutoCorrected: boolean;
   dismissUsagePeriodAutoCorrected: () => void;
+  /** Prove change markers for Fix-on vs control cohort (#96). */
+  changeMarkers: ProveChangeMarker[];
+  changeMarkersLabel: string | null;
+  fixOnTeams: string[];
+  loadChangeMarkersFromFile: (file: File) => Promise<void>;
+  loadDemoChangeMarkers: () => Promise<void>;
+  clearChangeMarkers: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -125,11 +136,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [baselinePeriod, setBaselinePeriodState] = useState<string | null>(null);
   const [afterPeriod, setAfterPeriodState] = useState<string | null>(null);
   const [usagePeriodsAutoCorrected, setUsagePeriodsAutoCorrected] = useState(false);
+  const [changeMarkers, setChangeMarkers] = useState<ProveChangeMarker[]>([]);
+  const [changeMarkersLabel, setChangeMarkersLabel] = useState<string | null>(null);
   const baselinePeriodRef = useRef<string | null>(null);
   const afterPeriodRef = useRef<string | null>(null);
   baselinePeriodRef.current = baselinePeriod;
   afterPeriodRef.current = afterPeriod;
   const skipCompareClearOnMount = useRef(true);
+
+  const fixOnTeams = useMemo(
+    () => fixOnTeamsFromMarkers(changeMarkers),
+    [changeMarkers],
+  );
 
   const applyPeriodPair = useCallback((baseline: string | null, after: string | null) => {
     const normalized = normalizeUsagePeriodPair(baseline, after);
@@ -310,6 +328,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [beginAfterUsageCompare],
   );
 
+  const loadChangeMarkersFromFile = useCallback(async (file: File) => {
+    const markers = await parseChangeMarkersFile(file);
+    setChangeMarkers(markers);
+    setChangeMarkersLabel(file.name);
+  }, []);
+
+  const loadDemoChangeMarkers = useCallback(async () => {
+    const response = await fetch("/sample-change-markers.json");
+    if (!response.ok) {
+      throw new Error(`Could not fetch sample change markers (${response.status})`);
+    }
+    const markers = parseChangeMarkersJson(await response.text());
+    setChangeMarkers(markers);
+    setChangeMarkersLabel("sample-change-markers.json");
+  }, []);
+
+  const clearChangeMarkers = useCallback(() => {
+    setChangeMarkers([]);
+    setChangeMarkersLabel(null);
+  }, []);
+
   // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
   // so `?afterUsage=` can land alongside the demo/boot seed).
   useEffect(() => {
@@ -405,6 +444,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       usageSnapshotLabel,
       usagePeriodsAutoCorrected,
       dismissUsagePeriodAutoCorrected,
+      changeMarkers,
+      changeMarkersLabel,
+      fixOnTeams,
+      loadChangeMarkersFromFile,
+      loadDemoChangeMarkers,
+      clearChangeMarkers,
     }),
     [
       loaded,
@@ -439,6 +484,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       usageSnapshotLabel,
       usagePeriodsAutoCorrected,
       dismissUsagePeriodAutoCorrected,
+      changeMarkers,
+      changeMarkersLabel,
+      fixOnTeams,
+      loadChangeMarkersFromFile,
+      loadDemoChangeMarkers,
+      clearChangeMarkers,
     ],
   );
 
