@@ -18,4 +18,4 @@ Hackathon pitch (widescreen): charcoal/teal system, card layouts with reserved t
 9. Roadmap — shipped demo vs next build  
 10. Takeaway / sound bite  
 
-FAQ: [`../PITCH_FAQ.md`](../PITCH_FAQ.md) · Demo: [`../DEMO_RUNBOOK.md`](../DEMO_RUNBOOK.md).
+FAQ: [`../PITCH_FAQ.md`](../PITCH_FAQ.md) · Demo: [`../DEMO_RUNBOOK.md`](../DEMO_RUNBOOK.md) · Live Q&A / board prep: [`../PITCH_BOARD_PREP.md`](../PITCH_BOARD_PREP.md).
