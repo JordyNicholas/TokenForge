@@ -2,6 +2,7 @@ import CompareArrowsOutlined from "@mui/icons-material/CompareArrowsOutlined";
 import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
+import TimelineOutlined from "@mui/icons-material/TimelineOutlined";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
@@ -44,6 +45,10 @@ export function SourceBar() {
     afterUsageLabel,
     loadAfterUsageFromFile,
     clearAfterUsage,
+    changeMarkersLabel,
+    loadChangeMarkersFromFile,
+    loadDemoChangeMarkers,
+    clearChangeMarkers,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -54,6 +59,7 @@ export function SourceBar() {
   const afterFixRef = useRef<HTMLInputElement>(null);
   const usageRef = useRef<HTMLInputElement>(null);
   const afterUsageRef = useRef<HTMLInputElement>(null);
+  const markersRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -119,6 +125,18 @@ export function SourceBar() {
             variant="outlined"
             label={`after ${shortSource(afterUsageLabel)}`}
             onDelete={clearAfterUsage}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
+      {changeMarkersLabel ? (
+        <Tooltip title={`Fix change markers: ${changeMarkersLabel}`}>
+          <Chip
+            size="small"
+            color="primary"
+            variant="outlined"
+            label={`markers ${shortSource(changeMarkersLabel)}`}
+            onDelete={clearChangeMarkers}
             sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
           />
         </Tooltip>
@@ -260,6 +278,47 @@ export function SourceBar() {
             Clear after-period usage
           </MenuItem>
         ) : null}
+        <Divider />
+        <MenuItem disabled>
+          <Typography variant="overline">Prove attribution</Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            markersRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <TimelineOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load Fix change markers…"
+            secondary=".tokenforge/prove-change-latest.json or markers array (#96)"
+          />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            void loadDemoChangeMarkers().catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }}
+        >
+          <ListItemText
+            primary="Load demo Fix markers"
+            secondary="sample-change-markers.json (checkout + payments-platform)"
+          />
+        </MenuItem>
+        {changeMarkersLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearChangeMarkers();
+            }}
+          >
+            Clear Fix change markers
+          </MenuItem>
+        ) : null}
       </Menu>
       <input
         ref={fileRef}
@@ -313,6 +372,21 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadAfterUsageFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={markersRef}
+        type="file"
+        hidden
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadChangeMarkersFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }
