@@ -43,6 +43,7 @@ import { ProveStoryRail } from "../ui/ProveStoryRail";
 import { SavingsChart } from "../ui/SavingsChart";
 import { UsageMetricsCard } from "../ui/UsageMetricsCard";
 import { UsagePeriodCompareCard } from "../ui/UsagePeriodCompareCard";
+import { PilotKpiCard } from "../ui/PilotKpiCard";
 
 export function OverviewPage() {
   const navigate = useNavigate();
@@ -108,6 +109,12 @@ export function OverviewPage() {
       <PrivacyControls showNote />
 
       <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />
+
+      <PilotKpiCard
+        baselineTotals={totals}
+        assumptions={assumptions}
+        teamId={teamId}
+      />
 
       <UsagePeriodCompareCard
         baselineUsage={seed?.usage}
