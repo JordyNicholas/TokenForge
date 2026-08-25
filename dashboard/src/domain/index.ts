@@ -7,6 +7,7 @@ export {
   summarizeAssumptionsFreeze,
   withPitchScenario,
 } from "./assumptions";
+export { suggestRealizedWasteShare, type WasteShareSuggestion } from "./suggestWasteShare";
 export {
   listHybridScanSummaries,
   type HybridScanSummary,
