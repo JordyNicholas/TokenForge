@@ -73,7 +73,7 @@ Phase 2 (open). Former catch-all #7 was split:
 | #48 | Extension: optional LLM enricher | F1 #60 | Done |
 | #114 | Core: suggestion vocabulary for duplicated code | F1 #60 | **Open** — advice for `duplicate_logic` findings currently rides on `review` + prose. Filed with a design caveat: it adds vocabulary only, since `apply` stays policy-pack-only per #60 |
 | #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Shipped through Wave B:** import + live `UsageProvider` adapters (fixture/Copilot/Cursor/Claude) + variance board + `usage-sync`. **Remaining under #61:** Wave C attribution (#95–#98) |
-| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files; not org API push). **Remaining:** remote org apply APIs + pilot pack path (#99/#100); apply markers land with Wave C #95 |
+| #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files). **Remaining:** remote org apply (#99) + org pilot pack (#100) |
 | #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
 | #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
 
