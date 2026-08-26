@@ -1,0 +1,10 @@
+{
+  "name": "heuristic-edge-app",
+  "private": true,
+  "version": "0.0.0",
+  "description": "TokenForge fixture. Not an npm workspace and not a product package.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

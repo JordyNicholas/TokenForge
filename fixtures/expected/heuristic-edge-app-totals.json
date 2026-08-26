@@ -1,0 +1,48 @@
+{
+  "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
+  "pitchNote": "Edge-case fixture for #135. What is ABSENT matters as much as what is present: openapi.json (153 KB) and the generated GraphQL surface are deliberately not findings, because an agent needs them. The two findings below are the controls — real waste is still caught.",
+  "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
+  "fixture": "fixtures/heuristic-edge-app",
+  "totals": {
+    "beforeTokens": 118047,
+    "afterTokens": 39912,
+    "savedTokens": 78135
+  },
+  "savedPercent": 66.2,
+  "findings": [
+    {
+      "path": "package-lock.json",
+      "reason": "high_risk_filetype",
+      "bytes": 226349,
+      "estTokens": 56588,
+      "action": "excluded"
+    },
+    {
+      "path": "test/fixtures/recorded-orders.json",
+      "reason": "oversized",
+      "bytes": 86188,
+      "estTokens": 21547,
+      "action": "excluded"
+    }
+  ],
+  "notFindings": [
+    {
+      "path": "openapi.json",
+      "bytes": 153169,
+      "wouldBeBefore": "oversized (153169 >= OVERSIZED_BYTES 100000)",
+      "protection": "api_contract"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 297,
+      "wouldBeBefore": "nothing — protected only by being small, which is luck, not a rule",
+      "protection": "protected_config"
+    },
+    {
+      "path": "src/generated/graphql/schema.json",
+      "bytes": 979,
+      "wouldBeBefore": "nothing on main (no `generated` segment in GENERATED_DIR_NAMES); now classified generated and exempted by rule",
+      "protection": "necessary_generated"
+    }
+  ]
+}
