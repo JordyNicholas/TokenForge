@@ -1,0 +1,37 @@
+{
+  "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
+  "pitchNote": "This pins the BASELINE — no session signal, locales/en.json excluded — because that is still the right answer whenever nobody has the file open. The #137 delta is asserted separately in cli/src/commands/apply/apply.active.test.ts.",
+  "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
+  "fixture": "fixtures/active-session-app",
+  "totals": {
+    "beforeTokens": 109085,
+    "afterTokens": 746,
+    "savedTokens": 108339
+  },
+  "savedPercent": 99.3,
+  "findings": [
+    {
+      "path": "locales/en.json",
+      "reason": "oversized",
+      "bytes": 257403,
+      "estTokens": 64351,
+      "action": "excluded"
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "high_risk_filetype",
+      "bytes": 175949,
+      "estTokens": 43988,
+      "action": "excluded"
+    }
+  ],
+  "withActiveSession": {
+    "note": "Same scan with --active-paths-file expected/active-session-last-scan.json. The locale file survives as `kept`, so its tokens stop counting as saved — the drop is the point, not a regression. The lockfile is untouched: the signal protects what is open without blunting the tool.",
+    "totals": {
+      "beforeTokens": 109085,
+      "afterTokens": 65097,
+      "savedTokens": 43988
+    },
+    "savedPercent": 40.3
+  }
+}

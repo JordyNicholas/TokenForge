@@ -1,0 +1,7 @@
+{
+  "name": "active-session-app",
+  "private": true,
+  "version": "0.0.0",
+  "description": "TokenForge fixture. Not an npm workspace and not a product package.",
+  "type": "module"
+}

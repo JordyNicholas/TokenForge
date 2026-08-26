@@ -1,0 +1,24 @@
+{
+  "_comment": "Simulated extension export for fixtures/active-session-app. Shaped exactly like .tokenforge/last-scan.json. Kept outside the fixture on purpose: inside, it would be scanned as part of the repo under test and shift the totals it is meant to influence.",
+  "source": "extension",
+  "timestamp": "2026-08-26T14:30:00.000Z",
+  "repo": "fixtures/active-session-app",
+  "team": "payments-platform",
+  "provider": "generic",
+  "findings": [
+    {
+      "path": "locales/en.json",
+      "reason": "oversized",
+      "bytes": 257403,
+      "estTokens": 64351,
+      "action": "kept",
+      "source": "heuristic"
+    }
+  ],
+  "totals": {
+    "beforeTokens": 64533,
+    "afterTokens": 64533,
+    "savedTokens": 0
+  },
+  "activePaths": ["locales/en.json", "src/index.ts"]
+}

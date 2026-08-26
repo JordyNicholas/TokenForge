@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { scanRepo } from "../commands/scan/scan";
 import {
+  activeSessionAppExpectedTotalsPath,
+  activeSessionAppRoot,
   borderlineAppExpectedTotalsPath,
   borderlineAppRoot,
   heuristicEdgeAppExpectedTotalsPath,
@@ -44,6 +46,11 @@ describe.each([
     "monorepo-config-app",
     monorepoConfigAppRoot,
     monorepoConfigAppExpectedTotalsPath,
+  ],
+  [
+    "active-session-app",
+    activeSessionAppRoot,
+    activeSessionAppExpectedTotalsPath,
   ],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {

@@ -65,6 +65,22 @@ export const monorepoConfigAppExpectedTotalsPath = resolve(
   "fixtures/expected/monorepo-config-app-totals.json",
 );
 
+/**
+ * Session-signal fixture for #137. The companion last-scan sample lives in
+ * `fixtures/expected/` rather than inside the fixture: inside, it would be
+ * scanned as part of the repo under test and shift the very totals it exists
+ * to influence.
+ */
+export const activeSessionAppRoot = resolve(repoRoot, "fixtures/active-session-app");
+export const activeSessionAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/active-session-app-totals.json",
+);
+export const activeSessionLastScanPath = resolve(
+  repoRoot,
+  "fixtures/expected/active-session-last-scan.json",
+);
+
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });
