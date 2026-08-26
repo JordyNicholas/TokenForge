@@ -94,6 +94,31 @@ describe("parseStructuredFindings", () => {
     expect(rows[0]?.verdict).toBe("review");
   });
 
+  it("coerces duplicate_logic suggestion kind to consolidate_duplicates", () => {
+    const rows = parseStructuredFindings(
+      {
+        findings: [
+          {
+            path: "src/utils/checkEmailFormat.js",
+            verdict: "review",
+            reason: "duplicate_logic",
+            confidence: 0.8,
+            suggestion: {
+              kind: "review",
+              summary: "Merge with src/validators/isValidEmail.js.",
+            },
+          },
+        ],
+      },
+      sourceCandidates,
+    );
+
+    expect(rows[0]?.suggestion).toEqual({
+      kind: "consolidate_duplicates",
+      summary: "Merge with src/validators/isValidEmail.js.",
+    });
+  });
+
   it("keeps exclude rows with known paths", () => {
     const rows = parseStructuredFindings(
       {

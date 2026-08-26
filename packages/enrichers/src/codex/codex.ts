@@ -51,6 +51,7 @@ const CODEX_OUTPUT_SCHEMA = {
                       "dedupe_rules",
                       "add_ignore",
                       "review",
+                      "consolidate_duplicates",
                     ],
                   },
                   summary: { type: "string" },

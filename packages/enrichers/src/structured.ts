@@ -31,7 +31,7 @@ export const ENRICHMENT_POLICY_RULES: readonly string[] = [
   "When unsure whether a path is waste or needed documentation, choose keep or review — never exclude.",
   "redundant_instructions applies only to overlapping agent instruction/rules files — never to generated code, scripts, or general docs.",
   "duplicate_logic is the source-code counterpart: two or more source paths implementing the same behavior under different names. Name the other path in detail.",
-  "duplicate_logic is ALWAYS verdict review, never exclude — both copies are still imported and executed, so hiding one from context fixes nothing. Its suggestion.kind must be review.",
+  "duplicate_logic is ALWAYS verdict review, never exclude — both copies are still imported and executed, so hiding one from context fixes nothing. Its suggestion.kind must be consolidate_duplicates (copy-only; TokenForge will not apply a source edit).",
   "low_signal_config is for noisy machine config dumps — not for human-facing docs or API contracts.",
   "Do not exclude a path merely because it is 'not the file being edited' or 'infrastructure-related'.",
 ];
@@ -61,7 +61,7 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "For each path, decide whether it is low-value billable context for Chat/Agent workflows.",
     "",
     "Return JSON only with this shape:",
-    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review","summary":"one or two sentences"}}]}',
+    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review|consolidate_duplicates","summary":"one or two sentences"}}]}',
     "",
     "Rules:",
     "- Use exact paths from the input.",
@@ -69,9 +69,10 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "- verdict review = borderline; still include in findings.",
     "- verdict keep = omit from findings unless you must note it.",
     ...ENRICHMENT_POLICY_RULES.map((rule) => `- ${rule}`),
-    "- suggestion.kind must be one of those five values. Unknown kinds are dropped.",
+    "- suggestion.kind must be one of those six values. Unknown kinds are dropped.",
+    "- suggestion.kind consolidate_duplicates is only valid with reason duplicate_logic.",
     "- suggestion.summary is copy-only advice for a developer. TokenForge will not apply it.",
-    "- Do not suggest architecture, API, or product refactors. Do not include code patches or whole-file rewrites.",
+    "- Do not suggest architecture, API, or product refactors beyond consolidate_duplicates for duplicate_logic. Do not include code patches or whole-file rewrites.",
     "",
     "Files:",
     blocks.join("\n\n"),
@@ -115,6 +116,32 @@ function parseSuggestion(value: unknown): FindingSuggestion | undefined {
     return undefined;
   }
   return { kind: value.kind, summary: value.summary.trim() };
+}
+
+function normalizeSuggestion(
+  reason: FindingReason,
+  value: unknown,
+): FindingSuggestion | undefined {
+  const parsed = parseSuggestion(value);
+  if (reason !== "duplicate_logic") {
+    return parsed;
+  }
+  // Invariant: duplicate_logic advice is consolidate_duplicates only (#114).
+  if (parsed) {
+    return { kind: "consolidate_duplicates", summary: parsed.summary };
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as { summary?: unknown }).summary === "string"
+  ) {
+    const summary = (value as { summary: string }).summary.trim();
+    if (summary.length > 0) {
+      return { kind: "consolidate_duplicates", summary };
+    }
+  }
+  return undefined;
 }
 
 export function parseStructuredFindings(
@@ -161,7 +188,7 @@ export function parseStructuredFindings(
       reason,
       confidence: clampConfidence(item.confidence),
       detail: typeof item.detail === "string" ? item.detail : undefined,
-      suggestion: parseSuggestion(item.suggestion),
+      suggestion: normalizeSuggestion(reason, item.suggestion),
     });
   }
 
