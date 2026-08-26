@@ -1,9 +1,13 @@
 export {
+  API_CONTRACT_PATTERNS,
   BYTES_PER_TOKEN,
   CLASS_WEIGHT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
   DEFAULT_TOP_CANDIDATE_COUNT,
   HIGH_RISK_FILE_CLASSES,
+  NECESSARY_GENERATED_SEGMENTS,
+  PROTECTED_CONFIG_NAMES,
+  PROTECTED_CONFIG_PATTERNS,
   INACTIVE_MS,
   BACKGROUND_INACTIVE_MS,
   INSTRUCTION_FILE_NAMES,
@@ -29,6 +33,13 @@ export {
 } from "./domain/constants";
 export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/candidates";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
+export {
+  isApiContractPath,
+  isNecessaryGeneratedPath,
+  isProtectedConfigPath,
+  protectionFor,
+  type PathProtection,
+} from "./protect/protect";
 export { estimateTokens } from "./estimate/estimate";
 export {
   buildScanLayers,
@@ -79,6 +90,7 @@ export type {
   FindingSuggestion,
   LlmAnalysisOverview,
   LlmBackendId,
+  ProtectionKind,
   ProviderId,
   RiskAssessment,
   RiskInput,

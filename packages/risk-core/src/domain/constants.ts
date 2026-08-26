@@ -73,6 +73,59 @@ export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
 /** Borderline config/unknown paths at or above this size are LLM candidates. */
 export const MIN_BORDERLINE_BYTES = 4_096;
 
+/**
+ * Config basenames an agent needs to reason correctly (build/lint/flags).
+ * Small enough to stay under {@link OVERSIZED_BYTES} today, so they are only
+ * protected by accident — see `protect/protect.ts`.
+ */
+export const PROTECTED_CONFIG_NAMES: ReadonlySet<string> = new Set([
+  "tsconfig.json",
+  "jsconfig.json",
+  "package.json",
+  ".eslintrc",
+  ".eslintrc.json",
+  "eslint.config.js",
+  "eslint.config.mjs",
+  ".prettierrc",
+  ".prettierrc.json",
+  "vite.config.ts",
+  "vitest.config.ts",
+  "tsconfig.base.json",
+]);
+
+/** Config basenames matched by shape rather than an exact name. */
+export const PROTECTED_CONFIG_PATTERNS: readonly RegExp[] = [
+  /^tsconfig\..+\.json$/i,
+  /^jsconfig\..+\.json$/i,
+  /^\.eslintrc\..+$/i,
+  /-flags\.json$/i,
+  /^feature-flags\..+$/i,
+];
+
+/**
+ * API/schema contracts an agent reads to avoid inventing endpoints or types.
+ * Size correlates with completeness here, so {@link OVERSIZED_BYTES} points the
+ * wrong way — the better the contract, the more likely it trips the rule.
+ */
+export const API_CONTRACT_PATTERNS: readonly RegExp[] = [
+  /^openapi(\..+)?\.(json|ya?ml)$/i,
+  /^swagger(\..+)?\.(json|ya?ml)$/i,
+  /^asyncapi(\..+)?\.(json|ya?ml)$/i,
+  /^schema\.graphql$/i,
+];
+
+/**
+ * Generated trees an agent still needs (typed API clients / schemas), unlike
+ * `dist`/`build` output. Matched as `<segment>/<segment>` pairs under a
+ * generated root so a hand-written `src/graphql/` is not swept in.
+ */
+export const NECESSARY_GENERATED_SEGMENTS: ReadonlySet<string> = new Set([
+  "graphql",
+  "openapi",
+  "swagger",
+  "api",
+]);
+
 /** Basenames treated as agent instruction / rules files for enrichment. */
 export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([
   "agents.md",
