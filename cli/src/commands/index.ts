@@ -1,4 +1,12 @@
-export { applyPolicy, initRepo, type ApplyOptions, type ApplyResult } from "./apply/apply";
+export {
+  applyPolicy,
+  initRepo,
+  type ApplyOptions,
+  type ApplyResult,
+  type PolicyWriteDisposition,
+  type PolicyWritePlan,
+} from "./apply/apply";
+export type { PolicyWriteMode } from "../adapters/types";
 export {
   applyOrgPack,
   type OrgPackOptions,

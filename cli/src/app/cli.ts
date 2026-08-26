@@ -47,9 +47,15 @@ Options:
   --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)
   --allow-external      Confirm that bounded source excerpts may leave this machine
   --skip-apply          Pilot: scan only (still writes report)
-  --dry-run             Print planned policy files; do not write them
+  --dry-run             Print planned create/merge/replace; do not write
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
+
+Apply safety (#130):
+  Instruction markdown (e.g. .github/copilot-instructions.md, CLAUDE.md) gets a
+  managed <!-- tokenforge:begin --> … <!-- tokenforge:end --> section: create the
+  file when missing, otherwise keep user text outside the markers. Exclusion YAML
+  / TokenForge-owned rule files may still fully replace.
 
 Exit codes:
   0   success, savedTokens > 0
@@ -83,7 +89,7 @@ function printReport(
 function printApply(
   io: CliIo,
   scan: ScanResult,
-  files: { path: string }[],
+  writes: { path: string; disposition: string }[],
   dryRun: boolean,
   reportPath: string,
   json: boolean,
@@ -92,13 +98,15 @@ function printApply(
   printReport(io, scan.report, scan, json);
   const sink = json ? io.stderr : io.stdout;
   if (dryRun) {
-    sink.write("dry-run; would write:\n");
+    sink.write(
+      "dry-run; instruction files use a managed TokenForge section (user text outside markers kept):\n",
+    );
   } else {
     sink.write("wrote:\n");
     sink.write(`  ${reportPath}\n`);
   }
-  for (const file of files) {
-    sink.write(`  ${file.path}\n`);
+  for (const write of writes) {
+    sink.write(`  ${write.disposition.padEnd(7)} ${write.path}\n`);
   }
   if (changeMarkerPath) {
     sink.write(`  ${changeMarkerPath}\n`);
@@ -186,7 +194,7 @@ export async function runCli(
       printApply(
         io,
         { report: applied.report, reportPath: applied.reportPath, assessments: [] },
-        applied.files,
+        applied.writes,
         applied.dryRun,
         applied.reportPath,
         Boolean(values.json),
