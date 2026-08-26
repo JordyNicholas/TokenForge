@@ -1,6 +1,8 @@
 import {
   MAX_LEAN_INSTRUCTION_BYTES,
+  activePathSet,
   collapseExclusionPaths,
+  isActivePath,
   synthesizeLeanInstructions,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
@@ -39,9 +41,16 @@ export function renderExclusionYaml(
   report: TokenRiskReport,
   headerLines: readonly string[],
 ): string {
+  // Second guard, not a redundant one: scan already downgrades an active
+  // path's action to `kept`, but this file is a durable policy artifact and
+  // the report reaching it may predate that flag or have been hand-edited.
+  const active = activePathSet(report);
   const lines = collapseExclusionPaths(
     report.findings
-      .filter((finding) => finding.action === "excluded")
+      .filter(
+        (finding) =>
+          finding.action === "excluded" && !isActivePath(active, finding.path),
+      )
       .map((finding) => finding.path),
   ).map((path) => `  - ${path}`);
 

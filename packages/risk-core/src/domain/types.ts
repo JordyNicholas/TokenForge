@@ -179,4 +179,16 @@ export type TokenRiskReport = {
   scan?: ScanMetadata;
   /** Separated heuristic / LLM / combined results when hybrid scan ran. */
   layers?: ScanLayers;
+  /**
+   * Repo-relative paths the developer had open when this report was produced.
+   *
+   * A session signal, not a file property: no static rule can tell whether a
+   * large locale file is waste without knowing if someone is doing i18n work
+   * right now. Exclusion artifacts must never name a path listed here, even
+   * when a finding on it says `excluded`.
+   *
+   * Absent means "unknown", not "none" — omit it rather than writing `[]`
+   * when there is no session signal to report.
+   */
+  activePaths?: string[];
 };

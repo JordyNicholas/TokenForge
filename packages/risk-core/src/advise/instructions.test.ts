@@ -123,6 +123,24 @@ describe("synthesizeLeanInstructions", () => {
     expect(md).not.toContain("shared base");
   });
 
+  it("never writes a 'do not load' bullet for a path the developer has open", () => {
+    // The finding still says `excluded` — this asserts the guard holds even
+    // when the report reaching the synthesizer predates the session signal
+    // or was hand-edited (#137).
+    const excluded = heuristicReport.findings.find(
+      (finding) => finding.action === "excluded",
+    );
+    expect(excluded).toBeDefined();
+
+    const withActive: TokenRiskReport = {
+      ...heuristicReport,
+      activePaths: [excluded!.path],
+    };
+
+    expect(synthesizeLeanInstructions(heuristicReport)).toContain(excluded!.path);
+    expect(synthesizeLeanInstructions(withActive)).not.toContain(excluded!.path);
+  });
+
   it("is deterministic for the same report", () => {
     const a = synthesizeLeanInstructions(heuristicReport);
     const b = synthesizeLeanInstructions(heuristicReport);

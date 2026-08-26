@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenforge.dev/schema/risk-event/v4",
-  "title": "TokenForge Token Risk report (v4)",
-  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v4 is a strict superset of v3 (risk-event.v3.schema.json, frozen): it adds the optional activePaths array, the paths a developer had open when the report was produced. Every valid v0/v1/v2/v3 report is still valid here.",
+  "$id": "https://tokenforge.dev/schema/risk-event/v3",
+  "title": "TokenForge Token Risk report (v3)",
+  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v3 is a strict superset of v2 (risk-event.v2.schema.json, frozen): it adds the redundant_config reason for config files repeated across workspace packages. No new suggestion kind \u2014 that advice reuses dedupe_rules. Every valid v0/v1/v2 report is still valid here.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -58,14 +58,6 @@
     },
     "layers": {
       "$ref": "#/$defs/layers"
-    },
-    "activePaths": {
-      "type": "array",
-      "description": "Repo-relative paths the developer had open when this report was produced. A session signal rather than a file property: no static rule can tell whether a large locale file is waste without knowing whether someone is doing i18n work right now. Exclusion artifacts must never name a path listed here, even when a finding on it says \"excluded\". Absent means \"unknown\", not \"none\" — omit the field rather than writing an empty array when there is no session signal.",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
     }
   },
   "$defs": {

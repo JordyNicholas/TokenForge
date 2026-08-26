@@ -150,6 +150,13 @@ function isScanMetadata(value: unknown): value is ScanMetadata {
   );
 }
 
+function isActivePaths(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.every((entry) => typeof entry === "string" && entry.length > 0)
+  );
+}
+
 /** Runtime guard aligned with `docs/schemas/risk-event.schema.json`. */
 export function isTokenRiskReport(value: unknown): value is TokenRiskReport {
   if (!isRecord(value)) {
@@ -159,6 +166,9 @@ export function isTokenRiskReport(value: unknown): value is TokenRiskReport {
     return false;
   }
   if (value.layers !== undefined && !isScanLayers(value.layers)) {
+    return false;
+  }
+  if (value.activePaths !== undefined && !isActivePaths(value.activePaths)) {
     return false;
   }
   return (

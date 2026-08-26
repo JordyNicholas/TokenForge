@@ -35,6 +35,8 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V1_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V2_ID,
   TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V3_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V3_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
 export {
@@ -81,6 +83,7 @@ export {
   type SynthesizeLeanInstructionsOptions,
 } from "./advise/instructions";
 export { collapseExclusionPaths } from "./policy/collapse";
+export { activePathSet, isActivePath } from "./policy/active";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { primaryReason, scoreRisk } from "./score/score";
