@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { INACTIVE_MS, OVERSIZED_BYTES } from "../domain/constants";
+import {
+  AUXILIARY_OVERSIZED_BYTES,
+  INACTIVE_MS,
+  OVERSIZED_BYTES,
+} from "../domain/constants";
 import { primaryReason, scoreRisk } from "./score";
 
 
@@ -150,6 +154,23 @@ describe("scoreRisk", () => {
 
       expect(result.reasons).toContain("high_risk_filetype");
       expect(result.protection).toBeUndefined();
+    });
+
+    it("flags auxiliary fixture data at the lower size bar", () => {
+      const auxiliary = scoreRisk({
+        path: "test/fixtures/recorded-orders.json",
+        bytes: AUXILIARY_OVERSIZED_BYTES,
+        inactiveMs: 0,
+      });
+      expect(auxiliary.reasons).toEqual(["oversized"]);
+
+      // Identical size, ordinary location: still under the flat bar.
+      const ordinary = scoreRisk({
+        path: "config/orders.json",
+        bytes: AUXILIARY_OVERSIZED_BYTES,
+        inactiveMs: 0,
+      });
+      expect(ordinary.atRisk).toBe(false);
     });
 
     it("leaves inactive_tab intact — protection is about exclusion, not IDE hygiene", () => {

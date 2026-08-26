@@ -1,5 +1,7 @@
 export {
   API_CONTRACT_PATTERNS,
+  AUXILIARY_DATA_DIR_NAMES,
+  AUXILIARY_OVERSIZED_BYTES,
   BYTES_PER_TOKEN,
   CLASS_WEIGHT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
@@ -35,6 +37,7 @@ export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/cand
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export {
   isApiContractPath,
+  isAuxiliaryDataPath,
   isNecessaryGeneratedPath,
   isProtectedConfigPath,
   protectionFor,

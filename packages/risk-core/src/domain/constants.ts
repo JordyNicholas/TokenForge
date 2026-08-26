@@ -15,6 +15,15 @@ export const BACKGROUND_INACTIVE_MS = 5 * 60 * 1000;
 /** Paths at or above this size are `oversized`. */
 export const OVERSIZED_BYTES = 100_000;
 
+/**
+ * Lower `oversized` bar for auxiliary data trees (fixtures, mocks, recorded
+ * payloads). One flat threshold treats a 30 KB blob of recorded JSON like a
+ * 30 KB hand-written module — see `docs/HEURISTICS_AUDIT.md` B3. This is the
+ * narrow, class-aware version of that recommendation: the reason stays
+ * `oversized`, only the bar moves.
+ */
+export const AUXILIARY_OVERSIZED_BYTES = 25_000;
+
 export const HIGH_RISK_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
   "lockfile",
   "generated",
@@ -124,6 +133,21 @@ export const NECESSARY_GENERATED_SEGMENTS: ReadonlySet<string> = new Set([
   "openapi",
   "swagger",
   "api",
+]);
+
+/**
+ * Directories whose contents are auxiliary bulk data (test fixtures, mocks,
+ * recorded payloads). Individually small, collectively expensive.
+ */
+export const AUXILIARY_DATA_DIR_NAMES: ReadonlySet<string> = new Set([
+  "fixtures",
+  "__fixtures__",
+  "mocks",
+  "__mocks__",
+  "test-data",
+  "testdata",
+  "snapshots",
+  "__snapshots__",
 ]);
 
 /** Basenames treated as agent instruction / rules files for enrichment. */

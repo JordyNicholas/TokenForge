@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isApiContractPath,
+  isAuxiliaryDataPath,
   isNecessaryGeneratedPath,
   isProtectedConfigPath,
   protectionFor,
@@ -50,6 +51,19 @@ describe("isNecessaryGeneratedPath", () => {
     // Generated, but not an API surface: compiled output stays high-risk.
     expect(isNecessaryGeneratedPath("generated/styles/theme.css")).toBe(false);
     expect(isNecessaryGeneratedPath("dist/bundle.js")).toBe(false);
+  });
+});
+
+describe("isAuxiliaryDataPath", () => {
+  it("matches recognized fixture / mock trees by directory", () => {
+    expect(isAuxiliaryDataPath("test/fixtures/user-a.json")).toBe(true);
+    expect(isAuxiliaryDataPath("src/__mocks__/api.json")).toBe(true);
+    expect(isAuxiliaryDataPath("test-data/orders.csv")).toBe(true);
+  });
+
+  it("ignores a file merely named like one", () => {
+    expect(isAuxiliaryDataPath("src/fixtures.ts")).toBe(false);
+    expect(isAuxiliaryDataPath("src/index.ts")).toBe(false);
   });
 });
 

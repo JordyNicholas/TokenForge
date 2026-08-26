@@ -1,5 +1,6 @@
 import { classifyFiletype } from "../classify/classify";
 import {
+  AUXILIARY_OVERSIZED_BYTES,
   CLASS_WEIGHT,
   HIGH_RISK_FILE_CLASSES,
   INACTIVE_MS,
@@ -9,7 +10,7 @@ import {
   SCORE_WEIGHT_SIZE,
 } from "../domain/constants";
 import { estimateTokens } from "../estimate/estimate";
-import { protectionFor } from "../protect/protect";
+import { isAuxiliaryDataPath, protectionFor } from "../protect/protect";
 import type { FindingReason, RiskAssessment, RiskInput } from "../domain/types";
 
 const REASON_PRIORITY: FindingReason[] = [
@@ -69,14 +70,19 @@ export function scoreRisk(input: RiskInput): RiskAssessment {
   if (HIGH_RISK_FILE_CLASSES.has(fileClass) && !suppressed.has("high_risk_filetype")) {
     reasons.push("high_risk_filetype");
   }
-  if (bytes >= OVERSIZED_BYTES && !suppressed.has("oversized")) {
+  const oversizedBytes = isAuxiliaryDataPath(input.path)
+    ? AUXILIARY_OVERSIZED_BYTES
+    : OVERSIZED_BYTES;
+  if (bytes >= oversizedBytes && !suppressed.has("oversized")) {
     reasons.push("oversized");
   }
   if (inactiveMs >= inactiveThresholdMs) {
     reasons.push("inactive_tab");
   }
 
-  const sizeWeight = clamp01(bytes / OVERSIZED_BYTES);
+  // Same bar the binary reason used, so the continuous score does not
+  // disagree with `reasons` about what counts as large here (B3).
+  const sizeWeight = clamp01(bytes / oversizedBytes);
   const inactivityWeight = clamp01(inactiveMs / inactiveThresholdMs);
   const mixed =
     SCORE_WEIGHT_CLASS * CLASS_WEIGHT[fileClass] +

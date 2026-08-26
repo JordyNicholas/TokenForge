@@ -1,5 +1,6 @@
 import {
   API_CONTRACT_PATTERNS,
+  AUXILIARY_DATA_DIR_NAMES,
   NECESSARY_GENERATED_SEGMENTS,
   PROTECTED_CONFIG_NAMES,
   PROTECTED_CONFIG_PATTERNS,
@@ -52,6 +53,15 @@ export function isNecessaryGeneratedPath(path: string): boolean {
     }
   }
   return false;
+}
+
+/** True for files under a recognized fixture / mock / recorded-payload tree. */
+export function isAuxiliaryDataPath(path: string): boolean {
+  const segments = pathSegments(path);
+  // Last segment is the filename, so stop before it.
+  return segments
+    .slice(0, -1)
+    .some((segment) => AUXILIARY_DATA_DIR_NAMES.has(segment.toLowerCase()));
 }
 
 /**
