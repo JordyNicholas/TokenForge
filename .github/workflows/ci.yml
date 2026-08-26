@@ -1,0 +1,67 @@
+# Deterministic checks for every pull request (#141).
+#
+# Runs the three root scripts, which are already workspace-aware via
+# `--workspaces --if-present`, so adding a workspace needs no change here.
+#
+# Why this exists: a duplicated export block landed in #94 and survived 13
+# merged PRs and 53 commits before PR #138 fixed it, because nothing ran
+# `npm run typecheck` on a PR. The golden-totals fixtures under
+# `fixtures/expected/` are the regression net for the heuristic engine, and a
+# net nobody runs on PRs catches nothing.
+#
+# DETERMINISTIC ONLY. Do not add `tokenforge scan --mode hybrid` here: LLM
+# output is non-deterministic and cannot be a merge gate (see the out-of-scope
+# list in docs/HYBRID_SCAN_DESIGN.md). Do not add `--active-paths-file` either
+# — CI has no editor session, and pointing it at a checked-in export would
+# protect whatever someone happened to have open the day it was committed
+# (docs/E2E_ACTIVE_SESSION_TEST.md).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# This job reads code and reports a status. It must not inherit the
+# PROJECT_TOKEN posture of the board-automation workflows.
+permissions:
+  contents: read
+
+concurrency:
+  # A force-push should not leave the superseded run pending.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck + test + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Matches prove-monthly.yml rather than introducing a second version.
+          node-version: "22"
+          cache: npm
+
+      # `ci`, not `install`: the lockfile is the contract, and a PR must not
+      # silently pass against dependency versions no one committed.
+      - name: Install
+        run: npm ci
+
+      # Ordered cheapest-signal-first. Each step still runs on its own so a
+      # failure names the stage, rather than one opaque red X.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
