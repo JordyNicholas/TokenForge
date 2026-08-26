@@ -5,7 +5,13 @@ import {
 } from "../limits";
 import type { PolicyFile, ProviderAdapter } from "../types";
 
+/**
+ * Claude conventional instruction path. Apply merges a TokenForge-managed
+ * section into this file (#130).
+ */
 export const CLAUDE_INSTRUCTIONS_PATH = "CLAUDE.md";
+/** @deprecated Alias — same as {@link CLAUDE_INSTRUCTIONS_PATH}. */
+export const CLAUDE_CANONICAL_INSTRUCTIONS_PATH = CLAUDE_INSTRUCTIONS_PATH;
 export const CLAUDE_EXCLUSIONS_PATH = ".claude/tokenforge-exclusion-candidates.yml";
 
 export const claudeAdapter: ProviderAdapter = {

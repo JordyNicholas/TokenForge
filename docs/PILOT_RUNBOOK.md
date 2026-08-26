@@ -126,8 +126,11 @@ npm run tokenforge:apply -- fixtures/noisy-app --dry-run
 Then apply for real if the pilot allows writing files (Copilot adapter by default;
 `tokenforge org-pack` is local aggregation, not a vendor org API).
 
-- Show lean instructions + exclusion candidates under `fixtures/noisy-app/.github/`
-  (or the selected adapter’s files).
+- Show lean instructions merged into the provider’s **conventional** path
+  (e.g. `fixtures/noisy-app/.github/copilot-instructions.md`) inside
+  `<!-- tokenforge:begin -->` … `<!-- tokenforge:end -->` markers — existing
+  user text outside the markers is kept. Dry-run lists `create` / `merge` /
+  `replace` per path.
 - Apply / org-pack also write a Prove **change marker** under
   `.tokenforge/prove-change-latest.json` (plus append-only `prove-changes.jsonl`) —
   timestamp, provider, pack id — to bound before/after billing windows.

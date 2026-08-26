@@ -46,6 +46,8 @@ export const semanticDuplicatesAppExpectedTotalsPath = resolve(
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });
+  await rm(resolve(fixtureRoot, ".claude"), { recursive: true, force: true });
+  await rm(resolve(fixtureRoot, "CLAUDE.md"), { force: true });
 }
 
 /**
@@ -57,6 +59,8 @@ export async function cleanupFixture(): Promise<void> {
 export async function cleanupFixtureAt(root: string): Promise<void> {
   await rm(resolve(root, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(root, ".github"), { recursive: true, force: true });
+  await rm(resolve(root, ".claude"), { recursive: true, force: true });
+  await rm(resolve(root, "CLAUDE.md"), { force: true });
 }
 
 export function captureIo() {

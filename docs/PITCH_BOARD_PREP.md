@@ -70,7 +70,7 @@ FAQ depth: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md
 | *How prove savings?* | Three KPIs on Prove: estimated, actual bill delta, variance — frozen assumptions. |
 | *Greenfield repo?* | Scan + dry-run first; apply is opt-in; bill import when FinOps has it. |
 | *Break the agent?* | No performance SLA; dry-run + PR; revert in git; org hard-enforce is Platform-only. |
-| *Overwrite our CLAUDE.md?* | **Today:** yes on apply — trust gap; **#130** sidecar/merge before production pitch. |
+| *Overwrite our CLAUDE.md?* | **No wipe.** We merge a marked TokenForge section into the conventional file; your text outside the markers stays. |
 | *Monthly scans?* | CLI + cron/Action ([#131](https://github.com/JordyNicholas/TokenForge/issues/131)); extension is not monthly scheduler. |
 | *Any LLM for hybrid?* | Opt-in; Ollama / Anthropic / Codex CLI; default scan is heuristic, repeatable for pilot. |
 | *vs Auto Memory?* | They improve recall; we cut billable waste and prove $ — different buyer metric. |

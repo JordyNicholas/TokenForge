@@ -94,15 +94,20 @@ npm run tokenforge:init
 npm run tokenforge -- init path/to/repo --mode hybrid --provider generic
 ```
 
-`apply` / `init` write a **provider adapter** pack (MVP default: Copilot
-`.github/copilot-instructions.md` + exclusion candidates). The instructions file
-is **synthesized from the combined scan report** (heuristic + optional LLM
-findings/themes), not a fixed template — still byte-capped so it cannot become
-another fat always-on context file. Cursor and Claude adapters write local
-rules / `CLAUDE.md` + exclusion candidates (same findings, different paths).
-Org-scale apply is local `tokenforge org-pack` aggregation — not a vendor org API.
-`--provider generic` writes a vendor-neutral pack. `init` forwards `--mode` /
-`--llm` into the scan step (same as `scan`).
+`apply` / `init` write a **provider adapter** pack into each vendor’s
+**conventional** instruction path (MVP default: Copilot
+`.github/copilot-instructions.md` + TokenForge-named exclusion candidates).
+Instruction markdown uses a managed HTML-comment section
+(`<!-- tokenforge:begin -->` … `<!-- tokenforge:end -->`): create the file when
+missing; if it already exists, keep user text outside the markers and only
+insert/update the TokenForge block (so policies land where the agent actually
+reads). The lean body is **synthesized from the combined scan report**
+(heuristic + optional LLM findings/themes), not a fixed template — still
+byte-capped so the TokenForge section cannot become another fat always-on dump.
+Cursor / Claude / generic adapters use the same merge for their instruction
+paths (`.cursor/rules/tokenforge.mdc`, `CLAUDE.md`, …). Org-scale apply is local
+`tokenforge org-pack` aggregation — not a vendor org API. `init` forwards
+`--mode` / `--llm` into the scan step (same as `scan`).
 
 `--json` prints machine totals (`beforeTokens`, `afterTokens`, `savedTokens`,
 `savedPercent`) for demo scripts and the dashboard seed. Human output includes
