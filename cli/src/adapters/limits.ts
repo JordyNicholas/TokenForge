@@ -10,8 +10,16 @@ import type { PolicyFile } from "./types";
 /** @deprecated Prefer MAX_LEAN_INSTRUCTION_BYTES from risk-core. */
 export const MAX_INSTRUCTION_BYTES = MAX_LEAN_INSTRUCTION_BYTES;
 
+/**
+ * Copilot conventional instruction path. Apply merges a TokenForge-managed
+ * section into this file (#130) — never a silent full-file replace of user text.
+ */
 export const COPILOT_INSTRUCTIONS_PATH = ".github/copilot-instructions.md";
-export const COPILOT_EXCLUSIONS_PATH = ".github/copilot-exclusion-candidates.yml";
+/** @deprecated Alias — same as {@link COPILOT_INSTRUCTIONS_PATH}. */
+export const COPILOT_CANONICAL_INSTRUCTIONS_PATH = COPILOT_INSTRUCTIONS_PATH;
+/** TokenForge-owned exclusion candidates (full overwrite is safe). */
+export const COPILOT_EXCLUSIONS_PATH =
+  ".github/tokenforge-copilot-exclusion-candidates.yml";
 
 export const GENERIC_INSTRUCTIONS_PATH = ".github/tokenforge-instructions.md";
 export const GENERIC_EXCLUSIONS_PATH = ".github/tokenforge-exclusions.yml";
@@ -52,6 +60,7 @@ export function renderInstructionsFile(
 ): PolicyFile {
   return assertLeanInstruction({
     path,
+    writeMode: "merge-section",
     contents: synthesizeLeanInstructions(report, {
       title,
       maxBytes: MAX_INSTRUCTION_BYTES,
