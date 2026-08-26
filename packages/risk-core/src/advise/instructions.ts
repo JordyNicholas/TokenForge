@@ -51,6 +51,13 @@ function hygieneBullets(
 ): HygieneBullet[] {
   const byPath = new Map<string, HygieneBullet>();
   for (const finding of findings) {
+    // redundant_config resolves to `dedupe_rules` too, but it is advice about
+    // the repo's build config, not about agent instructions. This section is
+    // written into the provider instruction file, so letting it through would
+    // put developer refactoring notes in front of the agent every turn (#136).
+    if (finding.reason === "redundant_config") {
+      continue;
+    }
     const suggestion = resolveSuggestion(finding);
     const isHygiene =
       HYGIENE_KINDS.has(suggestion.kind) ||

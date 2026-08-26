@@ -98,6 +98,31 @@ describe("synthesizeLeanInstructions", () => {
     expect(md).not.toContain("checkEmailFormat");
   });
 
+  it("keeps redundant_config out of the hygiene section despite dedupe_rules", () => {
+    // redundant_config reuses `dedupe_rules`, which IS in HYGIENE_KINDS — so
+    // without an explicit guard it would land in the provider instruction file
+    // that `apply` writes, putting build-config refactoring advice in front of
+    // the agent on every turn. Reason-level skip, not kind-level (#136).
+    const withRedundantConfig: TokenRiskReport = {
+      ...heuristicReport,
+      findings: [
+        ...heuristicReport.findings,
+        {
+          path: "packages/b/tsconfig.json",
+          reason: "redundant_config",
+          bytes: 300,
+          estTokens: 75,
+          action: "kept",
+          source: "llm",
+        },
+      ],
+    };
+
+    const md = synthesizeLeanInstructions(withRedundantConfig);
+    expect(md).not.toContain("tsconfig.json");
+    expect(md).not.toContain("shared base");
+  });
+
   it("is deterministic for the same report", () => {
     const a = synthesizeLeanInstructions(heuristicReport);
     const b = synthesizeLeanInstructions(heuristicReport);

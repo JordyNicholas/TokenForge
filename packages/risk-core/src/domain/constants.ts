@@ -42,9 +42,9 @@ export const SCORE_WEIGHT_CLASS = 0.45;
 export const SCORE_WEIGHT_SIZE = 0.35;
 export const SCORE_WEIGHT_INACTIVE = 0.2;
 
-/** Canonical Token Risk report schema `$id` (current: v2). */
+/** Canonical Token Risk report schema `$id` (current: v3). */
 export const TOKEN_RISK_REPORT_SCHEMA_ID =
-  "https://tokenforge.dev/schema/risk-event/v2";
+  "https://tokenforge.dev/schema/risk-event/v3";
 
 /** Repo-relative JSON Schema path. Single source of truth for all surfaces. */
 export const TOKEN_RISK_REPORT_SCHEMA_PATH =
@@ -67,6 +67,13 @@ export const TOKEN_RISK_REPORT_SCHEMA_V1_ID =
 
 export const TOKEN_RISK_REPORT_SCHEMA_V1_PATH =
   "docs/schemas/risk-event.v1.schema.json";
+
+/** Frozen v2 (`consolidate_duplicates` suggestion kind; seven reasons). */
+export const TOKEN_RISK_REPORT_SCHEMA_V2_ID =
+  "https://tokenforge.dev/schema/risk-event/v2";
+
+export const TOKEN_RISK_REPORT_SCHEMA_V2_PATH =
+  "docs/schemas/risk-event.v2.schema.json";
 
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;

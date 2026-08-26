@@ -17,7 +17,15 @@ export type FindingReason =
    * never pair this with `action: "excluded"` — hiding one copy from agent
    * context is not a fix, since both are still imported and executed.
    */
-  | "duplicate_logic";
+  | "duplicate_logic"
+  /**
+   * The config counterpart of {@link duplicate_logic}: the same settings
+   * repeated across workspace packages (e.g. a `tsconfig.json` copied per
+   * package instead of extending a shared base). Advisory only for the same
+   * reason — every package still loads its own copy at build time, so hiding
+   * one from agent context fixes nothing. Advice reuses `dedupe_rules`.
+   */
+  | "redundant_config";
 
 export type FindingAction = "filtered" | "excluded" | "kept";
 

@@ -32,6 +32,8 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V0_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V1_ID,
   TOKEN_RISK_REPORT_SCHEMA_V1_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V2_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
 export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/candidates";
