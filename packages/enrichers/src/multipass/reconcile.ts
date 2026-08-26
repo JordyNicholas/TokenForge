@@ -49,7 +49,8 @@ function strengthen(finding: LlmStructuredFinding): LlmStructuredFinding {
  * Deterministic safety net after Pass B / Pass C.
  * - Dedupes by path (keeps higher confidence)
  * - Downgrades `redundant_instructions` when the map has no related sibling
- * - Weakens (never relabels) an uncorroborated `duplicate_logic` claim
+ * - Weakens (never relabels) uncorroborated `duplicate_logic` /
+ *   `redundant_config` claims
  * - Slightly strengthens confidence when redundancy is map-supported
  */
 export function reconcileFindings(
@@ -64,7 +65,8 @@ export function reconcileFindings(
   return deduped.map((finding) => {
     if (
       finding.reason !== "redundant_instructions" &&
-      finding.reason !== "duplicate_logic"
+      finding.reason !== "duplicate_logic" &&
+      finding.reason !== "redundant_config"
     ) {
       return finding;
     }
@@ -74,20 +76,24 @@ export function reconcileFindings(
       return strengthen(finding);
     }
 
-    // Unlike instructions, an uncorroborated duplicate_logic claim is NOT
-    // relabelled: semantic_bloat asserts something different (low unique
-    // signal) about application code, and it is the label that invites
-    // exclusion. Pass B also sees fuller excerpts than Pass A's digests, so
-    // it can legitimately spot a pair the map missed — weaken the claim,
-    // don't rewrite or delete it.
-    if (finding.reason === "duplicate_logic") {
+    // Unlike instructions, uncorroborated duplicate_logic / redundant_config
+    // claims are NOT relabelled: semantic_bloat asserts something different
+    // (low unique signal), and it is the label that invites exclusion. Pass B
+    // also sees fuller excerpts than Pass A's digests, so it can legitimately
+    // spot a pair the map missed — weaken the claim, don't rewrite or delete.
+    if (
+      finding.reason === "duplicate_logic" ||
+      finding.reason === "redundant_config"
+    ) {
       const base = finding.confidence ?? 0.7;
+      const subject =
+        finding.reason === "duplicate_logic" ? "Duplicate-logic" : "Redundant-config";
       return {
         ...finding,
         confidence: Math.max(0, Math.round((base - 0.15) * 100) / 100),
         detail:
           finding.detail ??
-          "Duplicate-logic claim was not corroborated by the context map; treated as lower confidence.",
+          `${subject} claim was not corroborated by the context map; treated as lower confidence.`,
       };
     }
 

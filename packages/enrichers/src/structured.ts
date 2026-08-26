@@ -11,6 +11,18 @@ const LLM_REASONS = new Set<FindingReason>([
   "redundant_instructions",
   "low_signal_config",
   "duplicate_logic",
+  "redundant_config",
+]);
+
+/**
+ * Reasons that describe duplication across files rather than waste within one.
+ * Both are advisory: the other copy is still loaded (imported at runtime, or
+ * read by the build), so excluding either from agent context fixes nothing.
+ * Enforced here rather than trusted to the prompt.
+ */
+const ADVISORY_DUPLICATE_REASONS = new Set<FindingReason>([
+  "duplicate_logic",
+  "redundant_config",
 ]);
 
 const VERDICTS = new Set<LlmStructuredFinding["verdict"]>([
@@ -32,6 +44,9 @@ export const ENRICHMENT_POLICY_RULES: readonly string[] = [
   "redundant_instructions applies only to overlapping agent instruction/rules files — never to generated code, scripts, or general docs.",
   "duplicate_logic is the source-code counterpart: two or more source paths implementing the same behavior under different names. Name the other path in detail.",
   "duplicate_logic is ALWAYS verdict review, never exclude — both copies are still imported and executed, so hiding one from context fixes nothing. Its suggestion.kind must be consolidate_duplicates (copy-only; TokenForge will not apply a source edit).",
+  "redundant_config is the config counterpart: 2+ config files under different packages carrying the same settings (e.g. a tsconfig.json copied per package instead of extending a shared base). Name the other path in detail.",
+  "redundant_config is ALWAYS verdict review, never exclude — every package still loads its own copy at build time. Its suggestion.kind must be dedupe_rules, and the advice is to extend one shared base config (copy-only; TokenForge will not apply it).",
+  "Do not claim redundant_config merely because two files share a name. Different packages legitimately have different dependencies, scripts, or compiler paths — say it only when the settings themselves repeat.",
   "low_signal_config is for noisy machine config dumps — not for human-facing docs or API contracts.",
   "Do not exclude a path merely because it is 'not the file being edited' or 'infrastructure-related'.",
 ];
@@ -61,7 +76,7 @@ export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]
     "For each path, decide whether it is low-value billable context for Chat/Agent workflows.",
     "",
     "Return JSON only with this shape:",
-    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review|consolidate_duplicates","summary":"one or two sentences"}}]}',
+    '{"findings":[{"path":"<exact path>","verdict":"exclude|review|keep","reason":"semantic_bloat|redundant_instructions|low_signal_config|duplicate_logic|redundant_config","confidence":0.0,"detail":"short reason","suggestion":{"kind":"exclude_from_context|trim_instructions|dedupe_rules|add_ignore|review|consolidate_duplicates","summary":"one or two sentences"}}]}',
     "",
     "Rules:",
     "- Use exact paths from the input.",
@@ -123,12 +138,22 @@ function normalizeSuggestion(
   value: unknown,
 ): FindingSuggestion | undefined {
   const parsed = parseSuggestion(value);
-  if (reason !== "duplicate_logic") {
+  // Invariants: duplicate_logic advice is consolidate_duplicates only (#114),
+  // and its config counterpart is dedupe_rules only (#136). The kind is
+  // pinned per reason so the summary survives even when the model picks a
+  // kind that would imply excluding one of the copies.
+  const pinnedKind =
+    reason === "duplicate_logic"
+      ? ("consolidate_duplicates" as const)
+      : reason === "redundant_config"
+        ? ("dedupe_rules" as const)
+        : undefined;
+
+  if (!pinnedKind) {
     return parsed;
   }
-  // Invariant: duplicate_logic advice is consolidate_duplicates only (#114).
   if (parsed) {
-    return { kind: "consolidate_duplicates", summary: parsed.summary };
+    return { kind: pinnedKind, summary: parsed.summary };
   }
   if (
     typeof value === "object" &&
@@ -138,7 +163,7 @@ function normalizeSuggestion(
   ) {
     const summary = (value as { summary: string }).summary.trim();
     if (summary.length > 0) {
-      return { kind: "consolidate_duplicates", summary };
+      return { kind: pinnedKind, summary };
     }
   }
   return undefined;
@@ -174,13 +199,13 @@ export function parseStructuredFindings(
         : "semantic_bloat";
 
     // Invariant, enforced here because every backend funnels through this
-    // parser: duplicate_logic is advisory only. Both copies are still
-    // imported, so excluding one from context fixes nothing. A model that
-    // ignores the prompt rule gets coerced rather than trusted.
-    const verdict =
-      reason === "duplicate_logic"
-        ? "review"
-        : (item.verdict as LlmStructuredFinding["verdict"]);
+    // parser: cross-file duplication findings are advisory only. The other
+    // copy is still loaded — imported at runtime for duplicate_logic, read by
+    // the build for redundant_config — so excluding one from context fixes
+    // nothing. A model that ignores the prompt rule gets coerced, not trusted.
+    const verdict = ADVISORY_DUPLICATE_REASONS.has(reason)
+      ? "review"
+      : (item.verdict as LlmStructuredFinding["verdict"]);
 
     rows.push({
       path: item.path,

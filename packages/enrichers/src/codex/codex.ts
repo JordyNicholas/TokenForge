@@ -34,6 +34,7 @@ const CODEX_OUTPUT_SCHEMA = {
               "redundant_instructions",
               "low_signal_config",
               "duplicate_logic",
+              "redundant_config",
             ],
           },
           confidence: { type: ["number", "null"], minimum: 0, maximum: 1 },
