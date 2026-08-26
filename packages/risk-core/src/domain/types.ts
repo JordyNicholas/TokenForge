@@ -33,7 +33,9 @@ export type SuggestionKind =
   | "trim_instructions"
   | "dedupe_rules"
   | "add_ignore"
-  | "review";
+  | "review"
+  /** Copy-only: consolidate duplicated application code. Never applied by Fix. */
+  | "consolidate_duplicates";
 
 export type FindingSuggestion = {
   kind: SuggestionKind;

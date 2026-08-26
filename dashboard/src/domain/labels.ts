@@ -18,4 +18,5 @@ export const SUGGESTION_KIND_LABELS: Record<SuggestionKind, string> = {
   dedupe_rules: "Dedupe rules",
   add_ignore: "Add ignore",
   review: "Review",
+  consolidate_duplicates: "Consolidate duplicates",
 };

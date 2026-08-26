@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenforge.dev/schema/risk-event/v2",
-  "title": "TokenForge Token Risk report (v2)",
-  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v2 is a strict superset of v1 (risk-event.v1.schema.json, frozen): it adds the consolidate_duplicates suggestion kind for duplicate_logic advice. Every valid v0/v1 report is still valid here.",
+  "$id": "https://tokenforge.dev/schema/risk-event/v1",
+  "title": "TokenForge Token Risk report (v1 \u2014 frozen)",
+  "description": "FROZEN historical contract. Superseded by risk-event.schema.json (v2), which is a strict superset adding the consolidate_duplicates suggestion kind. Kept so external consumers pinned to v1 can still validate reports produced before that change. Do not add to this file.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -142,8 +142,7 @@
             "trim_instructions",
             "dedupe_rules",
             "add_ignore",
-            "review",
-            "consolidate_duplicates"
+            "review"
           ]
         },
         "summary": {
