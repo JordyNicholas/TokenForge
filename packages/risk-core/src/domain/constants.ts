@@ -90,6 +90,13 @@ export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
 export const MIN_BORDERLINE_BYTES = 4_096;
 
 /**
+ * Max paths from the repeated-per-package-config bucket. Capped like every
+ * other bucket (see B4): `package.json` recurs in every package of a large
+ * monorepo, which would otherwise consume the whole candidate budget.
+ */
+export const DEFAULT_REPEATED_CONFIG_COUNT = 8;
+
+/**
  * Config basenames an agent needs to reason correctly (build/lint/flags).
  * Small enough to stay under {@link OVERSIZED_BYTES} today, so they are only
  * protected by accident — see `protect/protect.ts`.
