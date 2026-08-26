@@ -97,7 +97,7 @@ give the wrong answer. Audited as B11–B15 in
 | Issue | Title | Epic | Status |
 | --- | --- | --- | --- |
 | #135 | risk-core: heuristic allowlists, path-convention detection, pre-enrichment secret gate | — (audit line, like #105/#108/#110/#112) | **Done** — PR #138. B11–B15: `protect/protect.ts` exempts API contracts / build configs / necessary generated trees from exclusion; `AUXILIARY_OVERSIZED_BYTES` catches bulk fixture data under the flat bar; two credential gates (name in risk-core, content at the CLI read boundary) keep secrets out of LLM enrichment |
-| #136 | enrichers: extend redundant-config detection across workspace packages | F1 #60 | **Done** — PR #139. `redundant_config` reason (schema v3), repeated-basename candidate bucket, Pass A digests for repeated configs. Advisory only, reusing `dedupe_rules` |
+| #136 | enrichers: extend redundant-config detection across workspace packages | — (audit line) | **Done** — PR #139. `redundant_config` reason (schema v3), repeated-basename candidate bucket, Pass A digests for repeated configs. Advisory only, reusing `dedupe_rules` |
 | #137 | extension ↔ CLI: surface active-session paths so Fix never suggests excluding what's in use | F3 #62 | **Done** — PR #140. `activePaths` on the contract (schema v4), `scan --active-paths-file`, extension publishes open tabs. First tested integration point between extension and CLI |
 
 Three cases were deliberately **not** closed and are recorded with their reasons
@@ -106,10 +106,19 @@ contract has one verdict per path), and recency (git mtime conflates "recently
 edited" with "recently relevant"). Task context was the third and is now closed
 by #137 — not by a better rule, but by a different input.
 
-**Note on #136's epic.** It was filed under F1 #60, which had already closed
-when F1 completed. The work is a genuine continuation of #66/#114, but the epic
-was not reopened, so #60 sits in *Epics Finished* with a later child. Either
-reopen it or treat #136 as an audit-line item like #135 — not yet decided.
+**Note on #136's epic.** It was originally filed under F1 #60, which had already
+closed when F1 completed — a filing mistake, since it would have left #60 in
+*Epics Finished* with a later child. **Resolved by reclassifying #136 as an
+audit-line item** rather than reopening the epic: the work continues #66/#114
+in spirit, but hybrid-scan hardening driven by a stress fixture is precisely the
+pattern that has run outside the epic structure before (#105/#108/#110/#112).
+F1 stays closed and complete.
+
+**Repo hygiene surfaced by this pass.** #141 — nothing runs `typecheck` / `test`
+/ `build` on a pull request, which is how a duplicated export block from #94
+survived 13 merged PRs before PR #138 fixed it. The golden-totals fixtures added
+above are the regression net for the heuristic engine, and a net nobody runs on
+PRs catches nothing.
 
 ### F2 attractiveness backlog (filed under #61)
 
