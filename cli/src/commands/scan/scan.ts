@@ -18,6 +18,7 @@ import { RuntimeError, UsageError } from "../../app/errors";
 import {
   MAX_CANDIDATE_BYTES,
   getEnricher,
+  hasSecretContent,
   parseLlmSpec,
   parseLlmTimeoutSeconds,
   type EnrichmentCandidate,
@@ -147,7 +148,7 @@ function toFinding(assessment: RiskAssessment): TokenRiskFinding | undefined {
 async function loadCandidateExcerpt(
   root: string,
   assessment: RiskAssessment,
-): Promise<EnrichmentCandidate> {
+): Promise<EnrichmentCandidate | undefined> {
   const abs = join(root, assessment.path);
   let excerpt = "";
   try {
@@ -155,6 +156,13 @@ async function loadCandidateExcerpt(
     excerpt = raw.subarray(0, MAX_CANDIDATE_BYTES).toString("utf8");
   } catch {
     excerpt = "";
+  }
+  // Second credential gate, on content this time: risk-core already dropped
+  // credential-shaped *names*, but a secret can sit in an innocuously named
+  // file. Drop the whole candidate rather than redacting — a redacted excerpt
+  // still tells a possibly-external model where the secret lives.
+  if (hasSecretContent(excerpt)) {
+    return undefined;
   }
   return {
     path: assessment.path,
@@ -176,8 +184,13 @@ async function runHybridEnrichment(
   const spec = parseLlmSpec(options.llm);
   const enricher = options.enricher ?? getEnricher(spec.backend as LlmBackendId);
   const candidateAssessments = selectEnrichmentCandidates(assessments);
-  const candidates = await Promise.all(
+  const loaded = await Promise.all(
     candidateAssessments.map((assessment) => loadCandidateExcerpt(root, assessment)),
+  );
+  // `undefined` means the content gate rejected it; a dropped candidate must
+  // not count toward LLM-layer totals either.
+  const candidates = loaded.filter(
+    (candidate): candidate is EnrichmentCandidate => candidate !== undefined,
   );
   const llmCandidateTokens = candidates.reduce(
     (sum, candidate) => sum + candidate.estTokens,

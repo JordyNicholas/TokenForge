@@ -38,6 +38,7 @@ export {
   parseStructuredFindings,
 } from "./structured";
 
+export { hasSecretContent } from "./secrets";
 export { getEnricher } from "./registry";
 export { RuntimeError, UsageError, isEnricherError } from "./errors";
 export {

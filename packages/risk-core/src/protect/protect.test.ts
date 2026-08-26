@@ -4,6 +4,7 @@ import {
   isAuxiliaryDataPath,
   isNecessaryGeneratedPath,
   isProtectedConfigPath,
+  isSecretPath,
   protectionFor,
 } from "./protect";
 
@@ -51,6 +52,30 @@ describe("isNecessaryGeneratedPath", () => {
     // Generated, but not an API surface: compiled output stays high-risk.
     expect(isNecessaryGeneratedPath("generated/styles/theme.css")).toBe(false);
     expect(isNecessaryGeneratedPath("dist/bundle.js")).toBe(false);
+  });
+});
+
+describe("isSecretPath", () => {
+  it("matches credential-shaped names", () => {
+    expect(isSecretPath(".env")).toBe(true);
+    expect(isSecretPath(".env.production")).toBe(true);
+    expect(isSecretPath("config/firebase-service-account.json")).toBe(true);
+    expect(isSecretPath("deploy/credentials.json")).toBe(true);
+    expect(isSecretPath("secrets.yaml")).toBe(true);
+    expect(isSecretPath("certs/server.pem")).toBe(true);
+    expect(isSecretPath("id_rsa")).toBe(true);
+    expect(isSecretPath(".npmrc")).toBe(true);
+  });
+
+  it("does not match templates that only carry the shape of a secret", () => {
+    expect(isSecretPath(".env.example")).toBe(false);
+    expect(isSecretPath(".env.sample")).toBe(false);
+    expect(isSecretPath("credentials.json.template")).toBe(false);
+  });
+
+  it("does not match ordinary paths", () => {
+    expect(isSecretPath("src/auth/token.ts")).toBe(false);
+    expect(isSecretPath("docs/secrets-policy.md")).toBe(false);
   });
 });
 

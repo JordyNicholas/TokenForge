@@ -150,6 +150,24 @@ export const AUXILIARY_DATA_DIR_NAMES: ReadonlySet<string> = new Set([
   "__snapshots__",
 ]);
 
+/**
+ * Credential-shaped paths. These must never become LLM enrichment candidates:
+ * hybrid mode sends candidate excerpts to a backend that may be external, and
+ * asking a remote model whether a file holds a secret leaks it either way.
+ * Path shape only — content-based checks live at the CLI read boundary, since
+ * risk-core never touches the filesystem.
+ */
+export const SECRET_FILE_PATTERNS: readonly RegExp[] = [
+  /^\.env(\..+)?$/i,
+  /(^|[-_.])credentials?([-_.].*)?\.(json|ya?ml|txt)$/i,
+  /(^|[-_.])secrets?([-_.].*)?\.(json|ya?ml|txt)$/i,
+  /service-account.*\.json$/i,
+  /^id_(rsa|dsa|ecdsa|ed25519)$/i,
+  /\.(pem|pfx|p12|key|keystore|jks)$/i,
+  /^\.npmrc$/i,
+  /^\.pypirc$/i,
+];
+
 /** Basenames treated as agent instruction / rules files for enrichment. */
 export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([
   "agents.md",

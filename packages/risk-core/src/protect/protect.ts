@@ -4,6 +4,7 @@ import {
   NECESSARY_GENERATED_SEGMENTS,
   PROTECTED_CONFIG_NAMES,
   PROTECTED_CONFIG_PATTERNS,
+  SECRET_FILE_PATTERNS,
 } from "../domain/constants";
 import { fileName, pathSegments } from "../classify/classify";
 import type { FindingReason, ProtectionKind } from "../domain/types";
@@ -18,6 +19,9 @@ export type PathProtection = {
    */
   suppresses: readonly FindingReason[];
 };
+
+/** Templates and samples carry no real credential, only the shape of one. */
+const SECRET_EXEMPT_SUFFIXES = [".example", ".sample", ".template", ".dist"];
 
 function matchesAny(name: string, patterns: readonly RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(name));
@@ -53,6 +57,19 @@ export function isNecessaryGeneratedPath(path: string): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Credential-shaped path. Blocks LLM enrichment candidacy before any excerpt
+ * is read — see `SECRET_FILE_PATTERNS`. Name shape only; the CLI runs a
+ * second, content-based gate once a candidate is actually read.
+ */
+export function isSecretPath(path: string): boolean {
+  const name = fileName(path).toLowerCase();
+  if (SECRET_EXEMPT_SUFFIXES.some((suffix) => name.endsWith(suffix))) {
+    return false;
+  }
+  return matchesAny(fileName(path), SECRET_FILE_PATTERNS);
 }
 
 /** True for files under a recognized fixture / mock / recorded-payload tree. */

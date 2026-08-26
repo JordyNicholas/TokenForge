@@ -10,6 +10,7 @@ export {
   NECESSARY_GENERATED_SEGMENTS,
   PROTECTED_CONFIG_NAMES,
   PROTECTED_CONFIG_PATTERNS,
+  SECRET_FILE_PATTERNS,
   INACTIVE_MS,
   BACKGROUND_INACTIVE_MS,
   INSTRUCTION_FILE_NAMES,
@@ -40,6 +41,7 @@ export {
   isAuxiliaryDataPath,
   isNecessaryGeneratedPath,
   isProtectedConfigPath,
+  isSecretPath,
   protectionFor,
   type PathProtection,
 } from "./protect/protect";

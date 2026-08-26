@@ -6,6 +6,7 @@ import {
   INSTRUCTION_PATH_SEGMENTS,
   MIN_BORDERLINE_BYTES,
 } from "../domain/constants";
+import { isSecretPath } from "../protect/protect";
 
 export type EnrichmentCandidateOptions = {
   /** Max non-instruction paths from the largest-files bucket. */
@@ -51,14 +52,24 @@ function isEligibleForTopBucket(assessment: RiskAssessment): boolean {
  * Pick paths for optional LLM enrichment. Order: instruction paths, a
  * guaranteed `source`-class sample, borderline configs, then largest
  * eligible files. Caller applies byte/read caps at the CLI edge.
+ *
+ * Credential-shaped paths are dropped up front and can never be selected.
  */
 export function selectEnrichmentCandidates(
-  assessments: readonly RiskAssessment[],
+  allAssessments: readonly RiskAssessment[],
   options: EnrichmentCandidateOptions = {},
 ): RiskAssessment[] {
   const topCount = options.topCount ?? DEFAULT_TOP_CANDIDATE_COUNT;
   const sourceTopCount = options.sourceTopCount ?? DEFAULT_SOURCE_CANDIDATE_COUNT;
   const maxCandidates = options.maxCandidates ?? 30;
+
+  // Runs before every bucket, not as a filter on the result: a credential-
+  // shaped path must never reach an enricher, and hybrid mode may send
+  // excerpts to an external backend. Asking a remote model whether a file
+  // holds a secret leaks the secret either way.
+  const assessments = allAssessments.filter(
+    (assessment) => !isSecretPath(assessment.path),
+  );
 
   const instruction = assessments.filter((assessment) => isInstructionPath(assessment.path));
   // Ranked within its own class (no byte floor) so small utility files don't
