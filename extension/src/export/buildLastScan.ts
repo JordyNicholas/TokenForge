@@ -31,9 +31,26 @@ export type BuildLastScanInput = {
  * - `filtered` → action filtered (counts as saved in totals).
  * - `kept` / `pending` → action kept (still in afterTokens).
  * - When `llmFindings` are present, emit hybrid `layers` + `scan` metadata.
+ * - Every open tab is listed in `activePaths`, so a CLI run pointed at this
+ *   file will not propose excluding a file the developer has open (#137).
  */
+/**
+ * Every open tab, at risk or not — this is the session signal the CLI cannot
+ * derive for itself (#137).
+ *
+ * Idle tabs are included on purpose. Being idle is what makes a tab a
+ * candidate for the reversible in-editor Keep/Filter hint; it is not grounds
+ * for writing "never load this" into a durable, repo-wide policy file. The
+ * developer still has the file open.
+ */
+function openPaths(tabs: readonly TrackedTab[]): string[] {
+  const paths = new Set(tabs.map((tab) => tab.path.replaceAll("\\", "/")));
+  return [...paths].sort((a, b) => a.localeCompare(b));
+}
+
 export function buildLastScanReport(input: BuildLastScanInput): TokenRiskReport {
   const assessments = input.tabs.map((tab) => tab.assessment);
+  const activePaths = openPaths(input.tabs);
   const heuristicFindings: TokenRiskFinding[] = [];
 
   for (const tab of input.tabs) {
@@ -68,6 +85,10 @@ export function buildLastScanReport(input: BuildLastScanInput): TokenRiskReport 
       provider: input.provider,
       findings: heuristicFindings,
       totals,
+      // Omitted when no tabs are open: absent means "unknown", and an empty
+      // array would read as "the developer has nothing open", which is a
+      // different and stronger claim.
+      ...(activePaths.length > 0 ? { activePaths } : {}),
     };
   }
 
@@ -96,6 +117,7 @@ export function buildLastScanReport(input: BuildLastScanInput): TokenRiskReport 
         candidatesSent: llmFindings.length,
       },
     },
+    ...(activePaths.length > 0 ? { activePaths } : {}),
   };
 }
 
