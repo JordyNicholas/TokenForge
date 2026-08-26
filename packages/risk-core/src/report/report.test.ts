@@ -183,6 +183,17 @@ describe("Token Risk JSON schema", () => {
     expect(validateV0(withRedundantConfig)).toBe(false);
   });
 
+  it("validates the published redundant_config example", () => {
+    const example = readJson(
+      "docs/schemas/examples/scan-report.hybrid.monorepo-config.json",
+    );
+
+    expect(validate(example)).toBe(true);
+    expect(isTokenRiskReport(example)).toBe(true);
+    // Advisory by construction: nothing is excluded, so nothing is saved.
+    expect((example as { totals: { savedTokens: number } }).totals.savedTokens).toBe(0);
+  });
+
   it("keeps every frozen predecessor valid under v3 (superset, not a break)", () => {
     const example = readJson("docs/schemas/examples/scan-report.v0.json");
     const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json");

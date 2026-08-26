@@ -1,0 +1,59 @@
+{
+  "source": "cli",
+  "timestamp": "2026-08-26T18:00:00.000Z",
+  "repo": "fixtures/monorepo-config-app",
+  "team": "platform",
+  "provider": "generic",
+  "findings": [
+    {
+      "path": "packages/b/tsconfig.json",
+      "reason": "redundant_config",
+      "bytes": 310,
+      "estTokens": 78,
+      "action": "kept",
+      "source": "llm",
+      "confidence": 0.82,
+      "detail": "Same compiler settings as packages/a/tsconfig.json, only reordered.",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Extend tsconfig.base.json instead of repeating these settings. TokenForge will not apply this."
+      }
+    },
+    {
+      "path": "packages/c/tsconfig.json",
+      "reason": "redundant_config",
+      "bytes": 520,
+      "estTokens": 130,
+      "action": "kept",
+      "source": "llm",
+      "confidence": 0.74,
+      "detail": "Expands \"strict\": true into its constituent flags but resolves to the same configuration as packages/a/tsconfig.json.",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Extend tsconfig.base.json instead of repeating these settings. TokenForge will not apply this."
+      }
+    }
+  ],
+  "totals": {
+    "beforeTokens": 1648,
+    "afterTokens": 1648,
+    "savedTokens": 0
+  },
+  "scan": {
+    "mode": "hybrid",
+    "llm": {
+      "backend": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "endpoint": "http://127.0.0.1:11434",
+      "durationMs": 1180,
+      "candidatesSent": 6,
+      "analysisOverview": {
+        "summary": "Three packages carry their own tsconfig.json with the same compiler settings while tsconfig.base.json sits unused. Copy c expands \"strict\" into its constituent flags, so the repetition is semantic rather than textual. The package.json files repeat by name only — their dependencies, scripts and versions genuinely differ — and were not flagged. No path was recommended for exclusion, since every package still loads its own config at build time.",
+        "themes": ["redundant config", "unused shared base"],
+        "caveats": [
+          "redundant_config is advisory: savedTokens stays 0 because nothing is excluded."
+        ]
+      }
+    }
+  }
+}
