@@ -157,6 +157,11 @@ npm run tokenforge:extension:watch
 
 Rebuilds on save while the watch task is running (used by `.vscode/launch.json`).
 
+**Monthly Prove (Platform):** [`.github/workflows/prove-monthly.yml`](.github/workflows/prove-monthly.yml)
+runs scheduled + manual `usage-sync` (optional heuristic `scan`) and uploads
+`.tokenforge/` artifacts — no surprise commits. Operator guide:
+[`docs/examples/prove-monthly.md`](docs/examples/prove-monthly.md).
+
 ## Board automation setup
 
 Exact GitHub UI steps (secret, delete-head-branches, Project workflows):

@@ -48,6 +48,15 @@ Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, mod
 Demo seed also includes **imported usage** credits/$ — file/demo import plus optional
 live sync via CLI adapters — not a claim that we meter the agent’s private pipeline.
 
+## Who runs the monthly scan / bill pull?
+
+**Platform — not individual developers.** Use the turnkey GitHub Action
+(`.github/workflows/prove-monthly.yml`) or an equivalent cron calling
+`tokenforge usage-sync` (+ optional heuristic `tokenforge scan`). Artifacts land
+under `.tokenforge/` for Prove; the extension stays real-time Context Guard only.
+Guide: [`examples/prove-monthly.md`](./examples/prove-monthly.md). Sound bite:
+*pipelines remember; humans don’t.*
+
 ## Does apply overwrite our CLAUDE.md / copilot-instructions.md?
 
 **It does not wipe them.** `tokenforge apply` writes into each provider’s

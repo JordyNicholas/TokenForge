@@ -193,7 +193,32 @@ Cron example (monthly, Copilot org):
 0 6 2 * * cd /path/to/repo && npm run tokenforge -- usage-sync --usage-provider copilot --org YOUR_ORG >> /var/log/tokenforge-usage-sync.log 2>&1
 ```
 
-Providers: `copilot` (`GITHUB_TOKEN`), `cursor` (`CURSOR_API_KEY`, `--org org_abc123`), `claude` (`ANTHROPIC_ADMIN_API_KEY`). File/demo import remains the fallback when live APIs are unavailable.
+Providers: `copilot` (`GITHUB_TOKEN` / `GITHUB_COPILOT_USAGE_TOKEN`), `cursor`
+(`CURSOR_API_KEY`, `--org org_abc123`), `claude` (`ANTHROPIC_ADMIN_API_KEY`).
+File/demo import remains the fallback when live APIs are unavailable.
+
+## Platform owns the clock (#131)
+
+Developers keep using Context Guard for real-time Detect. **Monthly** Prove feeds
+(scan estimate + billed usage) are Platform automation — not “remember to run
+scan.” Prefer the turnkey Action:
+
+- Workflow: [`.github/workflows/prove-monthly.yml`](../.github/workflows/prove-monthly.yml)
+- Operator guide + secrets table + generic cron:
+  [`docs/examples/prove-monthly.md`](./examples/prove-monthly.md)
+
+Billing window is customizable (`period_mode` / `months_ago` / pinned `YYYY-MM`;
+default remains **previous** UTC month). Schedule cron is edited in the workflow
+YAML. Default Action policy: **artifacts only** (upload
+`.tokenforge/scan-report.json` + `usage-*.json`). No surprise commits. Load
+artifacts into Prove / variance board the same way as a local import.
+
+Smoke (no billing secrets): Actions → **Prove monthly** → Run workflow with
+`usage_provider=fixture`.
+
+Cron-only shops can keep the shell example above; same CLI flags as the Action.
+Do not rely on `tokenforge:usage-sync` / `tokenforge:prove` in CI (those stage
+the local dashboard).
 
 ## Out of scope (do not demo as done)
 
