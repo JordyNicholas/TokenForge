@@ -42,10 +42,4 @@ export {
   usageLatestPath,
   usageSyncConfigPath,
 } from "./io/paths";
-export { syncUsage, type UsageSyncOptions, type UsageSyncResult } from "./commands/usage-sync/usage-sync";
-export {
-  usageMetricsPath,
-  usageLatestPath,
-  usageSyncConfigPath,
-} from "./io/paths";
 
