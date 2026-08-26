@@ -20,6 +20,9 @@ Read first:
 - Every change maps to an **existing Issue**.
 - Branch: `TF#<n>-slug` (or `TOKENFORGE#<n>`).
 - PR body must include `Closes #<n>` (automation will append if missing).
+- PRs must be **green on CI** (`typecheck` + `test` + `build`) before merge.
+  Run `npm run typecheck && npm test` locally first — CI is a backstop, not the
+  first time anyone finds out.
 - Board: To-Do → In Progress → Ready for Review → Done.
 - Epics titled `[Epic] …` close into **Epics Finished**, not Done — including when the last child story closes.
 

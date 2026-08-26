@@ -30,6 +30,38 @@ Every task PR should:
 3. Prefer opening as **Ready for review** when you want peer review; use
    **Draft** while still implementing.
 4. Map to **one existing Issue** (do not open orphan PRs).
+5. Be **green on CI** before merge — see below.
+
+## CI checks
+
+`.github/workflows/ci.yml` runs `npm run typecheck`, `npm test`, and
+`npm run build` on every pull request and on pushes to `main`. All three are
+workspace-aware at the root, so a new workspace is covered without touching the
+workflow.
+
+Everything it runs is **deterministic**. Do not add `tokenforge scan
+--mode hybrid` (LLM output is non-deterministic and cannot gate a merge — see
+the out-of-scope list in [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)) or
+`--active-paths-file` (CI has no editor session; pointing it at a checked-in
+export would protect whatever someone happened to have open that day).
+
+### Making CI a required check (repo admin)
+
+The workflow **reports** a status but cannot **block** a merge until branch
+protection requires it. `main` currently has no protection at all
+(`GET /repos/.../branches/main/protection` returns 404), so a red CI is
+advisory. That is a materially weaker guarantee than it looks on the PR page.
+
+Settings → Branches → Add branch ruleset (or classic protection) for `main`:
+
+1. **Require status checks to pass before merging**
+2. Search for and select **`typecheck + test + build`** (the job name, not the
+   workflow name)
+3. Optionally **Require branches to be up to date before merging** — catches the
+   case where two PRs are individually green but conflict semantically
+4. Save
+
+Needs admin on the repository; `push` + `triage` is not enough.
 
 ## Board Status automation
 
