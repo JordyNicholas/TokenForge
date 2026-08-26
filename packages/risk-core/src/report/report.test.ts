@@ -13,6 +13,7 @@ import {
   TOKEN_RISK_REPORT_SCHEMA_V1_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V2_ID,
   TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V3_PATH,
 } from "../domain/constants";
 import { isTokenRiskReport } from "./report";
 
@@ -30,6 +31,7 @@ describe("Token Risk JSON schema", () => {
   const v0Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V0_PATH) as { $id: string };
   const v1Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V1_PATH) as { $id: string };
   const v2Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V2_PATH) as { $id: string };
+  const v3Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V3_PATH) as { $id: string };
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
@@ -37,6 +39,7 @@ describe("Token Risk JSON schema", () => {
   const validateV0 = ajv.compile(v0Schema);
   const validateV1 = ajv.compile(v1Schema);
   const validateV2 = ajv.compile(v2Schema);
+  const validateV3 = ajv.compile(v3Schema);
 
   it("uses the published $id", () => {
     expect(schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_ID);
@@ -192,6 +195,30 @@ describe("Token Risk JSON schema", () => {
     expect(isTokenRiskReport(example)).toBe(true);
     // Advisory by construction: nothing is excluded, so nothing is saved.
     expect((example as { totals: { savedTokens: number } }).totals.savedTokens).toBe(0);
+  });
+
+  it("accepts activePaths under v4 only", () => {
+    const base = readJson("docs/schemas/examples/scan-report.v0.json") as Record<
+      string,
+      unknown
+    >;
+    const withActivePaths = { ...base, activePaths: ["locales/en.json"] };
+
+    expect(validate(withActivePaths)).toBe(true);
+    expect(isTokenRiskReport(withActivePaths)).toBe(true);
+    expect(validateV3(withActivePaths)).toBe(false);
+    expect(validateV2(withActivePaths)).toBe(false);
+  });
+
+  it("rejects a malformed activePaths", () => {
+    const base = readJson("docs/schemas/examples/scan-report.v0.json") as Record<
+      string,
+      unknown
+    >;
+
+    expect(isTokenRiskReport({ ...base, activePaths: "locales/en.json" })).toBe(false);
+    expect(isTokenRiskReport({ ...base, activePaths: [""] })).toBe(false);
+    expect(isTokenRiskReport({ ...base, activePaths: [1] })).toBe(false);
   });
 
   it("keeps every frozen predecessor valid under v3 (superset, not a break)", () => {

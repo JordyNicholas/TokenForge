@@ -75,6 +75,7 @@ Phase 2 (open). Former catch-all #7 was split:
 | #27 | Live usage metrics / billing sync (per provider) | F2 #61 | **Shipped through Wave B:** import + live `UsageProvider` adapters (fixture/Copilot/Cursor/Claude) + variance board + `usage-sync`. **Remaining under #61:** Wave C attribution (#95–#98) |
 | #28 | Apply org content exclusions / policy (per provider) | F2 #61 | **Thin slice shipped:** `tokenforge org-pack` + Cursor/Claude adapters (local files). **#99:** `tokenforge org-apply` PolicyApply port. **#100:** `tokenforge pilot` / `tokenforge:pilot` scan → apply → Prove path || #25 | Chat history compaction assistant | F3 #62 | **Thin slice shipped:** advisory panel on Overview (do not pitch first) |
 | #26 | Intelligent model routing | F3 #62 | **Thin slice shipped:** advisory panel + Assumptions hint (do not pitch first) |
+| #137 | Extension → CLI active-session paths | F3 #62 | **Done** — see the edge-case pass below |
 
 #49 (hybrid pitch FAQ + deck) closes with the board-map docs PR. Context Guard auto-filter and the 10m/5m idle rule landed on `main` after #22 without a separate story. Exec-board pitch refresh + per-team Prove landed with the F2/F3 thin slices above.
 
@@ -86,6 +87,29 @@ files could not reach LLM candidate selection), #110 (B9: no reason code for
 duplicated *logic*, only duplicated *instructions*), #112 (B10: no test seam, so
 the hybrid merge/totals path only ever ran with zero findings). #114 above is the
 fourth gap from the same run, left open by choice.
+
+### Edge-case pass (#135–#137)
+
+A second review, driven by ten `.json`-shaped cases where extension + size alone
+give the wrong answer. Audited as B11–B15 in
+[`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md).
+
+| Issue | Title | Epic | Status |
+| --- | --- | --- | --- |
+| #135 | risk-core: heuristic allowlists, path-convention detection, pre-enrichment secret gate | — (audit line, like #105/#108/#110/#112) | **Done** — PR #138. B11–B15: `protect/protect.ts` exempts API contracts / build configs / necessary generated trees from exclusion; `AUXILIARY_OVERSIZED_BYTES` catches bulk fixture data under the flat bar; two credential gates (name in risk-core, content at the CLI read boundary) keep secrets out of LLM enrichment |
+| #136 | enrichers: extend redundant-config detection across workspace packages | F1 #60 | **Done** — PR #139. `redundant_config` reason (schema v3), repeated-basename candidate bucket, Pass A digests for repeated configs. Advisory only, reusing `dedupe_rules` |
+| #137 | extension ↔ CLI: surface active-session paths so Fix never suggests excluding what's in use | F3 #62 | **Done** — PR #140. `activePaths` on the contract (schema v4), `scan --active-paths-file`, extension publishes open tabs. First tested integration point between extension and CLI |
+
+Three cases were deliberately **not** closed and are recorded with their reasons
+in `HEURISTICS_AUDIT.md` ("Left open by this pass"): field-level JSON (the
+contract has one verdict per path), and recency (git mtime conflates "recently
+edited" with "recently relevant"). Task context was the third and is now closed
+by #137 — not by a better rule, but by a different input.
+
+**Note on #136's epic.** It was filed under F1 #60, which had already closed
+when F1 completed. The work is a genuine continuation of #66/#114, but the epic
+was not reopened, so #60 sits in *Epics Finished* with a later child. Either
+reopen it or treat #136 as an audit-line item like #135 — not yet decided.
 
 ### F2 attractiveness backlog (filed under #61)
 

@@ -4,6 +4,7 @@ import type {
   TokenRiskReport,
 } from "../domain/types";
 import { resolveSuggestion } from "../advise/suggest";
+import { activePathSet, isActivePath } from "../policy/active";
 import { collapseExclusionPaths } from "../policy/collapse";
 
 export type SynthesizeLeanInstructionsOptions = {
@@ -33,9 +34,13 @@ function truncateSummary(summary: string, max = MAX_HYGIENE_SUMMARY_CHARS): stri
 
 function excludedPathsForInstructions(
   findings: readonly TokenRiskFinding[],
+  active: ReadonlySet<string>,
 ): string[] {
   const ordered = [...findings]
-    .filter((finding) => finding.action === "excluded")
+    .filter(
+      (finding) =>
+        finding.action === "excluded" && !isActivePath(active, finding.path),
+    )
     .sort(
       (a, b) =>
         b.estTokens - a.estTokens || a.path.localeCompare(b.path),
@@ -122,7 +127,10 @@ export function synthesizeLeanInstructions(
     "vendor billing notes.",
   ].join("\n");
 
-  let excludeLines = excludedPathsForInstructions(report.findings).map(
+  // A "do not load" bullet naming the file its author has open is the exact
+  // false positive #137 exists to prevent.
+  const active = activePathSet(report);
+  let excludeLines = excludedPathsForInstructions(report.findings, active).map(
     (path) => `- \`${path}\``,
   );
   let hygiene = hygieneBullets(report.findings);

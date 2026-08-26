@@ -434,7 +434,11 @@ CLI edge — that split is architectural, not incidental.
   extension has `inactiveMs` for open tabs; the repo scan has no time signal at
   all. `git log` mtime was considered and left out: "recently edited" is not
   "recently relevant" — a formatter pass would forge the signal.
-- **Task context.** Whether a large i18n locale file is waste depends on
+- **Task context.** ~~Whether a large i18n locale file is waste depends on
   whether the developer is doing i18n work *right now*. Not solvable in a
   static scan at any level of rule sophistication; tracked as extension → CLI
-  routing in issue #137.
+  routing in issue #137.~~ **Closed by #137**, and the diagnosis held: it was
+  not solved by a better rule but by a different *input*. The extension
+  publishes open tabs as `activePaths`, `scan --active-paths-file` reads them,
+  and an open path is downgraded to `kept` rather than proposed for exclusion.
+  Runbook: [`E2E_ACTIVE_SESSION_TEST.md`](./E2E_ACTIVE_SESSION_TEST.md).

@@ -1,7 +1,9 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import {
+  activePathSet,
   buildScanLayers,
+  isActivePath,
   isTokenRiskReport,
   primaryReason,
   scoreRisk,
@@ -24,6 +26,7 @@ import {
   type EnrichmentCandidate,
   type LlmEnricher,
 } from "../../enrichers";
+import { readActivePathsFile } from "../../io/active-paths-file";
 import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
 
 const PROVIDERS = new Set<ProviderId>([
@@ -45,6 +48,12 @@ export type ScanOptions = {
   llmEndpoint?: string;
   llmTimeout?: string;
   externalDataConsent?: boolean;
+  /**
+   * Path to a Token Risk report (e.g. the extension's `.tokenforge/
+   * last-scan.json`) or a bare JSON array of paths. Files listed there are
+   * reported but never proposed for exclusion — see `io/active-paths-file.ts`.
+   */
+  activePathsFile?: string;
   onProgress?: (message: string) => void;
   now?: Date;
   /**
@@ -130,18 +139,29 @@ async function walkFiles(root: string): Promise<string[]> {
   return files;
 }
 
-function toFinding(assessment: RiskAssessment): TokenRiskFinding | undefined {
+function toFinding(
+  assessment: RiskAssessment,
+  active: ReadonlySet<string>,
+): TokenRiskFinding | undefined {
   const reason = primaryReason(assessment.reasons);
   if (!assessment.atRisk || reason === undefined) {
     return undefined;
   }
+  // Downgraded rather than dropped: the risk is real and worth reporting, but
+  // an open file must not be proposed for exclusion. `kept` also keeps the
+  // totals honest — it is not counted as saved, so Prove cannot claim a
+  // reduction the policy pack never applies.
+  const isOpen = isActivePath(active, assessment.path);
   return {
     path: assessment.path,
     reason,
     bytes: assessment.bytes,
     estTokens: assessment.estTokens,
-    action: "excluded",
+    action: isOpen ? "kept" : "excluded",
     source: "heuristic",
+    ...(isOpen
+      ? { detail: "Open in the editor session that produced this scan." }
+      : {}),
   };
 }
 
@@ -256,8 +276,13 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
 
   assessments.sort((a, b) => b.estTokens - a.estTokens || a.path.localeCompare(b.path));
 
+  const activePaths = options.activePathsFile
+    ? await readActivePathsFile(options.activePathsFile)
+    : undefined;
+  const active = activePathSet({ activePaths });
+
   const heuristicFindings = assessments.flatMap((assessment) => {
-    const finding = toFinding(assessment);
+    const finding = toFinding(assessment, active);
     return finding ? [finding] : [];
   });
 
@@ -289,6 +314,10 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     totals: layers.combined.totals,
     layers,
     ...(scan ? { scan } : {}),
+    // Recorded even when nothing matched, so a later `apply` on this report
+    // can tell "the session was checked and these were open" apart from "no
+    // session signal was available".
+    ...(activePaths ? { activePaths } : {}),
   };
 
   if (!isTokenRiskReport(report)) {
