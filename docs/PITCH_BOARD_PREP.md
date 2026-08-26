@@ -54,7 +54,10 @@ FAQ depth: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md
 **On-slide:**
 
 - **Developers** — Context Guard (live tab hygiene).
-- **Platform** — monthly `usage-sync` + optional `scan` via cron / GitHub Action ([#131](https://github.com/JordyNicholas/TokenForge/issues/131)).
+- **Platform** — monthly `usage-sync` + optional `scan` via
+  [`.github/workflows/prove-monthly.yml`](../.github/workflows/prove-monthly.yml)
+  ([#131](https://github.com/JordyNicholas/TokenForge/issues/131); guide:
+  [`examples/prove-monthly.md`](./examples/prove-monthly.md)).
 - **FinOps** — baseline vs after bill import; owns pilot continue/kill.
 
 **Speaker note (10 s):**  
@@ -71,7 +74,7 @@ FAQ depth: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md
 | *Greenfield repo?* | Scan + dry-run first; apply is opt-in; bill import when FinOps has it. |
 | *Break the agent?* | No performance SLA; dry-run + PR; revert in git; org hard-enforce is Platform-only. |
 | *Overwrite our CLAUDE.md?* | **No wipe.** We merge a marked TokenForge section into the conventional file; your text outside the markers stays. |
-| *Monthly scans?* | CLI + cron/Action ([#131](https://github.com/JordyNicholas/TokenForge/issues/131)); extension is not monthly scheduler. |
+| *Monthly scans?* | Platform Action/cron ([`prove-monthly.yml`](../.github/workflows/prove-monthly.yml)); extension is not the monthly scheduler. |
 | *Any LLM for hybrid?* | Opt-in; Ollama / Anthropic / Codex CLI; default scan is heuristic, repeatable for pilot. |
 | *vs Auto Memory?* | They improve recall; we cut billable waste and prove $ — different buyer metric. |
 | *~30%?* | Scenario on Assumptions panel — not universal SLA; pilot targets 10–15% actual on one team. |
