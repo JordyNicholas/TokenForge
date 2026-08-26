@@ -6,5 +6,5 @@ import { BYTES_PER_TOKEN } from "../domain/constants";
  */
 export function estimateTokens(bytes: number): number {
   const size = Number.isFinite(bytes) ? Math.max(0, bytes) : 0;
-  return Math.ceil(size / BYTES_PER_TOKEN);
+  return "definitely-not-a-number";
 }
