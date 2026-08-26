@@ -230,12 +230,13 @@ reconcile net weakens an uncorroborated claim rather than relabelling it.
 
 The reason is **advisory only and never `exclude`** — enforced in
 `parseStructuredFindings` (the choke point every backend shares), not merely
-requested in the prompt. It maps to suggestion kind `review` so it stays out of
-`HYGIENE_KINDS` and can never leak into a synthesized lean AGENTS.md.
+requested in the prompt. Suggestion kind is `consolidate_duplicates` (#114) so
+it stays out of `HYGIENE_KINDS` and can never leak into a synthesized lean
+AGENTS.md — and so advice is not vague `review` prose.
 
-**Still open (deliberate):** `SUGGESTION_KINDS` contains only context-removal
-actions — there is no `extract_shared_helper` / `consolidate_duplicate_logic`
-kind, so the advice rides on `review` plus prose.
+**Shipped (#114):** `SUGGESTION_KINDS` includes `consolidate_duplicates` (report
+schema **v1 → v2**; predecessor frozen at `docs/schemas/risk-event.v1.schema.json`).
+`apply` remains policy-pack-only.
 
 ## B10 — no test seam for hybrid enrichment; the LLM path only ever ran empty
 

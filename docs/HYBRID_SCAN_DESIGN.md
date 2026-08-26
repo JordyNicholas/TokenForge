@@ -133,7 +133,7 @@ as not counted in saved tokens.
 | `suggestion` | `{ kind, summary }` | Advice for Prove UX **and** lean policy-pack synthesis. Never used to rewrite `AGENTS.md` / rules sources |
 
 
-`suggestion.kind` allowlist: `exclude_from_context`, `trim_instructions`, `dedupe_rules`, `add_ignore`, `review`. Unknown kinds are dropped at parse time. Code snippets (`suggestion.snippet`) are **deferred** — not in the v0 contract.
+`suggestion.kind` allowlist: `exclude_from_context`, `trim_instructions`, `dedupe_rules`, `add_ignore`, `review`, `consolidate_duplicates`. Unknown kinds are dropped at parse time. `consolidate_duplicates` is vocabulary only for `duplicate_logic` (never applied by `apply`). Code snippets (`suggestion.snippet`) are **deferred**.
 
 Heuristic findings get deterministic explanations and template suggestions in `risk-core` (`explainFinding`, `resolveSuggestion`) even when JSON omits `detail` / `suggestion`.
 
