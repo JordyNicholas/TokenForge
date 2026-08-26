@@ -49,6 +49,20 @@ describe("templateSuggestion", () => {
     expect(templateSuggestion(finding({ action: "kept" })).kind).toBe("review");
   });
 
+  it("maps duplicate_logic to consolidate_duplicates (not review)", () => {
+    const suggestion = templateSuggestion(
+      finding({
+        path: "src/utils/checkEmailFormat.js",
+        reason: "duplicate_logic",
+        action: "kept",
+        source: "llm",
+      }),
+    );
+    expect(suggestion.kind).toBe("consolidate_duplicates");
+    expect(suggestion.summary).toMatch(/Consolidate/i);
+    expect(suggestion.summary).toMatch(/does not apply/i);
+  });
+
   it("dedupes redundant instruction files", () => {
     const suggestion = templateSuggestion(
       finding({

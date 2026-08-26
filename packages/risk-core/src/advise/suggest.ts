@@ -32,6 +32,16 @@ export function isFindingSuggestion(value: unknown): value is FindingSuggestion 
 export function templateSuggestion(finding: TokenRiskFinding): FindingSuggestion {
   const fileClass = classifyFiletype(finding.path);
 
+  // Must run before the generic `kept` → review fallback: duplicate_logic is
+  // always `kept`, but its advice is consolidate (vocabulary only — #114).
+  if (finding.reason === "duplicate_logic") {
+    return {
+      kind: "consolidate_duplicates",
+      summary:
+        "Another path implements this same behavior. Consolidate them behind one shared helper and update the callers. Excluding either file from agent context is not a fix — both are still imported. TokenForge does not apply this.",
+    };
+  }
+
   if (finding.action === "kept") {
     return {
       kind: "review",
@@ -86,15 +96,6 @@ export function templateSuggestion(finding: TokenRiskFinding): FindingSuggestion
         kind: "add_ignore",
         summary:
           "Exclude this low-signal config from Chat/Agent context, or replace it with a short pointer to the canonical doc. Do not redesign the product around this file.",
-      };
-    // Deliberately `review`, not `dedupe_rules`: this is application code, so
-    // it must not land in a synthesized lean instruction file (see
-    // HYGIENE_KINDS in ./instructions.ts) and must not be excluded either.
-    case "duplicate_logic":
-      return {
-        kind: "review",
-        summary:
-          "Another path implements this same behavior. Consolidate them behind one shared helper and update the callers. Excluding either file from agent context is not a fix — both are still imported. TokenForge does not apply this.",
       };
     case "high_risk_filetype":
     default:

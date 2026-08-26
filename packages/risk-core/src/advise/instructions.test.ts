@@ -76,8 +76,8 @@ describe("synthesizeLeanInstructions", () => {
 
   it("keeps duplicate_logic findings out of the instruction hygiene section", () => {
     // duplicate_logic is about application code, so it must never become a
-    // bullet in a synthesized AGENTS.md. Its suggestion kind is `review`
-    // precisely so it falls outside HYGIENE_KINDS.
+    // bullet in a synthesized AGENTS.md. Its suggestion kind is
+    // `consolidate_duplicates` (not in HYGIENE_KINDS).
     const withDuplicateLogic: TokenRiskReport = {
       ...heuristicReport,
       findings: [
