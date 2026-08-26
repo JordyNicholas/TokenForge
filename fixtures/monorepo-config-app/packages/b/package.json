@@ -1,0 +1,16 @@
+{
+  "name": "@monorepo-config/notifications",
+  "version": "0.9.2",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "seed:templates": "node ./scripts/seed-templates.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.13",
+    "handlebars": "^4.7.8"
+  }
+}

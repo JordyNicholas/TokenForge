@@ -1,0 +1,25 @@
+{
+  "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
+  "pitchNote": "Zero findings is the expected result, and it is the point. The waste here is three near-identical tsconfig.json copies — invisible to a heuristic layer that scores size and filetype, because redundancy is about how many copies exist, not how big each one is. Only --mode hybrid can surface it, as redundant_config (#136).",
+  "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
+  "fixture": "fixtures/monorepo-config-app",
+  "totals": {
+    "beforeTokens": 1648,
+    "afterTokens": 1648,
+    "savedTokens": 0
+  },
+  "savedPercent": 0,
+  "findings": [],
+  "routing": {
+    "note": "What this fixture actually pins is deterministic candidate routing, not model output. See cli/src/commands/scan/scan.monorepo-config.test.ts.",
+    "repeatedConfigBasenames": ["tsconfig.json", "package.json"],
+    "expectedCandidates": [
+      "packages/a/tsconfig.json",
+      "packages/b/tsconfig.json",
+      "packages/c/tsconfig.json",
+      "packages/a/package.json",
+      "packages/b/package.json",
+      "packages/c/package.json"
+    ]
+  }
+}

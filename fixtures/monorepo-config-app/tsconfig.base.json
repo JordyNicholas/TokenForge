@@ -1,0 +1,12 @@
+{
+  "_comment": "The shared base the three packages SHOULD extend. None of them does — that is the point of this fixture.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "declaration": true,
+    "skipLibCheck": true
+  }
+}
