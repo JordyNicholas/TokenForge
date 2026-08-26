@@ -42,6 +42,17 @@ export function templateSuggestion(finding: TokenRiskFinding): FindingSuggestion
     };
   }
 
+  // Same placement rationale as duplicate_logic: always `kept`, but the
+  // advice is dedupe, not the generic review fallback. Reuses `dedupe_rules`
+  // rather than growing SUGGESTION_KINDS (#136).
+  if (finding.reason === "redundant_config") {
+    return {
+      kind: "dedupe_rules",
+      summary:
+        "Another package repeats these settings. Extend one shared base config instead of copying it per package. Excluding a copy from agent context is not a fix — every package still loads its own at build time. TokenForge does not apply this.",
+    };
+  }
+
   if (finding.action === "kept") {
     return {
       kind: "review",

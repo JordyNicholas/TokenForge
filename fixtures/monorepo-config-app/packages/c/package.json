@@ -1,0 +1,20 @@
+{
+  "name": "@monorepo-config/reporting",
+  "version": "2.0.0-rc.3",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "reporting-export": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "export:nightly": "node ./dist/cli.js --nightly"
+  },
+  "dependencies": {
+    "fast-csv": "^5.0.1"
+  },
+  "peerDependencies": {
+    "@monorepo-config/billing": "^1.4.0"
+  }
+}

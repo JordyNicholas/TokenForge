@@ -4,6 +4,7 @@ export {
   AUXILIARY_OVERSIZED_BYTES,
   BYTES_PER_TOKEN,
   CLASS_WEIGHT,
+  DEFAULT_REPEATED_CONFIG_COUNT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
   DEFAULT_TOP_CANDIDATE_COUNT,
   HIGH_RISK_FILE_CLASSES,
@@ -32,9 +33,15 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V0_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V1_ID,
   TOKEN_RISK_REPORT_SCHEMA_V1_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V2_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
 } from "./domain/constants";
-export { selectEnrichmentCandidates, isInstructionPath } from "./candidates/candidates";
+export {
+  selectEnrichmentCandidates,
+  isInstructionPath,
+  repeatedConfigBasenames,
+} from "./candidates/candidates";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export {
   isApiContractPath,

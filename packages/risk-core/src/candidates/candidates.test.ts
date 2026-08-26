@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { RiskAssessment } from "../domain/types";
-import { selectEnrichmentCandidates } from "./candidates";
+import { DEFAULT_REPEATED_CONFIG_COUNT } from "../domain/constants";
+import {
+  repeatedConfigBasenames,
+  selectEnrichmentCandidates,
+} from "./candidates";
 
 function assessment(
   path: string,
@@ -142,6 +146,128 @@ describe("selectEnrichmentCandidates", () => {
     const selected = selectEnrichmentCandidates(assessments, { topCount: 1, sourceTopCount: 2 });
 
     expect(selected.map((item) => item.path)).toEqual(["src/big.js", "src/small.js"]);
+  });
+
+  describe("repeated per-package configs (#136)", () => {
+    const monorepo = [
+      assessment("packages/a/tsconfig.json", 300, { fileClass: "config" }),
+      assessment("packages/b/tsconfig.json", 310, { fileClass: "config" }),
+      assessment("packages/c/tsconfig.json", 295, { fileClass: "config" }),
+      assessment("src/index.ts", 400, { fileClass: "source" }),
+    ];
+
+    it("selects small per-package configs the size-based buckets cannot reach", () => {
+      // 300 bytes is far under MIN_BORDERLINE_BYTES (4 KiB), and the top-files
+      // bucket ranks by size — without its own bucket, none of these is ever
+      // a candidate.
+      const selected = selectEnrichmentCandidates(monorepo, {
+        topCount: 0,
+        sourceTopCount: 0,
+      });
+
+      expect(selected.map((item) => item.path)).toEqual([
+        "packages/a/tsconfig.json",
+        "packages/b/tsconfig.json",
+        "packages/c/tsconfig.json",
+      ]);
+    });
+
+    it("ignores a config name that appears only once", () => {
+      const selected = selectEnrichmentCandidates(
+        [assessment("packages/a/tsconfig.json", 300, { fileClass: "config" })],
+        { topCount: 0, sourceTopCount: 0 },
+      );
+
+      expect(selected).toEqual([]);
+    });
+
+    it("ignores the same name repeated inside one directory listing", () => {
+      // Two entries, one directory: nothing is duplicated across packages.
+      const selected = selectEnrichmentCandidates(
+        [
+          assessment("packages/a/tsconfig.json", 300, { fileClass: "config" }),
+          assessment("packages/a/tsconfig.json", 300, { fileClass: "config" }),
+        ],
+        { topCount: 0, sourceTopCount: 0 },
+      );
+
+      expect(selected).toEqual([]);
+    });
+
+    it("takes the largest group first and never leaves a lone unpairable copy", () => {
+      const mixed = [
+        ...monorepo,
+        assessment("packages/a/.eslintrc.json", 120, { fileClass: "config" }),
+        assessment("packages/b/.eslintrc.json", 130, { fileClass: "config" }),
+      ];
+
+      const selected = selectEnrichmentCandidates(mixed, {
+        topCount: 0,
+        sourceTopCount: 0,
+        repeatedConfigCount: 4,
+      });
+
+      // 3 tsconfigs (largest group) + 1 slot left, which is refused because a
+      // single .eslintrc.json has nothing to be compared against.
+      expect(selected.map((item) => item.path)).toEqual([
+        "packages/a/tsconfig.json",
+        "packages/b/tsconfig.json",
+        "packages/c/tsconfig.json",
+      ]);
+    });
+
+    it("truncates a wide monorepo's package.json group instead of swamping the run", () => {
+      const wide = Array.from({ length: 40 }, (_, index) =>
+        assessment(
+          `packages/p${String(index).padStart(2, "0")}/package.json`,
+          200,
+          { fileClass: "config" },
+        ),
+      );
+
+      const selected = selectEnrichmentCandidates(wide, {
+        topCount: 0,
+        sourceTopCount: 0,
+      });
+
+      // Truncated, not dropped: comparing 8 of 40 still answers whether the
+      // copies duplicate each other.
+      expect(selected).toHaveLength(DEFAULT_REPEATED_CONFIG_COUNT);
+      expect(selected[0].path).toBe("packages/p00/package.json");
+    });
+
+    it("never routes a credential-shaped config here either", () => {
+      const withSecrets = [
+        assessment("packages/a/credentials.json", 300, { fileClass: "config" }),
+        assessment("packages/b/credentials.json", 300, { fileClass: "config" }),
+      ];
+
+      expect(
+        selectEnrichmentCandidates(withSecrets, { topCount: 0, sourceTopCount: 0 }),
+      ).toEqual([]);
+    });
+  });
+
+  describe("repeatedConfigBasenames", () => {
+    it("reports a basename only when it spans 2+ directories", () => {
+      const repeated = repeatedConfigBasenames([
+        "packages/a/tsconfig.json",
+        "packages/b/tsconfig.json",
+        "packages/a/only-here.json",
+        "src/index.ts",
+      ]);
+
+      expect([...repeated]).toEqual(["tsconfig.json"]);
+    });
+
+    it("ignores non-config classes even when the name repeats", () => {
+      const repeated = repeatedConfigBasenames([
+        "packages/a/index.ts",
+        "packages/b/index.ts",
+      ]);
+
+      expect(repeated.size).toBe(0);
+    });
   });
 
   describe("secret gate (#135)", () => {

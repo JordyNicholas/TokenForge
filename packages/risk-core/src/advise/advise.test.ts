@@ -49,6 +49,19 @@ describe("templateSuggestion", () => {
     expect(templateSuggestion(finding({ action: "kept" })).kind).toBe("review");
   });
 
+  it("maps redundant_config to dedupe_rules (not the kept→review fallback)", () => {
+    const suggestion = templateSuggestion({
+      path: "packages/b/tsconfig.json",
+      reason: "redundant_config",
+      bytes: 300,
+      estTokens: 75,
+      action: "kept",
+    });
+
+    expect(suggestion.kind).toBe("dedupe_rules");
+    expect(suggestion.summary).toMatch(/shared base/i);
+  });
+
   it("maps duplicate_logic to consolidate_duplicates (not review)", () => {
     const suggestion = templateSuggestion(
       finding({

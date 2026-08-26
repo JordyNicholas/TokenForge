@@ -1,0 +1,9 @@
+{
+  "name": "monorepo-config-app",
+  "private": true,
+  "version": "0.0.0",
+  "description": "TokenForge fixture. Not an npm workspace of this repo and not a product package.",
+  "workspaces": [
+    "packages/*"
+  ]
+}

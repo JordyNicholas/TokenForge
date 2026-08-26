@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenforge.dev/schema/risk-event/v3",
-  "title": "TokenForge Token Risk report (v3)",
-  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v3 is a strict superset of v2 (risk-event.v2.schema.json, frozen): it adds the redundant_config reason for config files repeated across workspace packages. No new suggestion kind \u2014 that advice reuses dedupe_rules. Every valid v0/v1/v2 report is still valid here.",
+  "$id": "https://tokenforge.dev/schema/risk-event/v2",
+  "title": "TokenForge Token Risk report (v2)",
+  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v2 is a strict superset of v1 (risk-event.v1.schema.json, frozen): it adds the consolidate_duplicates suggestion kind for duplicate_logic advice. Every valid v0/v1 report is still valid here.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -78,7 +78,7 @@
         },
         "reason": {
           "type": "string",
-          "description": "duplicate_logic is advisory-only: two or more source paths implementing the same behavior. It never carries action \"excluded\" \u2014 hiding one copy from agent context is not a fix, since both are still imported. redundant_config is the config counterpart: the same settings repeated across workspace packages (e.g. a tsconfig.json copied per package instead of extending a shared base). It is also advisory-only, for the same reason \u2014 every package still loads its own copy at build time, so excluding one from agent context fixes nothing. Its advice reuses the dedupe_rules suggestion kind.",
+          "description": "duplicate_logic is advisory-only: two or more source paths implementing the same behavior. It never carries action \"excluded\" \u2014 hiding one copy from agent context is not a fix, since both are still imported.",
           "enum": [
             "inactive_tab",
             "high_risk_filetype",
@@ -86,8 +86,7 @@
             "semantic_bloat",
             "redundant_instructions",
             "low_signal_config",
-            "duplicate_logic",
-            "redundant_config"
+            "duplicate_logic"
           ]
         },
         "bytes": {

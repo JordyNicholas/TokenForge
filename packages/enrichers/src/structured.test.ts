@@ -94,6 +94,90 @@ describe("parseStructuredFindings", () => {
     expect(rows[0]?.verdict).toBe("review");
   });
 
+  describe("redundant_config (#136)", () => {
+    const configCandidates = [
+      {
+        path: "packages/a/tsconfig.json",
+        bytes: 300,
+        estTokens: 75,
+        excerpt: '{"compilerOptions":{"strict":true}}',
+      },
+      {
+        path: "packages/b/tsconfig.json",
+        bytes: 310,
+        estTokens: 78,
+        excerpt: '{"compilerOptions":{"strict":true}}',
+      },
+    ];
+
+    it("accepts the reason", () => {
+      const rows = parseStructuredFindings(
+        {
+          findings: [
+            {
+              path: "packages/b/tsconfig.json",
+              verdict: "review",
+              reason: "redundant_config",
+              confidence: 0.8,
+              detail: "Repeats packages/a/tsconfig.json.",
+            },
+          ],
+        },
+        configCandidates,
+      );
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        reason: "redundant_config",
+        verdict: "review",
+      });
+    });
+
+    it("coerces an exclude verdict down to review", () => {
+      // Every package still loads its own copy at build time, so excluding
+      // one from agent context fixes nothing.
+      const rows = parseStructuredFindings(
+        {
+          findings: [
+            {
+              path: "packages/b/tsconfig.json",
+              verdict: "exclude",
+              reason: "redundant_config",
+              confidence: 0.9,
+            },
+          ],
+        },
+        configCandidates,
+      );
+
+      expect(rows[0]?.verdict).toBe("review");
+    });
+
+    it("pins the suggestion kind to dedupe_rules but keeps the model's summary", () => {
+      const rows = parseStructuredFindings(
+        {
+          findings: [
+            {
+              path: "packages/b/tsconfig.json",
+              verdict: "review",
+              reason: "redundant_config",
+              suggestion: {
+                kind: "exclude_from_context",
+                summary: "Extend packages/tsconfig.base.json instead.",
+              },
+            },
+          ],
+        },
+        configCandidates,
+      );
+
+      expect(rows[0]?.suggestion).toEqual({
+        kind: "dedupe_rules",
+        summary: "Extend packages/tsconfig.base.json instead.",
+      });
+    });
+  });
+
   it("coerces duplicate_logic suggestion kind to consolidate_duplicates", () => {
     const rows = parseStructuredFindings(
       {

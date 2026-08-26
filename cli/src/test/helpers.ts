@@ -54,6 +54,17 @@ export const heuristicEdgeAppExpectedTotalsPath = resolve(
   "fixtures/expected/heuristic-edge-app-totals.json",
 );
 
+/**
+ * Candidate-routing fixture for #136: three near-identical per-package
+ * tsconfig.json copies the heuristic layer cannot see, plus a package.json
+ * control whose basename repeats without the settings repeating.
+ */
+export const monorepoConfigAppRoot = resolve(repoRoot, "fixtures/monorepo-config-app");
+export const monorepoConfigAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/monorepo-config-app-totals.json",
+);
+
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });

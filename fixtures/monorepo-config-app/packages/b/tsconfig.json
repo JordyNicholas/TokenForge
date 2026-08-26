@@ -1,0 +1,15 @@
+{
+    "include": [
+        "src"
+    ],
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "declaration": true,
+        "outDir": "dist",
+        "noUncheckedIndexedAccess": true,
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "module": "ESNext",
+        "target": "ES2022"
+    }
+}

@@ -10,6 +10,8 @@ import {
   instructionsAppRoot,
   leanAppExpectedTotalsPath,
   leanAppRoot,
+  monorepoConfigAppExpectedTotalsPath,
+  monorepoConfigAppRoot,
   semanticDuplicatesAppExpectedTotalsPath,
   semanticDuplicatesAppRoot,
 } from "../test/helpers";
@@ -37,6 +39,11 @@ describe.each([
     "heuristic-edge-app",
     heuristicEdgeAppRoot,
     heuristicEdgeAppExpectedTotalsPath,
+  ],
+  [
+    "monorepo-config-app",
+    monorepoConfigAppRoot,
+    monorepoConfigAppExpectedTotalsPath,
   ],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {

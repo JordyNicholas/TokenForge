@@ -72,11 +72,24 @@ candidate when **any** of:
 2. **Borderline heuristic** — scored but not `atRisk`, file class `config` or
    `unknown`, bytes ≥ 4 KiB
 3. **Top-N largest** — among non-`lockfile` / non-`generated` assessments (default N = 10)
+4. **Repeated per-package configs** — `config`-class basenames appearing in 2+
+   distinct directories (`repeatedConfigBasenames`), independent of the 4 KiB
+   borderline floor. A per-package `tsconfig.json` is a few hundred bytes, so
+   every size-keyed bucket misses it: redundancy is about how many copies
+   exist, not how big each one is. Derived from the path list alone — no
+   workspace manifest is read.
+
+Credential-shaped paths (`isSecretPath`) are removed **before** any bucket
+runs, so no selection rule can surface one.
 
 Hard caps (CLI `enrichers/limits.ts`):
 
 - `MAX_ENRICHMENT_CANDIDATES` = 30 files per run
 - `MAX_CANDIDATE_BYTES` = 32 KiB read per file (excerpt for the model)
+- `DEFAULT_REPEATED_CONFIG_COUNT` = 8 paths from bucket 4 (B4: every bucket
+  gets its own cap — `package.json` recurs in every package of a large
+  monorepo). A group may be truncated but never cut below two members, since
+  a lone copy has nothing to be compared against.
 
 ## Merge semantics
 
@@ -135,19 +148,46 @@ as not counted in saved tokens.
 
 `suggestion.kind` allowlist: `exclude_from_context`, `trim_instructions`, `dedupe_rules`, `add_ignore`, `review`, `consolidate_duplicates`. Unknown kinds are dropped at parse time. `consolidate_duplicates` is vocabulary only for `duplicate_logic` (never applied by `apply`). Code snippets (`suggestion.snippet`) are **deferred**.
 
+`redundant_config` reuses `dedupe_rules`, which is also in `HYGIENE_KINDS` —
+the set deciding what `synthesizeLeanInstructions` writes into the provider
+instruction file. `hygieneBullets` therefore skips the reason explicitly, at
+reason level rather than kind level: build-config refactoring advice must not
+land in the file the agent reads every turn, while `dedupe_rules` stays correct
+for `redundant_instructions`.
+
 Heuristic findings get deterministic explanations and template suggestions in `risk-core` (`explainFinding`, `resolveSuggestion`) even when JSON omits `detail` / `suggestion`.
 
 **New `reason` values** (LLM-only findings):
 
 - `semantic_bloat`
 - `redundant_instructions` — overlapping agent instruction/rules files only
-- `low_signal_config`
+- `low_signal_config` — noise *within* one machine config dump, not duplication
+  *across* files
 - `duplicate_logic` — the source-code counterpart: 2+ source paths implementing
   the same behavior under different names. **Advisory only**: always
   `verdict: review` (coerced in `parseStructuredFindings` if a model returns
   `exclude`), because both copies are still imported and executed, so hiding one
   from agent context fixes nothing. Added in schema **v1**; see
   `docs/schemas/risk-event.v0.schema.json` for the frozen predecessor.
+- `redundant_config` — the config counterpart: 2+ config paths under different
+  packages carrying the same settings (e.g. a `tsconfig.json` copied per package
+  instead of extending a shared base). **Advisory only** for the same reason,
+  and coerced the same way: every package still loads its own copy at build
+  time. Its `suggestion.kind` is pinned to `dedupe_rules` — no new suggestion
+  kind was added, per #114's caution about vocabulary growth. Added in schema
+  **v3**; see `docs/schemas/risk-event.v2.schema.json` for the frozen
+  predecessor. Example: [`schemas/examples/scan-report.hybrid.monorepo-config.json`](./schemas/examples/scan-report.hybrid.monorepo-config.json).
+
+`duplicate_logic` and `redundant_config` share one `ADVISORY_DUPLICATE_REASONS`
+set in `structured.ts` rather than being special-cased twice: the rationale is
+identical, only the mechanism of "still loaded" differs (imported at runtime vs
+read by the build).
+
+**Prompt guard.** A shared filename is not redundancy — packages legitimately
+differ in dependencies, scripts, and compiler paths. The policy rules say so
+explicitly, and `fixtures/monorepo-config-app` carries a `package.json` trio as
+the standing false-positive control: routing selects it (routing is by name),
+and keeping the model off it is the prompt's job, not the router's.
 
 **Report** (optional):
 
@@ -211,7 +251,9 @@ Pass C (1 call)  → reconcile findings (no file bodies) + deterministic safety 
 | Grouping | Prefer `batchHints` / `clusters` together, then leftovers by size |
 | Safety net | Dedupe by path; downgrade unsupported `redundant_instructions` |
 
-Pass A digests instruction/rules paths only (short excerpts). Token math and
+Pass A digests instruction/rules paths, `source` files, and configs whose
+basename repeats within that same inventory (short excerpts) — a config earns a
+digest only when a sibling copy is present to compare it against. Token math and
 report merge semantics are unchanged. Anthropic/OpenAI may adopt the same
 orchestrator later; MVP wires **Ollama first**.
 

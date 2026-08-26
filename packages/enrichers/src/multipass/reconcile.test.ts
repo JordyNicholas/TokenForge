@@ -90,6 +90,66 @@ describe("reconcileFindings", () => {
     });
   });
 
+  describe("redundant_config (#136)", () => {
+    const configMap: RepoContextMap = {
+      ...map,
+      clusters: [
+        ...map.clusters,
+        ["packages/a/tsconfig.json", "packages/b/tsconfig.json"],
+      ],
+    };
+
+    it("strengthens the claim when the map corroborates it", () => {
+      const findings: LlmStructuredFinding[] = [
+        {
+          path: "packages/b/tsconfig.json",
+          verdict: "review",
+          reason: "redundant_config",
+          confidence: 0.8,
+        },
+      ];
+
+      expect(reconcileFindings(configMap, findings)[0]).toMatchObject({
+        reason: "redundant_config",
+        confidence: 0.85,
+      });
+    });
+
+    it("weakens an uncorroborated claim without relabelling it", () => {
+      // Same reasoning as duplicate_logic: semantic_bloat asserts something
+      // different, and it is the label that invites exclusion.
+      const findings: LlmStructuredFinding[] = [
+        {
+          path: "packages/z/tsconfig.json",
+          verdict: "review",
+          reason: "redundant_config",
+          confidence: 0.9,
+        },
+      ];
+
+      expect(reconcileFindings(configMap, findings)[0]).toMatchObject({
+        path: "packages/z/tsconfig.json",
+        reason: "redundant_config",
+        verdict: "review",
+        confidence: 0.75,
+      });
+    });
+
+    it("explains the weakening in its own words, not duplicate_logic's", () => {
+      const findings: LlmStructuredFinding[] = [
+        {
+          path: "packages/z/tsconfig.json",
+          verdict: "review",
+          reason: "redundant_config",
+        },
+      ];
+
+      expect(reconcileFindings(configMap, findings)[0]?.detail).toContain(
+        "Redundant-config",
+      );
+    });
+  });
+
   it("weakens an uncorroborated duplicate_logic without relabelling it", () => {
     // Must NOT become semantic_bloat: that asserts something different about
     // application code, and it is the label that invites exclusion.

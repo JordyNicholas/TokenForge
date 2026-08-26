@@ -11,6 +11,8 @@ import {
   TOKEN_RISK_REPORT_SCHEMA_V0_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V1_ID,
   TOKEN_RISK_REPORT_SCHEMA_V1_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V2_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
 } from "../domain/constants";
 import { isTokenRiskReport } from "./report";
 
@@ -27,12 +29,14 @@ describe("Token Risk JSON schema", () => {
   const example = readJson("docs/schemas/examples/scan-report.v0.json");
   const v0Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V0_PATH) as { $id: string };
   const v1Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V1_PATH) as { $id: string };
+  const v2Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V2_PATH) as { $id: string };
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
   // Compiled once: Ajv caches by $id and throws on a duplicate compile.
   const validateV0 = ajv.compile(v0Schema);
   const validateV1 = ajv.compile(v1Schema);
+  const validateV2 = ajv.compile(v2Schema);
 
   it("uses the published $id", () => {
     expect(schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_ID);
@@ -148,6 +152,54 @@ describe("Token Risk JSON schema", () => {
     expect(validate(withDuplicateLogic)).toBe(true);
     expect(isTokenRiskReport(withDuplicateLogic)).toBe(true);
     expect(validateV0(withDuplicateLogic)).toBe(false);
+  });
+
+  it("accepts redundant_config under v3 only", () => {
+    const base = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      findings: Array<Record<string, unknown>>;
+    };
+    const withRedundantConfig = {
+      ...base,
+      findings: [
+        {
+          ...base.findings[1],
+          path: "packages/b/tsconfig.json",
+          reason: "redundant_config",
+          action: "kept",
+          suggestion: {
+            kind: "dedupe_rules",
+            summary: "Extend a shared base instead of repeating these settings.",
+          },
+        },
+      ],
+    };
+
+    expect(validate(withRedundantConfig)).toBe(true);
+    expect(isTokenRiskReport(withRedundantConfig)).toBe(true);
+    // The frozen predecessors must reject it — that is what makes this a bump
+    // rather than a silent widening of v2.
+    expect(validateV2(withRedundantConfig)).toBe(false);
+    expect(validateV1(withRedundantConfig)).toBe(false);
+    expect(validateV0(withRedundantConfig)).toBe(false);
+  });
+
+  it("validates the published redundant_config example", () => {
+    const example = readJson(
+      "docs/schemas/examples/scan-report.hybrid.monorepo-config.json",
+    );
+
+    expect(validate(example)).toBe(true);
+    expect(isTokenRiskReport(example)).toBe(true);
+    // Advisory by construction: nothing is excluded, so nothing is saved.
+    expect((example as { totals: { savedTokens: number } }).totals.savedTokens).toBe(0);
+  });
+
+  it("keeps every frozen predecessor valid under v3 (superset, not a break)", () => {
+    const example = readJson("docs/schemas/examples/scan-report.v0.json");
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json");
+    expect(validateV2(example)).toBe(true);
+    expect(validateV2(hybrid)).toBe(true);
+    expect(v2Schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_V2_ID);
   });
 
   it("accepts consolidate_duplicates under v2 only", () => {

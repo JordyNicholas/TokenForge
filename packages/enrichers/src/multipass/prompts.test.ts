@@ -68,6 +68,54 @@ describe("buildMapPrompt", () => {
   });
 });
 
+describe("buildMapPrompt — repeated per-package configs (#136)", () => {
+  const monorepo: EnrichmentCandidate[] = [
+    {
+      path: "packages/a/tsconfig.json",
+      bytes: 300,
+      estTokens: 75,
+      excerpt: '{"compilerOptions":{"strict":true,"target":"ES2022"}}',
+    },
+    {
+      path: "packages/b/tsconfig.json",
+      bytes: 310,
+      estTokens: 78,
+      excerpt: '{"compilerOptions":{"target":"ES2022","strict":true}}',
+    },
+    {
+      path: "config/locales.json",
+      bytes: 900,
+      estTokens: 225,
+      excerpt: '{"hello":"world"}',
+    },
+  ];
+
+  it("digests a config whose basename repeats across packages", () => {
+    const prompt = buildMapPrompt(monorepo);
+
+    // Without content, Pass A sees two paths with similar names and cannot
+    // tell whether the settings actually repeat.
+    expect(prompt).toContain('{"compilerOptions":{"strict":true,"target":"ES2022"}}');
+    expect(prompt).toContain('{"compilerOptions":{"target":"ES2022","strict":true}}');
+  });
+
+  it("still withholds a digest from a config that appears only once", () => {
+    const prompt = buildMapPrompt(monorepo);
+
+    expect(prompt).toContain("config/locales.json");
+    expect(prompt).not.toContain('{"hello":"world"}');
+  });
+
+  it("withholds the digest when the sibling copy is not in this inventory", () => {
+    // The set is computed per inventory: with nothing to compare against,
+    // digesting the file would spend prompt budget for no possible finding.
+    const lonely = buildMapPrompt([monorepo[0], monorepo[2]]);
+
+    expect(lonely).toContain("packages/a/tsconfig.json");
+    expect(lonely).not.toContain('"compilerOptions"');
+  });
+});
+
 describe("buildMapRepairPrompt", () => {
   it("includes validation detail and previous output", () => {
     const prompt = buildMapRepairPrompt(

@@ -32,6 +32,7 @@ const REASONS = new Set<FindingReason>([
   "redundant_instructions",
   "low_signal_config",
   "duplicate_logic",
+  "redundant_config",
 ]);
 const ACTIONS = new Set<FindingAction>(["filtered", "excluded", "kept"]);
 const FINDING_SOURCES = new Set<FindingSource>(["heuristic", "llm", "combined"]);
