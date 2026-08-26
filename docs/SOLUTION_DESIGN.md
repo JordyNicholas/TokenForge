@@ -179,10 +179,10 @@ Enrichers are pluggable (`noop`, `ollama`, `codex`, `anthropic`). Full design:
 
 | Adapter id | Example outputs (illustrative) |
 | --- | --- |
-| `copilot` (MVP default OK) | lean `.github/copilot-instructions.md`, Copilot content-exclusion candidates |
-| `cursor` | lean Cursor rules / instruction files + ignore candidates |
-| `claude` / `codex` | lean agent instruction files + ignore candidates |
-| `generic` | vendor-neutral exclusion/ignore pack + short instruction stub |
+| `copilot` (MVP default OK) | merge lean section into `.github/copilot-instructions.md` (`<!-- tokenforge:begin/end -->`) + exclusion candidates |
+| `cursor` | merge lean section into `.cursor/rules/tokenforge.mdc` + ignore candidates |
+| `claude` / `codex` | merge lean section into `CLAUDE.md` + ignore candidates |
+| `generic` | merge lean section into `.github/tokenforge-instructions.md` + vendor-neutral exclusions |
 
 Always also write `.tokenforge/scan-report.json` (agnostic contract).
 

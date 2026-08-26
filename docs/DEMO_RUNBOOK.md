@@ -75,9 +75,10 @@ npm run tokenforge:scan -- --json
 npm run tokenforge:apply -- --dry-run
 ```
 
-- Show it writing the Copilot adapter pack (`fixtures/noisy-app/.github/copilot-instructions.md`
-  + exclusion candidates) and the `afterTokens` / `savedTokens` / `savedPercent`
-  totals (~99.8%).
+- Show it writing the Copilot pack into
+  `fixtures/noisy-app/.github/copilot-instructions.md` (managed
+  `<!-- tokenforge:begin/end -->` section + exclusion candidates) and the
+  `afterTokens` / `savedTokens` / `savedPercent` totals (~99.8%).
 - **Say explicitly:** *"That ~99.8% is the raw exclusion ratio on this noisy fixture —
   not the pitch number. Watch what the dashboard does with it next."*
 

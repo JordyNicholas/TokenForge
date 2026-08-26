@@ -48,6 +48,21 @@ Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, mod
 Demo seed also includes **imported usage** credits/$ — file/demo import plus optional
 live sync via CLI adapters — not a claim that we meter the agent’s private pipeline.
 
+## Does apply overwrite our CLAUDE.md / copilot-instructions.md?
+
+**It does not wipe them.** `tokenforge apply` writes into each provider’s
+**conventional** instruction file (e.g. `.github/copilot-instructions.md`,
+`CLAUDE.md`, `.cursor/rules/tokenforge.mdc`):
+
+- **Missing file** → create it with a TokenForge-managed section.
+- **Existing file** → keep your text; insert or update only the block between
+  `<!-- tokenforge:begin -->` and `<!-- tokenforge:end -->` (HTML comments so
+  developers can see what TokenForge produced; agents treat them as non-content).
+
+Exclusion candidate YAML stays on TokenForge-named paths and may fully replace.
+Dry-run / apply output lists `create`, `merge`, or `replace` per path. The lean
+section is still synthesized from the scan (“do not load” / prefer lists).
+
 ## Estimate vs actual billed usage?
 
 **Wave A (shipped):** Prove projects $ from scan totals × Assumptions, imports a FinOps
