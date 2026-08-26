@@ -9,6 +9,7 @@ import {
 import { getAdapter, type PolicyFile } from "../../adapters";
 import { mergeTokenForgeSection } from "../../adapters/section-merge";
 import { RuntimeError } from "../../app/errors";
+import { readActivePathsFile } from "../../io/active-paths-file";
 import { writeProveChangeMarker } from "../../io/change-marker-file";
 import { scanReportPath } from "../../io/paths";
 import {
@@ -29,6 +30,8 @@ export type ApplyOptions = {
   llmEndpoint?: string;
   llmTimeout?: string;
   externalDataConsent?: boolean;
+  /** Session signal; see `ScanOptions.activePathsFile`. */
+  activePathsFile?: string;
   /** When set (init), skip a second walk. */
   report?: TokenRiskReport;
 };
@@ -131,18 +134,41 @@ async function writePolicyFile(root: string, file: PolicyFile): Promise<void> {
   }
 }
 
+/**
+ * Apply the session signal to a report `apply` did not produce itself.
+ *
+ * A pre-existing report on disk may predate the flag entirely, so the paths
+ * are merged in here rather than trusted to have been recorded at scan time.
+ * The findings keep whatever `action` they had — the exclusion guards in
+ * `renderExclusionYaml` and `synthesizeLeanInstructions` read `activePaths`
+ * directly, so recording it is enough to protect the path.
+ */
+async function withActivePaths(
+  report: TokenRiskReport,
+  activePathsFile: string | undefined,
+): Promise<TokenRiskReport> {
+  if (!activePathsFile) {
+    return report;
+  }
+  const activePaths = await readActivePathsFile(activePathsFile);
+  const merged = [...new Set([...(report.activePaths ?? []), ...activePaths])];
+  return merged.length > 0
+    ? { ...report, activePaths: merged.sort((a, b) => a.localeCompare(b)) }
+    : report;
+}
+
 async function resolveReport(
   options: ApplyOptions,
   root: string,
   provider: ProviderId,
 ): Promise<TokenRiskReport> {
   if (options.report) {
-    return { ...options.report, provider };
+    return withActivePaths({ ...options.report, provider }, options.activePathsFile);
   }
 
   const existing = await tryReadScanReport(scanReportPath(root));
   if (existing) {
-    return { ...existing, provider };
+    return withActivePaths({ ...existing, provider }, options.activePathsFile);
   }
 
   const scanned = await scanRepo({
@@ -155,6 +181,7 @@ async function resolveReport(
     llmEndpoint: options.llmEndpoint,
     llmTimeout: options.llmTimeout,
     externalDataConsent: options.externalDataConsent,
+    activePathsFile: options.activePathsFile,
   });
   return { ...scanned.report, provider };
 }
@@ -220,6 +247,7 @@ export async function initRepo(options: ApplyOptions): Promise<ApplyResult> {
     llmEndpoint: options.llmEndpoint,
     llmTimeout: options.llmTimeout,
     externalDataConsent: options.externalDataConsent,
+    activePathsFile: options.activePathsFile,
   });
   return applyPolicy({ ...options, provider, report: scanned.report });
 }

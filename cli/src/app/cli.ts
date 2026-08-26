@@ -46,6 +46,10 @@ Options:
   --llm-endpoint <url>  Override Ollama/Anthropic API base URL (not Codex)
   --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)
   --allow-external      Confirm that bounded source excerpts may leave this machine
+  --active-paths-file <p>  Report (e.g. .tokenforge/last-scan.json) or JSON array of
+                        open paths. Those files are reported but never proposed
+                        for exclusion. Not auto-detected: a stale export would
+                        silently protect paths nobody has open any more.
   --skip-apply          Pilot: scan only (still writes report)
   --dry-run             Print planned create/merge/replace; do not write
   --json                Print machine JSON totals (savedPercent included) to stdout
@@ -140,6 +144,7 @@ export async function runCli(
         "llm-endpoint": { type: "string" },
         "llm-timeout": { type: "string" },
         "allow-external": { type: "boolean", default: false },
+        "active-paths-file": { type: "string" },
         "skip-apply": { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
@@ -167,6 +172,7 @@ export async function runCli(
       llmEndpoint: values["llm-endpoint"],
       llmTimeout: values["llm-timeout"],
       externalDataConsent: values["allow-external"],
+      activePathsFile: values["active-paths-file"],
     };
 
     if (command === "scan") {
