@@ -4,20 +4,25 @@
 # Default: artifacts only (no git commits). Developers keep using Context Guard;
 # FinOps cadence is this Action / an equivalent cron.
 #
+# Period window (customizable; default = previous UTC month):
+#   period_mode=previous|current|explicit  +  months_ago (for previous)
+#   or set period / TOKENFORGE_USAGE_PERIOD to a fixed YYYY-MM
+#
+# Schedule cadence: edit the cron below (GitHub Actions cannot read cron from
+# Variables). Examples in docs/examples/prove-monthly.md.
+#
 # Smoke (this repo, no live billing secrets):
 #   Actions → "Prove monthly" → Run workflow
 #   usage_provider=fixture, run_scan=true (defaults)
 #
 # Live org: set repository Variables / Secrets (see docs/examples/prove-monthly.md)
-#   vars.TOKENFORGE_USAGE_PROVIDER = copilot|cursor|claude
-#   vars.TOKENFORGE_USAGE_ORG = GitHub org or Cursor organizationId
-#   secrets: GITHUB_COPILOT_USAGE_TOKEN | CURSOR_API_KEY | ANTHROPIC_ADMIN_API_KEY
 
 name: Prove monthly
 
 on:
   schedule:
-    # 06:00 UTC on the 2nd — prior calendar month usually has a settled bill.
+    # Default: 06:00 UTC on the 2nd — prior calendar month usually has a settled bill.
+    # Customize this expression for your FinOps calendar (weekly, day-5, etc.).
     - cron: "0 6 2 * *"
   workflow_dispatch:
     inputs:
@@ -35,8 +40,21 @@ on:
         type: string
         required: false
         default: ""
+      period_mode:
+        description: "How to pick the billing month when period is empty"
+        type: choice
+        options:
+          - previous
+          - current
+          - explicit
+        default: previous
+      months_ago:
+        description: "When period_mode=previous: UTC months back (1 = last month)"
+        type: string
+        required: false
+        default: "1"
       period:
-        description: "Billing period YYYY-MM (empty = previous UTC month)"
+        description: "Pin YYYY-MM (overrides mode when set; required if mode=explicit)"
         type: string
         required: false
         default: ""
@@ -59,6 +77,11 @@ on:
         type: string
         required: false
         default: "docs/schemas/examples/usage-metrics.v0.json"
+      artifact_retention_days:
+        description: "How long to keep Prove artifacts"
+        type: string
+        required: false
+        default: "90"
 
 permissions:
   contents: read
@@ -75,11 +98,14 @@ jobs:
       # workflow_dispatch inputs; schedule falls back to repo Variables then safe defaults.
       USAGE_PROVIDER: ${{ github.event.inputs.usage_provider || vars.TOKENFORGE_USAGE_PROVIDER || 'fixture' }}
       USAGE_ORG: ${{ github.event.inputs.org || vars.TOKENFORGE_USAGE_ORG || '' }}
+      PERIOD_MODE: ${{ github.event.inputs.period_mode || vars.TOKENFORGE_PERIOD_MODE || 'previous' }}
+      MONTHS_AGO: ${{ github.event.inputs.months_ago || vars.TOKENFORGE_MONTHS_AGO || '1' }}
       USAGE_PERIOD: ${{ github.event.inputs.period || vars.TOKENFORGE_USAGE_PERIOD || '' }}
       USAGE_TEAM: ${{ github.event.inputs.team || vars.TOKENFORGE_USAGE_TEAM || '' }}
       RUN_SCAN: ${{ github.event.inputs.run_scan || vars.TOKENFORGE_RUN_SCAN || 'true' }}
       SCAN_ROOT: ${{ github.event.inputs.scan_root || vars.TOKENFORGE_SCAN_ROOT || 'fixtures/noisy-app' }}
       FIXTURE_FILE: ${{ github.event.inputs.fixture_file || 'docs/schemas/examples/usage-metrics.v0.json' }}
+      ARTIFACT_RETENTION_DAYS: ${{ github.event.inputs.artifact_retention_days || vars.TOKENFORGE_ARTIFACT_RETENTION_DAYS || '90' }}
       # Live provider credentials (unused for fixture). Prefer dedicated PAT over GITHUB_TOKEN.
       GITHUB_COPILOT_USAGE_TOKEN: ${{ secrets.GITHUB_COPILOT_USAGE_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_COPILOT_USAGE_TOKEN || secrets.GITHUB_TOKEN }}
@@ -104,12 +130,36 @@ jobs:
         run: |
           set -euo pipefail
           PERIOD="${USAGE_PERIOD}"
-          if [ -z "${PERIOD}" ]; then
-            # Previous UTC calendar month (GNU date on ubuntu-latest).
-            PERIOD="$(date -u -d "$(date -u +%Y-%m-01) -1 day" +%Y-%m)"
+          MODE="${PERIOD_MODE}"
+          MONTHS_AGO="${MONTHS_AGO}"
+
+          if [ -n "${PERIOD}" ]; then
+            MODE="explicit"
+          elif [ "${MODE}" = "explicit" ]; then
+            echo "period_mode=explicit requires period (YYYY-MM) or TOKENFORGE_USAGE_PERIOD" >&2
+            exit 1
+          elif [ "${MODE}" = "current" ]; then
+            PERIOD="$(date -u +%Y-%m)"
+          elif [ "${MODE}" = "previous" ]; then
+            if ! [[ "${MONTHS_AGO}" =~ ^[1-9][0-9]*$ ]]; then
+              echo "months_ago must be a positive integer (got: ${MONTHS_AGO})" >&2
+              exit 1
+            fi
+            # N months before the current UTC month (GNU date on ubuntu-latest).
+            PERIOD="$(date -u -d "$(date -u +%Y-%m-01) -${MONTHS_AGO} month" +%Y-%m)"
+          else
+            echo "Unknown period_mode: ${MODE} (use previous|current|explicit)" >&2
+            exit 1
           fi
+
+          if ! [[ "${PERIOD}" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
+            echo "Invalid period '${PERIOD}' (expected YYYY-MM)" >&2
+            exit 1
+          fi
+
           echo "period=${PERIOD}" >> "$GITHUB_OUTPUT"
-          echo "Using period ${PERIOD}"
+          echo "mode=${MODE}" >> "$GITHUB_OUTPUT"
+          echo "Using period ${PERIOD} (mode=${MODE}, months_ago=${MONTHS_AGO})"
 
       - name: Heuristic scan (optional)
         if: ${{ env.RUN_SCAN == 'true' }}
@@ -155,4 +205,4 @@ jobs:
             .tokenforge/usage-*.json
             .tokenforge/usage-latest.json
           if-no-files-found: error
-          retention-days: 90
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}

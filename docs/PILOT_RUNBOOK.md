@@ -207,9 +207,11 @@ scan.” Prefer the turnkey Action:
 - Operator guide + secrets table + generic cron:
   [`docs/examples/prove-monthly.md`](./examples/prove-monthly.md)
 
-Default Action policy: **artifacts only** (upload `.tokenforge/scan-report.json` +
-`usage-*.json`). No surprise commits. Load artifacts into Prove / variance board
-the same way as a local import.
+Billing window is customizable (`period_mode` / `months_ago` / pinned `YYYY-MM`;
+default remains **previous** UTC month). Schedule cron is edited in the workflow
+YAML. Default Action policy: **artifacts only** (upload
+`.tokenforge/scan-report.json` + `usage-*.json`). No surprise commits. Load
+artifacts into Prove / variance board the same way as a local import.
 
 Smoke (no billing secrets): Actions → **Prove monthly** → Run workflow with
 `usage_provider=fixture`.
