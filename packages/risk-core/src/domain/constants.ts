@@ -33,24 +33,31 @@ export const SCORE_WEIGHT_CLASS = 0.45;
 export const SCORE_WEIGHT_SIZE = 0.35;
 export const SCORE_WEIGHT_INACTIVE = 0.2;
 
-/** Canonical Token Risk report schema `$id` (current: v1). */
+/** Canonical Token Risk report schema `$id` (current: v2). */
 export const TOKEN_RISK_REPORT_SCHEMA_ID =
-  "https://tokenforge.dev/schema/risk-event/v1";
+  "https://tokenforge.dev/schema/risk-event/v2";
 
 /** Repo-relative JSON Schema path. Single source of truth for all surfaces. */
 export const TOKEN_RISK_REPORT_SCHEMA_PATH =
   "docs/schemas/risk-event.schema.json";
 
 /**
- * Frozen predecessor contract. v1 is a strict superset (it only adds the
- * `duplicate_logic` reason), so every v0 report still validates against v1 —
- * the reverse is not true. Kept for external consumers pinned to v0.
+ * Frozen predecessor contracts. Each live version is a strict superset of the
+ * prior freeze, so older reports still validate against the current schema —
+ * the reverse is not true.
  */
 export const TOKEN_RISK_REPORT_SCHEMA_V0_ID =
   "https://tokenforge.dev/schema/risk-event/v0";
 
 export const TOKEN_RISK_REPORT_SCHEMA_V0_PATH =
   "docs/schemas/risk-event.v0.schema.json";
+
+/** Frozen v1 (`duplicate_logic` reason; five suggestion kinds). */
+export const TOKEN_RISK_REPORT_SCHEMA_V1_ID =
+  "https://tokenforge.dev/schema/risk-event/v1";
+
+export const TOKEN_RISK_REPORT_SCHEMA_V1_PATH =
+  "docs/schemas/risk-event.v1.schema.json";
 
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
@@ -81,13 +88,17 @@ export const INSTRUCTION_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   "rules",
 ]);
 
-/** Allowed advisory suggestion kinds (JSON contract). No snippets in v0. */
+/**
+ * Allowed advisory suggestion kinds (JSON contract). No snippets.
+ * `consolidate_duplicates` is vocabulary only — never applied by `apply`.
+ */
 export const SUGGESTION_KINDS = [
   "exclude_from_context",
   "trim_instructions",
   "dedupe_rules",
   "add_ignore",
   "review",
+  "consolidate_duplicates",
 ] as const;
 
 /** Max characters for `scan.llm.analysisOverview.summary`. */
