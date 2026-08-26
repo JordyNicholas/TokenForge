@@ -275,3 +275,166 @@ behavior rather than restating it.
 enrichment candidate for that fixture. At 193 bytes it is the smallest of its 7
 source files, one more than `DEFAULT_SOURCE_CANDIDATE_COUNT` (5) — the B8
 bucket working to budget, as documented in the fixture README.
+
+---
+
+# Edge-case pass (2026-08-26)
+
+B11–B15 come from a second review, driven by ten `.json`-shaped cases where
+extension and size alone give the wrong answer (issue #135). Each is
+demonstrated by `fixtures/heuristic-edge-app/` and covered by
+`cli/src/commands/scan/scan.protected.test.ts`.
+
+The shared shape: `classifyFiletype` reads **name**, `scoreRisk` reads
+**size**, and neither can see that some paths are load-bearing for the agent.
+The fix is a third pure-path input — `packages/risk-core/src/protect/protect.ts`
+— that suppresses exclusion-driving reasons without touching the token math.
+
+## B11 — a large API contract is penalized for being complete
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/score/score.ts`, `domain/constants.ts:16`
+(`OVERSIZED_BYTES`).
+
+**Previous behavior:** an `openapi.json` / `swagger.yaml` crossing 100 KB got
+`reason: "oversized"` → `action: "excluded"`, the same recommendation a padded
+lockfile gets.
+
+**Demonstrated by:** `fixtures/heuristic-edge-app/openapi.json` (153 KB, 120
+real paths + component schemas).
+
+**Risk:** the correlation runs backwards here. The more completely a team
+documents its API, the larger the contract, and the more likely TokenForge
+recommended hiding it from the agent that needs it to avoid inventing
+endpoints. This is B2 with the sign flipped: not "large but legitimate", but
+"large *because* legitimate".
+
+**Fix:** `API_CONTRACT_PATTERNS` → `protectionFor` suppresses `oversized` for
+recognized contract basenames. `high_risk_filetype` is deliberately **not**
+suppressed — a contract inside `dist/` is still build output.
+
+## B12 — a protected config survives only by being small
+
+**Status:** Fixed.
+
+**Where:** same as B11.
+
+**Previous behavior:** `tsconfig.json`, `.eslintrc.json`, and feature-flag
+files were never flagged — but only because they sit under the size bar. No
+rule protected them; the outcome was luck.
+
+**Demonstrated by:** `fixtures/heuristic-edge-app/tsconfig.json`.
+
+**Risk:** latent rather than active. Any future threshold change (including
+B14 below, which lowers a bar) or a genuinely large generated `tsconfig` in a
+big monorepo would start recommending exclusion of the file that tells the
+agent how the project builds.
+
+**Fix:** `PROTECTED_CONFIG_NAMES` + `PROTECTED_CONFIG_PATTERNS` suppress both
+`oversized` and `high_risk_filetype`, so the protection is a rule at any size.
+
+## B13 — `generated` is treated as uniformly disposable
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/classify/classify.ts`,
+`domain/constants.ts:18` (`HIGH_RISK_FILE_CLASSES`).
+
+**Previous behavior:** two separate problems. A `generated/` directory was not
+in `GENERATED_DIR_NAMES` at all (only `dist`/`build`/`out`/`coverage`/
+`node_modules`/`.next`/`target`, plus the Prisma special case), so
+`src/generated/**` was classified by extension like hand-written code. And
+where a tree *was* classified `generated`, class weight 0.9 made it
+unconditionally high-risk.
+
+**Demonstrated by:** `fixtures/heuristic-edge-app/src/generated/graphql/`.
+
+**Risk:** both directions were wrong. Genuinely generated trees escaped
+detection, while generated **API clients and schemas** — which an agent reads
+to call the API correctly — were lumped in with compiled bundles.
+
+**Fix:** `generated` / `.generated` added to `GENERATED_DIR_NAMES` (closing the
+first half), and `isNecessaryGeneratedPath` exempts the
+`generated/<graphql|openapi|swagger|api>/**` pairing from `high_risk_filetype`
+(closing the second). The pairing requirement keeps a hand-written
+`src/graphql/` out of it. `oversized` still applies: a necessary schema that is
+enormous is still worth surfacing.
+
+## B14 — bulk auxiliary data hides under the bar meant for source
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/score/score.ts`, `domain/constants.ts:16`.
+
+**Previous behavior:** one flat 100 KB threshold for every path. A tree of
+recorded test payloads or mock responses — each file individually
+unremarkable, collectively expensive — produced no finding at all.
+
+**Demonstrated by:** `fixtures/heuristic-edge-app/test/fixtures/recorded-orders.json`
+(86 KB, i.e. deliberately **under** the flat bar).
+
+**Risk:** the false-negative counterpart to B2/B3, and the one a PR gate would
+miss: a developer adding a folder of auxiliary data inflates `beforeTokens`
+with nothing marked `atRisk`, so any check keyed on findings reports clean.
+
+**Fix:** `AUXILIARY_OVERSIZED_BYTES` (25 KB) applies under recognized
+`fixtures`/`mocks`/`test-data`/`snapshots` trees. This is the narrow version of
+B3's "scale `OVERSIZED_BYTES` by class" recommendation: the reason stays
+`oversized` (no contract change), only the bar moves — and `sizeWeight` uses
+the same bar so the continuous score does not disagree with `reasons`.
+
+## B15 — nothing stopped a credential from reaching an LLM enricher
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/candidates/candidates.ts`,
+`cli/src/commands/scan/scan.ts` (`loadCandidateExcerpt`).
+
+**Previous behavior:** `selectEnrichmentCandidates` ranked by instruction path,
+source sample, borderline size, and largest-file — none of which is a security
+check. A `.env`, a service-account JSON, or a `.pem` was an ordinary `config`
+path eligible for the borderline bucket, and in `--mode hybrid` its excerpt was
+read and sent to the configured backend, which may be **external** (`codex`,
+`anthropic`).
+
+**Demonstrated by:** `fixtures/heuristic-edge-app/config/service-account.json`
+(credential-shaped name) and `config/app-settings.json` (innocuous name, AWS
+placeholder key in the body).
+
+**Risk:** the highest-severity item in either pass, and the only one that is
+not a cost question. Every other finding here is "we recommended the wrong
+file"; this one exfiltrates a secret. Note the circularity that rules out the
+obvious mitigation: asking a remote model *whether* a file holds a secret has
+already sent it the secret.
+
+**Fix:** two gates, because neither alone is sufficient.
+
+1. **Name gate**, `isSecretPath` in `risk-core` — runs before every candidate
+   bucket, not as a filter on the result, so a credential-shaped path can
+   never be selected. `.env.example` / `.sample` / `.template` are exempt:
+   those carry the shape of a secret, not one.
+2. **Content gate**, `hasSecretContent` in `packages/enrichers` — runs at the
+   CLI read boundary, where the excerpt already exists, and catches the
+   innocuously named file the name gate cannot see. The candidate is dropped
+   whole rather than redacted: a redacted excerpt still tells a remote model
+   where the secret lives.
+
+`risk-core` stays filesystem-free, so the content half necessarily lives at the
+CLI edge — that split is architectural, not incidental.
+
+## Left open by this pass
+
+- **Field-level JSON.** A `package.json` mixes high-value (`scripts`,
+  `workspaces`) with noise (`devDependencies`) in one file. Every rule here
+  decides per path, and the Token Risk contract has one verdict per path, so
+  there is no honest way to express "keep half of this file".
+- **Recency.** A dated report (`audit-2026-01.json`) is relevant the week it is
+  written and noise a month later, with no change to name, size, or class. The
+  extension has `inactiveMs` for open tabs; the repo scan has no time signal at
+  all. `git log` mtime was considered and left out: "recently edited" is not
+  "recently relevant" — a formatter pass would forge the signal.
+- **Task context.** Whether a large i18n locale file is waste depends on
+  whether the developer is doing i18n work *right now*. Not solvable in a
+  static scan at any level of rule sophistication; tracked as extension → CLI
+  routing in issue #137.
