@@ -55,6 +55,19 @@ export type FiletypeRiskClass =
   | "source"
   | "unknown";
 
+/**
+ * Why a path is exempt from an exclusion recommendation.
+ * Rules live in `protect/protect.ts`; the kind is carried on the assessment
+ * so a surface can explain *why* a large file was left alone.
+ */
+export type ProtectionKind =
+  /** Build/lint/flag config an agent needs to reason correctly. */
+  | "protected_config"
+  /** API or schema contract where size tracks completeness, not waste. */
+  | "api_contract"
+  /** Generated tree an agent still reads (typed clients, schemas). */
+  | "necessary_generated";
+
 export type RiskInput = {
   path: string;
   bytes: number;
@@ -76,6 +89,12 @@ export type RiskAssessment = {
   score: number;
   atRisk: boolean;
   reasons: FindingReason[];
+  /**
+   * Set when an exclusion-driving reason was suppressed because the agent
+   * needs this path (`protect/protect.ts`). Kernel-side only — the Token Risk
+   * JSON contract carries findings, not assessments.
+   */
+  protection?: ProtectionKind;
 };
 
 export type TokenRiskFinding = {

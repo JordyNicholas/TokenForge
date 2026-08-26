@@ -1,0 +1,6178 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Payments Platform API",
+    "version": "2.4.0",
+    "description": "Hand-maintained contract. An agent reads this to call endpoints correctly instead of inventing them."
+  },
+  "paths": {
+    "/v1/orders/0": {
+      "get": {
+        "operationId": "getOrder0",
+        "summary": "Fetch order 0 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder0",
+        "summary": "Replace order 0. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/1": {
+      "get": {
+        "operationId": "getOrder1",
+        "summary": "Fetch order 1 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder1",
+        "summary": "Replace order 1. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/2": {
+      "get": {
+        "operationId": "getOrder2",
+        "summary": "Fetch order 2 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder2",
+        "summary": "Replace order 2. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/3": {
+      "get": {
+        "operationId": "getOrder3",
+        "summary": "Fetch order 3 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder3",
+        "summary": "Replace order 3. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/4": {
+      "get": {
+        "operationId": "getOrder4",
+        "summary": "Fetch order 4 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder4",
+        "summary": "Replace order 4. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/5": {
+      "get": {
+        "operationId": "getOrder5",
+        "summary": "Fetch order 5 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder5",
+        "summary": "Replace order 5. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/6": {
+      "get": {
+        "operationId": "getOrder6",
+        "summary": "Fetch order 6 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder6",
+        "summary": "Replace order 6. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/7": {
+      "get": {
+        "operationId": "getOrder7",
+        "summary": "Fetch order 7 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder7",
+        "summary": "Replace order 7. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/8": {
+      "get": {
+        "operationId": "getOrder8",
+        "summary": "Fetch order 8 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder8",
+        "summary": "Replace order 8. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/9": {
+      "get": {
+        "operationId": "getOrder9",
+        "summary": "Fetch order 9 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder9",
+        "summary": "Replace order 9. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/10": {
+      "get": {
+        "operationId": "getOrder10",
+        "summary": "Fetch order 10 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder10",
+        "summary": "Replace order 10. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/11": {
+      "get": {
+        "operationId": "getOrder11",
+        "summary": "Fetch order 11 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder11",
+        "summary": "Replace order 11. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/12": {
+      "get": {
+        "operationId": "getOrder12",
+        "summary": "Fetch order 12 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder12",
+        "summary": "Replace order 12. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/13": {
+      "get": {
+        "operationId": "getOrder13",
+        "summary": "Fetch order 13 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder13",
+        "summary": "Replace order 13. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/14": {
+      "get": {
+        "operationId": "getOrder14",
+        "summary": "Fetch order 14 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder14",
+        "summary": "Replace order 14. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/15": {
+      "get": {
+        "operationId": "getOrder15",
+        "summary": "Fetch order 15 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder15",
+        "summary": "Replace order 15. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/16": {
+      "get": {
+        "operationId": "getOrder16",
+        "summary": "Fetch order 16 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder16",
+        "summary": "Replace order 16. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/17": {
+      "get": {
+        "operationId": "getOrder17",
+        "summary": "Fetch order 17 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder17",
+        "summary": "Replace order 17. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/18": {
+      "get": {
+        "operationId": "getOrder18",
+        "summary": "Fetch order 18 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder18",
+        "summary": "Replace order 18. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/19": {
+      "get": {
+        "operationId": "getOrder19",
+        "summary": "Fetch order 19 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder19",
+        "summary": "Replace order 19. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/20": {
+      "get": {
+        "operationId": "getOrder20",
+        "summary": "Fetch order 20 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder20",
+        "summary": "Replace order 20. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/21": {
+      "get": {
+        "operationId": "getOrder21",
+        "summary": "Fetch order 21 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder21",
+        "summary": "Replace order 21. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/22": {
+      "get": {
+        "operationId": "getOrder22",
+        "summary": "Fetch order 22 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder22",
+        "summary": "Replace order 22. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/23": {
+      "get": {
+        "operationId": "getOrder23",
+        "summary": "Fetch order 23 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder23",
+        "summary": "Replace order 23. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/24": {
+      "get": {
+        "operationId": "getOrder24",
+        "summary": "Fetch order 24 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder24",
+        "summary": "Replace order 24. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/25": {
+      "get": {
+        "operationId": "getOrder25",
+        "summary": "Fetch order 25 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder25",
+        "summary": "Replace order 25. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/26": {
+      "get": {
+        "operationId": "getOrder26",
+        "summary": "Fetch order 26 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder26",
+        "summary": "Replace order 26. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/27": {
+      "get": {
+        "operationId": "getOrder27",
+        "summary": "Fetch order 27 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder27",
+        "summary": "Replace order 27. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/28": {
+      "get": {
+        "operationId": "getOrder28",
+        "summary": "Fetch order 28 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder28",
+        "summary": "Replace order 28. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/29": {
+      "get": {
+        "operationId": "getOrder29",
+        "summary": "Fetch order 29 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder29",
+        "summary": "Replace order 29. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/30": {
+      "get": {
+        "operationId": "getOrder30",
+        "summary": "Fetch order 30 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder30",
+        "summary": "Replace order 30. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/31": {
+      "get": {
+        "operationId": "getOrder31",
+        "summary": "Fetch order 31 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder31",
+        "summary": "Replace order 31. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/32": {
+      "get": {
+        "operationId": "getOrder32",
+        "summary": "Fetch order 32 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder32",
+        "summary": "Replace order 32. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/33": {
+      "get": {
+        "operationId": "getOrder33",
+        "summary": "Fetch order 33 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder33",
+        "summary": "Replace order 33. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/34": {
+      "get": {
+        "operationId": "getOrder34",
+        "summary": "Fetch order 34 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder34",
+        "summary": "Replace order 34. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/35": {
+      "get": {
+        "operationId": "getOrder35",
+        "summary": "Fetch order 35 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder35",
+        "summary": "Replace order 35. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/36": {
+      "get": {
+        "operationId": "getOrder36",
+        "summary": "Fetch order 36 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder36",
+        "summary": "Replace order 36. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/37": {
+      "get": {
+        "operationId": "getOrder37",
+        "summary": "Fetch order 37 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder37",
+        "summary": "Replace order 37. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/38": {
+      "get": {
+        "operationId": "getOrder38",
+        "summary": "Fetch order 38 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder38",
+        "summary": "Replace order 38. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/39": {
+      "get": {
+        "operationId": "getOrder39",
+        "summary": "Fetch order 39 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder39",
+        "summary": "Replace order 39. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/40": {
+      "get": {
+        "operationId": "getOrder40",
+        "summary": "Fetch order 40 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder40",
+        "summary": "Replace order 40. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/41": {
+      "get": {
+        "operationId": "getOrder41",
+        "summary": "Fetch order 41 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder41",
+        "summary": "Replace order 41. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/42": {
+      "get": {
+        "operationId": "getOrder42",
+        "summary": "Fetch order 42 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder42",
+        "summary": "Replace order 42. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/43": {
+      "get": {
+        "operationId": "getOrder43",
+        "summary": "Fetch order 43 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder43",
+        "summary": "Replace order 43. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/44": {
+      "get": {
+        "operationId": "getOrder44",
+        "summary": "Fetch order 44 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder44",
+        "summary": "Replace order 44. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/45": {
+      "get": {
+        "operationId": "getOrder45",
+        "summary": "Fetch order 45 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder45",
+        "summary": "Replace order 45. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/46": {
+      "get": {
+        "operationId": "getOrder46",
+        "summary": "Fetch order 46 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder46",
+        "summary": "Replace order 46. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/47": {
+      "get": {
+        "operationId": "getOrder47",
+        "summary": "Fetch order 47 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder47",
+        "summary": "Replace order 47. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/48": {
+      "get": {
+        "operationId": "getOrder48",
+        "summary": "Fetch order 48 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder48",
+        "summary": "Replace order 48. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/49": {
+      "get": {
+        "operationId": "getOrder49",
+        "summary": "Fetch order 49 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder49",
+        "summary": "Replace order 49. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/50": {
+      "get": {
+        "operationId": "getOrder50",
+        "summary": "Fetch order 50 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder50",
+        "summary": "Replace order 50. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/51": {
+      "get": {
+        "operationId": "getOrder51",
+        "summary": "Fetch order 51 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder51",
+        "summary": "Replace order 51. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/52": {
+      "get": {
+        "operationId": "getOrder52",
+        "summary": "Fetch order 52 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder52",
+        "summary": "Replace order 52. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/53": {
+      "get": {
+        "operationId": "getOrder53",
+        "summary": "Fetch order 53 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder53",
+        "summary": "Replace order 53. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/54": {
+      "get": {
+        "operationId": "getOrder54",
+        "summary": "Fetch order 54 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder54",
+        "summary": "Replace order 54. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/55": {
+      "get": {
+        "operationId": "getOrder55",
+        "summary": "Fetch order 55 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder55",
+        "summary": "Replace order 55. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/56": {
+      "get": {
+        "operationId": "getOrder56",
+        "summary": "Fetch order 56 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder56",
+        "summary": "Replace order 56. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/57": {
+      "get": {
+        "operationId": "getOrder57",
+        "summary": "Fetch order 57 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder57",
+        "summary": "Replace order 57. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/58": {
+      "get": {
+        "operationId": "getOrder58",
+        "summary": "Fetch order 58 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder58",
+        "summary": "Replace order 58. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/59": {
+      "get": {
+        "operationId": "getOrder59",
+        "summary": "Fetch order 59 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder59",
+        "summary": "Replace order 59. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/60": {
+      "get": {
+        "operationId": "getOrder60",
+        "summary": "Fetch order 60 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder60",
+        "summary": "Replace order 60. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/61": {
+      "get": {
+        "operationId": "getOrder61",
+        "summary": "Fetch order 61 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder61",
+        "summary": "Replace order 61. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/62": {
+      "get": {
+        "operationId": "getOrder62",
+        "summary": "Fetch order 62 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder62",
+        "summary": "Replace order 62. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/63": {
+      "get": {
+        "operationId": "getOrder63",
+        "summary": "Fetch order 63 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder63",
+        "summary": "Replace order 63. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/64": {
+      "get": {
+        "operationId": "getOrder64",
+        "summary": "Fetch order 64 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder64",
+        "summary": "Replace order 64. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/65": {
+      "get": {
+        "operationId": "getOrder65",
+        "summary": "Fetch order 65 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder65",
+        "summary": "Replace order 65. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/66": {
+      "get": {
+        "operationId": "getOrder66",
+        "summary": "Fetch order 66 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder66",
+        "summary": "Replace order 66. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/67": {
+      "get": {
+        "operationId": "getOrder67",
+        "summary": "Fetch order 67 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder67",
+        "summary": "Replace order 67. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/68": {
+      "get": {
+        "operationId": "getOrder68",
+        "summary": "Fetch order 68 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder68",
+        "summary": "Replace order 68. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/69": {
+      "get": {
+        "operationId": "getOrder69",
+        "summary": "Fetch order 69 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder69",
+        "summary": "Replace order 69. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/70": {
+      "get": {
+        "operationId": "getOrder70",
+        "summary": "Fetch order 70 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder70",
+        "summary": "Replace order 70. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/71": {
+      "get": {
+        "operationId": "getOrder71",
+        "summary": "Fetch order 71 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder71",
+        "summary": "Replace order 71. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/72": {
+      "get": {
+        "operationId": "getOrder72",
+        "summary": "Fetch order 72 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder72",
+        "summary": "Replace order 72. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/73": {
+      "get": {
+        "operationId": "getOrder73",
+        "summary": "Fetch order 73 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder73",
+        "summary": "Replace order 73. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/74": {
+      "get": {
+        "operationId": "getOrder74",
+        "summary": "Fetch order 74 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder74",
+        "summary": "Replace order 74. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/75": {
+      "get": {
+        "operationId": "getOrder75",
+        "summary": "Fetch order 75 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder75",
+        "summary": "Replace order 75. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/76": {
+      "get": {
+        "operationId": "getOrder76",
+        "summary": "Fetch order 76 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder76",
+        "summary": "Replace order 76. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/77": {
+      "get": {
+        "operationId": "getOrder77",
+        "summary": "Fetch order 77 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder77",
+        "summary": "Replace order 77. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/78": {
+      "get": {
+        "operationId": "getOrder78",
+        "summary": "Fetch order 78 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder78",
+        "summary": "Replace order 78. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/79": {
+      "get": {
+        "operationId": "getOrder79",
+        "summary": "Fetch order 79 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder79",
+        "summary": "Replace order 79. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/80": {
+      "get": {
+        "operationId": "getOrder80",
+        "summary": "Fetch order 80 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder80",
+        "summary": "Replace order 80. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/81": {
+      "get": {
+        "operationId": "getOrder81",
+        "summary": "Fetch order 81 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder81",
+        "summary": "Replace order 81. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/82": {
+      "get": {
+        "operationId": "getOrder82",
+        "summary": "Fetch order 82 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder82",
+        "summary": "Replace order 82. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/83": {
+      "get": {
+        "operationId": "getOrder83",
+        "summary": "Fetch order 83 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder83",
+        "summary": "Replace order 83. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/84": {
+      "get": {
+        "operationId": "getOrder84",
+        "summary": "Fetch order 84 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder84",
+        "summary": "Replace order 84. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/85": {
+      "get": {
+        "operationId": "getOrder85",
+        "summary": "Fetch order 85 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder85",
+        "summary": "Replace order 85. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/86": {
+      "get": {
+        "operationId": "getOrder86",
+        "summary": "Fetch order 86 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder86",
+        "summary": "Replace order 86. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/87": {
+      "get": {
+        "operationId": "getOrder87",
+        "summary": "Fetch order 87 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder87",
+        "summary": "Replace order 87. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/88": {
+      "get": {
+        "operationId": "getOrder88",
+        "summary": "Fetch order 88 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder88",
+        "summary": "Replace order 88. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/89": {
+      "get": {
+        "operationId": "getOrder89",
+        "summary": "Fetch order 89 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder89",
+        "summary": "Replace order 89. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/90": {
+      "get": {
+        "operationId": "getOrder90",
+        "summary": "Fetch order 90 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder90",
+        "summary": "Replace order 90. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/91": {
+      "get": {
+        "operationId": "getOrder91",
+        "summary": "Fetch order 91 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder91",
+        "summary": "Replace order 91. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/92": {
+      "get": {
+        "operationId": "getOrder92",
+        "summary": "Fetch order 92 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder92",
+        "summary": "Replace order 92. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/93": {
+      "get": {
+        "operationId": "getOrder93",
+        "summary": "Fetch order 93 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder93",
+        "summary": "Replace order 93. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/94": {
+      "get": {
+        "operationId": "getOrder94",
+        "summary": "Fetch order 94 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder94",
+        "summary": "Replace order 94. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/95": {
+      "get": {
+        "operationId": "getOrder95",
+        "summary": "Fetch order 95 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder95",
+        "summary": "Replace order 95. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/96": {
+      "get": {
+        "operationId": "getOrder96",
+        "summary": "Fetch order 96 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder96",
+        "summary": "Replace order 96. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/97": {
+      "get": {
+        "operationId": "getOrder97",
+        "summary": "Fetch order 97 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder97",
+        "summary": "Replace order 97. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/98": {
+      "get": {
+        "operationId": "getOrder98",
+        "summary": "Fetch order 98 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder98",
+        "summary": "Replace order 98. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/99": {
+      "get": {
+        "operationId": "getOrder99",
+        "summary": "Fetch order 99 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder99",
+        "summary": "Replace order 99. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/100": {
+      "get": {
+        "operationId": "getOrder100",
+        "summary": "Fetch order 100 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder100",
+        "summary": "Replace order 100. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/101": {
+      "get": {
+        "operationId": "getOrder101",
+        "summary": "Fetch order 101 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder101",
+        "summary": "Replace order 101. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/102": {
+      "get": {
+        "operationId": "getOrder102",
+        "summary": "Fetch order 102 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder102",
+        "summary": "Replace order 102. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/103": {
+      "get": {
+        "operationId": "getOrder103",
+        "summary": "Fetch order 103 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder103",
+        "summary": "Replace order 103. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/104": {
+      "get": {
+        "operationId": "getOrder104",
+        "summary": "Fetch order 104 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder104",
+        "summary": "Replace order 104. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/105": {
+      "get": {
+        "operationId": "getOrder105",
+        "summary": "Fetch order 105 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder105",
+        "summary": "Replace order 105. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/106": {
+      "get": {
+        "operationId": "getOrder106",
+        "summary": "Fetch order 106 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder106",
+        "summary": "Replace order 106. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/107": {
+      "get": {
+        "operationId": "getOrder107",
+        "summary": "Fetch order 107 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder107",
+        "summary": "Replace order 107. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/108": {
+      "get": {
+        "operationId": "getOrder108",
+        "summary": "Fetch order 108 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder108",
+        "summary": "Replace order 108. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/109": {
+      "get": {
+        "operationId": "getOrder109",
+        "summary": "Fetch order 109 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder109",
+        "summary": "Replace order 109. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/110": {
+      "get": {
+        "operationId": "getOrder110",
+        "summary": "Fetch order 110 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder110",
+        "summary": "Replace order 110. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/111": {
+      "get": {
+        "operationId": "getOrder111",
+        "summary": "Fetch order 111 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder111",
+        "summary": "Replace order 111. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/112": {
+      "get": {
+        "operationId": "getOrder112",
+        "summary": "Fetch order 112 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder112",
+        "summary": "Replace order 112. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/113": {
+      "get": {
+        "operationId": "getOrder113",
+        "summary": "Fetch order 113 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder113",
+        "summary": "Replace order 113. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/114": {
+      "get": {
+        "operationId": "getOrder114",
+        "summary": "Fetch order 114 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder114",
+        "summary": "Replace order 114. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/115": {
+      "get": {
+        "operationId": "getOrder115",
+        "summary": "Fetch order 115 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder115",
+        "summary": "Replace order 115. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/116": {
+      "get": {
+        "operationId": "getOrder116",
+        "summary": "Fetch order 116 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder116",
+        "summary": "Replace order 116. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/117": {
+      "get": {
+        "operationId": "getOrder117",
+        "summary": "Fetch order 117 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder117",
+        "summary": "Replace order 117. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/118": {
+      "get": {
+        "operationId": "getOrder118",
+        "summary": "Fetch order 118 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder118",
+        "summary": "Replace order 118. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    },
+    "/v1/orders/119": {
+      "get": {
+        "operationId": "getOrder119",
+        "summary": "Fetch order 119 with its line items and fulfilment state.",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No order with that id."
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceOrder119",
+        "summary": "Replace order 119. Callers must send the whole resource.",
+        "responses": {
+          "200": {
+            "description": "Replaced."
+          },
+          "409": {
+            "description": "Conflict."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "total"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "refunded"
+            ]
+          },
+          "total": {
+            "type": "integer"
+          },
+          "lineItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LineItem"
+            }
+          }
+        }
+      },
+      "LineItem": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "unitPrice": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

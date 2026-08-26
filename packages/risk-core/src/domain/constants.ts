@@ -15,6 +15,15 @@ export const BACKGROUND_INACTIVE_MS = 5 * 60 * 1000;
 /** Paths at or above this size are `oversized`. */
 export const OVERSIZED_BYTES = 100_000;
 
+/**
+ * Lower `oversized` bar for auxiliary data trees (fixtures, mocks, recorded
+ * payloads). One flat threshold treats a 30 KB blob of recorded JSON like a
+ * 30 KB hand-written module — see `docs/HEURISTICS_AUDIT.md` B3. This is the
+ * narrow, class-aware version of that recommendation: the reason stays
+ * `oversized`, only the bar moves.
+ */
+export const AUXILIARY_OVERSIZED_BYTES = 25_000;
+
 export const HIGH_RISK_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
   "lockfile",
   "generated",
@@ -72,6 +81,92 @@ export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
 
 /** Borderline config/unknown paths at or above this size are LLM candidates. */
 export const MIN_BORDERLINE_BYTES = 4_096;
+
+/**
+ * Config basenames an agent needs to reason correctly (build/lint/flags).
+ * Small enough to stay under {@link OVERSIZED_BYTES} today, so they are only
+ * protected by accident — see `protect/protect.ts`.
+ */
+export const PROTECTED_CONFIG_NAMES: ReadonlySet<string> = new Set([
+  "tsconfig.json",
+  "jsconfig.json",
+  "package.json",
+  ".eslintrc",
+  ".eslintrc.json",
+  "eslint.config.js",
+  "eslint.config.mjs",
+  ".prettierrc",
+  ".prettierrc.json",
+  "vite.config.ts",
+  "vitest.config.ts",
+  "tsconfig.base.json",
+]);
+
+/** Config basenames matched by shape rather than an exact name. */
+export const PROTECTED_CONFIG_PATTERNS: readonly RegExp[] = [
+  /^tsconfig\..+\.json$/i,
+  /^jsconfig\..+\.json$/i,
+  /^\.eslintrc\..+$/i,
+  /-flags\.json$/i,
+  /^feature-flags\..+$/i,
+];
+
+/**
+ * API/schema contracts an agent reads to avoid inventing endpoints or types.
+ * Size correlates with completeness here, so {@link OVERSIZED_BYTES} points the
+ * wrong way — the better the contract, the more likely it trips the rule.
+ */
+export const API_CONTRACT_PATTERNS: readonly RegExp[] = [
+  /^openapi(\..+)?\.(json|ya?ml)$/i,
+  /^swagger(\..+)?\.(json|ya?ml)$/i,
+  /^asyncapi(\..+)?\.(json|ya?ml)$/i,
+  /^schema\.graphql$/i,
+];
+
+/**
+ * Generated trees an agent still needs (typed API clients / schemas), unlike
+ * `dist`/`build` output. Matched as `<segment>/<segment>` pairs under a
+ * generated root so a hand-written `src/graphql/` is not swept in.
+ */
+export const NECESSARY_GENERATED_SEGMENTS: ReadonlySet<string> = new Set([
+  "graphql",
+  "openapi",
+  "swagger",
+  "api",
+]);
+
+/**
+ * Directories whose contents are auxiliary bulk data (test fixtures, mocks,
+ * recorded payloads). Individually small, collectively expensive.
+ */
+export const AUXILIARY_DATA_DIR_NAMES: ReadonlySet<string> = new Set([
+  "fixtures",
+  "__fixtures__",
+  "mocks",
+  "__mocks__",
+  "test-data",
+  "testdata",
+  "snapshots",
+  "__snapshots__",
+]);
+
+/**
+ * Credential-shaped paths. These must never become LLM enrichment candidates:
+ * hybrid mode sends candidate excerpts to a backend that may be external, and
+ * asking a remote model whether a file holds a secret leaks it either way.
+ * Path shape only — content-based checks live at the CLI read boundary, since
+ * risk-core never touches the filesystem.
+ */
+export const SECRET_FILE_PATTERNS: readonly RegExp[] = [
+  /^\.env(\..+)?$/i,
+  /(^|[-_.])credentials?([-_.].*)?\.(json|ya?ml|txt)$/i,
+  /(^|[-_.])secrets?([-_.].*)?\.(json|ya?ml|txt)$/i,
+  /service-account.*\.json$/i,
+  /^id_(rsa|dsa|ecdsa|ed25519)$/i,
+  /\.(pem|pfx|p12|key|keystore|jks)$/i,
+  /^\.npmrc$/i,
+  /^\.pypirc$/i,
+];
 
 /** Basenames treated as agent instruction / rules files for enrichment. */
 export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([

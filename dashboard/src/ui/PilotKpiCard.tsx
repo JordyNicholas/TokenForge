@@ -102,7 +102,7 @@ export function PilotKpiCard({
           hint="% of estimate"
         />
       </KpiRow>
-      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
         Reconciles estimated context-waste savings with imported or synced vendor usage for
         a period. We do not tap the agent&apos;s private pipeline
         {fixOnTeams.length > 0

@@ -25,6 +25,11 @@ const GENERATED_DIR_NAMES = new Set([
   "node_modules",
   ".next",
   "target",
+  // A `generated/` tree is generated output by name. Not every such tree is
+  // waste — see `isNecessaryGeneratedPath`, which exempts generated API
+  // clients from the high-risk class without changing what they classify as.
+  "generated",
+  ".generated",
 ]);
 
 const GENERATED_SUFFIXES = [".min.js", ".min.css", ".map", ".wasm"];

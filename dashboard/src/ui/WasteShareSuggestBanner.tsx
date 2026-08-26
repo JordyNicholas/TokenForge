@@ -66,7 +66,7 @@ export function WasteShareSuggestBanner() {
         <strong>{formatPercent(suggestion.suggestedShare * 100)}</strong> (now{" "}
         {formatPercent(suggestion.currentShare * 100)}).
       </Typography>
-      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
         {suggestion.rationale} Billed usage calibrate — not agent pipeline metering.
       </Typography>
       <Stack direction="row" spacing={1}>

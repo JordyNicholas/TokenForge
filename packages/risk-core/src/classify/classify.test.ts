@@ -52,6 +52,11 @@ describe("classifyFiletype", () => {
     expect(classifyFiletype("packages/api-client/src/index.ts")).toBe("source");
   });
 
+  it("classifies any generated/ tree as generated, API clients included", () => {
+    expect(classifyFiletype("src/generated/graphql/schema.json")).toBe("generated");
+    expect(classifyFiletype(".generated/api/client.ts")).toBe("generated");
+  });
+
   it("accepts Windows separators", () => {
     expect(classifyFiletype("dist\\out.js")).toBe("generated");
   });

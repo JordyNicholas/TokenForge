@@ -144,6 +144,49 @@ describe("selectEnrichmentCandidates", () => {
     expect(selected.map((item) => item.path)).toEqual(["src/big.js", "src/small.js"]);
   });
 
+  describe("secret gate (#135)", () => {
+    it("never selects a credential-shaped path, even when it qualifies as borderline", () => {
+      const assessments = [
+        // Would otherwise sail through the borderline bucket: config class,
+        // comfortably over MIN_BORDERLINE_BYTES, not atRisk.
+        assessment("config/firebase-service-account.json", 8_192, {
+          fileClass: "config",
+        }),
+        assessment(".env.production", 6_000, { fileClass: "config" }),
+        assessment("config/app-settings.json", 8_192, { fileClass: "config" }),
+      ];
+
+      const selected = selectEnrichmentCandidates(assessments);
+
+      expect(selected.map((item) => item.path)).toEqual([
+        "config/app-settings.json",
+      ]);
+    });
+
+    it("blocks a secret path from the top-files bucket too, not just borderline", () => {
+      const assessments = [
+        assessment("deploy/credentials.json", 900_000, { fileClass: "config" }),
+        assessment("src/index.ts", 500, { fileClass: "source" }),
+      ];
+
+      const selected = selectEnrichmentCandidates(assessments, { topCount: 5 });
+
+      expect(selected.some((item) => item.path === "deploy/credentials.json")).toBe(
+        false,
+      );
+    });
+
+    it("still selects a .env.example — a template carries no live credential", () => {
+      const assessments = [
+        assessment(".env.example", 6_000, { fileClass: "config" }),
+      ];
+
+      const selected = selectEnrichmentCandidates(assessments);
+
+      expect(selected.map((item) => item.path)).toEqual([".env.example"]);
+    });
+  });
+
   it("dedupes a path that qualifies for multiple buckets, keeping instruction priority", () => {
     const assessments = [
       assessment("AGENTS.md", 50_000, { fileClass: "unknown" }),

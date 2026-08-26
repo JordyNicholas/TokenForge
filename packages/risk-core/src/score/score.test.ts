@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { INACTIVE_MS, OVERSIZED_BYTES } from "../domain/constants";
+import {
+  AUXILIARY_OVERSIZED_BYTES,
+  INACTIVE_MS,
+  OVERSIZED_BYTES,
+} from "../domain/constants";
 import { primaryReason, scoreRisk } from "./score";
+
 
 describe("scoreRisk", () => {
   it("flags lockfiles as high-risk even when recently active", () => {
@@ -93,5 +98,90 @@ describe("scoreRisk", () => {
     const lockfile = scoreRisk({ ...input, path: "package-lock.json" });
     const source = scoreRisk({ ...input, path: "src/index.ts" });
     expect(lockfile.score).toBeGreaterThan(source.score);
+  });
+
+  describe("protected paths (#135)", () => {
+    it("does not flag an oversized build config the agent needs", () => {
+      const result = scoreRisk({
+        path: "tsconfig.json",
+        bytes: OVERSIZED_BYTES * 2,
+        inactiveMs: 0,
+      });
+
+      expect(result.atRisk).toBe(false);
+      expect(result.reasons).toEqual([]);
+      expect(result.protection).toBe("protected_config");
+    });
+
+    it("does not flag a large API contract — size tracks completeness here", () => {
+      const result = scoreRisk({
+        path: "docs/openapi.json",
+        bytes: OVERSIZED_BYTES * 3,
+        inactiveMs: 0,
+      });
+
+      expect(result.atRisk).toBe(false);
+      expect(result.protection).toBe("api_contract");
+    });
+
+    it("keeps a generated API client out of the high-risk class but still flags its size", () => {
+      const small = scoreRisk({
+        path: "src/generated/graphql/schema.json",
+        bytes: 5_000,
+        inactiveMs: 0,
+      });
+      expect(small.fileClass).toBe("generated");
+      expect(small.atRisk).toBe(false);
+      expect(small.protection).toBe("necessary_generated");
+
+      // Protection covers the class, not the size — an enormous schema is
+      // still worth surfacing.
+      const huge = scoreRisk({
+        path: "src/generated/graphql/schema.json",
+        bytes: OVERSIZED_BYTES,
+        inactiveMs: 0,
+      });
+      expect(huge.reasons).toEqual(["oversized"]);
+      expect(huge.atRisk).toBe(true);
+    });
+
+    it("still flags an ordinary generated tree", () => {
+      const result = scoreRisk({
+        path: "generated/styles/theme.css",
+        bytes: 5_000,
+        inactiveMs: 0,
+      });
+
+      expect(result.reasons).toContain("high_risk_filetype");
+      expect(result.protection).toBeUndefined();
+    });
+
+    it("flags auxiliary fixture data at the lower size bar", () => {
+      const auxiliary = scoreRisk({
+        path: "test/fixtures/recorded-orders.json",
+        bytes: AUXILIARY_OVERSIZED_BYTES,
+        inactiveMs: 0,
+      });
+      expect(auxiliary.reasons).toEqual(["oversized"]);
+
+      // Identical size, ordinary location: still under the flat bar.
+      const ordinary = scoreRisk({
+        path: "config/orders.json",
+        bytes: AUXILIARY_OVERSIZED_BYTES,
+        inactiveMs: 0,
+      });
+      expect(ordinary.atRisk).toBe(false);
+    });
+
+    it("leaves inactive_tab intact — protection is about exclusion, not IDE hygiene", () => {
+      const result = scoreRisk({
+        path: "tsconfig.json",
+        bytes: OVERSIZED_BYTES * 2,
+        inactiveMs: INACTIVE_MS,
+      });
+
+      expect(result.reasons).toEqual(["inactive_tab"]);
+      expect(result.atRisk).toBe(true);
+    });
   });
 });

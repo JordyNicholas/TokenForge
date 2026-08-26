@@ -1,0 +1,9 @@
+{
+  "_comment": "FIXTURE ONLY. The name is deliberately innocuous: the path gate cannot catch this one, so the CLI's content gate has to. AKIAIOSFODNN7EXAMPLE is AWS's own documented placeholder, not a live key.",
+  "region": "eu-west-1",
+  "retries": 3,
+  "timeoutMs": 5000,
+  "aws": {
+    "accessKeyId": "AKIAIOSFODNN7EXAMPLE"
+  }
+}

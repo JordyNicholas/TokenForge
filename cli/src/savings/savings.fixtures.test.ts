@@ -4,6 +4,8 @@ import { scanRepo } from "../commands/scan/scan";
 import {
   borderlineAppExpectedTotalsPath,
   borderlineAppRoot,
+  heuristicEdgeAppExpectedTotalsPath,
+  heuristicEdgeAppRoot,
   instructionsAppExpectedTotalsPath,
   instructionsAppRoot,
   leanAppExpectedTotalsPath,
@@ -30,6 +32,11 @@ describe.each([
     "semantic-duplicates-app",
     semanticDuplicatesAppRoot,
     semanticDuplicatesAppExpectedTotalsPath,
+  ],
+  [
+    "heuristic-edge-app",
+    heuristicEdgeAppRoot,
+    heuristicEdgeAppExpectedTotalsPath,
   ],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {
