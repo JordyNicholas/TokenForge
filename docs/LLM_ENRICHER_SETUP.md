@@ -144,14 +144,18 @@ tokenforge scan . --mode hybrid --llm codex:gpt-5.6-sol --allow-external
 ```bash
 curl https://cursor.com/install -fsS | bash
 agent login
-tokenforge scan . --mode hybrid --llm cursor-cli --allow-external
+npm run tokenforge -- scan . --mode hybrid --llm cursor-cli --allow-external
 ```
+
+From the repo root, use `npm run tokenforge -- scan …` (or `node cli/bin/tokenforge.mjs scan …`).
+The `tokenforge` binary is not on `PATH` unless you link or install the CLI globally.
 
 - Install the [Cursor CLI](https://cursor.com/docs/cli/overview) and sign in
   once with `agent login`, or set `CURSOR_API_KEY` for automation/CI.
 - `--llm cursor-cli` uses the default Cursor model for the account. Use
   `--llm cursor-cli:<model>` for an explicit per-scan override, e.g.
-  `--llm cursor-cli:composer-2.5`.
+  `--llm cursor-cli:composer-2.5`. Run a bad model name once to see the
+  `Available models:` list from your account in the error text.
 - `--allow-external` — explicit confirmation that bounded source excerpts may be
   sent to Cursor's hosted models. Without it, TokenForge prints a privacy
   warning and exits before starting the CLI.
@@ -160,6 +164,10 @@ tokenforge scan . --mode hybrid --llm cursor-cli --allow-external
 - `TOKENFORGE_CURSOR_CLI_PATH` — path to the executable when it is not `agent`
   on `PATH`.
 - `--llm-endpoint` is **rejected**: the CLI owns its own connection.
+
+**Latency.** Each batch runs a full `agent -p` session (often 30–90s per batch on
+a medium repo). Progress lines appear on stderr; a quiet terminal does not mean
+the run is stuck.
 
 TokenForge invokes `agent -p` non-interactively with `--output-format json`,
 `--mode ask`, and `--trust`, from a **new empty temporary workspace** passed to
