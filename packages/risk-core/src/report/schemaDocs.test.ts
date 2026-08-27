@@ -16,7 +16,10 @@ const docsRoot = resolve(repoRoot, "docs");
 const SCHEMA_ID_URL = /https:\/\/tokenforge\.dev\/schema\/risk-event\/v\d+/g;
 
 /** Docs that must keep citing the contract, so the sweep cannot pass vacuously. */
-const CONTRACT_DOCS = ["SOLUTION_DESIGN.md", "EXTENSION_CONTEXT_GUARD.md"];
+const CONTRACT_DOCS = [
+  "design/SOLUTION_DESIGN.md",
+  "adapters/EXTENSION_CONTEXT_GUARD.md",
+];
 
 function markdownFiles(): string[] {
   return readdirSync(docsRoot, { recursive: true, encoding: "utf8" })
