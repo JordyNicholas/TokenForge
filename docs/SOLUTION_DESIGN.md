@@ -37,7 +37,7 @@ or a vendor:
 
 | Port | Role |
 | --- | --- |
-| Token Risk JSON (v0, below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
+| Token Risk JSON (below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
 | Provider-adapter interface (CLI) | Fix-out port. Same findings → vendor-native instruction/exclusion files. |
 | LLM-enricher interface (CLI) | Optional Detect enrichment. Heuristic findings + semantic LLM findings → merged report. |
 | UsageProvider interface (CLI) | Prove usage in-port. `fetchUsage({ org, period, teamScope }) → UsageMetrics`. Fixture/file first; live vendor adapters later. Dashboard stays vendor-blind. |
