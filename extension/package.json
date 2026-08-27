@@ -122,6 +122,18 @@
         "icon": "$(history)"
       },
       {
+        "command": "tokenforge.exportSessionStats",
+        "title": "Export session-stats.json",
+        "category": "TokenForge",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "tokenforge.revealSessionStats",
+        "title": "Reveal session-stats.json",
+        "category": "TokenForge",
+        "icon": "$(graph-line)"
+      },
+      {
         "command": "tokenforge.enrichInstructions",
         "title": "Enrich instruction paths (optional LLM)",
         "category": "TokenForge",
@@ -156,14 +168,19 @@
           "group": "navigation@3"
         },
         {
+          "command": "tokenforge.revealSessionStats",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "navigation@4"
+        },
+        {
           "command": "tokenforge.clearFilters",
           "when": "view == tokenforge.riskPanel",
-          "group": "navigation@4"
+          "group": "navigation@5"
         },
         {
           "command": "tokenforge.enrichInstructions",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "navigation@5"
+          "group": "navigation@6"
         }
       ],
       "view/item/context": [

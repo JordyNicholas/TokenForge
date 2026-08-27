@@ -35,7 +35,7 @@ function workspaceRoot(): string {
   return folder.uri.fsPath;
 }
 
-function repoLabel(root: string): string {
+export function repoLabel(root: string): string {
   const configured = workspace.getConfiguration("tokenforge").get<string>("repo");
   if (configured && configured.trim().length > 0) {
     return configured.trim();
@@ -44,7 +44,7 @@ function repoLabel(root: string): string {
   return parts[parts.length - 1] ?? "workspace";
 }
 
-function teamLabel(): string {
+export function teamLabel(): string {
   const team = workspace.getConfiguration("tokenforge").get<string>("team");
   return team && team.trim().length > 0 ? team.trim() : "default";
 }

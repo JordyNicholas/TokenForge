@@ -88,6 +88,7 @@ export { collapseExclusionPaths } from "./policy/collapse";
 export { activePathSet, isActivePath } from "./policy/active";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
+export { isSessionStatsReport } from "./report/sessionStats";
 export { primaryReason, scoreRisk } from "./score/score";
 export {
   isUsageMetrics,
@@ -122,6 +123,8 @@ export type {
   TokenRiskFinding,
   TokenRiskReport,
   TokenRiskTotals,
+  SessionStatsHistoryEntry,
+  SessionStatsReport,
 } from "./domain/types";
 export type {
   UsageMetrics,

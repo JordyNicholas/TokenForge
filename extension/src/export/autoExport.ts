@@ -1,6 +1,7 @@
 import type { ExtensionContext } from "vscode";
-import { writeLastScan } from "./writeLastScan";
 import type { RiskSession } from "../session/riskSession";
+import { writeLastScan } from "./writeLastScan";
+import { writeSessionStats } from "./writeSessionStats";
 
 const DEFAULT_DEBOUNCE_MS = 800;
 
@@ -21,7 +22,7 @@ export function startAutoExport(
     }
     timer = setTimeout(() => {
       timer = undefined;
-      void writeLastScan(session).catch(() => {
+      void Promise.all([writeLastScan(session), writeSessionStats(session)]).catch(() => {
         /* ignore missing workspace during activate; manual export still surfaces errors */
       });
     }, debounceMs);

@@ -204,3 +204,20 @@ export type TokenRiskReport = {
    */
   activePaths?: string[];
 };
+
+/** Extension session Prove handoff — cumulative Filter savings this IDE window. */
+export type SessionStatsHistoryEntry = {
+  path: string;
+  estTokens: number;
+  reason: FindingReason;
+  filteredAt: string;
+};
+
+export type SessionStatsReport = {
+  source: "extension";
+  timestamp: string;
+  repo: string;
+  team: string;
+  sessionAvoidedTokens: number;
+  sessionHistory: SessionStatsHistoryEntry[];
+};

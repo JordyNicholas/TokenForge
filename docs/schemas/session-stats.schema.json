@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokenforge.dev/schema/session-stats/v1",
+  "title": "TokenForge session stats (v1)",
+  "description": "Extension session Prove handoff written as .tokenforge/session-stats.json. Cumulative Filter savings for the current IDE window — survives closed tabs until Restore or Clear.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "timestamp",
+    "repo",
+    "team",
+    "sessionAvoidedTokens",
+    "sessionHistory"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "const": "extension"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "team": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sessionAvoidedTokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sessionHistory": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/historyEntry"
+      }
+    }
+  },
+  "$defs": {
+    "historyEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "estTokens", "reason", "filteredAt"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "estTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "inactive_tab",
+            "high_risk_filetype",
+            "oversized",
+            "semantic_bloat",
+            "redundant_instructions",
+            "low_signal_config",
+            "duplicate_logic",
+            "redundant_config"
+          ]
+        },
+        "filteredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}
