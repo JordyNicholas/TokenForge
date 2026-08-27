@@ -4,7 +4,7 @@ import { workspace } from "vscode";
 export type ExtensionLlmSettings = {
   /** When false, enrichment command refuses to run (heuristic-first default). */
   enrichmentEnabled: boolean;
-  /** Same shape as CLI `--llm` (e.g. `ollama:qwen2.5-coder:7b`, `anthropic:…`, `codex`). */
+  /** Same shape as CLI `--llm` (e.g. `ollama:qwen2.5-coder:7b`, `anthropic:…`, `codex`, `claude-code`). */
   llm: string;
   endpoint?: string;
   timeoutSeconds?: number;
@@ -28,6 +28,21 @@ export function readLlmSettings(): ExtensionLlmSettings {
   };
 }
 
+/**
+ * Backends that send candidate excerpts off this machine, and so need
+ * `tokenforge.allowExternalLlm`.
+ *
+ * Listed as an allowlist of *local* backends rather than of external ones: a
+ * new backend added to `LlmBackendId` is external until someone says otherwise,
+ * which is the safe direction to be wrong in. `claude-code` is external for the
+ * same reason `codex` is — a CLI signed in to a vendor account is still the
+ * network.
+ */
+const LOCAL_BACKENDS: ReadonlySet<LlmBackendId> = new Set<LlmBackendId>([
+  "noop",
+  "ollama",
+]);
+
 export function isExternalBackend(backend: LlmBackendId): boolean {
-  return backend === "anthropic" || backend === "codex";
+  return !LOCAL_BACKENDS.has(backend);
 }
