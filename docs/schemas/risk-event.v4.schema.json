@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tokenforge.dev/schema/risk-event/v5",
-  "title": "TokenForge Token Risk report (v5)",
-  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v5 is a strict superset of v4 (risk-event.v4.schema.json, frozen): it adds the claude-code LLM backend, which drives the Claude Code CLI on its saved subscription login instead of an ANTHROPIC_API_KEY. Every valid v0/v1/v2/v3/v4 report is still valid here.",
+  "$id": "https://tokenforge.dev/schema/risk-event/v4",
+  "title": "TokenForge Token Risk report (v4)",
+  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v4 is a strict superset of v3 (risk-event.v3.schema.json, frozen): it adds the optional activePaths array, the paths a developer had open when the report was produced. Every valid v0/v1/v2/v3 report is still valid here.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -214,8 +214,7 @@
                 "noop",
                 "ollama",
                 "codex",
-                "anthropic",
-                "claude-code"
+                "anthropic"
               ]
             },
             "model": {

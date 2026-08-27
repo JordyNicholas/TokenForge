@@ -43,6 +43,7 @@ const LLM_BACKENDS = new Set<LlmBackendId>([
   "ollama",
   "codex",
   "anthropic",
+  "claude-code",
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
