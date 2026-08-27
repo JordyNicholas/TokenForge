@@ -3,9 +3,14 @@ import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
 import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { revealSessionStats } from "./export/revealSessionStats";
-import { writeLastScan } from "./export/writeLastScan";
+import { writeLastScan, resolveWorkspaceRoot } from "./export/writeLastScan";
 import { writeSessionStats } from "./export/writeSessionStats";
-import { runAutoFilter, toggleAutoFilterHighRisk, isAutoFilterEnabled, setAutoFilterHighRisk } from "./filter/autoFilterSettings";
+import {
+  runAutoFilter,
+  toggleAutoFilterHighRisk,
+  isAutoFilterEnabled,
+  setAutoFilterHighRisk,
+} from "./filter/autoFilterSettings";
 import { DurableFilterPersistence } from "./filter/durableFilterPersistence";
 import {
   isDurableFilterEnabled,
@@ -19,9 +24,28 @@ import { trackTabs } from "./tabs/trackTabs";
 import { createRiskPanel, RISK_PANEL_VIEW_ID, type RiskTabItem } from "./ui/riskPanel";
 import { createRiskPulse } from "./ui/riskPulseView";
 import { createStatusBar } from "./ui/statusBar";
-import { resolveWorkspaceRoot } from "./export/writeLastScan";
+import { syncWorkspaceEligibleContext, watchWorkspaceEligibility } from "./workspace/workspaceContext";
 
-export function activate(context: ExtensionContext): void {
+export async function activate(context: ExtensionContext): Promise<void> {
+  let contextGuardStarted = false;
+
+  const maybeStartContextGuard = async (): Promise<void> => {
+    const eligible = await syncWorkspaceEligibleContext();
+    if (!eligible || contextGuardStarted) {
+      return;
+    }
+    contextGuardStarted = true;
+    startContextGuard(context);
+  };
+
+  watchWorkspaceEligibility(context, () => {
+    void maybeStartContextGuard();
+  });
+
+  await maybeStartContextGuard();
+}
+
+function startContextGuard(context: ExtensionContext): void {
   const registry = new TabRegistry();
   const filters = new TabFilterStore();
   const durable = new DurableFilterPersistence();
@@ -119,7 +143,6 @@ export function activate(context: ExtensionContext): void {
         void window.showWarningMessage("Select a filtered tab in the TokenForge panel.");
         return;
       }
-      // Keep — not pending — so opt-in auto-filter does not immediately re-filter.
       session.keep(uri);
     },
   );

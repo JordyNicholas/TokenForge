@@ -40,12 +40,14 @@
       "tokenforge": [
         {
           "id": "tokenforge.riskPanel",
-          "name": "At-risk tabs"
+          "name": "At-risk tabs",
+          "when": "tokenforge.workspaceEligible"
         },
         {
           "id": "tokenforge.riskPulse",
           "name": "Risk pulse",
-          "type": "webview"
+          "type": "webview",
+          "when": "tokenforge.workspaceEligible"
         }
       ]
     },
@@ -230,6 +232,17 @@
           "default": false,
           "scope": "resource",
           "description": "Workspace-only. When enabled, Keep/Filter decisions persist in .tokenforge/filter-decisions.json until Restore or Clear. User/global values are ignored."
+        },
+        "tokenforge.workspaceMode": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "always",
+            "git-only",
+            "manifest-only"
+          ],
+          "description": "When TokenForge activates for a folder workspace. auto: git repo or root project manifest (package.json, pom.xml, go.mod, …). always: any folder. git-only / manifest-only: stricter subsets."
         },
         "tokenforge.team": {
           "type": "string",
