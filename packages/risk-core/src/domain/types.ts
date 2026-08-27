@@ -67,7 +67,8 @@ export type LlmBackendId =
   | "codex"
   | "anthropic"
   | "claude-code"
-  | "gemini-cli";
+  | "gemini-cli"
+  | "cursor-cli";
 
 export type FiletypeRiskClass =
   | "lockfile"

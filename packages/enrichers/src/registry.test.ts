@@ -3,6 +3,7 @@ import {
   anthropicEnricher,
   claudeCodeEnricher,
   codexEnricher,
+  cursorCliEnricher,
   geminiCliEnricher,
   getEnricher,
   ollamaEnricher,
@@ -30,5 +31,9 @@ describe("getEnricher", () => {
 
   it("returns Gemini CLI enricher", () => {
     expect(getEnricher("gemini-cli")).toBe(geminiCliEnricher);
+  });
+
+  it("returns Cursor CLI enricher", () => {
+    expect(getEnricher("cursor-cli")).toBe(cursorCliEnricher);
   });
 });

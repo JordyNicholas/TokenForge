@@ -45,15 +45,15 @@ Options:
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
                         noop (default) | ollama:<model> | anthropic:<model> |
-                        codex | claude-code | gemini-cli. The CLI backends take no model:
+                        codex | claude-code | gemini-cli | cursor-cli. The CLI backends take no model:
                         they use whatever that CLI is signed in and configured
-                        with. e.g. ollama:qwen2.5-coder:7b, claude-code, gemini-cli
+                        with. e.g. ollama:qwen2.5-coder:7b, cursor-cli, gemini-cli
   --llm-endpoint <url>  Override Ollama/Anthropic API base URL
-                        (rejected by codex, claude-code, and gemini-cli: the CLI owns it)
+                        (rejected by codex, claude-code, gemini-cli, and cursor-cli)
   --llm-timeout <sec>   Per-batch timeout in seconds
-                        (Ollama: 900; Codex: 120; Claude Code: 180; Gemini CLI: 120)
+                        (Ollama: 900; Codex/Gemini: 120; Claude/Cursor: 180)
   --allow-external      Confirm that bounded source excerpts may leave this
-                        machine (required by anthropic, codex, claude-code, gemini-cli)
+                        machine (required by anthropic and all CLI backends above)
   --active-paths-file <p>  Report (e.g. .tokenforge/last-scan.json) or JSON array of
                         open paths. Those files are reported but never proposed
                         for exclusion. Not auto-detected: a stale export would

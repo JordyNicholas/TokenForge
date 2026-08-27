@@ -70,6 +70,11 @@ For hybrid enrichment with a signed-in Gemini CLI:
 > Run `tokenforge_scan` with `mode: "hybrid"`, `llm: "gemini-cli"`, and
 > `allowExternal: true`.
 
+For hybrid enrichment with Cursor CLI (no Ollama or other vendor CLIs):
+
+> Run `tokenforge_scan` with `mode: "hybrid"`, `llm: "cursor-cli"`, and
+> `allowExternal: true`.
+
 ## Boundaries
 
 - TokenForge does **not** intercept any vendor Chat/Agent private context pipeline.

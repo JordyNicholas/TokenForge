@@ -216,7 +216,8 @@
                 "codex",
                 "anthropic",
                 "claude-code",
-                "gemini-cli"
+                "gemini-cli",
+                "cursor-cli"
               ]
             },
             "model": {

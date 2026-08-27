@@ -48,6 +48,17 @@ describe("parseLlmSpec", () => {
     });
   });
 
+  it("uses the Cursor-CLI-configured model unless one is explicitly provided", () => {
+    expect(parseLlmSpec("cursor-cli")).toEqual({
+      backend: "cursor-cli",
+      model: "default",
+    });
+    expect(parseLlmSpec("cursor-cli:composer-2.5")).toEqual({
+      backend: "cursor-cli",
+      model: "composer-2.5",
+    });
+  });
+
   it("does not confuse claude-code with the API-key anthropic backend", () => {
     expect(parseLlmSpec("anthropic:claude-opus-5")).toEqual({
       backend: "anthropic",

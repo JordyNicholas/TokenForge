@@ -14,6 +14,7 @@ covers "what do I set to make `--llm <backend>:<model>` work."
 | `anthropic` | Best semantic judgment for redundant/contradictory agent instructions; cloud cost per call, short 120s default timeout so failures surface fast. |
 | `codex` | Uses the installed Codex CLI and the user's saved ChatGPT login; no API key is handled by TokenForge. |
 | `claude-code` | Same judgment as `anthropic`, billed against a Claude Pro/Max plan instead of an API key. Uses the installed Claude Code CLI and its saved login. |
+| `cursor-cli` | Uses the installed Cursor CLI (`agent`) and Cursor login or `CURSOR_API_KEY`; best when you already work in Cursor and do not run Ollama or other vendor CLIs. |
 
 ## `noop`
 
@@ -137,3 +138,31 @@ ChatGPT login with usage-based authentication.
 ```bash
 tokenforge scan . --mode hybrid --llm codex:gpt-5.6-sol --allow-external
 ```
+
+## `cursor-cli` (Cursor account through Cursor CLI)
+
+```bash
+curl https://cursor.com/install -fsS | bash
+agent login
+tokenforge scan . --mode hybrid --llm cursor-cli --allow-external
+```
+
+- Install the [Cursor CLI](https://cursor.com/docs/cli/overview) and sign in
+  once with `agent login`, or set `CURSOR_API_KEY` for automation/CI.
+- `--llm cursor-cli` uses the default Cursor model for the account. Use
+  `--llm cursor-cli:<model>` for an explicit per-scan override, e.g.
+  `--llm cursor-cli:composer-2.5`.
+- `--allow-external` — explicit confirmation that bounded source excerpts may be
+  sent to Cursor's hosted models. Without it, TokenForge prints a privacy
+  warning and exits before starting the CLI.
+- `--llm-timeout <sec>` — per-batch timeout in seconds (default 180).
+- `TOKENFORGE_CURSOR_CLI_TIMEOUT_MS` — env var fallback for the same timeout.
+- `TOKENFORGE_CURSOR_CLI_PATH` — path to the executable when it is not `agent`
+  on `PATH`.
+- `--llm-endpoint` is **rejected**: the CLI owns its own connection.
+
+TokenForge invokes `agent -p` non-interactively with `--output-format json`,
+`--mode ask`, and `--trust`, from a **new empty temporary workspace** passed to
+`--workspace`. The scanned repository is never the workspace: otherwise
+`.cursor/rules`, MCP servers, and `AGENTS.md` from that repo could configure
+the agent analyzing it. `--force` / `--yolo` are never passed.

@@ -5,10 +5,13 @@ export {
   CLAUDE_CODE_BATCH_SIZE,
   CODEX_BATCH_SIZE,
   CODEX_STATUS_TIMEOUT_MS,
+  CURSOR_CLI_BATCH_SIZE,
+  CURSOR_CLI_STATUS_TIMEOUT_MS,
   DEFAULT_ANTHROPIC_ENDPOINT,
   DEFAULT_ANTHROPIC_TIMEOUT_MS,
   DEFAULT_CLAUDE_CODE_TIMEOUT_MS,
   DEFAULT_CODEX_TIMEOUT_MS,
+  DEFAULT_CURSOR_CLI_TIMEOUT_MS,
   DEFAULT_GEMINI_CLI_TIMEOUT_MS,
   GEMINI_CLI_BATCH_SIZE,
   GEMINI_CLI_STATUS_TIMEOUT_MS,
@@ -21,6 +24,7 @@ export {
   MIN_ANTHROPIC_TIMEOUT_MS,
   MIN_CLAUDE_CODE_TIMEOUT_MS,
   MIN_CODEX_TIMEOUT_MS,
+  MIN_CURSOR_CLI_TIMEOUT_MS,
   MIN_GEMINI_CLI_TIMEOUT_MS,
   MIN_OLLAMA_TIMEOUT_MS,
   OLLAMA_BATCH_SIZE,
@@ -32,6 +36,7 @@ export {
   resolveAnthropicTimeoutMs,
   resolveClaudeCodeTimeoutMs,
   resolveCodexTimeoutMs,
+  resolveCursorCliTimeoutMs,
   resolveGeminiCliTimeoutMs,
   resolveOllamaTimeoutMs,
 } from "./limits";
@@ -41,6 +46,10 @@ export {
   createClaudeCodeEnricher,
 } from "./claude-code/claude-code";
 export { codexEnricher, createCodexEnricher } from "./codex/codex";
+export {
+  createCursorCliEnricher,
+  cursorCliEnricher,
+} from "./cursor-cli/cursor-cli";
 export {
   createGeminiCliEnricher,
   geminiCliEnricher,

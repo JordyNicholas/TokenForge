@@ -229,6 +229,7 @@ type LlmEnricher = {
 | `anthropic` | Anthropic Messages API | Org-approved cloud; `ANTHROPIC_API_KEY` |
 | `claude-code` | Local Claude Code CLI process | Reuses the user's saved subscription login |
 | `gemini-cli` | Local Gemini CLI process | Reuses the user's saved Google login |
+| `cursor-cli` | Local Cursor CLI (`agent`) process | Reuses Cursor login or `CURSOR_API_KEY` |
 
 `anthropic` and `claude-code` reach the same models and differ only in **who
 pays**: an API key billed per call, versus a Claude Pro/Max plan. That is the
@@ -281,6 +282,8 @@ tokenforge scan . --mode hybrid --llm claude-code --allow-external
 tokenforge scan . --mode hybrid --llm claude-code:claude-opus-5 --allow-external
 tokenforge scan . --mode hybrid --llm gemini-cli --allow-external
 tokenforge scan . --mode hybrid --llm gemini-cli:gemini-2.5-flash --allow-external
+tokenforge scan . --mode hybrid --llm cursor-cli --allow-external
+tokenforge scan . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
 ```
 
 Environment (external backends):
@@ -288,6 +291,7 @@ Environment (external backends):
 - Codex uses the authentication saved by `codex login`; TokenForge does not read API keys.
 - Claude Code uses the login saved by `claude` / `/login`; TokenForge does not read API keys.
 - Gemini CLI uses the Google login saved by `gemini`; TokenForge strips `GEMINI_API_KEY` / `GOOGLE_API_KEY` from the child environment.
+- Cursor CLI uses `agent login` or `CURSOR_API_KEY`; excerpts bill against the Cursor account.
 - `ANTHROPIC_API_KEY` remains the existing configuration for the Anthropic adapter.
 - `TOKENFORGE_LLM_ENDPOINT` remains an override for HTTP-based adapters.
 
@@ -353,6 +357,7 @@ Prompt rules forbid architecture, API, or product refactors.
 | `hybrid` + `anthropic` | Yes — candidate excerpts | Per-provider API usage |
 | `hybrid` + `claude-code` | Yes — candidate excerpts via Claude Code CLI | Claude plan limits |
 | `hybrid` + `gemini-cli` | Yes — candidate excerpts via Gemini CLI | Google/Gemini plan limits |
+| `hybrid` + `cursor-cli` | Yes — candidate excerpts via Cursor CLI | Cursor plan / API usage |
 
 UX/docs must state this before external enrichment runs. Do **not** auto-edit
 `AGENTS.md` / vendor rules from LLM suggestions. `apply` synthesizes the

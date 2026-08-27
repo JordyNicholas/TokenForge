@@ -248,7 +248,7 @@ describe("Token Risk JSON schema", () => {
       scan: { ...hybrid.scan, llm: { ...hybrid.scan.llm, backend } },
     });
 
-    for (const backend of ["noop", "ollama", "codex", "anthropic", "claude-code", "gemini-cli"]) {
+    for (const backend of ["noop", "ollama", "codex", "anthropic", "claude-code", "gemini-cli", "cursor-cli"]) {
       expect(validate(withBackend(backend))).toBe(true);
       expect(isTokenRiskReport(withBackend(backend))).toBe(true);
     }

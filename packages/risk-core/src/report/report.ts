@@ -45,6 +45,7 @@ const LLM_BACKENDS = new Set<LlmBackendId>([
   "anthropic",
   "claude-code",
   "gemini-cli",
+  "cursor-cli",
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -3,6 +3,7 @@ import { UsageError } from "./errors";
 import { anthropicEnricher } from "./anthropic/anthropic";
 import { claudeCodeEnricher } from "./claude-code/claude-code";
 import { codexEnricher } from "./codex/codex";
+import { cursorCliEnricher } from "./cursor-cli/cursor-cli";
 import { geminiCliEnricher } from "./gemini-cli/gemini-cli";
 import { noopEnricher } from "./noop/noop";
 import { ollamaEnricher } from "./ollama/ollama";
@@ -27,6 +28,9 @@ export function getEnricher(id: LlmBackendId): LlmEnricher {
   }
   if (id === "gemini-cli") {
     return geminiCliEnricher;
+  }
+  if (id === "cursor-cli") {
+    return cursorCliEnricher;
   }
   throw new UsageError(`Unknown LLM backend "${id}".`);
 }

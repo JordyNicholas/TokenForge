@@ -138,6 +138,41 @@ export function resolveGeminiCliTimeoutMs(overrideMs?: number): number {
   return DEFAULT_GEMINI_CLI_TIMEOUT_MS;
 }
 
+/**
+ * Default Cursor CLI timeout per batch. Matches Claude Code's budget because
+ * `agent -p` boots a full agent session before the first token.
+ */
+export const DEFAULT_CURSOR_CLI_TIMEOUT_MS = 180_000;
+
+/** Minimum timeout accepted via CLI/env for Cursor CLI. */
+export const MIN_CURSOR_CLI_TIMEOUT_MS = 10_000;
+
+/** Authentication detection should fail quickly and never receive source excerpts. */
+export const CURSOR_CLI_STATUS_TIMEOUT_MS = 10_000;
+
+/** Candidates sent to each non-interactive Cursor CLI run. */
+export const CURSOR_CLI_BATCH_SIZE = 4;
+
+export function resolveCursorCliTimeoutMs(overrideMs?: number): number {
+  if (
+    overrideMs !== undefined &&
+    Number.isFinite(overrideMs) &&
+    overrideMs >= MIN_CURSOR_CLI_TIMEOUT_MS
+  ) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_CURSOR_CLI_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_CURSOR_CLI_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_CURSOR_CLI_TIMEOUT_MS;
+}
+
 export function resolveClaudeCodeTimeoutMs(overrideMs?: number): number {
   if (
     overrideMs !== undefined &&
