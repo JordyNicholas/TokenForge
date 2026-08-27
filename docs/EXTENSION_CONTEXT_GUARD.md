@@ -94,7 +94,8 @@ ignore files — it only updates the Detect estimate and `last-scan.json`.
 ## Export / Prove handoff
 
 - Path: `.tokenforge/last-scan.json` (workspace folder)
-- Contract: Token Risk v2 ([`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json))
+- Contract: Token Risk ([`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json),
+  `$id`: `https://tokenforge.dev/schema/risk-event/v5`)
 - `source: "extension"`; validated with `isTokenRiskReport`
 - **Auto-export** debounces on session changes; skips rewrite when findings/totals
   are unchanged (timestamp-only churn does not touch disk)

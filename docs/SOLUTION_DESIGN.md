@@ -37,7 +37,7 @@ or a vendor:
 
 | Port | Role |
 | --- | --- |
-| Token Risk JSON (v0, below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
+| Token Risk JSON (below) | Integration contract. Findings, totals, and `provider` as **data**. Written by Detect/Fix; read by Prove. |
 | Provider-adapter interface (CLI) | Fix-out port. Same findings → vendor-native instruction/exclusion files. |
 | LLM-enricher interface (CLI) | Optional Detect enrichment. Heuristic findings + semantic LLM findings → merged report. |
 | UsageProvider interface (CLI) | Prove usage in-port. `fetchUsage({ org, period, teamScope }) → UsageMetrics`. Fixture/file first; live vendor adapters later. Dashboard stays vendor-blind. |
@@ -98,18 +98,23 @@ TokenForge/
     └── src/{domain,data,state,pages,ui}/
 ```
 
-## JSON contract (v2)
+## JSON contract
 
 Formal schema (shared by CLI scan-report, extension last-scan export, and dashboard loader):
 [`docs/schemas/risk-event.schema.json`](./schemas/risk-event.schema.json)
-(`$id`: `https://tokenforge.dev/schema/risk-event/v2`).
+(`$id`: `https://tokenforge.dev/schema/risk-event/v5`).
 Example document: [`docs/schemas/examples/scan-report.v0.json`](./schemas/examples/scan-report.v0.json).
 
-v2 is a **strict superset** of v1: it only adds the `consolidate_duplicates`
-suggestion kind (for `duplicate_logic` advice). v1 remains a strict superset of
-v0 (`duplicate_logic` reason). Frozen predecessors:
-[`risk-event.v0.schema.json`](./schemas/risk-event.v0.schema.json),
-[`risk-event.v1.schema.json`](./schemas/risk-event.v1.schema.json).
+Each version is a **strict superset** of the one before, so a report written by an
+older surface still validates against the live schema — the reverse does not hold.
+Every predecessor is frozen beside it as `risk-event.v<N>.schema.json`, and the
+per-version deltas are recorded where the field was introduced:
+[`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) and
+[`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md).
+
+The `$id` above is the **only** place this document names a version, and a
+`risk-core` test asserts it matches `TOKEN_RISK_REPORT_SCHEMA_ID`. Prose that
+enumerates the newest delta is what went stale across three bumps before.
 
 ```json
 {
