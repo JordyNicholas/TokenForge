@@ -118,4 +118,65 @@ describe("RiskSession", () => {
     const approaching = session.listApproachingIdle(now);
     expect(approaching.map((tab) => tab.path)).toEqual(["src/app.ts"]);
   });
+
+  it("accumulates session avoided separately from live at-risk", () => {
+    const registry = new TabRegistry();
+    const filters = new TabFilterStore();
+    const session = new RiskSession(registry, filters);
+    const now = Date.now();
+
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+    registry.upsert(
+      "file:///bundle",
+      { path: "dist/bundle.js", bytes: 8_000, focus: true },
+      now,
+    );
+
+    session.filter("file:///lock");
+    expect(session.sessionAvoidedTokens()).toBe(estimateTokens(4_000));
+    expect(session.displayAtRiskTokens(now)).toBe(estimateTokens(8_000));
+
+    // Tab close clears the live filter decision but not session history.
+    filters.clear("file:///lock");
+    registry.remove("file:///lock");
+
+    expect(session.displayAtRiskTokens(now)).toBe(estimateTokens(8_000));
+    expect(session.sessionAvoidedTokens()).toBe(estimateTokens(4_000));
+    expect(session.sessionHistory()).toHaveLength(1);
+    expect(session.sessionHistory()[0]?.path).toBe("package-lock.json");
+  });
+
+  it("restore and clear decisions adjust the session ledger", () => {
+    const registry = new TabRegistry();
+    const session = new RiskSession(registry);
+    const now = Date.now();
+
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+    registry.upsert(
+      "file:///bundle",
+      { path: "dist/bundle.js", bytes: 8_000, focus: true },
+      now,
+    );
+
+    session.filter("file:///lock");
+    session.filter("file:///bundle");
+    expect(session.sessionAvoidedTokens()).toBe(
+      estimateTokens(4_000) + estimateTokens(8_000),
+    );
+
+    session.keep("file:///lock");
+    expect(session.sessionAvoidedTokens()).toBe(estimateTokens(8_000));
+
+    session.clearAllDecisions();
+    expect(session.sessionAvoidedTokens()).toBe(0);
+    expect(session.sessionHistory()).toHaveLength(0);
+  });
 });

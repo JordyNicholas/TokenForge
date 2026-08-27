@@ -52,8 +52,14 @@ class RiskPulseProvider implements WebviewViewProvider {
       return;
     }
     const model = this.session.pulse();
+    const sessionAvoided = this.session.sessionAvoidedTokens();
     const autoFilterOn = isAutoFilterEnabled();
-    this.view.webview.html = renderPulseHtml(this.view.webview, model, autoFilterOn);
+    this.view.webview.html = renderPulseHtml(
+      this.view.webview,
+      model,
+      autoFilterOn,
+      sessionAvoided,
+    );
     this.view.description = autoFilterOn ? "Auto-filter on" : undefined;
     this.view.badge = hasTokenReduction(model)
       ? {
@@ -87,11 +93,19 @@ function renderPulseHtml(
   webview: Webview,
   model: RiskPulseModel,
   autoFilterOn: boolean,
+  sessionAvoided: number,
 ): string {
   const { totals, segments, displayAtRiskTokens } = model;
   const before = Math.max(totals.beforeTokens, 1);
   const csp = webview.cspSource;
   const showReduction = hasTokenReduction(model);
+  const sessionKpi =
+    sessionAvoided > 0
+      ? `<div class="kpi session">
+    <div><span class="label">Session saved</span><span class="value">${formatTokenCount(sessionAvoided)}</span></div>
+  </div>
+  <p class="hint session-hint">Cumulative Filter savings this window — survives closed tabs. Estimate hygiene only, not agent interception.</p>`
+      : "";
 
   const segmentRows = segments
     .slice(0, 8)
@@ -194,7 +208,7 @@ function renderPulseHtml(
       gap: 8px;
       margin: 10px 0 14px;
     }
-    .kpi.single { grid-template-columns: 1fr; }
+    .kpi.single, .kpi.session { grid-template-columns: 1fr; }
     .kpi div {
       padding: 8px 6px;
       border: 1px solid var(--border);
@@ -233,11 +247,13 @@ function renderPulseHtml(
     .tag.kept { color: var(--kept); }
     .tag.risk { color: var(--risk); }
     .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 10px 0 14px; }
+    .hint.session-hint { margin-top: -8px; margin-bottom: 16px; font-size: 11px; }
     .foot { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.35; }
   </style>
 </head>
 <body>
   ${autoBanner}
+  ${sessionKpi}
   <h1>${showReduction ? "Token reduction" : "Context risk"}</h1>
   ${bodyMain}
   <p class="foot">Live from open tabs + Keep/Filter. Same math as last-scan.json. Hygiene advice only — not agent interception.</p>

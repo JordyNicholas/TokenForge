@@ -31,6 +31,14 @@ export class TabRegistry {
     return this.activeUri;
   }
 
+  get(uri: string, nowMs: number = Date.now()): TrackedTab | undefined {
+    const tab = this.tabs.get(uri);
+    if (!tab) {
+      return undefined;
+    }
+    return this.rescore(tab, nowMs);
+  }
+
   upsert(uri: string, input: InputSnapshot, nowMs: number = Date.now()): TrackedTab {
     const existing = this.tabs.get(uri);
     let lastFocusAt = existing?.lastFocusAt ?? nowMs;
