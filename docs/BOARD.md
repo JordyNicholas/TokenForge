@@ -28,6 +28,7 @@ Phase 2. Former catch-all #7 was split:
 | F2 Prove at org scale | #61 | Future | **Epics Finished** (Wave C / #99–#100 remain as follow-on stories; epic closed) |
 | F3 Adjacent (do not pitch) | #62 | Future | **Epics Finished** |
 | F4 Extension session Prove & provider CLI transports | #156 | Future | **To-Do** (open) |
+| F5 RTK-inspired native product patterns | #177 | Future | **To-Do** (open; #176 **Done**) |
 
 F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 #136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
@@ -226,19 +227,19 @@ sub-issues of #156.
 
 Build order when prioritized: **#157 + #158** first → #159 / #160 → (#161 ∥ #162).
 
-### RTK-inspired backlog (native patterns; no RTK dependency)
+### F5 — RTK-inspired native product patterns (#177)
 
-Concepts borrowed from [rtk-ai/rtk](https://github.com/rtk-ai/rtk) **product patterns** — measurement, discovery, defaults, honest tiers — applied at TokenForge's layer (context policy + Prove), not runtime bash compression. **Not scheduled until prioritized.** Label: `rtk-inspired`.
+Concepts borrowed from [rtk-ai/rtk](https://github.com/rtk-ai/rtk) **product patterns** — measurement, discovery, defaults, honest tiers — applied at TokenForge's layer (context policy + Prove), not runtime bash compression. **Not scheduled until prioritized.** Sub-issues of #177; label: `rtk-inspired`.
 
-| Issue | Title | RTK analogue | Surface |
-| --- | --- | --- | --- |
-| #170 | Detect: discover missed savings opportunities | `rtk discover` | Extension / CLI |
-| #171 | Core: output-shape file classes (CI/test/build artifacts) | Command-family filters | `risk-core` |
-| #172 | Fix: lean-instruction compact-output snippets | `rtk test` / `rtk err` guidance | CLI adapters |
-| #173 | Prove: in-product honest savings tiers UI | “How savings work” dilution | Extension / dashboard |
-| #174 | Prove: adoption metrics (session + repo coverage) | `rtk session` | Extension / dashboard |
-| #175 | CLI: `tokenforge init` one-shot repo setup | `rtk init -g` | CLI |
-| #176 | Docs: index RTK-inspired backlog in BOARD.md | — | Docs |
+| Issue | Title | RTK analogue | Surface | Status |
+| --- | --- | --- | --- | --- |
+| #170 | Detect: discover missed savings opportunities | `rtk discover` | Extension / CLI | To-Do |
+| #171 | Core: output-shape file classes (CI/test/build artifacts) | Command-family filters | `risk-core` | To-Do |
+| #172 | Fix: lean-instruction compact-output snippets | `rtk test` / `rtk err` guidance | CLI adapters | To-Do |
+| #173 | Prove: in-product honest savings tiers UI | “How savings work” dilution | Extension / dashboard | To-Do |
+| #174 | Prove: adoption metrics (session + repo coverage) | `rtk session` | Extension / dashboard | To-Do |
+| #175 | CLI: `tokenforge init` one-shot repo setup | `rtk init -g` | CLI | To-Do |
+| #176 | Docs: index RTK-inspired backlog in BOARD.md | — | Docs | **Done** |
 
 **Cross-refs (same ideas, already filed under F4):**
 
@@ -279,7 +280,7 @@ Phase 2:
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
-5. **RTK-inspired** (#170–#176) — native patterns; see cross-refs to F4 above
+5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **Candidates** below — promote to issues when the team agrees scope
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md).
