@@ -38,6 +38,49 @@ describe("scanRepo (noisy-app)", () => {
     expect(report.layers?.llm.findings).toEqual([]);
   });
 
+  it("round-trips claude-code through the report contract", async () => {
+    // The enricher seam keeps this deterministic: the adapter itself is covered
+    // in packages/enrichers, and the real CLI in E2E_CLAUDE_CODE_ENRICH_TEST.md.
+    const enrich = vi.fn(async () => ({
+      findings: [
+        {
+          path: "AGENTS.md",
+          reason: "redundant_instructions" as const,
+          bytes: 900,
+          estTokens: 225,
+          action: "kept" as const,
+          source: "llm" as const,
+          confidence: 0.7,
+        },
+      ],
+      meta: {
+        backend: "claude-code" as const,
+        model: "default",
+        durationMs: 20_298,
+        candidatesSent: 12,
+      },
+    }));
+
+    const { report } = await scanRepo({
+      root: fixtureRoot,
+      mode: "hybrid",
+      enricher: { id: "claude-code", enrich },
+      now: new Date("2026-08-27T18:00:00.000Z"),
+    });
+
+    expect(enrich).toHaveBeenCalledOnce();
+    expect(isTokenRiskReport(report)).toBe(true);
+    expect(report.scan).toMatchObject({
+      mode: "hybrid",
+      llm: { backend: "claude-code", model: "default", candidatesSent: 12 },
+    });
+    // An llm-only path reaches the combined layer, not just the llm one.
+    expect(report.layers?.llm.findings).toHaveLength(1);
+    expect(report.findings.some((finding) => finding.path === "AGENTS.md")).toBe(
+      true,
+    );
+  });
+
   it("records hybrid scan metadata with the noop enricher", async () => {
     const { report } = await scanRepo({
       root: fixtureRoot,
@@ -113,5 +156,35 @@ describe("runCli scan", () => {
     expect(code).toBe(2);
     expect(captured.stderr).toContain("Privacy warning");
     expect(captured.stderr).toContain("--allow-external");
+  });
+
+  it("gates claude-code behind the same consent flag as codex", async () => {
+    // Both CLI backends spawn a signed-in process, so neither may start on the
+    // strength of the user having that CLI installed.
+    const captured = captureIo();
+
+    const code = await runCli(
+      ["scan", fixtureRoot, "--mode", "hybrid", "--llm", "claude-code"],
+      captured.io,
+    );
+
+    expect(code).toBe(2);
+    expect(captured.stderr).toContain("Privacy warning");
+    expect(captured.stderr).toContain("--allow-external");
+    // The gate must trip before anything is spawned, so a machine with no
+    // Claude Code installed still gets the consent message, not ENOENT.
+    expect(captured.stderr).not.toContain("not installed");
+  });
+
+  it("suggests claude-code when --llm claude is misspelled", async () => {
+    const captured = captureIo();
+
+    const code = await runCli(
+      ["scan", fixtureRoot, "--mode", "hybrid", "--llm", "claude"],
+      captured.io,
+    );
+
+    expect(code).toBe(2);
+    expect(captured.stderr).toContain('Did you mean "claude-code"?');
   });
 });
