@@ -179,4 +179,26 @@ describe("RiskSession", () => {
     expect(session.sessionAvoidedTokens()).toBe(0);
     expect(session.sessionHistory()).toHaveLength(0);
   });
+
+  it("rehydrate applies durable filter without double-counting the ledger", () => {
+    const registry = new TabRegistry();
+    const session = new RiskSession(registry);
+    const now = Date.now();
+
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+
+    session.filter("file:///lock");
+    expect(session.sessionAvoidedTokens()).toBe(estimateTokens(4_000));
+
+    session.clearDecision("file:///lock");
+    expect(session.sessionAvoidedTokens()).toBe(0);
+
+    session.rehydrate("file:///lock", "filtered");
+    expect(session.decision("file:///lock")).toBe("filtered");
+    expect(session.sessionAvoidedTokens()).toBe(0);
+  });
 });
