@@ -4,6 +4,11 @@ import { startAutoExport } from "./export/autoExport";
 import { revealLastScan } from "./export/revealLastScan";
 import { writeLastScan } from "./export/writeLastScan";
 import { runAutoFilter, toggleAutoFilterHighRisk, isAutoFilterEnabled, setAutoFilterHighRisk } from "./filter/autoFilterSettings";
+import { DurableFilterPersistence } from "./filter/durableFilterPersistence";
+import {
+  isDurableFilterEnabled,
+  toggleDurableFilterDecisions,
+} from "./filter/durableFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
 import { RiskSession } from "./session/riskSession";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
@@ -12,14 +17,29 @@ import { trackTabs } from "./tabs/trackTabs";
 import { createRiskPanel, RISK_PANEL_VIEW_ID, type RiskTabItem } from "./ui/riskPanel";
 import { createRiskPulse } from "./ui/riskPulseView";
 import { createStatusBar } from "./ui/statusBar";
+import { resolveWorkspaceRoot } from "./export/writeLastScan";
 
 export function activate(context: ExtensionContext): void {
   const registry = new TabRegistry();
   const filters = new TabFilterStore();
-  const session = new RiskSession(registry, filters);
+  const durable = new DurableFilterPersistence();
+  const session = new RiskSession(registry, filters, durable);
+
+  try {
+    const root = resolveWorkspaceRoot();
+    void durable.load(root).then(() => {
+      rehydrateDurableDecisions(session, registry, durable);
+    });
+  } catch {
+    /* no folder workspace yet */
+  }
 
   trackTabs(registry, context, {
-    onClose: (uri) => filters.clear(uri),
+    onClose: (uri) => {
+      if (!isDurableFilterEnabled()) {
+        filters.clear(uri);
+      }
+    },
   });
   startInactivityTimer(registry, context);
   startAutoExport(session, context);
@@ -27,15 +47,24 @@ export function activate(context: ExtensionContext): void {
   const syncAutoFilter = (): void => {
     runAutoFilter(session);
   };
+  const rehydrate = (): void => {
+    rehydrateDurableDecisions(session, registry, durable);
+  };
   context.subscriptions.push(
     session.onDidChange(syncAutoFilter),
+    registry.onDidChange(rehydrate),
     workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
         syncAutoFilter();
       }
+      if (event.affectsConfiguration("tokenforge.durableFilterDecisions")) {
+        rehydrate();
+      }
     }),
+    { dispose: () => durable.dispose() },
   );
   syncAutoFilter();
+  rehydrate();
   createRiskPanel(session, context);
   createRiskPulse(session, context);
   context.subscriptions.push(createStatusBar(session));
@@ -177,6 +206,19 @@ export function activate(context: ExtensionContext): void {
     },
   );
 
+  const toggleDurableFilter = commands.registerCommand(
+    "tokenforge.toggleDurableFilterDecisions",
+    async () => {
+      const enabled = await toggleDurableFilterDecisions();
+      rehydrate();
+      void window.showInformationMessage(
+        enabled
+          ? "Durable Filter on — Keep/Filter decisions persist in .tokenforge/ for this workspace."
+          : "Durable Filter off — closing a tab clears its decision (current behaviour).",
+      );
+    },
+  );
+
   context.subscriptions.push(
     keep,
     filter,
@@ -188,9 +230,29 @@ export function activate(context: ExtensionContext): void {
     toggleAutoFilter,
     enableAutoFilter,
     disableAutoFilter,
+    toggleDurableFilter,
     focusPanel,
     enrichInstructions,
   );
+}
+
+function rehydrateDurableDecisions(
+  session: RiskSession,
+  registry: TabRegistry,
+  durable: DurableFilterPersistence,
+): void {
+  if (!isDurableFilterEnabled()) {
+    return;
+  }
+  for (const tab of registry.list()) {
+    if (session.decision(tab.uri) !== "pending") {
+      continue;
+    }
+    const stored = durable.get(tab.path);
+    if (stored) {
+      session.rehydrate(tab.uri, stored);
+    }
+  }
 }
 
 export function deactivate(): void {}

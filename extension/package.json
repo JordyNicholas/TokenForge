@@ -116,6 +116,12 @@
         "category": "TokenForge"
       },
       {
+        "command": "tokenforge.toggleDurableFilterDecisions",
+        "title": "Toggle Durable Filter Decisions",
+        "category": "TokenForge",
+        "icon": "$(history)"
+      },
+      {
         "command": "tokenforge.enrichInstructions",
         "title": "Enrich instruction paths (optional LLM)",
         "category": "TokenForge",
@@ -201,6 +207,12 @@
           "default": false,
           "scope": "resource",
           "description": "Workspace-only. When enabled, automatically Filter pending lockfile and generated tabs (Restore/Keep overrides). User/global values are ignored."
+        },
+        "tokenforge.durableFilterDecisions": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Workspace-only. When enabled, Keep/Filter decisions persist in .tokenforge/filter-decisions.json until Restore or Clear. User/global values are ignored."
         },
         "tokenforge.team": {
           "type": "string",

@@ -1,4 +1,5 @@
 import { primaryReason } from "@tokenforge/risk-core";
+import type { DurableFilterPersistence } from "../filter/durableFilterPersistence";
 import { TabFilterStore } from "../filter/filterStore";
 import { isFiltered } from "../filter/types";
 import type { TabDecision } from "../filter/types";
@@ -9,6 +10,11 @@ import { buildRiskPulseModel, type RiskPulseModel } from "./riskPulse";
 import { SessionLedger, type SessionLedgerEntry } from "./sessionLedger";
 
 type ChangeListener = () => void;
+
+type FilterOptions = {
+  /** Skip session ledger — used when rehydrating durable decisions on tab open. */
+  skipLedger?: boolean;
+};
 
 /**
  * Composes tab scoring with Keep / Filter decisions for status bar + panel.
@@ -25,6 +31,7 @@ export class RiskSession {
   constructor(
     readonly registry: TabRegistry,
     readonly filters: TabFilterStore = new TabFilterStore(),
+    private readonly durable?: DurableFilterPersistence,
   ) {
     this.disposables.push(
       registry.onDidChange(() => this.notify()),
@@ -43,11 +50,24 @@ export class RiskSession {
     if (wasFiltered) {
       this.ledger.remove(uri);
     }
+    this.syncDurable(uri);
   }
 
-  filter(uri: string): void {
+  filter(uri: string, options: FilterOptions = {}): void {
     this.filters.set(uri, "filtered");
-    this.recordFilterInLedger(uri);
+    if (!options.skipLedger) {
+      this.recordFilterInLedger(uri);
+    }
+    this.syncDurable(uri);
+  }
+
+  /** Re-apply a stored workspace decision without counting a new Filter event. */
+  rehydrate(uri: string, decision: Exclude<TabDecision, "pending">): void {
+    if (decision === "filtered") {
+      this.filter(uri, { skipLedger: true });
+      return;
+    }
+    this.keep(uri);
   }
 
   clearDecision(uri: string): void {
@@ -56,11 +76,13 @@ export class RiskSession {
     if (wasFiltered) {
       this.ledger.remove(uri);
     }
+    this.syncDurable(uri);
   }
 
   clearAllDecisions(): void {
     this.filters.clearAll();
     this.ledger.clearAll();
+    this.durable?.clearAll();
   }
 
   /** Cumulative tokens avoided this window (Filter events, survives tab close). */
@@ -157,6 +179,17 @@ export class RiskSession {
     }
     this.disposables.length = 0;
     this.listeners.clear();
+  }
+
+  private syncDurable(uri: string): void {
+    if (!this.durable) {
+      return;
+    }
+    const tab = this.registry.get(uri);
+    if (!tab) {
+      return;
+    }
+    this.durable.syncDecision(tab.path, this.filters.get(uri));
   }
 
   private recordFilterInLedger(uri: string, nowMs: number = Date.now()): void {
