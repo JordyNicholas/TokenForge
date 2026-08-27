@@ -67,21 +67,34 @@ export class RiskSectionItem extends TreeItem {
 }
 
 export class RiskSummaryItem extends TreeItem {
-  constructor(atRiskTokens: number, savedTokens: number, beforeTokens: number) {
+  constructor(
+    atRiskTokens: number,
+    savedTokens: number,
+    beforeTokens: number,
+    sessionAvoidedTokens: number,
+  ) {
     super("Live estimate", TreeItemCollapsibleState.None);
-    this.description =
-      savedTokens > 0
-        ? `${formatTokenCount(atRiskTokens)} at risk · ${formatTokenCount(savedTokens)} saved`
-        : `${formatTokenCount(atRiskTokens)} at risk`;
+    const liveSaved =
+      savedTokens > 0 ? ` · ${formatTokenCount(savedTokens)} saved` : "";
+    const sessionSaved =
+      sessionAvoidedTokens > 0
+        ? ` · ${formatTokenCount(sessionAvoidedTokens)} session`
+        : "";
+    this.description = `${formatTokenCount(atRiskTokens)} at risk${liveSaved}${sessionSaved}`;
     this.tooltip = [
       `Open-tab estimate: ${beforeTokens} tokens`,
       `Still at risk: ${atRiskTokens} tokens`,
       savedTokens > 0
-        ? `Saved by Filter: ${savedTokens} tokens`
+        ? `Saved by Filter (open tabs): ${savedTokens} tokens`
         : "Filter a tab to record savings in last-scan.json",
+      sessionAvoidedTokens > 0
+        ? `Session avoided (this window): ${sessionAvoidedTokens} tokens`
+        : undefined,
       "",
       "Recommendations only — TokenForge does not intercept any agent pipeline.",
-    ].join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
     this.iconPath = new ThemeIcon("dashboard");
     this.contextValue = "tokenforge.summary";
   }
@@ -197,6 +210,7 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
           pulse.displayAtRiskTokens,
           pulse.totals.savedTokens,
           pulse.totals.beforeTokens,
+          this.session.sessionAvoidedTokens(),
         ),
         new RiskSectionItem("pending", "Pending", pulse.pendingCount),
         new RiskSectionItem("kept", "Kept", pulse.keptCount),

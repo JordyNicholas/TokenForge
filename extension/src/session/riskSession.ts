@@ -1,3 +1,4 @@
+import { primaryReason } from "@tokenforge/risk-core";
 import { TabFilterStore } from "../filter/filterStore";
 import { isFiltered } from "../filter/types";
 import type { TabDecision } from "../filter/types";
@@ -5,6 +6,7 @@ import { idleHintForTab } from "../tabs/idleHint";
 import { TabRegistry } from "../tabs/registry";
 import type { TrackedTab } from "../tabs/types";
 import { buildRiskPulseModel, type RiskPulseModel } from "./riskPulse";
+import { SessionLedger, type SessionLedgerEntry } from "./sessionLedger";
 
 type ChangeListener = () => void;
 
@@ -18,6 +20,8 @@ export class RiskSession {
   private readonly listeners = new Set<ChangeListener>();
   private readonly disposables: Array<{ dispose(): void }> = [];
 
+  readonly ledger = new SessionLedger();
+
   constructor(
     readonly registry: TabRegistry,
     readonly filters: TabFilterStore = new TabFilterStore(),
@@ -25,6 +29,7 @@ export class RiskSession {
     this.disposables.push(
       registry.onDidChange(() => this.notify()),
       filters.onDidChange(() => this.notify()),
+      this.ledger.onDidChange(() => this.notify()),
     );
   }
 
@@ -33,19 +38,39 @@ export class RiskSession {
   }
 
   keep(uri: string): void {
+    const wasFiltered = this.filters.get(uri) === "filtered";
     this.filters.set(uri, "kept");
+    if (wasFiltered) {
+      this.ledger.remove(uri);
+    }
   }
 
   filter(uri: string): void {
     this.filters.set(uri, "filtered");
+    this.recordFilterInLedger(uri);
   }
 
   clearDecision(uri: string): void {
+    const wasFiltered = this.filters.get(uri) === "filtered";
     this.filters.clear(uri);
+    if (wasFiltered) {
+      this.ledger.remove(uri);
+    }
   }
 
   clearAllDecisions(): void {
     this.filters.clearAll();
+    this.ledger.clearAll();
+  }
+
+  /** Cumulative tokens avoided this window (Filter events, survives tab close). */
+  sessionAvoidedTokens(): number {
+    return this.ledger.totalAvoided();
+  }
+
+  /** Filtered paths this session — includes closed tabs until Restore or Clear. */
+  sessionHistory(): readonly SessionLedgerEntry[] {
+    return this.ledger.list();
   }
 
   refreshScores(nowMs: number = Date.now()): void {
@@ -132,6 +157,26 @@ export class RiskSession {
     }
     this.disposables.length = 0;
     this.listeners.clear();
+  }
+
+  private recordFilterInLedger(uri: string, nowMs: number = Date.now()): void {
+    const tab = this.registry.get(uri, nowMs);
+    if (!tab) {
+      return;
+    }
+    const reason = primaryReason(tab.assessment.reasons);
+    if (reason === undefined) {
+      return;
+    }
+    this.ledger.recordFilter(
+      {
+        uri: tab.uri,
+        path: tab.path,
+        estTokens: tab.assessment.estTokens,
+        reason,
+      },
+      nowMs,
+    );
   }
 
   private notify(): void {
