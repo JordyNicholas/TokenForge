@@ -4,7 +4,7 @@ Project: [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas
 
 Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Finished**.
 
-Stories land in **Done** when they close. An `[Epic]` moves to **Epics Finished** when **all of its child stories are closed** (workflow auto-closes the epic). F1–F3 stay in **To-Do** until that happens.
+Stories land in **Done** when they close. An `[Epic]` moves to **Epics Finished** when **all of its child stories are closed** (workflow auto-closes the epic). Open Phase 2 epics stay in **To-Do** until that happens.
 
 ## Epics
 
@@ -19,14 +19,15 @@ MVP (closed → **Epics Finished**):
 | VS Code extension | #5 | E4 |
 | Demo polish & pitch | #6 | E5 |
 
-Phase 2 (open). Former catch-all #7 was split:
+Phase 2. Former catch-all #7 was split:
 
-| Epic | Issue | Phase |
-| --- | --- | --- |
-| F1 Hybrid Detect backends | #60 | Future |
-| F1.1 Hybrid Detect — Claude Code CLI backend | #145 | Future |
-| F2 Prove at org scale | #61 | Future |
-| F3 Adjacent (do not pitch) | #62 | Future |
+| Epic | Issue | Phase | Board |
+| --- | --- | --- | --- |
+| F1 Hybrid Detect backends | #60 | Future | **Epics Finished** |
+| F1.1 Hybrid Detect — Claude Code CLI backend | #145 | Future | **To-Do** (open) |
+| F2 Prove at org scale | #61 | Future | **Epics Finished** (Wave C / #99–#100 remain as follow-on stories; epic closed) |
+| F3 Adjacent (do not pitch) | #62 | Future | **Epics Finished** |
+| F4 Extension session Prove & provider CLI transports | #156 | Future | **To-Do** (open) |
 
 F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 #136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
@@ -130,13 +131,13 @@ PRs catches nothing.
 Design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md). Implement with
 `TF#<n>-…` branches. Stories are GitHub sub-issues of #145.
 
-| Issue | Title | Depends on |
-| --- | --- | --- |
-| #146 | core: register the `claude-code` enricher backend id (+ report schema enum) | — |
-| #147 | CLI/enrichers: `claude-code` enricher adapter (Claude Code CLI, subscription login) + spec parse + registry + limits + `HYBRID_SCAN_DESIGN` / `LLM_ENRICHER_SETUP` docs | #146 |
-| #148 | CLI: wire `--llm claude-code` flags/help + scan integration tests + privacy gate + manual E2E doc | #147 |
-| #149 | Extension: treat `claude-code` as an external enricher backend | #147 |
-| #150 | Docs: index this epic in `BOARD.md` (this table) | — |
+| Issue | Title | Depends on | Status |
+| --- | --- | --- | --- |
+| #146 | core: register the `claude-code` enricher backend id (+ report schema enum) | — | **Done** |
+| #147 | CLI/enrichers: `claude-code` enricher adapter (Claude Code CLI, subscription login) + spec parse + registry + limits + `HYBRID_SCAN_DESIGN` / `LLM_ENRICHER_SETUP` docs | #146 | To-Do |
+| #148 | CLI: wire `--llm claude-code` flags/help + scan integration tests + privacy gate + manual E2E doc | #147 | To-Do |
+| #149 | Extension: treat `claude-code` as an external enricher backend | #147 | To-Do |
+| #150 | Docs: index this epic in `BOARD.md` (this table) | — | **Done** |
 
 Build order: **#146 → #147 → (#148 ∥ #149)**. #150 is independent. The three
 narrative docs originally bundled as one "docs" story now sit next to their code
@@ -185,6 +186,41 @@ Pilot path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
 | #99 | Remote org content-exclusion / policy apply API (per provider) | #28 |
 | #100 | Org pilot pack: scan → apply → prove variance (single path) | #28 / #27 |
 
+### F4 — Extension session Prove & provider CLI transports (#156)
+
+Session savings that survive closed tabs + provider CLI / agent-CLI hooks beyond
+F1.1. **Not scheduled for implementation until prioritized.** Stories are GitHub
+sub-issues of #156.
+
+| Issue | Title | Focus |
+| --- | --- | --- |
+| #157 | Extension: session ledger (cumulative tokens avoided) | Session avoided ≠ live at-risk |
+| #158 | Extension: filtered-history panel (survives tab close) | Paths + tokens after close |
+| #159 | Extension: durable Filter decisions (opt-in, workspace) | Persist Filter across reopen |
+| #160 | Extension: session summary export for Prove | `.tokenforge/` handoff |
+| #161 | CLI: additional provider CLI enricher (beyond Claude Code) | Transport parity; not #145 |
+| #162 | CLI/DevEx: TokenForge callable from agent CLIs (MCP or hooks) | scan/apply from agent workflows |
+| #163 | Docs: index F4 in BOARD.md | This map |
+
+Build order when prioritized: **#157 + #158** first → #159 / #160 → (#161 ∥ #162);
+#163 with the board-map docs change.
+
+### Further improvement candidates (not yet filed as issues)
+
+Board-map only until the team promotes them to an epic/stories. Do not treat as
+committed scope.
+
+| Candidate | Surface | Why |
+| --- | --- | --- |
+| One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE |
+| Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs |
+| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence |
+| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy |
+| Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs |
+| Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths |
+| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) |
+| Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing |
+
 ## Build order
 
 MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
@@ -192,8 +228,10 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-   - **F1.1** (#145) — open. `claude-code` CLI backend: #146 → #147 → (#148 ∥ #149); #150 (this board index) independent
-2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; **Wave A (#85–#88)** and **Wave B (#89–#94)** closed. **Next:** Wave C (#95–#98) attribution/calibration; remotes for **#28** (#99/#100) can run in parallel. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
-3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
+   - **F1.1** (#145) — open. `claude-code` CLI backend: #146 (**Done**) → #147 → (#148 ∥ #149); #150 (**Done**)
+2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
+3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
+4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
+5. **Candidates** above — promote to issues/epic when the team agrees scope
 
-Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md).
