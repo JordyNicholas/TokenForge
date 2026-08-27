@@ -24,8 +24,13 @@ Phase 2 (open). Former catch-all #7 was split:
 | Epic | Issue | Phase |
 | --- | --- | --- |
 | F1 Hybrid Detect backends | #60 | Future |
+| F1.1 Hybrid Detect — Claude Code CLI backend | #145 | Future |
 | F2 Prove at org scale | #61 | Future |
 | F3 Adjacent (do not pitch) | #62 | Future |
+
+F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
+#136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
+(`claude -p`) on a subscription login, the Anthropic analogue of `codex` (#45).
 
 ## Stories
 
@@ -120,6 +125,23 @@ survived 13 merged PRs before PR #138 fixed it. The golden-totals fixtures added
 above are the regression net for the heuristic engine, and a net nobody runs on
 PRs catches nothing.
 
+### F1.1 — Claude Code CLI backend (open, filed under #145)
+
+Design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md). Implement with
+`TF#<n>-…` branches. Stories are GitHub sub-issues of #145.
+
+| Issue | Title | Depends on |
+| --- | --- | --- |
+| #146 | core: register the `claude-code` enricher backend id (+ report schema enum) | — |
+| #147 | CLI/enrichers: `claude-code` enricher adapter (Claude Code CLI, subscription login) + spec parse + registry + limits + `HYBRID_SCAN_DESIGN` / `LLM_ENRICHER_SETUP` docs | #146 |
+| #148 | CLI: wire `--llm claude-code` flags/help + scan integration tests + privacy gate + manual E2E doc | #147 |
+| #149 | Extension: treat `claude-code` as an external enricher backend | #147 |
+| #150 | Docs: index this epic in `BOARD.md` (this table) | — |
+
+Build order: **#146 → #147 → (#148 ∥ #149)**. #150 is independent. The three
+narrative docs originally bundled as one "docs" story now sit next to their code
+(#147 for the design/setup pages, #148 for the E2E doc).
+
 ### F2 attractiveness backlog (filed under #61)
 
 Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).  
@@ -170,6 +192,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
+   - **F1.1** (#145) — open. `claude-code` CLI backend: #146 → #147 → (#148 ∥ #149); #150 (this board index) independent
 2. **F2** (#61) — thin demo slices for **#27** / **#28** shipped; **Wave A (#85–#88)** and **Wave B (#89–#94)** closed. **Next:** Wave C (#95–#98) attribution/calibration; remotes for **#28** (#99/#100) can run in parallel. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 
