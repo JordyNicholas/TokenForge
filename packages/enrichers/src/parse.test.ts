@@ -47,6 +47,14 @@ describe("parseLlmSpec", () => {
     );
   });
 
+  it("points a bare claude at the claude-code backend", () => {
+    // Observed while testing the real CLI: `--llm claude` is the natural typo,
+    // and it lands on the no-colon branch, which never sees the backend list.
+    expect(() => parseLlmSpec("claude")).toThrow('Did you mean "claude-code"?');
+    expect(() => parseLlmSpec("nonsense")).toThrow("bare CLI backend");
+    expect(() => parseLlmSpec("nonsense")).not.toThrow("Did you mean");
+  });
+
   it("does not expose the removed OpenAI HTTP backend", () => {
     expect(() => parseLlmSpec("openai:gpt-5.6-sol")).toThrow(
       'Unknown LLM backend "openai"',

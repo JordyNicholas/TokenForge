@@ -78,11 +78,19 @@ tokenforge scan . --mode hybrid --llm claude-code --allow-external
   sent to Anthropic through the Claude Code session. Without it, TokenForge
   prints a privacy warning and exits before starting the CLI.
 - `--llm-timeout <sec>` — per-batch timeout in seconds (default 180, higher than
-  Codex's 120 because a `claude -p` run boots the full session first).
+  Codex's 120 because a `claude -p` run boots the full session first). Measured
+  on Claude Code v2.1.247: ~10s per 4-file batch, so the default is slack, not a
+  target.
 - `TOKENFORGE_CLAUDE_CODE_TIMEOUT_MS` — env var fallback for the same timeout.
 - `TOKENFORGE_CLAUDE_CODE_PATH` — path to the executable when it is not `claude`
   on `PATH`.
 - `--llm-endpoint` is **rejected**: the CLI owns its own connection.
+
+**Cost.** Each batch pays for a fresh session prefix — roughly 30K cache-creation
+tokens before a single candidate is read, because the run is stateless by design
+(no `--resume` between batches). A 12-candidate scan is 3 batches. On a Pro/Max
+plan that counts against plan limits rather than a bill, but it is not free, and
+it is why `--mode hybrid` stays opt-in.
 
 `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` are removed from the child process
 environment. Leaving one set would silently move the scan onto usage-based API

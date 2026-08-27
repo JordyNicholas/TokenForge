@@ -67,6 +67,8 @@ describe("claudeCodeEnricher", () => {
     // subscription login this backend exists to use.
     expect(args).not.toContain("--dangerously-skip-permissions");
     expect(args).not.toContain("--bare");
+    // Documented but absent from the CLI (v2.1.247): passing it is a hard error.
+    expect(args).not.toContain("--max-turns");
     expect(args.slice(args.indexOf("--permission-mode"))).toContain("dontAsk");
   });
 
@@ -78,8 +80,6 @@ describe("claudeCodeEnricher", () => {
           "--output-format",
           "json",
           "--json-schema",
-          "--max-turns",
-          "1",
           "--strict-mcp-config",
         ]),
       );

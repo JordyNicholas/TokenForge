@@ -27,8 +27,14 @@ export function parseLlmSpec(value: string | undefined): {
 
   const separator = trimmed.indexOf(":");
   if (separator <= 0 || separator === trimmed.length - 1) {
+    // "claude" is the likely typo now that a hyphenated backend id exists, and
+    // it reaches here rather than the allowlist below because it has no colon.
+    const hint = /^claude([-_]?code)?$/i.test(trimmed)
+      ? ' Did you mean "claude-code"?'
+      : "";
     throw new UsageError(
-      'Invalid --llm value. Use "<backend>:<model>", e.g. ollama:qwen2.5-coder:7b.',
+      'Invalid --llm value. Use "<backend>:<model>", e.g. ollama:qwen2.5-coder:7b, ' +
+        `or a bare CLI backend: codex, claude-code.${hint}`,
     );
   }
 

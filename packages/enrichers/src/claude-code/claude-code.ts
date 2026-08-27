@@ -259,9 +259,10 @@ export function claudeCodeArgs(model: string | undefined): string[] {
     "json",
     "--json-schema",
     JSON.stringify(CLAUDE_CODE_OUTPUT_SCHEMA),
-    // One turn of pure text analysis: the excerpts are already in the prompt.
-    "--max-turns",
-    "1",
+    // No --max-turns: the flag is in the docs but not in the CLI (v2.1.247).
+    // The turn bound is structural instead — the excerpts are already in the
+    // prompt and the tool surface below is deny-by-default, so there is nothing
+    // for a second turn to do.
     // Deny anything not explicitly allowed. Notably NOT
     // --dangerously-skip-permissions, which would auto-approve every tool.
     "--permission-mode",
