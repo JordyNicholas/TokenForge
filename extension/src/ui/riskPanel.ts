@@ -15,6 +15,7 @@ import { primaryReason } from "@tokenforge/risk-core";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import type { TabDecision } from "../filter/types";
 import type { RiskSession } from "../session/riskSession";
+import type { SessionLedgerEntry } from "../session/sessionLedger";
 import { idleHintForTab } from "../tabs/idleHint";
 import type { TrackedTab } from "../tabs/types";
 import { formatTokenCount } from "./formatTokens";
@@ -22,7 +23,7 @@ import { startUiTicker } from "./uiTicker";
 
 export const RISK_PANEL_VIEW_ID = "tokenforge.riskPanel";
 
-type SectionId = "pending" | "kept" | "filtered" | "approaching";
+type SectionId = "pending" | "kept" | "filtered" | "approaching" | "history";
 
 export class RiskAutoFilterItem extends TreeItem {
   constructor(enabled: boolean) {
@@ -61,7 +62,9 @@ export class RiskSectionItem extends TreeItem {
           ? "pinned"
           : sectionId === "filtered"
             ? "filter"
-            : "clock",
+            : sectionId === "history"
+              ? "history"
+              : "clock",
     );
   }
 }
@@ -157,11 +160,33 @@ export class RiskTabItem extends TreeItem {
   }
 }
 
+export class RiskHistoryItem extends TreeItem {
+  constructor(readonly entry: SessionLedgerEntry) {
+    super(entry.path, TreeItemCollapsibleState.None);
+    this.description = [formatTokenCount(entry.estTokens), entry.reason]
+      .filter(Boolean)
+      .join(" · ");
+    this.tooltip = [
+      entry.path,
+      `${entry.estTokens} est. tokens · ${entry.reason}`,
+      "Filtered this session — remains after tab close until Restore or Clear decisions.",
+    ].join("\n");
+    this.iconPath = new ThemeIcon("filter");
+    this.contextValue = "tokenforge.historyTab";
+    this.command = {
+      command: "vscode.open",
+      title: "Open",
+      arguments: [Uri.parse(entry.uri)],
+    };
+  }
+}
+
 export type RiskTreeNode =
   | RiskAutoFilterItem
   | RiskSummaryItem
   | RiskSectionItem
   | RiskTabItem
+  | RiskHistoryItem
   | RiskEmptyItem;
 
 class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
@@ -193,13 +218,14 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     const nowMs = Date.now();
     const pulse = this.session.pulse(nowMs);
     const approaching = this.session.listApproachingIdle(nowMs);
+    const history = this.session.sessionHistory();
     const atRiskTotal =
       pulse.pendingCount + pulse.keptCount + pulse.filteredCount;
     const autoFilterOn = isAutoFilterEnabled();
 
     const nodes: RiskTreeNode[] = [new RiskAutoFilterItem(autoFilterOn)];
 
-    if (atRiskTotal === 0 && approaching.length === 0) {
+    if (atRiskTotal === 0 && approaching.length === 0 && history.length === 0) {
       nodes.push(new RiskEmptyItem());
       return nodes;
     }
@@ -216,6 +242,20 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
         new RiskSectionItem("kept", "Kept", pulse.keptCount),
         new RiskSectionItem("filtered", "Filtered", pulse.filteredCount),
       );
+    } else if (history.length > 0) {
+      nodes.push(
+        new RiskSummaryItem(
+          pulse.displayAtRiskTokens,
+          pulse.totals.savedTokens,
+          pulse.totals.beforeTokens,
+          this.session.sessionAvoidedTokens(),
+        ),
+      );
+    }
+    if (history.length > 0) {
+      nodes.push(
+        new RiskSectionItem("history", "Filtered this session", history.length),
+      );
     }
     if (approaching.length > 0) {
       nodes.push(
@@ -225,8 +265,14 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     return nodes;
   }
 
-  private sectionChildren(sectionId: SectionId): RiskTabItem[] {
+  private sectionChildren(sectionId: SectionId): RiskTreeNode[] {
     const nowMs = Date.now();
+    if (sectionId === "history") {
+      return this.session
+        .sessionHistory()
+        .map((entry) => new RiskHistoryItem(entry));
+    }
+
     const activeUri = this.session.registry.getActiveUri();
     const tabs =
       sectionId === "pending"
