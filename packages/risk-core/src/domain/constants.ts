@@ -42,9 +42,9 @@ export const SCORE_WEIGHT_CLASS = 0.45;
 export const SCORE_WEIGHT_SIZE = 0.35;
 export const SCORE_WEIGHT_INACTIVE = 0.2;
 
-/** Canonical Token Risk report schema `$id` (current: v4). */
+/** Canonical Token Risk report schema `$id` (current: v5). */
 export const TOKEN_RISK_REPORT_SCHEMA_ID =
-  "https://tokenforge.dev/schema/risk-event/v4";
+  "https://tokenforge.dev/schema/risk-event/v5";
 
 /** Repo-relative JSON Schema path. Single source of truth for all surfaces. */
 export const TOKEN_RISK_REPORT_SCHEMA_PATH =

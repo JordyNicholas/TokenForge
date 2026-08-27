@@ -53,8 +53,20 @@ export type FindingSuggestion = {
 /** CLI scan mode. Default MVP path is heuristic-only. */
 export type ScanMode = "heuristic" | "hybrid";
 
-/** LLM enricher backend identifiers (CLI adapters). */
-export type LlmBackendId = "noop" | "ollama" | "codex" | "anthropic";
+/**
+ * LLM enricher backend identifiers (CLI adapters).
+ *
+ * `anthropic` and `claude-code` both reach Claude but authenticate differently:
+ * `anthropic` calls the Messages API with `ANTHROPIC_API_KEY`, `claude-code`
+ * drives the Claude Code CLI on its saved subscription login — the same split
+ * as an OpenAI API key versus `codex`.
+ */
+export type LlmBackendId =
+  | "noop"
+  | "ollama"
+  | "codex"
+  | "anthropic"
+  | "claude-code";
 
 export type FiletypeRiskClass =
   | "lockfile"
