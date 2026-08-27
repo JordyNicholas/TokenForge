@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@tokenforge/enrichers": "*",
     "@tokenforge/risk-core": "*",
     "undici": "^8.10.0"

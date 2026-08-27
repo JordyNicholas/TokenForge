@@ -3,6 +3,7 @@ import {
   anthropicEnricher,
   claudeCodeEnricher,
   codexEnricher,
+  geminiCliEnricher,
   getEnricher,
   ollamaEnricher,
 } from "./index";
@@ -25,5 +26,9 @@ describe("getEnricher", () => {
     // The two Anthropic paths must stay distinct: one bills an API key, the
     // other rides the CLI's subscription login.
     expect(getEnricher("claude-code")).not.toBe(anthropicEnricher);
+  });
+
+  it("returns Gemini CLI enricher", () => {
+    expect(getEnricher("gemini-cli")).toBe(geminiCliEnricher);
   });
 });

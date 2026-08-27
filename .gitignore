@@ -29,3 +29,4 @@ out/
 .tokenforge/
 dashboard/public/last-scan.json
 coverage/
+.cursor/mcp.json

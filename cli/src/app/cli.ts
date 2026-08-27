@@ -5,6 +5,7 @@ import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { runPilotPack } from "../commands/pilot/pilot";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
+import { runMcpServer } from "../mcp/runMcpServer";
 import { proveChangeLatestPath } from "../io/paths";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { syncUsage } from "../commands/usage-sync/usage-sync";
@@ -26,6 +27,7 @@ Commands:
   org-apply [root]    Stage / push org content exclusions via PolicyApplyProvider (#99)
   usage-pull          Fetch billed usage into UsageMetrics JSON (Wave B / #90)
   usage-sync [root]   Pull usage via UsageProvider into .tokenforge/ (Wave B / #94)
+  mcp                 Start the TokenForge MCP server on stdio (agent CLIs)
 
 Options:
   --team <name>         Team label (default: local)
@@ -43,15 +45,15 @@ Options:
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
                         noop (default) | ollama:<model> | anthropic:<model> |
-                        codex | claude-code. The two CLI backends take no model:
+                        codex | claude-code | gemini-cli. The CLI backends take no model:
                         they use whatever that CLI is signed in and configured
-                        with. e.g. ollama:qwen2.5-coder:7b, claude-code
+                        with. e.g. ollama:qwen2.5-coder:7b, claude-code, gemini-cli
   --llm-endpoint <url>  Override Ollama/Anthropic API base URL
-                        (rejected by codex and claude-code: the CLI owns it)
+                        (rejected by codex, claude-code, and gemini-cli: the CLI owns it)
   --llm-timeout <sec>   Per-batch timeout in seconds
-                        (Ollama: 900; Codex: 120; Claude Code: 180)
+                        (Ollama: 900; Codex: 120; Claude Code: 180; Gemini CLI: 120)
   --allow-external      Confirm that bounded source excerpts may leave this
-                        machine (required by anthropic, codex, claude-code)
+                        machine (required by anthropic, codex, claude-code, gemini-cli)
   --active-paths-file <p>  Report (e.g. .tokenforge/last-scan.json) or JSON array of
                         open paths. Those files are reported but never proposed
                         for exclusion. Not auto-detected: a stale export would
@@ -399,6 +401,11 @@ export async function runCli(
         }
       }
       return savingsExitCode(remote.report.totals);
+    }
+
+    if (command === "mcp") {
+      await runMcpServer();
+      return 0;
     }
 
     throw new UsageError(`Unknown command "${command}".\n` + USAGE);
