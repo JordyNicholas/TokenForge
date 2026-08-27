@@ -1,6 +1,6 @@
 {
   "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
-  "pitchNote": "Precision stress test: both findings are legitimate files (a hand-maintained type surface and a real i18n config), not junk. TokenForge still recommends excluding them — see docs/HEURISTICS_AUDIT.md (B1-B3).",
+  "pitchNote": "Precision stress test: both findings are legitimate files (a hand-maintained type surface and a real i18n config), not junk. TokenForge still recommends excluding them — see docs/design/HEURISTICS_AUDIT.md (B1-B3).",
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/borderline-app",
   "totals": {

@@ -248,7 +248,7 @@ mk_story S02 "[E0] Document PROJECT_TOKEN + GitHub project UI toggles" "$E0" E0 
   "- README note for PROJECT_TOKEN secret (same pattern as Flux)" \
   "" \
   "## Acceptance" \
-  "docs/PROJECT_PR_WORKFLOW.md lists exact setup steps collaborators need." \
+  "docs/delivery/PROJECT_PR_WORKFLOW.md lists exact setup steps collaborators need." \
   -- phase:e0 priority:p0 type:docs estimate:0.5d
 
 mk_story S03 "[E1] Implement packages/risk-core (estimate + score)" "$E1" E1 \
@@ -413,9 +413,9 @@ mk_story S21 "[Future] Apply org policy/exclusions via provider APIs" "$EF" Futu
 
 mk_story S22 "[Future] Hybrid scan design + JSON contract scaffolding" "$EF" Future \
   "## Scope" \
-  "Lock docs/HYBRID_SCAN_DESIGN.md; extend Token Risk JSON; risk-core merge/candidates; CLI enricher port + noop + --mode hybrid." \
+  "Lock docs/design/HYBRID_SCAN_DESIGN.md; extend Token Risk JSON; risk-core merge/candidates; CLI enricher port + noop + --mode hybrid." \
   "## Doc" \
-  "docs/HYBRID_SCAN_DESIGN.md" \
+  "docs/design/HYBRID_SCAN_DESIGN.md" \
   -- phase:future priority:p2
 
 mk_story S23 "[Future] risk-core: enrichment candidate selection + finding merge" "$EF" Future \
@@ -455,10 +455,10 @@ mk_story S29 "[Future] Extension: optional LLM enricher on instruction paths" "$
 
 mk_story S30 "[Future] Pitch materials: hybrid scan FAQ + deck slide" "$EF" Future \
   "## Scope" \
-  "docs/PITCH_FAQ.md hybrid section; docs/pitch/TokenForge-Pitch.pptx; scripts/generate-pitch-deck.py" \
+  "docs/product/PITCH_FAQ.md hybrid section; docs/pitch/TokenForge-Pitch.pptx; scripts/generate-pitch-deck.py" \
   -- phase:future priority:p2
 
-cat > /home/jordy-silva/TokenForge/docs/BOARD.md <<EOF
+cat > /home/jordy-silva/TokenForge/docs/delivery/BOARD.md <<EOF
 # TokenForge board map
 
 Project: [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas/projects/2)
@@ -516,7 +516,7 @@ Columns: **To-Do**, **In Progress**, **Ready for Review**, **Done**, **Epics Fin
 
 E0 → E1 → E2 → E3 → E4 → E5 (Future deferred).
 
-Hybrid scan: S22 → S23 → S24 → (S25 | S26 | S27) → S28 → S29; see docs/HYBRID_SCAN_DESIGN.md.
+Hybrid scan: S22 → S23 → S24 → (S25 | S26 | S27) → S28 → S29; see docs/design/HYBRID_SCAN_DESIGN.md.
 EOF
 
 echo "BOARD.md written"

@@ -9,13 +9,13 @@
 #   or set period / TOKENFORGE_USAGE_PERIOD to a fixed YYYY-MM
 #
 # Schedule cadence: edit the cron below (GitHub Actions cannot read cron from
-# Variables). Examples in docs/examples/prove-monthly.md.
+# Variables). Examples in docs/runbooks/prove-monthly.md.
 #
 # Smoke (this repo, no live billing secrets):
 #   Actions → "Prove monthly" → Run workflow
 #   usage_provider=fixture, run_scan=true (defaults)
 #
-# Live org: set repository Variables / Secrets (see docs/examples/prove-monthly.md)
+# Live org: set repository Variables / Secrets (see docs/runbooks/prove-monthly.md)
 
 name: Prove monthly
 

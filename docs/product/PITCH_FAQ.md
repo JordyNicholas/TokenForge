@@ -1,7 +1,7 @@
 # Pitch FAQ — TokenForge
 
 Short answers for judges and collaborators. Aligns with [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
-See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
+See [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 
 ## Competitive landscape?
 
@@ -35,7 +35,7 @@ See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
 
 Token math stays heuristic; the model adds semantic findings and explanations, not primary token counts.
 
-Full design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+Full design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md).
 
 ## Do you intercept the agent’s context pipeline?
 
@@ -54,7 +54,7 @@ live sync via CLI adapters — not a claim that we meter the agent’s private p
 (`.github/workflows/prove-monthly.yml`) or an equivalent cron calling
 `tokenforge usage-sync` (+ optional heuristic `tokenforge scan`). Artifacts land
 under `.tokenforge/` for Prove; the extension stays real-time Context Guard only.
-Guide: [`examples/prove-monthly.md`](./examples/prove-monthly.md). Sound bite:
+Guide: [`prove-monthly.md`](../runbooks/prove-monthly.md). Sound bite:
 *pipelines remember; humans don’t.*
 
 ## Does apply overwrite our CLAUDE.md / copilot-instructions.md?
@@ -78,7 +78,7 @@ section is still synthesized from the scan (“do not load” / prefer lists).
 CSV/JSON as billed usage, and compares **baseline vs after-period** (estimated
 reduction, actual billed change, variance) with Assumptions frozen on that run. Demo
 fixtures: `dashboard/public/sample-usage.csv` and `sample-usage-after.csv`. Repeatable
-path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+path: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
 **Wave B (shipped):** `UsageProvider` port + Copilot / Cursor / Claude adapters,
 `usage-pull` / `usage-sync`, and a BU/team **variance board** with period picker.
@@ -86,7 +86,7 @@ File/demo import remains the fallback.
 
 **Wave C (shipped):** apply/org-pack **change markers**, Fix-on vs control **cohort**
 compare, auto-suggest `realizedWasteShare` from variance, and this FAQ + Overview
-**pilot KPI card**. Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+**pilot KPI card**. Plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).
 
 **Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**.
 We do not meter the agent’s private pipeline. Cohort tags reduce “was that TokenForge?”

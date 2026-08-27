@@ -4,7 +4,7 @@ import { borderlineAppRoot } from "../../test/helpers";
 import { scanRepo } from "./scan";
 
 describe("scanRepo (borderline-app, precision stress test)", () => {
-  it("flags legitimate large files with today's class-blind oversized rule (docs/HEURISTICS_AUDIT.md B2/B3)", async () => {
+  it("flags legitimate large files with today's class-blind oversized rule (docs/design/HEURISTICS_AUDIT.md B2/B3)", async () => {
     const { report } = await scanRepo({
       root: borderlineAppRoot,
       now: new Date("2026-08-20T18:00:00.000Z"),
@@ -25,7 +25,7 @@ describe("scanRepo (borderline-app, precision stress test)", () => {
     );
   });
 
-  it("still prioritizes rules/pricing-notes.md for LLM enrichment on segment-name alone (docs/HEURISTICS_AUDIT.md B1)", async () => {
+  it("still prioritizes rules/pricing-notes.md for LLM enrichment on segment-name alone (docs/design/HEURISTICS_AUDIT.md B1)", async () => {
     const { assessments } = await scanRepo({ root: borderlineAppRoot });
     const candidates = selectEnrichmentCandidates(assessments);
 

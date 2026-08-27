@@ -8,7 +8,7 @@ generated configs), every large file here is written to look like something a
 real engineer would legitimately commit. The point is to make visible where
 today's heuristics (`packages/risk-core/src/score/score.ts`,
 `classify/classify.ts`, `candidates/candidates.ts`) cannot tell "legitimately
-large" from "waste" — see `docs/HEURISTICS_AUDIT.md` for the full write-up.
+large" from "waste" — see `docs/design/HEURISTICS_AUDIT.md` for the full write-up.
 
 ## What's in here and why
 

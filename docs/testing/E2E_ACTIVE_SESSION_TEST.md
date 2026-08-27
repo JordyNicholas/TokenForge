@@ -3,8 +3,8 @@
 Runbook for the **extension → CLI** session signal (#137). **~5 minutes**, no
 model and no network required — every rule here is deterministic.
 
-Related: [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md),
-[`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md).
+Related: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md),
+[`HEURISTICS_AUDIT.md`](../design/HEURISTICS_AUDIT.md).
 
 ## Why this path exists
 

@@ -41,7 +41,7 @@ workflow.
 
 Everything it runs is **deterministic**. Do not add `tokenforge scan
 --mode hybrid` (LLM output is non-deterministic and cannot gate a merge — see
-the out-of-scope list in [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)) or
+the out-of-scope list in [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md)) or
 `--active-paths-file` (CI has no editor session; pointing it at a checked-in
 export would protect whatever someone happened to have open that day).
 
@@ -85,7 +85,7 @@ issues use **Done**. Closing the last sub-issue of an epic auto-closes the epic
 **Epics Finished** and re-asserts after a short delay so the built-in
 “closed → Done” project workflow does not win the race.
 
-Issue map: [`docs/BOARD.md`](./BOARD.md).
+Issue map: [`BOARD.md`](./BOARD.md).
 
 ## Collaborator setup (GitHub UI)
 

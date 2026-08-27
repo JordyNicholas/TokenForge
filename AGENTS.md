@@ -5,15 +5,15 @@
 Enterprise **AI Coding FinOps** for metered AI coding agents / LLMs: Detect → Fix → Prove.
 Logic is **provider-agnostic**; Fix applies findings through pluggable adapters.
 
-Read first:
+Read first (full index: [`docs/README.md`](docs/README.md)):
 
-1. [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) — locked product narrative (not Auto Memory)
-2. [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) — stack + MVP design
-3. [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
-4. [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
-5. [`docs/BOARD.md`](docs/BOARD.md) — epic/story map; F2 Prove attractiveness waves
-6. [`docs/USAGE_RECONCILIATION_PLAN.md`](docs/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
-7. [`docs/PILOT_RUNBOOK.md`](docs/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
+1. [`docs/product/CONCEPT_BRIEF.md`](docs/product/CONCEPT_BRIEF.md) — locked product narrative (not Auto Memory)
+2. [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md) — stack + MVP design
+3. [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
+4. [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
+5. [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) — epic/story map; F2 Prove attractiveness waves
+6. [`docs/design/USAGE_RECONCILIATION_PLAN.md`](docs/design/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
+7. [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
 
 ## Delivery rules
 
@@ -40,7 +40,7 @@ in CLI adapters.
 Do **not** import VS Code, React, CLI frameworks, or vendor SDKs into `risk-core`.
 Do **not** import across delivery surfaces (extension ↛ CLI ↛ dashboard).
 
-Full write-up: [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md#architecture).
+Full write-up: [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md#architecture).
 
 ## Provider independence
 
@@ -53,4 +53,4 @@ Full write-up: [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md#architecture)
 - Do not claim interception of any agent/LLM’s private context pipeline.
 - Pitch Chat/Agent / metered AI-credit workflows, not unlimited completions metering.
 - “30%” is scenario-based via the dashboard calculator.
-- Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — see [`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md).
+- Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — see [`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md).

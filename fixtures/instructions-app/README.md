@@ -39,7 +39,7 @@ only pins the heuristic layer (near-zero savings, same shape as
 3. **Hybrid mode** (`--mode hybrid`): with a real LLM backend, this is the
    fixture to point at manually to check `semantic_bloat` /
    `redundant_instructions` findings — see
-   `docs/E2E_HYBRID_SCAN_TEST.md`. Not automated here because LLM output is
+   `docs/testing/E2E_HYBRID_SCAN_TEST.md`. Not automated here because LLM output is
    non-deterministic.
 
 ## Layout

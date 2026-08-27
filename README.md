@@ -10,19 +10,20 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 
 | Resource | URL |
 | --- | --- |
+| **Documentation index** | [`docs/README.md`](docs/README.md) |
 | Project board | [TokenForge — Hackathon Board](https://github.com/users/JordyNicholas/projects/2) |
-| Epic / story map | [`docs/BOARD.md`](docs/BOARD.md) |
-| Concept brief | [`docs/CONCEPT_BRIEF.md`](docs/CONCEPT_BRIEF.md) |
-| Solution design | [`docs/SOLUTION_DESIGN.md`](docs/SOLUTION_DESIGN.md) (architecture: [ports & adapters](docs/SOLUTION_DESIGN.md#architecture)) |
-| Hybrid scan design (Phase 2) | [`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md) |
-| E2E hybrid scan test | [`docs/E2E_HYBRID_SCAN_TEST.md`](docs/E2E_HYBRID_SCAN_TEST.md) |
-| E2E active session test | [`docs/E2E_ACTIVE_SESSION_TEST.md`](docs/E2E_ACTIVE_SESSION_TEST.md) |
-| Pitch FAQ (vs Auto Memory) | [`docs/PITCH_FAQ.md`](docs/PITCH_FAQ.md) |
-| Demo runbook (≤5 min script) | [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md) |
-| One-team pilot (estimate vs imported bill) | [`docs/PILOT_RUNBOOK.md`](docs/PILOT_RUNBOOK.md) |
-| Context Guard (extension) | [`docs/EXTENSION_CONTEXT_GUARD.md`](docs/EXTENSION_CONTEXT_GUARD.md) |
+| Epic / story map | [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) |
+| Concept brief | [`docs/product/CONCEPT_BRIEF.md`](docs/product/CONCEPT_BRIEF.md) |
+| Solution design | [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md) (architecture: [ports & adapters](docs/design/SOLUTION_DESIGN.md#architecture)) |
+| Hybrid scan design (Phase 2) | [`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md) |
+| E2E hybrid scan test | [`docs/testing/E2E_HYBRID_SCAN_TEST.md`](docs/testing/E2E_HYBRID_SCAN_TEST.md) |
+| E2E active session test | [`docs/testing/E2E_ACTIVE_SESSION_TEST.md`](docs/testing/E2E_ACTIVE_SESSION_TEST.md) |
+| Pitch FAQ (vs Auto Memory) | [`docs/product/PITCH_FAQ.md`](docs/product/PITCH_FAQ.md) |
+| Demo runbook (≤5 min script) | [`docs/runbooks/DEMO_RUNBOOK.md`](docs/runbooks/DEMO_RUNBOOK.md) |
+| One-team pilot (estimate vs imported bill) | [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) |
+| Context Guard (extension) | [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
-| PR ↔ board workflow | [`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md) |
+| PR ↔ board workflow | [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) |
 | Collaborator guide | [`AGENTS.md`](AGENTS.md) |
 
 ## Core loop
@@ -44,7 +45,7 @@ Detect and Prove are provider-agnostic. Fix uses pluggable adapters (Copilot, Cu
 
 - Issues + Epics on the project board (phases E0–E5, Future)
 - Branch `TF#<issue>` → PR with `Closes #<n>` → auto-close on merge
-- Board automation mirrors Flux (see `docs/PROJECT_PR_WORKFLOW.md`)
+- Board automation mirrors Flux (see `docs/delivery/PROJECT_PR_WORKFLOW.md`)
 
 ## Development
 
@@ -82,12 +83,12 @@ The extension writes every open tab into that report's `activePaths`. A listed
 path is still reported (with its real risk) but downgraded to `kept`, so its
 tokens stop counting as saved and no exclusion artifact names it. Not
 auto-detected — a stale export would silently protect files nobody has open any
-more. Runbook: [`docs/E2E_ACTIVE_SESSION_TEST.md`](docs/E2E_ACTIVE_SESSION_TEST.md).
+more. Runbook: [`docs/testing/E2E_ACTIVE_SESSION_TEST.md`](docs/testing/E2E_ACTIVE_SESSION_TEST.md).
 
 `tokenforge scan` scores paths with risk-core, prints a findings table, and writes
 `.tokenforge/scan-report.json` (v0 Token Risk contract). Default mode is
 **heuristic-only** (no AI). Optional hybrid enrichment is documented in
-[`docs/HYBRID_SCAN_DESIGN.md`](docs/HYBRID_SCAN_DESIGN.md). Extra flags:
+[`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md). Extra flags:
 
 ```bash
 npm run tokenforge:scan -- --json
@@ -173,12 +174,12 @@ Rebuilds on save while the watch task is running (used by `.vscode/launch.json`)
 **Monthly Prove (Platform):** [`.github/workflows/prove-monthly.yml`](.github/workflows/prove-monthly.yml)
 runs scheduled + manual `usage-sync` (optional heuristic `scan`) and uploads
 `.tokenforge/` artifacts — no surprise commits. Operator guide:
-[`docs/examples/prove-monthly.md`](docs/examples/prove-monthly.md).
+[`docs/runbooks/prove-monthly.md`](docs/runbooks/prove-monthly.md).
 
 ## Board automation setup
 
 Exact GitHub UI steps (secret, delete-head-branches, Project workflows):
-[`docs/PROJECT_PR_WORKFLOW.md`](docs/PROJECT_PR_WORKFLOW.md#collaborator-setup-github-ui).
+[`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md#collaborator-setup-github-ui).
 
 Repository secret **`PROJECT_TOKEN`** (PAT with Projects:write) is required for
 board Status sync. Issue auto-link via `Closes #` still works without it. Reuse

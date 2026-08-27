@@ -1,6 +1,6 @@
 {
   "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
-  "pitchNote": "Heuristic layer only: paraphrased instruction files and re-implemented duplicate source pairs sit in the borderline band (>4KB for instructions, tiny for source) so none flip atRisk on their own. Use --mode hybrid with a real LLM backend to see whether redundant_instructions / semantic_bloat findings catch paraphrased (not just literal) duplication (manual, non-deterministic — see docs/E2E_HYBRID_SCAN_TEST.md).",
+  "pitchNote": "Heuristic layer only: paraphrased instruction files and re-implemented duplicate source pairs sit in the borderline band (>4KB for instructions, tiny for source) so none flip atRisk on their own. Use --mode hybrid with a real LLM backend to see whether redundant_instructions / semantic_bloat findings catch paraphrased (not just literal) duplication (manual, non-deterministic — see docs/testing/E2E_HYBRID_SCAN_TEST.md).",
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/semantic-duplicates-app",
   "totals": {

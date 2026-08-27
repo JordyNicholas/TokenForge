@@ -89,7 +89,7 @@ F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 A hybrid-scan hardening run landed on `main` outside the epic structure, driven
 by one stress fixture: #105 (`fixtures/semantic-duplicates-app` — duplicates
 that are paraphrased rather than copy-pasted) exposed three gaps, each fixed and
-audited in [`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md) — #108 (B8: `source`
+audited in [`HEURISTICS_AUDIT.md`](../design/HEURISTICS_AUDIT.md) — #108 (B8: `source`
 files could not reach LLM candidate selection), #110 (B9: no reason code for
 duplicated *logic*, only duplicated *instructions*), #112 (B10: no test seam, so
 the hybrid merge/totals path only ever ran with zero findings). #114 above is the
@@ -99,7 +99,7 @@ fourth gap from the same run, left open by choice.
 
 A second review, driven by ten `.json`-shaped cases where extension + size alone
 give the wrong answer. Audited as B11–B15 in
-[`HEURISTICS_AUDIT.md`](./HEURISTICS_AUDIT.md).
+[`HEURISTICS_AUDIT.md`](../design/HEURISTICS_AUDIT.md).
 
 | Issue | Title | Epic | Status |
 | --- | --- | --- | --- |
@@ -129,8 +129,8 @@ PRs catches nothing.
 
 ### F1.1 — Claude Code CLI backend (#145, complete)
 
-Design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md). Manual verification:
-[`E2E_CLAUDE_CODE_ENRICH_TEST.md`](./E2E_CLAUDE_CODE_ENRICH_TEST.md).
+Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md). Manual verification:
+[`E2E_CLAUDE_CODE_ENRICH_TEST.md`](../testing/E2E_CLAUDE_CODE_ENRICH_TEST.md).
 
 | Issue | Title | Depends on | Status |
 | --- | --- | --- | --- |
@@ -168,7 +168,7 @@ decided with the per-call cost known.
 
 ### F2 attractiveness backlog (filed under #61)
 
-Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).  
+Parent plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).  
 Epic **#61** — Wave A (#85–#88) and Wave B (#89–#94) closed; Wave C + Parallel remain. Implement with `TF#<n>-…` branches.
 
 #### Wave A — Manual reconciliation (done)
@@ -180,7 +180,7 @@ Epic **#61** — Wave A (#85–#88) and Wave B (#89–#94) closed; Wave C + Para
 | #87 | Prove: freeze Assumptions snapshot with a compare run | #17 / #27 |
 | #88 | Docs + demo: one-team pilot runbook (baseline → apply → import bill) | #23 / #61 |
 
-Pilot path: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+Pilot path: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
 #### Wave B — Live sync + variance (done)
 
@@ -266,7 +266,7 @@ committed scope.
 | Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy |
 | Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs |
 | Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths |
-| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) |
+| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) |
 | Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing |
 
 ## Build order
@@ -277,10 +277,10 @@ Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
    - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost) and **#167** (multi-pass) remain as follow-on stories, in that order
-2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
+2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **Candidates** below — promote to issues when the team agrees scope
 
-Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md).
+Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).

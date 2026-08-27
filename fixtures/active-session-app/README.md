@@ -13,7 +13,7 @@ context TokenForge should keep out of an agent prompt — and on the day someone
 is fixing a translation, it is the single most important file in the repo. Same
 bytes, same name, same class, opposite correct answer.
 
-`docs/HEURISTICS_AUDIT.md` records this as the one case left open by the
+`docs/design/HEURISTICS_AUDIT.md` records this as the one case left open by the
 heuristic pass: a scan running once, offline, cannot know. Only the editor
 knows, so the editor has to say.
 

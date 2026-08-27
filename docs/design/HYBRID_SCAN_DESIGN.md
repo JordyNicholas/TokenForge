@@ -379,7 +379,7 @@ does not write source files.
 
 ## Implementation map (board)
 
-Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/TokenForge/issues/60)**. Full board: [`BOARD.md`](./BOARD.md).
+Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/TokenForge/issues/60)**. Full board: [`BOARD.md`](../delivery/BOARD.md).
 
 | Issue | Deliverable | Status |
 | --- | --- | --- |
@@ -404,7 +404,7 @@ F1 (#60) complete: CLI hybrid backends + extension opt-in instruction enrich.
 | --- | --- | --- |
 | #146 | `risk-core`: `claude-code` backend id + schema v5 | Shipped |
 | #147 | `enrichers`: `claude-code` adapter + spec/registry wiring | This section |
-| #148 | CLI: `--llm claude-code` flags + manual E2E against the real binary | Shipped — [`E2E_CLAUDE_CODE_ENRICH_TEST.md`](./E2E_CLAUDE_CODE_ENRICH_TEST.md) |
+| #148 | CLI: `--llm claude-code` flags + manual E2E against the real binary | Shipped — [`E2E_CLAUDE_CODE_ENRICH_TEST.md`](../testing/E2E_CLAUDE_CODE_ENRICH_TEST.md) |
 | #149 | Extension: treat `claude-code` as an external backend | Open |
 
 ## Out of scope (this design)

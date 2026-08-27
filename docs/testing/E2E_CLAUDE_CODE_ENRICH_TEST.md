@@ -6,13 +6,13 @@ Claude Code CLI on its **subscription login** instead of `ANTHROPIC_API_KEY`.
 **This is deliberately not in CI.** It spends real plan quota, needs an
 interactive login, and LLM output is non-deterministic — the same reasons
 `--mode hybrid` is excluded from the CI gate in
-[`PROJECT_PR_WORKFLOW.md`](./PROJECT_PR_WORKFLOW.md). The adapter's own
+[`PROJECT_PR_WORKFLOW.md`](../delivery/PROJECT_PR_WORKFLOW.md). The adapter's own
 behaviour is covered by unit tests with an injected command runner
 (`packages/enrichers/src/claude-code/`); what this document covers is the part
 those tests structurally cannot: whether the flags exist and the envelope parses.
 
-Related: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md),
-[`LLM_ENRICHER_SETUP.md`](./LLM_ENRICHER_SETUP.md).
+Related: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md),
+[`LLM_ENRICHER_SETUP.md`](../adapters/LLM_ENRICHER_SETUP.md).
 
 ## Why this document exists
 

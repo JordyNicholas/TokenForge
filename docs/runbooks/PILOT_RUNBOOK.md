@@ -8,8 +8,8 @@ export so Prove can show **estimated reduction**, **actual billed change**, and
 This is a **manual reconciliation** demo. It is **not** live vendor billing sync and
 **not** metering of any agent pipeline.
 
-Hackathon ≤5-min script (noisy tabs → CLI → ~30% scenario): [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).  
-Plan: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md).
+Hackathon ≤5-min script (noisy tabs → CLI → ~30% scenario): [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).
+Plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).
 
 ## Honesty (say this out loud)
 
@@ -205,7 +205,7 @@ scan.” Prefer the turnkey Action:
 
 - Workflow: [`.github/workflows/prove-monthly.yml`](../.github/workflows/prove-monthly.yml)
 - Operator guide + secrets table + generic cron:
-  [`docs/examples/prove-monthly.md`](./examples/prove-monthly.md)
+  [`prove-monthly.md`](./prove-monthly.md)
 
 Billing window is customizable (`period_mode` / `months_ago` / pinned `YYYY-MM`;
 default remains **previous** UTC month). Schedule cron is edited in the workflow

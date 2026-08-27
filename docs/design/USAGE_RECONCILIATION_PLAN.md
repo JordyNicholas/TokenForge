@@ -1,6 +1,6 @@
 # Prove attractiveness plan — estimate vs actual usage
 
-Board home: [`BOARD.md`](./BOARD.md). Parent epic: **[#61 F2 — Prove at org scale](https://github.com/JordyNicholas/TokenForge/issues/61)**.  
+Board home: [`BOARD.md`](../delivery/BOARD.md). Parent epic: **[#61 F2 — Prove at org scale](https://github.com/JordyNicholas/TokenForge/issues/61)**.  
 Anchor story today: **[#27 Live usage metrics / billing sync](https://github.com/JordyNicholas/TokenForge/issues/27)** (thin demo/file import shipped).
 
 This plan turns the **estimate ↔ bill gap** into incremental board work that raises adoption value without breaking provider independence or honesty constraints.
@@ -67,7 +67,7 @@ Waves are ordered for **attractiveness first**: each wave is demoable and shippa
 | #87 | Prove: freeze Assumptions snapshot with a compare run | #17 / #27 | Estimates stay auditable when knobs change later |
 | #88 | Docs + demo: one-team pilot runbook (baseline → apply → import bill) | #23 / #61 | Sales/pilot path that is honest and repeatable |
 
-**Exit criteria:** Demo with a real-shaped export (sanitized fixture) shows variance; pitch can say “import your bill, compare to estimate” without claiming live sync. Repeatable script: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+**Exit criteria:** Demo with a real-shaped export (sanitized fixture) shows variance; pitch can say “import your bill, compare to estimate” without claiming live sync. Repeatable script: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
 ### Wave B — Live sync + variance product (mostly cover the gap)
 
@@ -108,7 +108,7 @@ Keep shipping #28 remaining work beside usage — org-scale Fix increases value 
 | #99 | Remote org content-exclusion / policy apply API (per provider) | #28 | Platform rollout beyond local files |
 | #100 | Org pilot pack: scan → apply → prove variance (single path) | #28 / #27 | Lowest-friction adoption wedge |
 
-F3 (#25 / #26 full assistants) stays **do not pitch first** per [`BOARD.md`](./BOARD.md).
+F3 (#25 / #26 full assistants) stays **do not pitch first** per [`BOARD.md`](../delivery/BOARD.md).
 
 ---
 

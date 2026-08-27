@@ -1,9 +1,14 @@
 # Concept Brief — TokenForge
 
+**Status:** Locked  
+**Scope:** Hackathon one-pager — category, buyer, core loop, honesty constraints.  
+**Audience:** Judges, collaborators, FinOps.  
+**Companion:** [`../runbooks/DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) · [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md)
+
 *(Hackathon one-pager · board / team aligned)*
 
-See [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) for the ≤5-min live demo script.
-One-team estimate vs imported bill: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+See [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) for the ≤5-min live demo script.
+One-team estimate vs imported bill: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
 ## Category
 
@@ -29,12 +34,12 @@ Large IT orgs overspend on **AI coding credits / metered usage** because low-val
 
 **Token Risk → Policy Pack → Savings Proof**
 
-1. **Detect** — score risky open tabs / paths (size × inactivity × filetype) — **provider-agnostic**; optional Phase 2 **hybrid** pass adds local or external LLM semantic enrichment on a bounded candidate set ([`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md))
+1. **Detect** — score risky open tabs / paths (size × inactivity × filetype) — **provider-agnostic**; optional Phase 2 **hybrid** pass adds local or external LLM semantic enrichment on a bounded candidate set ([`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md))
 2. **Fix** — filter inactive tabs; write lean agent instructions + content exclusions via a **provider adapter** (same findings, different output files)
 3. **Prove** — Tokens Saved ROI dashboard (simulated OK for MVP; cost knobs are assumption inputs)
 
 System shape (ports and adapters, shared kernel, file JSON contract):
-[`docs/SOLUTION_DESIGN.md`](./SOLUTION_DESIGN.md#architecture).
+[`SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md#architecture).
 
 ## Provider independence
 

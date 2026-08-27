@@ -101,7 +101,7 @@ priority order.
 **Where:** `packages/risk-core/src/estimate/estimate.ts`,
 `BYTES_PER_TOKEN = 4`.
 
-Not a bug: `docs/PITCH_FAQ.md` already documents this as intentional,
+Not a bug: [`PITCH_FAQ.md`](../product/PITCH_FAQ.md) already documents this as intentional,
 hackathon-grade math, not a claim about any real tokenizer. Listed here only
 for completeness of the audit.
 
@@ -441,4 +441,4 @@ CLI edge — that split is architectural, not incidental.
   not solved by a better rule but by a different *input*. The extension
   publishes open tabs as `activePaths`, `scan --active-paths-file` reads them,
   and an open path is downgraded to `kept` rather than proposed for exclusion.
-  Runbook: [`E2E_ACTIVE_SESSION_TEST.md`](./E2E_ACTIVE_SESSION_TEST.md).
+  Runbook: [`E2E_ACTIVE_SESSION_TEST.md`](../testing/E2E_ACTIVE_SESSION_TEST.md).

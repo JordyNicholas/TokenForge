@@ -47,7 +47,7 @@ describe("buildScanLayers", () => {
 });
 
 describe("kept findings and savings math", () => {
-  // docs/HEURISTICS_AUDIT.md B7 flagged `review` verdicts as untested. They map
+  // docs/design/HEURISTICS_AUDIT.md B7 flagged `review` verdicts as untested. They map
   // to action "kept" (packages/enrichers/src/parse.ts), and duplicate_logic is
   // always review — so this is the path every such finding takes.
   function keptFinding(path: string, estTokens: number): TokenRiskFinding {

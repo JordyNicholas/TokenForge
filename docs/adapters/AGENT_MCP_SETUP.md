@@ -83,4 +83,4 @@ For hybrid enrichment with Cursor CLI (no Ollama or other vendor CLIs):
 - Session export (`.tokenforge/session-stats.json`) remains an extension handoff;
   use the IDE Context Guard panel or export setting for Prove session evidence.
 
-Related: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md), [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+Related: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md), [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).

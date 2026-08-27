@@ -18,7 +18,7 @@ export const OVERSIZED_BYTES = 100_000;
 /**
  * Lower `oversized` bar for auxiliary data trees (fixtures, mocks, recorded
  * payloads). One flat threshold treats a 30 KB blob of recorded JSON like a
- * 30 KB hand-written module — see `docs/HEURISTICS_AUDIT.md` B3. This is the
+ * 30 KB hand-written module — see `docs/design/HEURISTICS_AUDIT.md` B3. This is the
  * narrow, class-aware version of that recommendation: the reason stays
  * `oversized`, only the bar moves.
  */
@@ -96,7 +96,7 @@ export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
  * Guaranteed minimum count of `source`-class files sampled into LLM
  * candidates by size within their own class, so they don't have to
  * out-compete every other file class in the global top-files ranking.
- * See docs/HEURISTICS_AUDIT.md B8.
+ * See docs/design/HEURISTICS_AUDIT.md B8.
  */
 export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
 

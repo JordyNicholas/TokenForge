@@ -4,7 +4,7 @@ Step-by-step runbook for product demos. **~15–20 minutes** including local
 Qwen inference time. Assumes TokenForge is cloned and `main` includes the hybrid
 scan PR stack (layers → Ollama → dashboard boards).
 
-Related: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md), [`PITCH_FAQ.md`](./PITCH_FAQ.md).
+Related: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md), [`PITCH_FAQ.md`](../product/PITCH_FAQ.md).
 
 ## What you will show
 
@@ -224,7 +224,7 @@ Open the URL printed (usually `http://localhost:5173`).
 | “We intercept the agent pipeline” | **No** — file-based risk + policy recommendations. |
 | “~30% savings” | **Scenario** — dashboard assumptions on demo seed, not a SLA. |
 
-FAQ: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Deck: [`pitch/TokenForge-Pitch.pptx`](./pitch/TokenForge-Pitch.pptx).
+FAQ: [`PITCH_FAQ.md`](../product/PITCH_FAQ.md) · Deck: [`TokenForge-Pitch.pptx`](../pitch/TokenForge-Pitch.pptx).
 
 ## 6. Quick smoke (CI parity, no Ollama)
 

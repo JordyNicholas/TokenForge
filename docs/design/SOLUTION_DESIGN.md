@@ -1,6 +1,11 @@
 # Solution Design Lite — TokenForge
 
-Locked after concept workshop. Full narrative: [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
+**Status:** Locked  
+**Scope:** Stack, ports & adapters, monorepo layout, JSON contract.  
+**Audience:** Implementers and reviewers.  
+**Companion:** [`CONCEPT_BRIEF.md`](../product/CONCEPT_BRIEF.md) · [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · [`../schemas/`](../schemas/)
+
+---
 
 ## Stack (confirmed)
 
@@ -82,9 +87,18 @@ and not an adapter.
 
 ```text
 TokenForge/
-├── docs/
+├── docs/                   # see docs/README.md — product, design, delivery, …
+│   ├── product/
+│   ├── design/
+│   ├── delivery/
+│   ├── adapters/
+│   ├── runbooks/
+│   ├── testing/
+│   ├── pitch/
+│   └── schemas/            # JSON contracts (code-embedded paths)
 ├── packages/risk-core/     # estimateTokens, scoreRisk, types
 │   └── src/{domain,classify,estimate,score,report}/
+├── packages/enrichers/     # hybrid LLM backends
 ├── fixtures/               # see fixtures/README.md for the full catalog
 │   ├── noisy-app/          # demo repo with lockfiles / fat configs
 │   ├── lean-app/           # negative control: healthy repo, no findings
@@ -92,7 +106,7 @@ TokenForge/
 │   ├── instructions-app/   # hybrid/LLM candidate-selection fixture
 │   └── expected/           # pinned scan totals per fixture
 ├── extension/              # VS Code Context Guard
-├── cli/                    # tokenforge init | scan | apply
+├── cli/                    # tokenforge scan | apply | init | usage-sync | mcp
 │   └── src/{app,commands,adapters,usage,io,output,savings}/
 └── dashboard/              # React ROI UI
     └── src/{domain,data,state,pages,ui}/
@@ -160,7 +174,7 @@ Dashboard converts tokens → $ via editable assumptions (rate, team size, msgs/
 
 - Track open editors: path, size, last focus/edit, filetype class
 - Rule: inactive ≥10 minutes (focused) / ≥5 minutes (background) **or** high-risk class → at-risk
-- UX: status bar + side panel (Keep / Filter) + Risk pulse; see [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md)
+- UX: status bar + side panel (Keep / Filter) + Risk pulse; see [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md)
 - Export `.tokenforge/last-scan.json` or `~/.tokenforge/events.jsonl`
 - Honesty: recommended hygiene / risk scoring — not interception of any agent’s private pipeline
 - Optional: `tokenforge.autoFilterHighRisk` auto-Filters pending lockfile/generated tabs
@@ -177,7 +191,7 @@ Default scan is **heuristic-only** (fast, offline, deterministic). Optional
 `--mode hybrid` runs the same baseline plus an **LLM enricher** on a bounded
 candidate set (instruction files, borderline configs, top-N largest paths).
 Enrichers are pluggable (`noop`, `ollama`, `codex`, `anthropic`). Full design:
-[`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+[`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 `apply` / `init` select a **provider adapter** that maps the same scan findings to that vendor’s levers, for example:
 
@@ -211,11 +225,11 @@ MVP may implement one adapter fully and stub others; do not hard-code a single v
 Hybrid scan (local **and** external LLM enrichers), chat history compaction,
 intelligent model routing, live usage/billing sync **per provider**,
 org-level exclusion/policy apply APIs — do **not** lead the pitch with these.
-Hybrid scan design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+Hybrid scan design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
 
 **Prove attractiveness (estimate vs actual):** thin usage import is shipped under
 #27; Wave A is the manual reconcile path (import bill, period compare, freeze,
-[`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)). Wave B is live adapters + variance board;
+[`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md)). Wave B is live adapters + variance board;
 Wave C is attribution / calibration — epic #61. Action plan:
-[`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) ·
-[`docs/BOARD.md`](./BOARD.md).
+[`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) ·
+[`BOARD.md`](../delivery/BOARD.md).

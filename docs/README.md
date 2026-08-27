@@ -1,0 +1,113 @@
+# TokenForge documentation
+
+**Status:** Locked  
+**Scope:** Index of all project documentation by topic and audience.  
+**Audience:** Everyone — start here before opening a random `.md`.  
+**Companion:** [`DOC_PATTERN.md`](./DOC_PATTERN.md) · [`../AGENTS.md`](../AGENTS.md) · [`../README.md`](../README.md)
+
+---
+
+## Start here
+
+| If you are… | Read |
+| --- | --- |
+| New collaborator / agent | [`../AGENTS.md`](../AGENTS.md) → [`product/CONCEPT_BRIEF.md`](./product/CONCEPT_BRIEF.md) → [`design/SOLUTION_DESIGN.md`](./design/SOLUTION_DESIGN.md) |
+| Running the hackathon demo | [`runbooks/DEMO_RUNBOOK.md`](./runbooks/DEMO_RUNBOOK.md) |
+| FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) |
+| Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
+| Extension (Context Guard) | [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
+| Hybrid scan / LLM backends | [`design/HYBRID_SCAN_DESIGN.md`](./design/HYBRID_SCAN_DESIGN.md) → [`adapters/LLM_ENRICHER_SETUP.md`](./adapters/LLM_ENRICHER_SETUP.md) |
+
+---
+
+## By folder
+
+### [product/](./product/) — what TokenForge is
+
+Category, buyer, positioning, competitive FAQ.
+
+| Doc | Purpose |
+| --- | --- |
+| [CONCEPT_BRIEF.md](./product/CONCEPT_BRIEF.md) | Locked one-pager: AI Coding FinOps, Detect → Fix → Prove |
+| [PITCH_FAQ.md](./product/PITCH_FAQ.md) | Judge/collaborator Q&A (vs Auto Memory, ~30%, hybrid scan) |
+
+### [design/](./design/) — how it is built
+
+Architecture, contracts narrative, audits, phased plans.
+
+| Doc | Purpose |
+| --- | --- |
+| [SOLUTION_DESIGN.md](./design/SOLUTION_DESIGN.md) | Stack, ports & adapters, monorepo layout, JSON contract |
+| [HYBRID_SCAN_DESIGN.md](./design/HYBRID_SCAN_DESIGN.md) | Heuristic + optional LLM enrichment (Phase 2 Detect) |
+| [HEURISTICS_AUDIT.md](./design/HEURISTICS_AUDIT.md) | Point-in-time audit of default scan rules + fixture map |
+| [USAGE_RECONCILIATION_PLAN.md](./design/USAGE_RECONCILIATION_PLAN.md) | Estimate vs actual usage (Prove Wave A→C) |
+
+### [delivery/](./delivery/) — how we ship
+
+| Doc | Purpose |
+| --- | --- |
+| [BOARD.md](./delivery/BOARD.md) | Epic/story map ↔ GitHub issues |
+| [PROJECT_PR_WORKFLOW.md](./delivery/PROJECT_PR_WORKFLOW.md) | Branch naming, `Closes #n`, CI, board automation |
+
+### [adapters/](./adapters/) — delivery surfaces
+
+| Doc | Purpose |
+| --- | --- |
+| [EXTENSION_CONTEXT_GUARD.md](./adapters/EXTENSION_CONTEXT_GUARD.md) | VS Code Detect: tabs, Keep/Filter, exports |
+| [LLM_ENRICHER_SETUP.md](./adapters/LLM_ENRICHER_SETUP.md) | `--mode hybrid` backend setup (Ollama, Anthropic, CLIs) |
+| [AGENT_MCP_SETUP.md](./adapters/AGENT_MCP_SETUP.md) | `tokenforge mcp` for Cursor / Claude Code agents |
+
+### [runbooks/](./runbooks/) — operator scripts
+
+| Doc | Purpose |
+| --- | --- |
+| [DEMO_RUNBOOK.md](./runbooks/DEMO_RUNBOOK.md) | ≤5 min live demo (Detect → Fix → Prove) |
+| [PILOT_RUNBOOK.md](./runbooks/PILOT_RUNBOOK.md) | One-team baseline → apply → import bill |
+| [prove-monthly.md](./runbooks/prove-monthly.md) | Platform monthly `usage-sync` via GitHub Actions |
+
+### [testing/](./testing/) — manual E2E verification
+
+Non-deterministic LLM paths stay manual; heuristic paths are covered by `npm test`.
+
+| Doc | Purpose |
+| --- | --- |
+| [E2E_HYBRID_SCAN_TEST.md](./testing/E2E_HYBRID_SCAN_TEST.md) | Hybrid scan end-to-end |
+| [E2E_ACTIVE_SESSION_TEST.md](./testing/E2E_ACTIVE_SESSION_TEST.md) | Active paths / session signal |
+| [E2E_CLAUDE_CODE_ENRICH_TEST.md](./testing/E2E_CLAUDE_CODE_ENRICH_TEST.md) | Claude Code enricher backend |
+
+### [pitch/](./pitch/) — deck & live Q&A
+
+| Asset | Purpose |
+| --- | --- |
+| [TokenForge-Pitch.pptx](./pitch/TokenForge-Pitch.pptx) | Hackathon deck |
+| [PITCH_BOARD_PREP.md](./pitch/PITCH_BOARD_PREP.md) | Shark Tank–style spoken answers |
+| [README.md](./pitch/README.md) | Regenerate deck, slide list |
+
+### [schemas/](./schemas/) — JSON contracts
+
+Formal Token Risk / usage / session schemas and example payloads.  
+**Do not move** without updating `packages/risk-core` path constants and tests.
+
+---
+
+## Product spine (quick reference)
+
+```text
+DETECT (extension + CLI scan) → FIX (CLI apply/init) → PROVE (dashboard + usage sync)
+         ↑                           ↑
+    risk-core kernel          provider adapters
+         └──────── JSON on disk (.tokenforge/*.json) ────────┘
+```
+
+---
+
+## Docs vs code — known gaps
+
+| Topic | Documentation | Code today |
+| --- | --- | --- |
+| Prove one-step | README `tokenforge:prove` | Shell/npm wrapper; no `tokenforge prove` subcommand |
+| Session Prove on dashboard | F4 board (#156–#158) | Extension exports `session-stats.json`; dashboard does not consume it |
+| Org policy remote push | `org-apply` docs in design | Staging only; Copilot manual, Cursor/Claude unsupported |
+| Hybrid scan in CI | Explicitly excluded | See `design/HYBRID_SCAN_DESIGN.md` + `.github/workflows/ci.yml` |
+
+Update this table when gaps close.

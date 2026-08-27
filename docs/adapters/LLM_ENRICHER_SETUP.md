@@ -1,7 +1,7 @@
 # Hybrid scan — LLM enricher setup
 
 Quick reference for running `tokenforge scan . --mode hybrid` with a real LLM
-backend. See [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) for the full
+backend. See [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) for the full
 architecture, candidate-selection rules, and JSON contract — this doc only
 covers "what do I set to make `--llm <backend>:<model>` work."
 
@@ -59,7 +59,7 @@ Candidate excerpts leave the machine when using this backend — the CLI prints
 a one-time warning to stderr before the first request is sent. Excerpts are
 bounded (≤ 30 files, ≤ 32 KiB each) and never include lockfiles or whole
 trees; see the "Candidate selection" and "Privacy and cost" sections of
-[`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) for the exact rules.
+[`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) for the exact rules.
 
 ## `claude-code` (Claude plan through Claude Code CLI)
 
@@ -105,7 +105,7 @@ never the working directory: a `claude -p` session loads settings, hooks, MCP
 servers, and `CLAUDE.md` from its cwd with no trust prompt, so the scanned repo
 would otherwise get to configure the process analyzing it. See the "Trust
 boundary for CLI backends" section of
-[`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md).
+[`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md).
 
 ## `codex` (ChatGPT account through Codex CLI)
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tokenforge.dev/schema/risk-event/v3",
   "title": "TokenForge Token Risk report (v3)",
-  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v3 is a strict superset of v2 (risk-event.v2.schema.json, frozen): it adds the redundant_config reason for config files repeated across workspace packages. No new suggestion kind \u2014 that advice reuses dedupe_rules. Every valid v0/v1/v2 report is still valid here.",
+  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/design/HYBRID_SCAN_DESIGN.md. v3 is a strict superset of v2 (risk-event.v2.schema.json, frozen): it adds the redundant_config reason for config files repeated across workspace packages. No new suggestion kind \u2014 that advice reuses dedupe_rules. Every valid v0/v1/v2 report is still valid here.",
   "type": "object",
   "additionalProperties": false,
   "required": [

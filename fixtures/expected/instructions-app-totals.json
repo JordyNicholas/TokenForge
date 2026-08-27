@@ -1,6 +1,6 @@
 {
   "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
-  "pitchNote": "Heuristic layer only: verbose instruction files sit in the borderline band (>4KB, <100KB) so none flip atRisk on their own. Use --mode hybrid with a real LLM backend to see semantic_bloat / redundant_instructions findings (manual, non-deterministic — see docs/E2E_HYBRID_SCAN_TEST.md).",
+  "pitchNote": "Heuristic layer only: verbose instruction files sit in the borderline band (>4KB, <100KB) so none flip atRisk on their own. Use --mode hybrid with a real LLM backend to see semantic_bloat / redundant_instructions findings (manual, non-deterministic — see docs/testing/E2E_HYBRID_SCAN_TEST.md).",
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/instructions-app",
   "totals": {

@@ -11,10 +11,10 @@
 #
 # DETERMINISTIC ONLY. Do not add `tokenforge scan --mode hybrid` here: LLM
 # output is non-deterministic and cannot be a merge gate (see the out-of-scope
-# list in docs/HYBRID_SCAN_DESIGN.md). Do not add `--active-paths-file` either
+# list in docs/design/HYBRID_SCAN_DESIGN.md). Do not add `--active-paths-file` either
 # — CI has no editor session, and pointing it at a checked-in export would
 # protect whatever someone happened to have open the day it was committed
-# (docs/E2E_ACTIVE_SESSION_TEST.md).
+# (docs/testing/E2E_ACTIVE_SESSION_TEST.md).
 
 name: CI
 

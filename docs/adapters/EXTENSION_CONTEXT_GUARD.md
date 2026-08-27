@@ -1,10 +1,11 @@
 # Context Guard — VS Code extension
 
-How the TokenForge **Detect** surface works in the editor: scoring open tabs,
-Keep/Filter decisions, Risk pulse evidence, and `.tokenforge/last-scan.json`.
+**Status:** Locked  
+**Scope:** Detect surface — tab scoring, Keep/Filter, exports.  
+**Audience:** Extension developers and demo operators.  
+**Companion:** [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md) · [`../runbooks/DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md)
 
-Related: [`SOLUTION_DESIGN.md`](./SOLUTION_DESIGN.md) · [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md) ·
-[`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
+---
 
 ## What it is (and is not)
 
@@ -20,7 +21,7 @@ paths is **opt-in** (`tokenforge.llmEnrichment` + command
 **TokenForge: Enrich instruction paths**) and writes hybrid `layers` /
 `scan.llm` into `.tokenforge/last-scan.json` without changing live Keep/Filter
 scoring. Backends reuse `@tokenforge/enrichers` (noop, Ollama, Anthropic, Codex) —
-same port as the CLI ([`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)).
+same port as the CLI ([`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md)).
 
 ## Quick start
 
@@ -109,4 +110,4 @@ Settings written into the report: `tokenforge.team`, `tokenforge.repo`,
 
 Open `fixtures/noisy-app/package-lock.json` and `dist/bundle.js` — they flag
 immediately. Filter one and watch Risk pulse unlock before/after/saved. Full stage
-script: [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).
+script: [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md).

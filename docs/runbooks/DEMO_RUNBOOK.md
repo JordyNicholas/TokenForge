@@ -1,13 +1,14 @@
 # Demo Runbook — TokenForge (≤5 min)
 
-Step-by-step script for presenting the **Detect → Fix → Prove** loop live: noisy tabs →
-extension → CLI → dashboard, closing on the Auto Memory sound bite. Written so a new
-teammate can run the whole demo from this doc alone, with no other context.
+**Status:** Runbook  
+**Scope:** Live hackathon demo script — Detect → Fix → Prove.  
+**Audience:** Presenters and demo operators.  
+**Companion:** [`PITCH_FAQ.md`](../product/PITCH_FAQ.md) · [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md)
 
-Positioning background: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md).
+---
 
 One-team **pilot** (baseline usage → apply → import a later bill, estimate vs actual):
-[`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md). That path is for FinOps / sales, not the ≤5-min
+[`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md). That path is for FinOps / sales, not the ≤5-min
 hackathon clock.
 
 > **Honesty note:** the VS Code extension ships **Context Guard** — status bar
@@ -97,14 +98,14 @@ npm run tokenforge:apply -- --dry-run
 - Optional stretch: note **Adjacent levers** (compaction / routing advisories) only if asked —
   do not lead with them. Optional: load a fresh `scan-report.json` via the file/URL loader.
 - If a FinOps judge asks “vs the invoice?”: one sentence — import a period export, then
-  [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) (billed usage compare, not live sync).
+  [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) (billed usage compare, not live sync).
 
 ### Close — Auto Memory sound bite (~15–20s)
 
 > *"They help the agent remember. We help the organization stop bleeding tokens."*
 
-Full comparison table: [`PITCH_FAQ.md` — vs Claude Auto Memory](./PITCH_FAQ.md#vs-claude-auto-memory).
-Competition map: [`PITCH_FAQ.md` — Competitive landscape](./PITCH_FAQ.md#competitive-landscape).
+Full comparison table: [`PITCH_FAQ.md` — vs Claude Auto Memory](../product/PITCH_FAQ.md#vs-claude-auto-memory).
+Competition map: [`PITCH_FAQ.md` — Competitive landscape](../product/PITCH_FAQ.md#competitive-landscape).
 
 ## Timing checklist
 

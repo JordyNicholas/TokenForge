@@ -13,4 +13,4 @@ an editor's agent-instructions folder (e.g. `.cursor/rules/`) would be named.
 It exists to check whether TokenForge's instruction-path detection
 (`isInstructionPath` in `packages/risk-core/src/candidates/candidates.ts`)
 over-matches on the bare segment name instead of the actual instruction
-location. See `docs/HEURISTICS_AUDIT.md` (B1).
+location. See `docs/design/HEURISTICS_AUDIT.md` (B1).

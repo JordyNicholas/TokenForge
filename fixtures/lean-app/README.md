@@ -15,7 +15,7 @@ file named `package-lock.json` (and the other lockfile basenames) as the
 `lockfile` class — which is always `high_risk_filetype`, regardless of its
 size. Committing even a tiny lockfile here would produce a non-zero finding by
 class alone, which would defeat the point of this fixture as a "genuinely
-nothing to flag" baseline. See `docs/HEURISTICS_AUDIT.md` (B2/B3) for the
+nothing to flag" baseline. See `docs/design/HEURISTICS_AUDIT.md` (B2/B3) for the
 related discussion of size-blind vs. class-blind risk.
 
 ## Expected scan result

@@ -1,10 +1,10 @@
 # Board / live Q&A prep — TokenForge
 
 Shark Tank–style rehearsal: short spoken answers, no slides required in the room.
-Hackathon clock: see [`CONCEPT_BRIEF.md`](./CONCEPT_BRIEF.md) (≤5 min demo) and
-[`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).
+Hackathon clock: see [`CONCEPT_BRIEF.md`](../product/CONCEPT_BRIEF.md) (≤5 min demo) and
+[`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md).
 
-FAQ depth: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md).
+FAQ depth: [`PITCH_FAQ.md`](../product/PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
 ---
 
@@ -57,7 +57,7 @@ FAQ depth: [`PITCH_FAQ.md`](./PITCH_FAQ.md) · Pilot numbers: [`PILOT_RUNBOOK.md
 - **Platform** — monthly `usage-sync` + optional `scan` via
   [`.github/workflows/prove-monthly.yml`](../.github/workflows/prove-monthly.yml)
   ([#131](https://github.com/JordyNicholas/TokenForge/issues/131); guide:
-  [`examples/prove-monthly.md`](./examples/prove-monthly.md)).
+  [`prove-monthly.md`](../runbooks/prove-monthly.md)).
 - **FinOps** — baseline vs after bill import; owns pilot continue/kill.
 
 **Speaker note (10 s):**  
