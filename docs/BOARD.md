@@ -24,7 +24,7 @@ Phase 2. Former catch-all #7 was split:
 | Epic | Issue | Phase | Board |
 | --- | --- | --- | --- |
 | F1 Hybrid Detect backends | #60 | Future | **Epics Finished** |
-| F1.1 Hybrid Detect — Claude Code CLI backend | #145 | Future | **To-Do** (open) |
+| F1.1 Hybrid Detect — Claude Code CLI backend | #145 | Future | **Epics Finished** (#166/#167 remain as follow-on stories; epic closed) |
 | F2 Prove at org scale | #61 | Future | **Epics Finished** (Wave C / #99–#100 remain as follow-on stories; epic closed) |
 | F3 Adjacent (do not pitch) | #62 | Future | **Epics Finished** |
 | F4 Extension session Prove & provider CLI transports | #156 | Future | **To-Do** (open) |
@@ -126,22 +126,44 @@ survived 13 merged PRs before PR #138 fixed it. The golden-totals fixtures added
 above are the regression net for the heuristic engine, and a net nobody runs on
 PRs catches nothing.
 
-### F1.1 — Claude Code CLI backend (open, filed under #145)
+### F1.1 — Claude Code CLI backend (#145, complete)
 
-Design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md). Implement with
-`TF#<n>-…` branches. Stories are GitHub sub-issues of #145.
+Design: [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md). Manual verification:
+[`E2E_CLAUDE_CODE_ENRICH_TEST.md`](./E2E_CLAUDE_CODE_ENRICH_TEST.md).
 
 | Issue | Title | Depends on | Status |
 | --- | --- | --- | --- |
-| #146 | core: register the `claude-code` enricher backend id (+ report schema enum) | — | **Done** |
-| #147 | CLI/enrichers: `claude-code` enricher adapter (Claude Code CLI, subscription login) + spec parse + registry + limits + `HYBRID_SCAN_DESIGN` / `LLM_ENRICHER_SETUP` docs | #146 | To-Do |
-| #148 | CLI: wire `--llm claude-code` flags/help + scan integration tests + privacy gate + manual E2E doc | #147 | To-Do |
-| #149 | Extension: treat `claude-code` as an external enricher backend | #147 | To-Do |
-| #150 | Docs: index this epic in `BOARD.md` (this table) | — | **Done** |
+| #146 | core: register the `claude-code` enricher backend id (+ report schema enum) | — | **Done** — PR #152. v4 frozen, live schema bumped to v5 |
+| #147 | CLI/enrichers: `claude-code` enricher adapter (Claude Code CLI, subscription login) + spec parse + registry + docs | #146 | **Done** — PR #155 |
+| #148 | CLI: `--llm claude-code` flags/help + scan integration tests + manual E2E doc | #147 | **Done** — PR #164 |
+| #149 | Extension: treat `claude-code` as an external enricher backend | #147 | **Done** — PR #165 |
+| #150 | Docs: index this epic in `BOARD.md` (this table) | — | **Done** — PR #151 |
 
-Build order: **#146 → #147 → (#148 ∥ #149)**. #150 is independent. The three
-narrative docs originally bundled as one "docs" story now sit next to their code
-(#147 for the design/setup pages, #148 for the E2E doc).
+Epic auto-closed when #149 landed → **Epics Finished**.
+
+**Verified against the real binary** (Claude Code v2.1.247), which is the part
+worth remembering. The first adapter passed `--max-turns 1`, taken from the
+published CLI reference; the flag does not exist. Every unit test passed anyway,
+because they all inject a fake command runner — the gap is structural, not an
+oversight, which is why the E2E runbook leads with grepping `claude --help`.
+
+#### Follow-on stories (epic closed, not reopened)
+
+Same pattern as #99/#100 after F2 #61 closed, and the audit-line items above.
+Deliberately **not** filed under F4 #156, which excludes Claude Code stories.
+
+| Issue | Title | Depends on |
+| --- | --- | --- |
+| #166 | enrichers: cut the per-batch session prefix cost of `claude-code` | — |
+| #167 | enrichers: run `claude-code` through the multi-pass pipeline | #166 in practice |
+
+Both come out of the #148 verification pass. Each `claude -p` pays ~30K
+cache-creation tokens for its session prefix before reading a single candidate,
+and batches are stateless by design — so #166 measures whether `--resume` or a
+larger batch recovers it. #167 would give `claude-code` the cross-batch context
+Ollama already has via map → judge → reconcile, but it turns N calls into 1+N+1,
+which multiplies exactly the cost #166 measures. **#166 first**, so #167 is
+decided with the per-call cost known.
 
 ### F2 attractiveness backlog (filed under #61)
 
@@ -228,7 +250,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-   - **F1.1** (#145) — open. `claude-code` CLI backend: #146 (**Done**) → #147 → (#148 ∥ #149); #150 (**Done**)
+   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost) and **#167** (multi-pass) remain as follow-on stories, in that order
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
