@@ -232,7 +232,7 @@
         "tokenforge.llm": {
           "type": "string",
           "default": "noop",
-          "description": "LLM backend spec (same as CLI --llm), e.g. ollama:qwen2.5-coder:7b, anthropic:claude-sonnet-4-5, codex, or noop."
+          "description": "LLM backend spec (same as CLI --llm): noop (default), ollama:<model>, anthropic:<model>, codex, or claude-code. The two CLI backends take no model — they use whatever that CLI is signed in with."
         },
         "tokenforge.llmEndpoint": {
           "type": "string",
@@ -248,7 +248,7 @@
           "type": "boolean",
           "default": false,
           "scope": "resource",
-          "description": "Allow Anthropic/Codex enrichers to send instruction excerpts off this machine. Local Ollama does not require this."
+          "description": "Allow external enrichers (anthropic, codex, claude-code) to send instruction excerpts off this machine. Only noop and ollama run locally and do not require this."
         }
       }
     }
