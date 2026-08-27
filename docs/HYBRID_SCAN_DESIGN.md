@@ -301,7 +301,7 @@ reads OAuth credentials — it requires `ANTHROPIC_API_KEY`, which is exactly th
 thing this backend exists to avoid. The empty working directory buys back most
 of what `--bare` gives up, without giving up the login.
 
-The tool surface is deny-by-default (`--permission-mode dontAsk`, `--max-turns 1`,
+The tool surface is deny-by-default (`--permission-mode dontAsk`,
 `--strict-mcp-config`) — deliberately **not**
 `--dangerously-skip-permissions`, which is `bypassPermissions` and would
 auto-approve every tool. The candidate excerpts are already in the prompt, so

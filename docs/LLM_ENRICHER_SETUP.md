@@ -97,8 +97,9 @@ environment. Leaving one set would silently move the scan onto usage-based API
 billing instead of the plan — this backend exists precisely to avoid that.
 
 TokenForge runs `claude -p` non-interactively from a **new empty temporary
-directory**, with `--output-format json --json-schema`, `--max-turns 1`,
-`--permission-mode dontAsk`, and `--strict-mcp-config`. The repository path is
+directory**, with `--output-format json --json-schema`,
+`--permission-mode dontAsk`, and `--strict-mcp-config`. (`--max-turns` is
+documented but absent from the CLI as of v2.1.247, so it is not passed.) The repository path is
 never the working directory: a `claude -p` session loads settings, hooks, MCP
 servers, and `CLAUDE.md` from its cwd with no trust prompt, so the scanned repo
 would otherwise get to configure the process analyzing it. See the "Trust
