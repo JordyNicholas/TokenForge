@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokenforge.dev/schema/risk-event/v4",
+  "title": "TokenForge Token Risk report (v4)",
+  "description": "Shared Detect/Fix \u2192 Prove document written as .tokenforge/scan-report.json or last-scan.json. Scoring does not depend on provider. Optional hybrid-scan fields are backward-compatible extensions documented in docs/HYBRID_SCAN_DESIGN.md. v4 is a strict superset of v3 (risk-event.v3.schema.json, frozen): it adds the optional activePaths array, the paths a developer had open when the report was produced. Every valid v0/v1/v2/v3 report is still valid here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "timestamp",
+    "repo",
+    "team",
+    "provider",
+    "findings",
+    "totals"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "extension",
+        "cli"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "team": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "copilot",
+        "cursor",
+        "claude",
+        "generic"
+      ],
+      "description": "Fix adapter that produced or will produce policy files. Risk scoring ignores this."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "totals": {
+      "$ref": "#/$defs/totals"
+    },
+    "scan": {
+      "$ref": "#/$defs/scan"
+    },
+    "layers": {
+      "$ref": "#/$defs/layers"
+    },
+    "activePaths": {
+      "type": "array",
+      "description": "Repo-relative paths the developer had open when this report was produced. A session signal rather than a file property: no static rule can tell whether a large locale file is waste without knowing whether someone is doing i18n work right now. Exclusion artifacts must never name a path listed here, even when a finding on it says \"excluded\". Absent means \"unknown\", not \"none\" — omit the field rather than writing an empty array when there is no session signal.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "reason",
+        "bytes",
+        "estTokens",
+        "action"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "description": "duplicate_logic is advisory-only: two or more source paths implementing the same behavior. It never carries action \"excluded\" \u2014 hiding one copy from agent context is not a fix, since both are still imported. redundant_config is the config counterpart: the same settings repeated across workspace packages (e.g. a tsconfig.json copied per package instead of extending a shared base). It is also advisory-only, for the same reason \u2014 every package still loads its own copy at build time, so excluding one from agent context fixes nothing. Its advice reuses the dedupe_rules suggestion kind.",
+          "enum": [
+            "inactive_tab",
+            "high_risk_filetype",
+            "oversized",
+            "semantic_bloat",
+            "redundant_instructions",
+            "low_signal_config",
+            "duplicate_logic",
+            "redundant_config"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "filtered",
+            "excluded",
+            "kept"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "heuristic",
+            "llm",
+            "combined"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "detail": {
+          "type": "string"
+        },
+        "suggestion": {
+          "$ref": "#/$defs/suggestion"
+        }
+      }
+    },
+    "suggestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary"
+      ],
+      "description": "Copy-only advice. TokenForge never applies this. Code snippets are deferred (v0 has kind + summary only).",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "exclude_from_context",
+            "trim_instructions",
+            "dedupe_rules",
+            "add_ignore",
+            "review",
+            "consolidate_duplicates"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "beforeTokens",
+        "afterTokens",
+        "savedTokens"
+      ],
+      "properties": {
+        "beforeTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "afterTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "savedTokens": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "heuristic",
+            "hybrid"
+          ]
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "backend",
+            "model",
+            "durationMs",
+            "candidatesSent"
+          ],
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": [
+                "noop",
+                "ollama",
+                "codex",
+                "anthropic"
+              ]
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "endpoint": {
+              "type": "string"
+            },
+            "durationMs": {
+              "type": "number",
+              "minimum": 0
+            },
+            "candidatesSent": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "analysisOverview": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "summary"
+              ],
+              "properties": {
+                "summary": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 800
+                },
+                "themes": {
+                  "type": "array",
+                  "maxItems": 6,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 48
+                  }
+                },
+                "caveats": {
+                  "type": "array",
+                  "maxItems": 4,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "findings",
+        "totals"
+      ],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "totals": {
+          "$ref": "#/$defs/totals"
+        }
+      }
+    },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heuristic",
+        "llm",
+        "combined"
+      ],
+      "properties": {
+        "heuristic": {
+          "$ref": "#/$defs/layer"
+        },
+        "llm": {
+          "$ref": "#/$defs/layer"
+        },
+        "combined": {
+          "$ref": "#/$defs/layer"
+        }
+      }
+    }
+  }
+}

@@ -82,6 +82,13 @@ export const TOKEN_RISK_REPORT_SCHEMA_V3_ID =
 export const TOKEN_RISK_REPORT_SCHEMA_V3_PATH =
   "docs/schemas/risk-event.v3.schema.json";
 
+/** Frozen v4 (`activePaths`; four LLM backends, no `claude-code`). */
+export const TOKEN_RISK_REPORT_SCHEMA_V4_ID =
+  "https://tokenforge.dev/schema/risk-event/v4";
+
+export const TOKEN_RISK_REPORT_SCHEMA_V4_PATH =
+  "docs/schemas/risk-event.v4.schema.json";
+
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
 
