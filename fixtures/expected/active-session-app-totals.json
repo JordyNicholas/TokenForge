@@ -4,8 +4,8 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/active-session-app",
   "totals": {
-    "beforeTokens": 109085,
-    "afterTokens": 746,
+    "beforeTokens": 109087,
+    "afterTokens": 748,
     "savedTokens": 108339
   },
   "savedPercent": 99.3,
@@ -28,8 +28,8 @@
   "withActiveSession": {
     "note": "Same scan with --active-paths-file expected/active-session-last-scan.json. The locale file survives as `kept`, so its tokens stop counting as saved — the drop is the point, not a regression. The lockfile is untouched: the signal protects what is open without blunting the tool.",
     "totals": {
-      "beforeTokens": 109085,
-      "afterTokens": 65097,
+      "beforeTokens": 109087,
+      "afterTokens": 65099,
       "savedTokens": 43988
     },
     "savedPercent": 40.3

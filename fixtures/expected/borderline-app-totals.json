@@ -4,8 +4,8 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/borderline-app",
   "totals": {
-    "beforeTokens": 62243,
-    "afterTokens": 876,
+    "beforeTokens": 62247,
+    "afterTokens": 880,
     "savedTokens": 61367
   },
   "savedPercent": 98.6,

@@ -4,8 +4,8 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/lean-app",
   "totals": {
-    "beforeTokens": 591,
-    "afterTokens": 591,
+    "beforeTokens": 593,
+    "afterTokens": 593,
     "savedTokens": 0
   },
   "savedPercent": 0
