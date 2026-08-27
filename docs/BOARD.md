@@ -222,10 +222,35 @@ sub-issues of #156.
 | #160 | Extension: session summary export for Prove | `.tokenforge/` handoff |
 | #161 | CLI: additional provider CLI enricher (beyond Claude Code) | Transport parity; not #145 |
 | #162 | CLI/DevEx: TokenForge callable from agent CLIs (MCP or hooks) | scan/apply from agent workflows |
-| #163 | Docs: index F4 in BOARD.md | This map |
+| #163 | Docs: index F4 in BOARD.md | **Done** — this map |
 
-Build order when prioritized: **#157 + #158** first → #159 / #160 → (#161 ∥ #162);
-#163 with the board-map docs change.
+Build order when prioritized: **#157 + #158** first → #159 / #160 → (#161 ∥ #162).
+
+### RTK-inspired backlog (native patterns; no RTK dependency)
+
+Concepts borrowed from [rtk-ai/rtk](https://github.com/rtk-ai/rtk) **product patterns** — measurement, discovery, defaults, honest tiers — applied at TokenForge's layer (context policy + Prove), not runtime bash compression. **Not scheduled until prioritized.** Label: `rtk-inspired`.
+
+| Issue | Title | RTK analogue | Surface |
+| --- | --- | --- | --- |
+| #170 | Detect: discover missed savings opportunities | `rtk discover` | Extension / CLI |
+| #171 | Core: output-shape file classes (CI/test/build artifacts) | Command-family filters | `risk-core` |
+| #172 | Fix: lean-instruction compact-output snippets | `rtk test` / `rtk err` guidance | CLI adapters |
+| #173 | Prove: in-product honest savings tiers UI | “How savings work” dilution | Extension / dashboard |
+| #174 | Prove: adoption metrics (session + repo coverage) | `rtk session` | Extension / dashboard |
+| #175 | CLI: `tokenforge init` one-shot repo setup | `rtk init -g` | CLI |
+| #176 | Docs: index RTK-inspired backlog in BOARD.md | — | Docs |
+
+**Cross-refs (same ideas, already filed under F4):**
+
+| F4 issue | Overlap |
+| --- | --- |
+| #157–#158 | Session ledger / history ≈ `rtk gain` cumulative savings |
+| #160 | Session export feeds Prove tiers (#173) |
+| #162 | Agent MCP/hooks ≈ `rtk init` install UX (different job: scan/apply, not bash rewrite) |
+
+**Explicitly out of scope:** RTK proxy, bash command rewriting, claiming bill-% cuts from output compression alone.
+
+Build order when prioritized: **#175** (`init`) and **#170** (discover) for fast DevEx wins → **#171** (classes) → **#172** (lean snippets) → **#173 + #174** (Prove UX); **#176** with this board-map update.
 
 ### Further improvement candidates (not yet filed as issues)
 
@@ -254,6 +279,7 @@ Phase 2:
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
-5. **Candidates** above — promote to issues/epic when the team agrees scope
+5. **RTK-inspired** (#170–#176) — native patterns; see cross-refs to F4 above
+6. **Candidates** below — promote to issues when the team agrees scope
 
 Design: [`docs/HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · Prove gap plan: [`docs/USAGE_RECONCILIATION_PLAN.md`](./USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](./EXTENSION_CONTEXT_GUARD.md).
