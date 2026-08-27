@@ -67,15 +67,17 @@ function enrich(runner: CursorCliCommandRunner, overrides = {}) {
 
 describe("cursorCliEnricher", () => {
   it("never passes --force or --yolo", () => {
-    const args = cursorCliArgs(undefined, "/tmp/workspace");
+    const invocation = cursorCliArgs(undefined, "/tmp/workspace", "analyze these files");
 
-    expect(args).not.toContain("--force");
-    expect(args).not.toContain("--yolo");
-    expect(args).toContain("--mode");
-    expect(args).toContain("ask");
-    expect(args).toContain("--trust");
-    expect(args).toContain("--workspace");
-    expect(args).toContain("/tmp/workspace");
+    expect(invocation.args).not.toContain("--force");
+    expect(invocation.args).not.toContain("--yolo");
+    expect(invocation.args).toContain("--mode");
+    expect(invocation.args).toContain("ask");
+    expect(invocation.args).toContain("--trust");
+    expect(invocation.args).toContain("--workspace");
+    expect(invocation.args).toContain("/tmp/workspace");
+    expect(invocation.args.at(-1)).toBe("analyze these files");
+    expect(invocation.input).toBeUndefined();
   });
 
   it("constructs a bounded request and maps structured output", async () => {
@@ -99,8 +101,9 @@ describe("cursorCliEnricher", () => {
       );
       expect(args).not.toContain("--model");
       expect(options.cwd).not.toBe("/repo");
-      expect(options.input).toContain("### AGENTS.md");
-      expect(options.input).toContain("prefer tabs");
+      expect(options.input).toBeUndefined();
+      expect(args.at(-1)).toContain("### AGENTS.md");
+      expect(args.at(-1)).toContain("prefer tabs");
 
       return envelope(
         JSON.stringify({
@@ -140,10 +143,9 @@ describe("cursorCliEnricher", () => {
     const result = await enrich(runner, { model: "composer-2.5" });
 
     const batchArgs = runner.mock.calls[1]![0];
-    expect(batchArgs.slice(batchArgs.indexOf("--model"))).toEqual([
-      "--model",
-      "composer-2.5",
-    ]);
+    const modelIndex = batchArgs.indexOf("--model");
+    expect(batchArgs[modelIndex]).toBe("--model");
+    expect(batchArgs[modelIndex + 1]).toBe("composer-2.5");
     expect(result.meta.model).toBe("composer-2.5");
   });
 
@@ -181,7 +183,7 @@ describe("cursorCliEnricher", () => {
       }
       return commandResult({ exitCode: 0, stdout: "{}" });
     });
-    await expect(enrich(viaExitCode)).rejects.toThrow("not authenticated");
+    await expect(enrich(viaExitCode)).rejects.toThrow(/not authenticated|agent login/i);
 
     const viaEnvelope = vi.fn<CursorCliCommandRunner>(async (args) => {
       if (args[0] === "status") {
@@ -283,6 +285,14 @@ describe("cursorCliEnricher", () => {
     });
 
     await expect(enrich(runner)).rejects.toBeInstanceOf(RuntimeError);
+  });
+
+  it("falls back to stdin when the prompt exceeds argv limits", () => {
+    const prompt = "x".repeat(120_001);
+    const invocation = cursorCliArgs(undefined, "/tmp/workspace", prompt);
+
+    expect(invocation.input).toBe(prompt);
+    expect(invocation.args).not.toContain(prompt);
   });
 });
 

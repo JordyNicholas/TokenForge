@@ -180,17 +180,34 @@ function hasFindingsArray(value: unknown): value is { findings: unknown[] } {
   );
 }
 
+/** Keep positional prompts under typical ARG_MAX while allowing stdin fallback. */
+const MAX_POSITIONAL_PROMPT_CHARS = 120_000;
+
+export type CursorCliInvocation = {
+  args: readonly string[];
+  input?: string;
+};
+
 function statusLooksAuthenticated(stdout: string): boolean {
   try {
     const payload = JSON.parse(stdout.trim()) as {
+      status?: string;
+      isAuthenticated?: boolean;
       authenticated?: boolean;
       loggedIn?: boolean;
+      userInfo?: { email?: string };
       email?: string;
     };
-    if (payload.authenticated === true || payload.loggedIn === true) {
+    if (
+      payload.isAuthenticated === true ||
+      payload.authenticated === true ||
+      payload.loggedIn === true ||
+      payload.status === "authenticated"
+    ) {
       return true;
     }
-    if (typeof payload.email === "string" && payload.email.length > 0) {
+    const email = payload.userInfo?.email ?? payload.email;
+    if (typeof email === "string" && email.length > 0) {
       return true;
     }
   } catch {
@@ -257,8 +274,12 @@ function requestedModel(model: string): string | undefined {
     : trimmed;
 }
 
-export function cursorCliArgs(model: string | undefined, workspace: string): string[] {
-  return [
+export function cursorCliArgs(
+  model: string | undefined,
+  workspace: string,
+  prompt: string,
+): CursorCliInvocation {
+  const base = [
     "-p",
     "--output-format",
     "json",
@@ -268,7 +289,13 @@ export function cursorCliArgs(model: string | undefined, workspace: string): str
     "--workspace",
     workspace,
     ...(model ? ["--model", model] : []),
-  ];
+  ] as const;
+
+  if (prompt.length <= MAX_POSITIONAL_PROMPT_CHARS) {
+    return { args: [...base, prompt] };
+  }
+
+  return { args: base, input: prompt };
 }
 
 /** Cursor CLI enricher using the user's Cursor login or CURSOR_API_KEY. */
@@ -330,9 +357,10 @@ export function createCursorCliEnricher(
 
           let result: CursorCliCommandResult;
           try {
-            result = await run(cursorCliArgs(model, temporaryRoot), {
+            const invocation = cursorCliArgs(model, temporaryRoot, buildEnrichmentPrompt(batch));
+            result = await run(invocation.args, {
               cwd: temporaryRoot,
-              input: buildEnrichmentPrompt(batch),
+              input: invocation.input,
               timeoutMs,
             });
           } catch (error) {
