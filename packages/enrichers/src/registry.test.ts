@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { anthropicEnricher, codexEnricher, getEnricher, ollamaEnricher } from "./index";
+import {
+  anthropicEnricher,
+  claudeCodeEnricher,
+  codexEnricher,
+  getEnricher,
+  ollamaEnricher,
+} from "./index";
 
 describe("getEnricher", () => {
   it("returns ollama enricher", () => {
@@ -12,5 +18,12 @@ describe("getEnricher", () => {
 
   it("returns Codex CLI enricher", () => {
     expect(getEnricher("codex")).toBe(codexEnricher);
+  });
+
+  it("returns Claude Code CLI enricher", () => {
+    expect(getEnricher("claude-code")).toBe(claudeCodeEnricher);
+    // The two Anthropic paths must stay distinct: one bills an API key, the
+    // other rides the CLI's subscription login.
+    expect(getEnricher("claude-code")).not.toBe(anthropicEnricher);
   });
 });

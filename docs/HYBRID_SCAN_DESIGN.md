@@ -226,7 +226,14 @@ type LlmEnricher = {
 | `noop` | — | Default; no network |
 | `ollama` | Local Ollama | Qwen 2.5-Coder, etc. |
 | `codex` | Local Codex CLI process | Reuses the user's saved ChatGPT login |
-| `anthropic` | Anthropic Messages API | Org-approved cloud |
+| `anthropic` | Anthropic Messages API | Org-approved cloud; `ANTHROPIC_API_KEY` |
+| `claude-code` | Local Claude Code CLI process | Reuses the user's saved subscription login |
+
+`anthropic` and `claude-code` reach the same models and differ only in **who
+pays**: an API key billed per call, versus a Claude Pro/Max plan. That is the
+same split `codex` provides against an OpenAI API key, which is why the two CLI
+backends share a shape (spawn, strip the API key from the child environment,
+bounded prompt on stdin, structured JSON out).
 
 Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
 
@@ -269,13 +276,36 @@ tokenforge scan . --mode hybrid                      # hybrid + noop enricher
 tokenforge scan . --mode hybrid --llm ollama:qwen2.5-coder:7b
 tokenforge scan . --mode hybrid --llm codex --allow-external
 tokenforge scan . --mode hybrid --llm codex:gpt-5.6-sol --allow-external
+tokenforge scan . --mode hybrid --llm claude-code --allow-external
+tokenforge scan . --mode hybrid --llm claude-code:claude-opus-5 --allow-external
 ```
 
 Environment (external backends):
 
 - Codex uses the authentication saved by `codex login`; TokenForge does not read API keys.
+- Claude Code uses the login saved by `claude` / `/login`; TokenForge does not read API keys.
 - `ANTHROPIC_API_KEY` remains the existing configuration for the Anthropic adapter.
 - `TOKENFORGE_LLM_ENDPOINT` remains an override for HTTP-based adapters.
+
+### Trust boundary for CLI backends
+
+Both CLI backends run in a fresh empty temporary directory, never the scanned
+repository. For Codex that is defence in depth on top of `--sandbox read-only`.
+For Claude Code it is the **primary** control: a `claude -p` session loads
+settings, hooks, MCP servers, and `CLAUDE.md` from its working directory with no
+trust dialog, so pointing it at the repository under analysis would let that
+repository configure the process analyzing it.
+
+The CLI's own `--bare` flag would also suppress that discovery, but it never
+reads OAuth credentials — it requires `ANTHROPIC_API_KEY`, which is exactly the
+thing this backend exists to avoid. The empty working directory buys back most
+of what `--bare` gives up, without giving up the login.
+
+The tool surface is deny-by-default (`--permission-mode dontAsk`,
+`--strict-mcp-config`) — deliberately **not**
+`--dangerously-skip-permissions`, which is `bypassPermissions` and would
+auto-approve every tool. The candidate excerpts are already in the prompt, so
+the pass needs no file access at all.
 
 ### Structured LLM output
 
@@ -317,6 +347,7 @@ Prompt rules forbid architecture, API, or product refactors.
 | `hybrid` + `ollama` | No (local) | Local GPU/CPU only |
 | `hybrid` + `codex` | Yes — candidate excerpts via Codex CLI | ChatGPT plan limits |
 | `hybrid` + `anthropic` | Yes — candidate excerpts | Per-provider API usage |
+| `hybrid` + `claude-code` | Yes — candidate excerpts via Claude Code CLI | Claude plan limits |
 
 UX/docs must state this before external enrichment runs. Do **not** auto-edit
 `AGENTS.md` / vendor rules from LLM suggestions. `apply` synthesizes the
@@ -356,6 +387,15 @@ Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/Tok
 | #48 | Extension: optional enricher on instruction paths | Shipped — F1 complete |
 
 F1 (#60) complete: CLI hybrid backends + extension opt-in instruction enrich.
+
+### F1.1 — Claude Code CLI backend (epic #145)
+
+| Issue | Deliverable | Status |
+| --- | --- | --- |
+| #146 | `risk-core`: `claude-code` backend id + schema v5 | Shipped |
+| #147 | `enrichers`: `claude-code` adapter + spec/registry wiring | This section |
+| #148 | CLI: `--llm claude-code` flags + manual E2E against the real binary | Open |
+| #149 | Extension: treat `claude-code` as an external backend | Open |
 
 ## Out of scope (this design)
 

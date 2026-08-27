@@ -1,6 +1,7 @@
 import type { LlmBackendId } from "@tokenforge/risk-core";
 import { UsageError } from "./errors";
 import { anthropicEnricher } from "./anthropic/anthropic";
+import { claudeCodeEnricher } from "./claude-code/claude-code";
 import { codexEnricher } from "./codex/codex";
 import { noopEnricher } from "./noop/noop";
 import { ollamaEnricher } from "./ollama/ollama";
@@ -19,6 +20,9 @@ export function getEnricher(id: LlmBackendId): LlmEnricher {
   }
   if (id === "codex") {
     return codexEnricher;
+  }
+  if (id === "claude-code") {
+    return claudeCodeEnricher;
   }
   throw new UsageError(`Unknown LLM backend "${id}".`);
 }
