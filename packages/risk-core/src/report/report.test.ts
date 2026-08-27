@@ -14,6 +14,8 @@ import {
   TOKEN_RISK_REPORT_SCHEMA_V2_ID,
   TOKEN_RISK_REPORT_SCHEMA_V2_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V3_PATH,
+  TOKEN_RISK_REPORT_SCHEMA_V4_ID,
+  TOKEN_RISK_REPORT_SCHEMA_V4_PATH,
 } from "../domain/constants";
 import { isTokenRiskReport } from "./report";
 
@@ -32,6 +34,7 @@ describe("Token Risk JSON schema", () => {
   const v1Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V1_PATH) as { $id: string };
   const v2Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V2_PATH) as { $id: string };
   const v3Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V3_PATH) as { $id: string };
+  const v4Schema = readJson(TOKEN_RISK_REPORT_SCHEMA_V4_PATH) as { $id: string };
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
@@ -40,6 +43,7 @@ describe("Token Risk JSON schema", () => {
   const validateV1 = ajv.compile(v1Schema);
   const validateV2 = ajv.compile(v2Schema);
   const validateV3 = ajv.compile(v3Schema);
+  const validateV4 = ajv.compile(v4Schema);
 
   it("uses the published $id", () => {
     expect(schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_ID);
@@ -197,7 +201,7 @@ describe("Token Risk JSON schema", () => {
     expect((example as { totals: { savedTokens: number } }).totals.savedTokens).toBe(0);
   });
 
-  it("accepts activePaths under v4 only", () => {
+  it("accepts activePaths under v4 and later", () => {
     const base = readJson("docs/schemas/examples/scan-report.v0.json") as Record<
       string,
       unknown
@@ -206,8 +210,54 @@ describe("Token Risk JSON schema", () => {
 
     expect(validate(withActivePaths)).toBe(true);
     expect(isTokenRiskReport(withActivePaths)).toBe(true);
+    // The frozen v4 still accepting it is what proves the freeze is a faithful
+    // copy of the shipped v4 rather than a hand-edited approximation.
+    expect(validateV4(withActivePaths)).toBe(true);
     expect(validateV3(withActivePaths)).toBe(false);
     expect(validateV2(withActivePaths)).toBe(false);
+  });
+
+  it("accepts the claude-code backend under v5 only", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      scan: { llm: Record<string, unknown> };
+    };
+    const claudeCode = {
+      ...hybrid,
+      scan: {
+        ...hybrid.scan,
+        llm: { ...hybrid.scan.llm, backend: "claude-code", model: "default" },
+      },
+    };
+
+    expect(v4Schema.$id).toBe(TOKEN_RISK_REPORT_SCHEMA_V4_ID);
+    expect(validate(claudeCode)).toBe(true);
+    expect(isTokenRiskReport(claudeCode)).toBe(true);
+    // The frozen predecessors must reject it — that is what makes this a bump
+    // rather than a silent widening of v4.
+    expect(validateV4(claudeCode)).toBe(false);
+    expect(validateV3(claudeCode)).toBe(false);
+    expect(validateV0(claudeCode)).toBe(false);
+  });
+
+  it("keeps the runtime guard and the JSON enum agreeing on backends", () => {
+    const hybrid = readJson("docs/schemas/examples/scan-report.hybrid.v0.json") as {
+      scan: { llm: Record<string, unknown> };
+    };
+    const withBackend = (backend: string) => ({
+      ...hybrid,
+      scan: { ...hybrid.scan, llm: { ...hybrid.scan.llm, backend } },
+    });
+
+    for (const backend of ["noop", "ollama", "codex", "anthropic", "claude-code"]) {
+      expect(validate(withBackend(backend))).toBe(true);
+      expect(isTokenRiskReport(withBackend(backend))).toBe(true);
+    }
+    // A near-miss spelling must fail both, not one: a report that validates but
+    // fails the guard (or the reverse) is the drift this pairing exists to catch.
+    for (const backend of ["claude", "claude_code", "claudecode"]) {
+      expect(validate(withBackend(backend))).toBe(false);
+      expect(isTokenRiskReport(withBackend(backend))).toBe(false);
+    }
   });
 
   it("rejects a malformed activePaths", () => {
