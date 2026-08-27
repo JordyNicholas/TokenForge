@@ -394,7 +394,7 @@ F1 (#60) complete: CLI hybrid backends + extension opt-in instruction enrich.
 | --- | --- | --- |
 | #146 | `risk-core`: `claude-code` backend id + schema v5 | Shipped |
 | #147 | `enrichers`: `claude-code` adapter + spec/registry wiring | This section |
-| #148 | CLI: `--llm claude-code` flags + manual E2E against the real binary | Open |
+| #148 | CLI: `--llm claude-code` flags + manual E2E against the real binary | Shipped — [`E2E_CLAUDE_CODE_ENRICH_TEST.md`](./E2E_CLAUDE_CODE_ENRICH_TEST.md) |
 | #149 | Extension: treat `claude-code` as an external backend | Open |
 
 ## Out of scope (this design)

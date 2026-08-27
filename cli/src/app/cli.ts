@@ -42,10 +42,16 @@ Options:
   --out <dir>           Output root for org-pack (default: cwd)
   --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
   --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
-                        e.g. codex or ollama:qwen2.5-coder:7b; omit for noop
-  --llm-endpoint <url>  Override Ollama/Anthropic API base URL (not Codex)
-  --llm-timeout <sec>   Per-batch timeout in seconds (Ollama: 900; Codex: 120)
-  --allow-external      Confirm that bounded source excerpts may leave this machine
+                        noop (default) | ollama:<model> | anthropic:<model> |
+                        codex | claude-code. The two CLI backends take no model:
+                        they use whatever that CLI is signed in and configured
+                        with. e.g. ollama:qwen2.5-coder:7b, claude-code
+  --llm-endpoint <url>  Override Ollama/Anthropic API base URL
+                        (rejected by codex and claude-code: the CLI owns it)
+  --llm-timeout <sec>   Per-batch timeout in seconds
+                        (Ollama: 900; Codex: 120; Claude Code: 180)
+  --allow-external      Confirm that bounded source excerpts may leave this
+                        machine (required by anthropic, codex, claude-code)
   --active-paths-file <p>  Report (e.g. .tokenforge/last-scan.json) or JSON array of
                         open paths. Those files are reported but never proposed
                         for exclusion. Not auto-detected: a stale export would
