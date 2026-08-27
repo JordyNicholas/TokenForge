@@ -37,6 +37,17 @@ describe("parseLlmSpec", () => {
     });
   });
 
+  it("uses the Gemini-CLI-configured model unless one is explicitly provided", () => {
+    expect(parseLlmSpec("gemini-cli")).toEqual({
+      backend: "gemini-cli",
+      model: "default",
+    });
+    expect(parseLlmSpec("gemini-cli:gemini-2.5-flash")).toEqual({
+      backend: "gemini-cli",
+      model: "gemini-2.5-flash",
+    });
+  });
+
   it("does not confuse claude-code with the API-key anthropic backend", () => {
     expect(parseLlmSpec("anthropic:claude-opus-5")).toEqual({
       backend: "anthropic",

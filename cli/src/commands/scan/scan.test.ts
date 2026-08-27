@@ -176,6 +176,19 @@ describe("runCli scan", () => {
     expect(captured.stderr).not.toContain("not installed");
   });
 
+  it("gates gemini-cli behind the same consent flag as other CLI backends", async () => {
+    const captured = captureIo();
+
+    const code = await runCli(
+      ["scan", fixtureRoot, "--mode", "hybrid", "--llm", "gemini-cli"],
+      captured.io,
+    );
+
+    expect(code).toBe(2);
+    expect(captured.stderr).toContain("Privacy warning");
+    expect(captured.stderr).toContain("--allow-external");
+  });
+
   it("suggests claude-code when --llm claude is misspelled", async () => {
     const captured = captureIo();
 

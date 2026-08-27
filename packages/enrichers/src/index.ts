@@ -9,6 +9,9 @@ export {
   DEFAULT_ANTHROPIC_TIMEOUT_MS,
   DEFAULT_CLAUDE_CODE_TIMEOUT_MS,
   DEFAULT_CODEX_TIMEOUT_MS,
+  DEFAULT_GEMINI_CLI_TIMEOUT_MS,
+  GEMINI_CLI_BATCH_SIZE,
+  GEMINI_CLI_STATUS_TIMEOUT_MS,
   DEFAULT_OLLAMA_ENDPOINT,
   MAX_CANDIDATE_BYTES,
   MAX_ENRICHMENT_CANDIDATES,
@@ -18,6 +21,7 @@ export {
   MIN_ANTHROPIC_TIMEOUT_MS,
   MIN_CLAUDE_CODE_TIMEOUT_MS,
   MIN_CODEX_TIMEOUT_MS,
+  MIN_GEMINI_CLI_TIMEOUT_MS,
   MIN_OLLAMA_TIMEOUT_MS,
   OLLAMA_BATCH_SIZE,
   OLLAMA_PREFLIGHT_TIMEOUT_MS,
@@ -28,6 +32,7 @@ export {
   resolveAnthropicTimeoutMs,
   resolveClaudeCodeTimeoutMs,
   resolveCodexTimeoutMs,
+  resolveGeminiCliTimeoutMs,
   resolveOllamaTimeoutMs,
 } from "./limits";
 export { anthropicEnricher } from "./anthropic/anthropic";
@@ -36,6 +41,10 @@ export {
   createClaudeCodeEnricher,
 } from "./claude-code/claude-code";
 export { codexEnricher, createCodexEnricher } from "./codex/codex";
+export {
+  createGeminiCliEnricher,
+  geminiCliEnricher,
+} from "./gemini-cli/gemini-cli";
 export { noopEnricher } from "./noop/noop";
 export { ollamaEnricher } from "./ollama/ollama";
 export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./parse";

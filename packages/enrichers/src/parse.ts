@@ -9,7 +9,7 @@ import type {
 const VERDICTS = new Set<LlmVerdict>(["exclude", "review", "keep"]);
 
 export function parseLlmSpec(value: string | undefined): {
-  backend: "noop" | "ollama" | "codex" | "anthropic" | "claude-code";
+  backend: "noop" | "ollama" | "codex" | "anthropic" | "claude-code" | "gemini-cli";
   model: string;
 } {
   if (value === undefined || value.trim().length === 0) {
@@ -24,6 +24,9 @@ export function parseLlmSpec(value: string | undefined): {
   if (trimmed === "claude-code") {
     return { backend: "claude-code", model: "default" };
   }
+  if (trimmed === "gemini-cli") {
+    return { backend: "gemini-cli", model: "default" };
+  }
 
   const separator = trimmed.indexOf(":");
   if (separator <= 0 || separator === trimmed.length - 1) {
@@ -34,7 +37,7 @@ export function parseLlmSpec(value: string | undefined): {
       : "";
     throw new UsageError(
       'Invalid --llm value. Use "<backend>:<model>", e.g. ollama:qwen2.5-coder:7b, ' +
-        `or a bare CLI backend: codex, claude-code.${hint}`,
+        `or a bare CLI backend: codex, claude-code, gemini-cli.${hint}`,
     );
   }
 
@@ -50,10 +53,11 @@ export function parseLlmSpec(value: string | undefined): {
     backend !== "ollama" &&
     backend !== "codex" &&
     backend !== "anthropic" &&
-    backend !== "claude-code"
+    backend !== "claude-code" &&
+    backend !== "gemini-cli"
   ) {
     throw new UsageError(
-      `Unknown LLM backend "${backend}". Use noop, ollama, codex, anthropic, or claude-code.`,
+      `Unknown LLM backend "${backend}". Use noop, ollama, codex, anthropic, claude-code, or gemini-cli.`,
     );
   }
 

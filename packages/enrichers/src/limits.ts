@@ -106,6 +106,38 @@ export const MIN_CLAUDE_CODE_TIMEOUT_MS = 10_000;
 /** Candidates sent to each non-interactive Claude Code run. */
 export const CLAUDE_CODE_BATCH_SIZE = 4;
 
+/** Default Gemini CLI timeout for each bounded batch. */
+export const DEFAULT_GEMINI_CLI_TIMEOUT_MS = 120_000;
+
+/** Minimum timeout accepted via CLI/env for Gemini CLI. */
+export const MIN_GEMINI_CLI_TIMEOUT_MS = 10_000;
+
+/** Authentication detection should fail quickly and never receive source excerpts. */
+export const GEMINI_CLI_STATUS_TIMEOUT_MS = 10_000;
+
+/** Candidates sent to each non-interactive Gemini CLI run. */
+export const GEMINI_CLI_BATCH_SIZE = 4;
+
+export function resolveGeminiCliTimeoutMs(overrideMs?: number): number {
+  if (
+    overrideMs !== undefined &&
+    Number.isFinite(overrideMs) &&
+    overrideMs >= MIN_GEMINI_CLI_TIMEOUT_MS
+  ) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_GEMINI_CLI_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_GEMINI_CLI_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_GEMINI_CLI_TIMEOUT_MS;
+}
+
 export function resolveClaudeCodeTimeoutMs(overrideMs?: number): number {
   if (
     overrideMs !== undefined &&
