@@ -93,6 +93,39 @@ export function resolveCodexTimeoutMs(overrideMs?: number): number {
   return DEFAULT_CODEX_TIMEOUT_MS;
 }
 
+/**
+ * Default Claude Code CLI timeout per batch. Higher than Codex's 120s because
+ * a non-bare `claude -p` boots the full session (settings, skills, plugins)
+ * before the first token.
+ */
+export const DEFAULT_CLAUDE_CODE_TIMEOUT_MS = 180_000;
+
+/** Minimum timeout accepted via CLI/env for Claude Code. */
+export const MIN_CLAUDE_CODE_TIMEOUT_MS = 10_000;
+
+/** Candidates sent to each non-interactive Claude Code run. */
+export const CLAUDE_CODE_BATCH_SIZE = 4;
+
+export function resolveClaudeCodeTimeoutMs(overrideMs?: number): number {
+  if (
+    overrideMs !== undefined &&
+    Number.isFinite(overrideMs) &&
+    overrideMs >= MIN_CLAUDE_CODE_TIMEOUT_MS
+  ) {
+    return overrideMs;
+  }
+
+  const fromEnv = process.env.TOKENFORGE_CLAUDE_CODE_TIMEOUT_MS;
+  if (fromEnv !== undefined && fromEnv.trim().length > 0) {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed >= MIN_CLAUDE_CODE_TIMEOUT_MS) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_CLAUDE_CODE_TIMEOUT_MS;
+}
+
 /** Default Anthropic base URL when `--llm-endpoint` is omitted. */
 export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1";
 
