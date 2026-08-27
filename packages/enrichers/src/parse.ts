@@ -9,7 +9,7 @@ import type {
 const VERDICTS = new Set<LlmVerdict>(["exclude", "review", "keep"]);
 
 export function parseLlmSpec(value: string | undefined): {
-  backend: "noop" | "ollama" | "codex" | "anthropic";
+  backend: "noop" | "ollama" | "codex" | "anthropic" | "claude-code";
   model: string;
 } {
   if (value === undefined || value.trim().length === 0) {
@@ -17,8 +17,12 @@ export function parseLlmSpec(value: string | undefined): {
   }
 
   const trimmed = value.trim();
+  // CLI-driven backends default to whatever model that CLI is configured with.
   if (trimmed === "codex") {
     return { backend: "codex", model: "default" };
+  }
+  if (trimmed === "claude-code") {
+    return { backend: "claude-code", model: "default" };
   }
 
   const separator = trimmed.indexOf(":");
@@ -39,10 +43,11 @@ export function parseLlmSpec(value: string | undefined): {
     backend !== "noop" &&
     backend !== "ollama" &&
     backend !== "codex" &&
-    backend !== "anthropic"
+    backend !== "anthropic" &&
+    backend !== "claude-code"
   ) {
     throw new UsageError(
-      `Unknown LLM backend "${backend}". Use noop, ollama, codex, or anthropic.`,
+      `Unknown LLM backend "${backend}". Use noop, ollama, codex, anthropic, or claude-code.`,
     );
   }
 
