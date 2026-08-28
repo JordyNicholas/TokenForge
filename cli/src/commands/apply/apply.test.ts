@@ -1,4 +1,4 @@
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { isProveChangeMarker } from "@tokenforge/risk-core";
@@ -176,6 +176,35 @@ describe("apply / init on noisy-app", () => {
       llm: { backend: "noop" },
     });
     expect(result.report.layers?.llm).toBeDefined();
+  });
+
+  it("bootstrap adds .tokenforge to .gitignore on init", async () => {
+    const root = resolve(fixtureRoot, "..", ".init-bootstrap-test");
+    await rm(root, { recursive: true, force: true });
+    await mkdir(root, { recursive: true });
+    await writeFile(resolve(root, "README.md"), "# scratch\n", "utf8");
+    await writeFile(resolve(root, ".gitignore"), "node_modules/\n", "utf8");
+
+    try {
+      await initRepo({ root, provider: "copilot", skipApply: true });
+      const gitignore = await readFile(resolve(root, ".gitignore"), "utf8");
+      expect(gitignore).toContain(".tokenforge/");
+      expect(await readFile(resolve(root, ".tokenforge/scan-report.json"), "utf8")).toBeTruthy();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("skip-apply writes scan report without policy files", async () => {
+    const result = await initRepo({
+      root: fixtureRoot,
+      provider: "copilot",
+      skipApply: true,
+    });
+    expect(result.writes).toEqual([]);
+    expect(result.files).toEqual([]);
+    expect(result.changeMarker).toBeUndefined();
+    expect(result.report.totals.savedTokens).toBeGreaterThan(0);
   });
 
   it("applies cursor adapter on dry-run", async () => {

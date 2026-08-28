@@ -20,7 +20,7 @@ const USAGE = `Usage: tokenforge <command> [root] [options]
 Commands:
   scan [root]         Score high-risk paths and write .tokenforge/scan-report.json
   apply [root]        Write lean instructions + exclusion candidates (provider adapter)
-  init [root]         scan + apply
+  init [root]         Bootstrap .tokenforge/, scan, and apply (--skip-apply for scan only)
   pilot [root]        Org pilot pack: scan → apply → Prove-ready (#100)
   org-pack <seed.json>
                       Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
@@ -203,7 +203,11 @@ export async function runCli(
     if (command === "apply" || command === "init") {
       const applied =
         command === "init"
-          ? await initRepo({ ...common, dryRun: values["dry-run"] })
+          ? await initRepo({
+              ...common,
+              dryRun: values["dry-run"],
+              skipApply: values["skip-apply"],
+            })
           : await applyPolicy({ ...common, dryRun: values["dry-run"] });
       printApply(
         io,

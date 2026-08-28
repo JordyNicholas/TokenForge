@@ -11,6 +11,7 @@ import { mergeTokenForgeSection } from "../../adapters/section-merge";
 import { RuntimeError } from "../../app/errors";
 import { readActivePathsFile } from "../../io/active-paths-file";
 import { writeProveChangeMarker } from "../../io/change-marker-file";
+import { bootstrapRepo } from "../../io/repo-bootstrap";
 import { scanReportPath } from "../../io/paths";
 import {
   tryReadScanReport,
@@ -34,6 +35,7 @@ export type ApplyOptions = {
   activePathsFile?: string;
   /** When set (init), skip a second walk. */
   report?: TokenRiskReport;
+  skipApply?: boolean;
 };
 
 /**
@@ -234,11 +236,15 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   };
 }
 
-/** scan + apply. */
+/** Bootstrap repo, scan, and optionally apply (#175). */
 export async function initRepo(options: ApplyOptions): Promise<ApplyResult> {
+  const root = resolve(options.root);
   const provider = options.provider ?? "copilot";
+  const dryRun = Boolean(options.dryRun);
+  await bootstrapRepo(root, { dryRun });
+
   const scanned = await scanRepo({
-    root: options.root,
+    root,
     team: options.team,
     repo: options.repo,
     provider,
@@ -249,5 +255,21 @@ export async function initRepo(options: ApplyOptions): Promise<ApplyResult> {
     externalDataConsent: options.externalDataConsent,
     activePathsFile: options.activePathsFile,
   });
-  return applyPolicy({ ...options, provider, report: scanned.report });
+
+  if (options.skipApply) {
+    const reportPath = scanReportPath(root);
+    if (!dryRun) {
+      await writeScanReport(reportPath, scanned.report);
+    }
+    return {
+      report: scanned.report,
+      reportPath,
+      files: [],
+      resolvedFiles: [],
+      writes: [],
+      dryRun,
+    };
+  }
+
+  return applyPolicy({ ...options, root, provider, report: scanned.report });
 }
