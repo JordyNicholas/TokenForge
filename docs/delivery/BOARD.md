@@ -155,16 +155,43 @@ Deliberately **not** filed under F4 #156, which excludes Claude Code stories.
 
 | Issue | Title | Depends on |
 | --- | --- | --- |
-| #166 | enrichers: cut the per-batch session prefix cost of `claude-code` | — |
-| #167 | enrichers: run `claude-code` through the multi-pass pipeline | #166 in practice |
+| #166 | risk-core: single-source and enforce the 30-candidate enrichment cap | — |
+| #192 | enrichers: per-backend excerpt budget + a large-model Anthropic output cap | — |
+| #167 | enrichers: give the CLI-transport backends cross-batch context | #166, #192 |
 
-Both come out of the #148 verification pass. Each `claude -p` pays ~30K
-cache-creation tokens for its session prefix before reading a single candidate,
-and batches are stateless by design — so #166 measures whether `--resume` or a
-larger batch recovers it. #167 would give `claude-code` the cross-batch context
-Ollama already has via map → judge → reconcile, but it turns N calls into 1+N+1,
-which multiplies exactly the cost #166 measures. **#166 first**, so #167 is
-decided with the per-call cost known.
+All three come out of the #148 verification pass and the #167 re-scope.
+
+**#166 started as a cost story** — the CLI-transport backends (`codex`,
+`claude-code`, `gemini-cli`, `cursor-cli`, all flat-batching at `*_BATCH_SIZE =
+4` with a fresh process per batch) looked like they re-paid a ~30K-token session
+prefix on every batch. **Measured on Claude Code v2.1.247 and it does not**: the
+~23K stable prefix is a `cache_read` on every batch (1-hour cache), a cold scan
+pays full creation only on batch 1, and a whole 3-batch scan costs ~$0.14. The
+cost levers (session reuse, bigger batches) are closed, won't-do. What remains is
+the regression guard: `MAX_ENRICHMENT_CANDIDATES` is exported and documented as
+the hard cap but wired to nothing — the real limit is a `?? 30` fallback inside
+`selectEnrichmentCandidates`, and the CLI scan path passes no cap at all. Make it
+a named `risk-core` default, enforced by contract. ~0.5d.
+
+**#167 is a recall bet, not a cost fix.** Flat batching means a batch cannot see
+files in another batch; multipass (map → judge → reconcile, already used by
+Ollama) groups related files deliberately. It costs `1 + N + 1` model calls at
+~$0.05 each — 2 extra per scan — paid back only if the fixture comparison shows
+it surfaces cross-file redundancy that flat batching misses. #166 is a hard
+precondition: multipass batch count is `ceil(cap / batchSize)`, and on Ollama
+(`OLLAMA_BATCH_SIZE = 2`, 900s per-batch timeout) an unbounded cap is a scan that
+never returns.
+
+**#192 is the other precondition.** `MAX_LLM_EXCERPT_CHARS = 2048` and
+`ANTHROPIC_MAX_OUTPUT_TOKENS = 4096` were calibrated for a local 7B on slow
+hardware (commit `8410632`, "hybrid scan timeouts on slow hardware") and are
+applied to every backend. A frontier model sees the first 2 KiB of every
+candidate file regardless of its context window; the `anthropic` backend
+truncates its response at 4096 output tokens. Make the excerpt budget
+per-backend (Ollama keeps 2048, the rest bounded only by the 32 KiB read cap)
+and raise the Anthropic output cap. ~0.5d.
+
+**#166 + #192 → #167.**
 
 ### F2 attractiveness backlog (filed under #61)
 
@@ -276,7 +303,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost) and **#167** (multi-pass) remain as follow-on stories, in that order
+   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (enforce the 30-candidate cap as a named default — its cost premise was measured away) and **#167** (multi-pass, a recall bet at ~2 extra model calls/scan) remain as follow-on stories, #166 first
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
