@@ -11,6 +11,7 @@ export const SKIP_DIR_NAMES = new Set([
 ]);
 
 export const SCAN_REPORT_FILE = "scan-report.json";
+export const DISCOVER_LATEST_FILE = "discover-latest.json";
 export const USAGE_LATEST_FILE = "usage-latest.json";
 export const USAGE_SYNC_CONFIG_FILE = "usage-sync.json";
 export const PROVE_CHANGE_LATEST_FILE = "prove-change-latest.json";
@@ -22,6 +23,10 @@ export function tokenforgeDir(root: string): string {
 
 export function scanReportPath(root: string): string {
   return join(tokenforgeDir(root), SCAN_REPORT_FILE);
+}
+
+export function discoverLatestPath(root: string): string {
+  return join(tokenforgeDir(root), DISCOVER_LATEST_FILE);
 }
 
 /** Latest Fix apply/org-pack marker for Prove attribution (#95). */
