@@ -1,5 +1,11 @@
-/** Max files sent to an LLM enricher per hybrid scan. */
-export const MAX_ENRICHMENT_CANDIDATES = 30;
+/**
+ * Max files sent to an LLM enricher per hybrid scan.
+ *
+ * Re-exported from risk-core, which both owns and enforces it in
+ * `selectEnrichmentCandidates`. Declaring a second `30` here is what made the
+ * documented cap and the running cap two different numbers.
+ */
+export { DEFAULT_MAX_ENRICHMENT_CANDIDATES as MAX_ENRICHMENT_CANDIDATES } from "@tokenforge/risk-core";
 
 /** Max bytes read from each candidate file for the model prompt. */
 export const MAX_CANDIDATE_BYTES = 32 * 1024;
