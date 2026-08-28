@@ -9,6 +9,7 @@ import {
 import { mapStructuredFindings } from "../parse";
 import {
   buildEnrichmentPrompt,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
@@ -164,7 +165,7 @@ export const anthropicEnricher: LlmEnricher = {
         `LLM enricher: batch ${index + 1}/${batches.length} ` +
           `(${batch.length} file(s), timeout ${Math.round(timeoutMs / 1000)}s per batch)…`,
       );
-      const prompt = buildEnrichmentPrompt(batch);
+      const prompt = buildEnrichmentPrompt(batch, LARGE_CONTEXT_PROMPT);
       const content = await callAnthropicMessages(endpoint, apiKey, input.model, prompt, timeoutMs);
       const payload = extractJsonPayload(content);
       const structured = parseStructuredFindings(payload, batch);

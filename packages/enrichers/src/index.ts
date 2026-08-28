@@ -19,6 +19,7 @@ export {
   MAX_CANDIDATE_BYTES,
   MAX_ENRICHMENT_CANDIDATES,
   MAX_LLM_EXCERPT_CHARS,
+  UNBOUNDED_EXCERPT_CHARS,
   MAX_MAP_DIGEST_CHARS,
   DEFAULT_OLLAMA_TIMEOUT_MS,
   MIN_ANTHROPIC_TIMEOUT_MS,
@@ -60,6 +61,7 @@ export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./par
 export {
   buildEnrichmentPrompt,
   ENRICHMENT_POLICY_RULES,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "./structured";

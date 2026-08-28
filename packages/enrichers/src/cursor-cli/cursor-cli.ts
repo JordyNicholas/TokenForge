@@ -11,6 +11,7 @@ import {
 import { mapStructuredFindings } from "../parse";
 import {
   buildEnrichmentPrompt,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
@@ -357,7 +358,7 @@ export function createCursorCliEnricher(
 
           let result: CursorCliCommandResult;
           try {
-            const invocation = cursorCliArgs(model, temporaryRoot, buildEnrichmentPrompt(batch));
+            const invocation = cursorCliArgs(model, temporaryRoot, buildEnrichmentPrompt(batch, LARGE_CONTEXT_PROMPT));
             result = await run(invocation.args, {
               cwd: temporaryRoot,
               input: invocation.input,

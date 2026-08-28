@@ -10,8 +10,25 @@ export { DEFAULT_MAX_ENRICHMENT_CANDIDATES as MAX_ENRICHMENT_CANDIDATES } from "
 /** Max bytes read from each candidate file for the model prompt. */
 export const MAX_CANDIDATE_BYTES = 32 * 1024;
 
-/** Max characters of each excerpt embedded in the LLM prompt (local models). */
+/**
+ * Excerpt characters per file for **local** models, and the default when a
+ * caller passes no budget.
+ *
+ * Calibrated for a 7B on low-spec hardware: introduced at 4096 with the Ollama
+ * enricher and halved hours later in the "hybrid scan timeouts on slow
+ * hardware" pass, alongside `OLLAMA_BATCH_SIZE`. It is a survival knob for that
+ * path, not a judgement about how much context is useful — backends with a
+ * large context window pass `UNBOUNDED_EXCERPT_CHARS` instead.
+ */
 export const MAX_LLM_EXCERPT_CHARS = 2_048;
+
+/**
+ * Excerpt budget for large-context backends: no prompt-side trim at all.
+ * They are still bounded by `MAX_CANDIDATE_BYTES`, which is applied at the read
+ * boundary and doubles as the privacy limit on how much of a file can leave the
+ * machine.
+ */
+export const UNBOUNDED_EXCERPT_CHARS = Number.POSITIVE_INFINITY;
 
 /** Max characters per instruction-file digest in the Pass A map prompt. */
 export const MAX_MAP_DIGEST_CHARS = 400;
@@ -205,8 +222,18 @@ export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1";
 /** Anthropic Messages API version header. */
 export const ANTHROPIC_API_VERSION = "2023-06-01";
 
-/** Anthropic Messages API requires an explicit max_tokens on every request. */
-export const ANTHROPIC_MAX_OUTPUT_TOKENS = 4096;
+/**
+ * Anthropic Messages API requires an explicit max_tokens on every request.
+ *
+ * Sized for a full candidate set rather than one batch. A rich finding costs
+ * roughly 400 output tokens (detail + suggestion summary), so the 30-candidate
+ * cap can legitimately produce well past the old 4096 ceiling — which the
+ * adapter turns into a hard "response was truncated" error rather than a
+ * partial result. The `stop_reason: max_tokens` guard stays as a safety net;
+ * it should not be the normal ceiling. Current Claude models support far more
+ * than this, so the value is deliberately generous.
+ */
+export const ANTHROPIC_MAX_OUTPUT_TOKENS = 32_000;
 
 /** Default Anthropic per-batch timeout (hosted API — fails fast on real problems). */
 export const DEFAULT_ANTHROPIC_TIMEOUT_MS = 120_000;

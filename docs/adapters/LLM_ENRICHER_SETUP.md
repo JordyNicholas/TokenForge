@@ -16,6 +16,23 @@ covers "what do I set to make `--llm <backend>:<model>` work."
 | `claude-code` | Same judgment as `anthropic`, billed against a Claude Pro/Max plan instead of an API key. Uses the installed Claude Code CLI and its saved login. |
 | `cursor-cli` | Uses the installed Cursor CLI (`agent`) and Cursor login or `CURSOR_API_KEY`; best when you already work in Cursor and do not run Ollama or other vendor CLIs. |
 
+## Excerpt budgets
+
+Every backend reads at most `MAX_CANDIDATE_BYTES` (32 KiB) per candidate file —
+the privacy bound on how much of a file can leave the machine, applied before a
+backend is chosen.
+
+How much of that reaches the prompt is per-backend:
+
+| Backend | Excerpt in prompt |
+| --- | --- |
+| `ollama` | first `MAX_LLM_EXCERPT_CHARS` (2 KiB) — a small local model does worse with more |
+| `anthropic`, `claude-code`, `codex`, `gemini-cli`, `cursor-cli` | untrimmed, up to the full 32 KiB read |
+
+The 2 KiB figure was calibrated for a 7B on low-spec hardware and used to apply
+to every backend, so a frontier model saw only the first 2 KiB of each file
+regardless of its context window. It is now the local default only.
+
 ## `noop`
 
 Nothing to configure — this is the default for `--mode hybrid` when `--llm`

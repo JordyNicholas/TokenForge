@@ -11,6 +11,7 @@ import {
 import { mapStructuredFindings } from "../parse";
 import {
   buildEnrichmentPrompt,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
@@ -315,7 +316,7 @@ export function createGeminiCliEnricher(
           try {
             result = await run(geminiCliArgs(model), {
               cwd: temporaryRoot,
-              input: buildEnrichmentPrompt(batch),
+              input: buildEnrichmentPrompt(batch, LARGE_CONTEXT_PROMPT),
               timeoutMs,
             });
           } catch (error) {

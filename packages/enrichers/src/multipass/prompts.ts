@@ -5,7 +5,11 @@ import {
   repeatedConfigBasenames,
 } from "@tokenforge/risk-core";
 import { MAX_MAP_DIGEST_CHARS } from "../limits";
-import { buildEnrichmentPrompt, ENRICHMENT_POLICY_RULES } from "../structured";
+import {
+  buildEnrichmentPrompt,
+  ENRICHMENT_POLICY_RULES,
+  type EnrichmentPromptOptions,
+} from "../structured";
 import type { EnrichmentCandidate, LlmStructuredFinding } from "../types";
 import type { RepoContextMap } from "./types";
 
@@ -204,8 +208,10 @@ export function buildMapRepairPrompt(
 export function buildJudgePrompt(
   batch: readonly EnrichmentCandidate[],
   map?: RepoContextMap | null,
+  options: EnrichmentPromptOptions = {},
 ): string {
-  const base = buildEnrichmentPrompt(batch);
+  // Ollama is the only multipass consumer today, so the local default applies.
+  const base = buildEnrichmentPrompt(batch, options);
   if (!map) {
     return base;
   }
