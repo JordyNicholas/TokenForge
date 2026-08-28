@@ -222,8 +222,18 @@ export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1";
 /** Anthropic Messages API version header. */
 export const ANTHROPIC_API_VERSION = "2023-06-01";
 
-/** Anthropic Messages API requires an explicit max_tokens on every request. */
-export const ANTHROPIC_MAX_OUTPUT_TOKENS = 4096;
+/**
+ * Anthropic Messages API requires an explicit max_tokens on every request.
+ *
+ * Sized for a full candidate set rather than one batch. A rich finding costs
+ * roughly 400 output tokens (detail + suggestion summary), so the 30-candidate
+ * cap can legitimately produce well past the old 4096 ceiling — which the
+ * adapter turns into a hard "response was truncated" error rather than a
+ * partial result. The `stop_reason: max_tokens` guard stays as a safety net;
+ * it should not be the normal ceiling. Current Claude models support far more
+ * than this, so the value is deliberately generous.
+ */
+export const ANTHROPIC_MAX_OUTPUT_TOKENS = 32_000;
 
 /** Default Anthropic per-batch timeout (hosted API — fails fast on real problems). */
 export const DEFAULT_ANTHROPIC_TIMEOUT_MS = 120_000;
