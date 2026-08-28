@@ -18,6 +18,12 @@ function classPhrase(fileClass: FiletypeRiskClass): string {
       return "lockfile";
     case "generated":
       return "generated build artifact";
+    case "test_output":
+      return "test or CI output file";
+    case "ci_log":
+      return "CI or pipeline log";
+    case "build_artifact":
+      return "build artifact";
     case "config":
       return "config file";
     case "source":
@@ -40,6 +46,15 @@ function heuristicExplanation(
       }
       if (fileClass === "generated") {
         return "Generated build artifacts rarely help an agent and inflate token usage.";
+      }
+      if (fileClass === "test_output") {
+        return "Test and CI output (coverage, junit, e2e reports) is verbose and rarely helps an agent reason about product code.";
+      }
+      if (fileClass === "ci_log") {
+        return "Pipeline and build logs are high-volume, low-signal context for Chat/Agent workflows.";
+      }
+      if (fileClass === "build_artifact") {
+        return "Compiled bundles and binary build output rarely help an agent and inflate token usage.";
       }
       return `This ${classPhrase(fileClass)} is in a high-risk filetype class for agent context waste.`;
     case "oversized":

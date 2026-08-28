@@ -3,6 +3,7 @@ import {
   DEFAULT_REPEATED_CONFIG_COUNT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
   DEFAULT_TOP_CANDIDATE_COUNT,
+  HIGH_RISK_FILE_CLASSES,
   INSTRUCTION_FILE_NAMES,
   INSTRUCTION_PATH_SEGMENTS,
   MIN_BORDERLINE_BYTES,
@@ -140,7 +141,7 @@ function isBorderline(assessment: RiskAssessment): boolean {
 }
 
 function isEligibleForTopBucket(assessment: RiskAssessment): boolean {
-  return assessment.fileClass !== "lockfile" && assessment.fileClass !== "generated";
+  return !HIGH_RISK_FILE_CLASSES.has(assessment.fileClass);
 }
 
 /**

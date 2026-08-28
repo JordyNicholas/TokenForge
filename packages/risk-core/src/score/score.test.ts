@@ -23,14 +23,14 @@ describe("scoreRisk", () => {
     expect(result.score).toBeGreaterThanOrEqual(80);
   });
 
-  it("flags generated dist paths", () => {
+  it("flags build artifact dist paths", () => {
     const result = scoreRisk({
       path: "dist/bundle.js",
       bytes: 50_000,
       inactiveMs: 0,
     });
 
-    expect(result.fileClass).toBe("generated");
+    expect(result.fileClass).toBe("build_artifact");
     expect(result.reasons).toContain("high_risk_filetype");
     expect(result.atRisk).toBe(true);
   });
