@@ -155,16 +155,25 @@ Deliberately **not** filed under F4 #156, which excludes Claude Code stories.
 
 | Issue | Title | Depends on |
 | --- | --- | --- |
-| #166 | enrichers: cut the per-batch session prefix cost of `claude-code` | — |
-| #167 | enrichers: run `claude-code` through the multi-pass pipeline | #166 in practice |
+| #166 | enrichers: cut the per-batch session prefix cost of the CLI-transport backends | — |
+| #167 | enrichers: run the CLI-transport backends through the multi-pass pipeline | #166 scope item 0 |
 
-Both come out of the #148 verification pass. Each `claude -p` pays ~30K
-cache-creation tokens for its session prefix before reading a single candidate,
-and batches are stateless by design — so #166 measures whether `--resume` or a
-larger batch recovers it. #167 would give `claude-code` the cross-batch context
-Ollama already has via map → judge → reconcile, but it turns N calls into 1+N+1,
-which multiplies exactly the cost #166 measures. **#166 first**, so #167 is
-decided with the per-call cost known.
+Both come out of the #148 verification pass, and both were **re-scoped** after
+F4 #161/#162 shipped `gemini-cli` / `cursor-cli` (PR #182) from the `claude-code`
+template: `codex`, `claude-code`, `gemini-cli` and `cursor-cli` all flat-batch at
+`*_BATCH_SIZE = 4`, spawn a fresh CLI per batch, and pay a ~30K-token
+session-boot prefix each time. The fix belongs on the shared batch loop.
+
+#166 now carries **scope item 0**: single-source the 30-candidate cap. Today
+`MAX_ENRICHMENT_CANDIDATES` is exported and documented as the hard cap but wired
+to nothing — the real limit is a `?? 30` fallback inside
+`selectEnrichmentCandidates`, and the CLI scan path passes no cap at all. Every
+cost number in both issues is `ceil(candidateCap / batchSize)`, so an enforced,
+named default is a precondition. It matters for Ollama too: at
+`OLLAMA_BATCH_SIZE = 2` and a 900s per-batch timeout, an unbounded candidate set
+is a scan that never returns.
+
+**#166 scope item 0 → rest of #166 → #167.**
 
 ### F2 attractiveness backlog (filed under #61)
 
@@ -276,7 +285,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost) and **#167** (multi-pass) remain as follow-on stories, in that order
+   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost + single-sourcing the 30-candidate cap) and **#167** (multi-pass) remain as follow-on stories, in that order. Both re-scoped to the CLI-transport family (`codex`/`claude-code`/`gemini-cli`/`cursor-cli`) after F4 #182
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
