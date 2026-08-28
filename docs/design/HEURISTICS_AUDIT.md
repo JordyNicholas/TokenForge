@@ -442,3 +442,29 @@ CLI edge — that split is architectural, not incidental.
   publishes open tabs as `activePaths`, `scan --active-paths-file` reads them,
   and an open path is downgraded to `kept` rather than proposed for exclusion.
   Runbook: [`E2E_ACTIVE_SESSION_TEST.md`](../testing/E2E_ACTIVE_SESSION_TEST.md).
+
+## B16 — output-shape classes for CI/test/build artifacts
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/classify/classify.ts`, `domain/constants.ts`,
+`domain/types.ts` (`test_output`, `ci_log`, `build_artifact`).
+
+**Previous behavior:** `dist/`, `coverage/`, and `test-results/` all collapsed
+into one `generated` class. That was enough to flag them, but not to explain
+*why* (test output vs compiled bundle vs vendor tree) or to tune scoring and
+Fix copy per shape.
+
+**Demonstrated by:** `fixtures/output-shape-app` — junit XML under
+`test-results/`, a pipeline log under `logs/`, and a `.jar` under `artifacts/`.
+
+**Fix:** RTK-inspired **output-shape** classes in `risk-core`:
+
+| Class | Examples |
+| --- | --- |
+| `test_output` | `coverage/`, `test-results/`, `playwright-report/`, `.nyc_output/` |
+| `ci_log` | `ci.log`, `logs/*.log`, `.circleci/*.log` |
+| `build_artifact` | `dist/`, `build/`, `artifacts/`, `.jar`/`.whl`/… |
+
+All three stay in `HIGH_RISK_FILE_CLASSES` (same Fix posture as `generated`).
+Golden totals: `fixtures/expected/output-shape-app-totals.json`. Story: #171.
