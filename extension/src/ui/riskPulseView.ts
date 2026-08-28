@@ -254,9 +254,9 @@ function renderPulseHtml(
 <body>
   ${autoBanner}
   ${sessionKpi}
-  <h1>${showReduction ? "Token reduction" : "Context risk"}</h1>
+  <h1>${showReduction ? "Tier 1 · Live hygiene" : "Tier 1 · Context risk"}</h1>
   ${bodyMain}
-  <p class="foot">Live from open tabs + Keep/Filter. Same math as last-scan.json. Hygiene advice only — not agent interception.</p>
+  <p class="foot">Live Filter estimate from open tabs. Same math as last-scan.json. Hygiene advice only — not agent interception. Higher Prove tiers (scan $, billed usage) live on the dashboard.</p>
 </body>
 </html>`;
 }
