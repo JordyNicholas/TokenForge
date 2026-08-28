@@ -93,7 +93,10 @@ Hard caps:
   each batch of 2 has its own 900s timeout — whether a scan of a large monorepo
   terminates at all.
 - `MAX_CANDIDATE_BYTES` = 32 KiB read per file (`enrichers/limits.ts`), applied
-  at the read boundary before a backend is chosen.
+  at the read boundary before a backend is chosen. How much of it reaches the
+  prompt is per-backend: local Ollama trims to `MAX_LLM_EXCERPT_CHARS`
+  (2 KiB), and the hosted/CLI backends pass `LARGE_CONTEXT_PROMPT` and send
+  the excerpt untrimmed.
 - `DEFAULT_REPEATED_CONFIG_COUNT` = 8 paths from bucket 4 (B4: every bucket
   gets its own cap — `package.json` recurs in every package of a large
   monorepo). A group may be truncated but never cut below two members, since
