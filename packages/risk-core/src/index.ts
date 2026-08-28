@@ -97,6 +97,7 @@ export { activePathSet, isActivePath } from "./policy/active";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { isSessionStatsReport } from "./report/sessionStats";
+export { sessionAdoptionFromCounts } from "./adoption/sessionAdoption";
 export { primaryReason, scoreRisk } from "./score/score";
 export {
   isUsageMetrics,
@@ -134,6 +135,7 @@ export type {
   SessionStatsHistoryEntry,
   SessionStatsReport,
 } from "./domain/types";
+export type { SessionAdoptionSnapshot } from "./adoption/sessionAdoption";
 export type {
   UsageMetrics,
   UsageSource,
