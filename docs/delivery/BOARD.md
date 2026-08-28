@@ -156,9 +156,10 @@ Deliberately **not** filed under F4 #156, which excludes Claude Code stories.
 | Issue | Title | Depends on |
 | --- | --- | --- |
 | #166 | risk-core: single-source and enforce the 30-candidate enrichment cap | — |
-| #167 | enrichers: run the CLI-transport backends through the multi-pass pipeline | #166 |
+| #192 | enrichers: per-backend excerpt budget + a large-model Anthropic output cap | — |
+| #167 | enrichers: give the CLI-transport backends cross-batch context | #166, #192 |
 
-Both come out of the #148 verification pass.
+All three come out of the #148 verification pass and the #167 re-scope.
 
 **#166 started as a cost story** — the CLI-transport backends (`codex`,
 `claude-code`, `gemini-cli`, `cursor-cli`, all flat-batching at `*_BATCH_SIZE =
@@ -181,7 +182,16 @@ precondition: multipass batch count is `ceil(cap / batchSize)`, and on Ollama
 (`OLLAMA_BATCH_SIZE = 2`, 900s per-batch timeout) an unbounded cap is a scan that
 never returns.
 
-**#166 → #167.**
+**#192 is the other precondition.** `MAX_LLM_EXCERPT_CHARS = 2048` and
+`ANTHROPIC_MAX_OUTPUT_TOKENS = 4096` were calibrated for a local 7B on slow
+hardware (commit `8410632`, "hybrid scan timeouts on slow hardware") and are
+applied to every backend. A frontier model sees the first 2 KiB of every
+candidate file regardless of its context window; the `anthropic` backend
+truncates its response at 4096 output tokens. Make the excerpt budget
+per-backend (Ollama keeps 2048, the rest bounded only by the 32 KiB read cap)
+and raise the Anthropic output cap. ~0.5d.
+
+**#166 + #192 → #167.**
 
 ### F2 attractiveness backlog (filed under #61)
 
