@@ -10,8 +10,25 @@ export { DEFAULT_MAX_ENRICHMENT_CANDIDATES as MAX_ENRICHMENT_CANDIDATES } from "
 /** Max bytes read from each candidate file for the model prompt. */
 export const MAX_CANDIDATE_BYTES = 32 * 1024;
 
-/** Max characters of each excerpt embedded in the LLM prompt (local models). */
+/**
+ * Excerpt characters per file for **local** models, and the default when a
+ * caller passes no budget.
+ *
+ * Calibrated for a 7B on low-spec hardware: introduced at 4096 with the Ollama
+ * enricher and halved hours later in the "hybrid scan timeouts on slow
+ * hardware" pass, alongside `OLLAMA_BATCH_SIZE`. It is a survival knob for that
+ * path, not a judgement about how much context is useful — backends with a
+ * large context window pass `UNBOUNDED_EXCERPT_CHARS` instead.
+ */
 export const MAX_LLM_EXCERPT_CHARS = 2_048;
+
+/**
+ * Excerpt budget for large-context backends: no prompt-side trim at all.
+ * They are still bounded by `MAX_CANDIDATE_BYTES`, which is applied at the read
+ * boundary and doubles as the privacy limit on how much of a file can leave the
+ * machine.
+ */
+export const UNBOUNDED_EXCERPT_CHARS = Number.POSITIVE_INFINITY;
 
 /** Max characters per instruction-file digest in the Pass A map prompt. */
 export const MAX_MAP_DIGEST_CHARS = 400;

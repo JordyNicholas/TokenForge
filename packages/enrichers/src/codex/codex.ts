@@ -11,6 +11,7 @@ import {
 import { mapStructuredFindings } from "../parse";
 import {
   buildEnrichmentPrompt,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
@@ -330,7 +331,7 @@ export function createCodexEnricher(
           try {
             result = await run(codexExecArgs(schemaPath, model), {
               cwd: temporaryRoot,
-              input: buildEnrichmentPrompt(batch),
+              input: buildEnrichmentPrompt(batch, LARGE_CONTEXT_PROMPT),
               timeoutMs,
             });
           } catch (error) {

@@ -4,7 +4,7 @@ import {
   type FindingSuggestion,
 } from "@tokenforge/risk-core";
 import type { EnrichmentCandidate, LlmStructuredFinding } from "./types";
-import { MAX_LLM_EXCERPT_CHARS } from "./limits";
+import { MAX_LLM_EXCERPT_CHARS, UNBOUNDED_EXCERPT_CHARS } from "./limits";
 
 const LLM_REASONS = new Set<FindingReason>([
   "semantic_bloat",
@@ -51,15 +51,38 @@ export const ENRICHMENT_POLICY_RULES: readonly string[] = [
   "Do not exclude a path merely because it is 'not the file being edited' or 'infrastructure-related'.",
 ];
 
-export function buildEnrichmentPrompt(candidates: readonly EnrichmentCandidate[]): string {
+export type EnrichmentPromptOptions = {
+  /**
+   * Characters of each file excerpt to embed. Omitted means the local-model
+   * default — see `MAX_LLM_EXCERPT_CHARS`. Backends with a large context window
+   * pass `UNBOUNDED_EXCERPT_CHARS` and are bounded instead by
+   * `MAX_CANDIDATE_BYTES` at the read boundary.
+   */
+  excerptChars?: number;
+};
+
+/**
+ * Prompt budget for backends whose context window is not the binding
+ * constraint. Every hosted/CLI adapter uses this; only the local Ollama path
+ * keeps the trimmed default.
+ */
+export const LARGE_CONTEXT_PROMPT: EnrichmentPromptOptions = {
+  excerptChars: UNBOUNDED_EXCERPT_CHARS,
+};
+
+export function buildEnrichmentPrompt(
+  candidates: readonly EnrichmentCandidate[],
+  options: EnrichmentPromptOptions = {},
+): string {
+  const excerptChars = options.excerptChars ?? MAX_LLM_EXCERPT_CHARS;
   const blocks = candidates.map((candidate) => {
     const raw =
       candidate.excerpt.trim().length > 0
         ? candidate.excerpt
         : "(empty or unreadable file)";
     const excerpt =
-      raw.length > MAX_LLM_EXCERPT_CHARS
-        ? `${raw.slice(0, MAX_LLM_EXCERPT_CHARS)}\n…(truncated)`
+      raw.length > excerptChars
+        ? `${raw.slice(0, excerptChars)}\n…(truncated)`
         : raw;
     return [
       `### ${candidate.path}`,

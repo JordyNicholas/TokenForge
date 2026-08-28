@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { EnrichmentCandidate } from "./types";
+import { MAX_LLM_EXCERPT_CHARS } from "./limits";
 import {
   buildEnrichmentPrompt,
+  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "./structured";
@@ -291,5 +293,37 @@ describe("parseStructuredFindings", () => {
     );
 
     expect(rows).toHaveLength(0);
+  });
+});
+
+describe("excerpt budget is per-backend", () => {
+  const long = (chars: number) => ({
+    path: "AGENTS.md",
+    bytes: chars,
+    estTokens: Math.ceil(chars / 4),
+    excerpt: "A".repeat(chars),
+  });
+
+  it("defaults to the local-model trim when no budget is given", () => {
+    // Omitting the option must keep the Ollama path byte-identical.
+    const prompt = buildEnrichmentPrompt([long(10_000)]);
+    expect(prompt).toContain("…(truncated)");
+    expect(prompt).toContain("A".repeat(MAX_LLM_EXCERPT_CHARS));
+    expect(prompt).not.toContain("A".repeat(MAX_LLM_EXCERPT_CHARS + 1));
+  });
+
+  it("does not trim at all for a large-context backend", () => {
+    // The frontier backends were seeing the first 2 KiB of every file
+    // regardless of their context window; MAX_CANDIDATE_BYTES still bounds
+    // what was read from disk in the first place.
+    const prompt = buildEnrichmentPrompt([long(10_000)], LARGE_CONTEXT_PROMPT);
+    expect(prompt).not.toContain("…(truncated)");
+    expect(prompt).toContain("A".repeat(10_000));
+  });
+
+  it("honours an explicit budget between the two", () => {
+    const prompt = buildEnrichmentPrompt([long(10_000)], { excerptChars: 500 });
+    expect(prompt).toContain("…(truncated)");
+    expect(prompt).not.toContain("A".repeat(501));
   });
 });
