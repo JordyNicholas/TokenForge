@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
+import { runDiscover } from "../commands/discover/discover";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { runPilotPack } from "../commands/pilot/pilot";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
@@ -11,6 +12,7 @@ import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { syncUsage } from "../commands/usage-sync/usage-sync";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
 import { writeScanReport } from "../io/report-file";
+import { formatDiscoverTable } from "../output/discover-table";
 import { formatScanTable } from "../output/table";
 import { savingsExitCode, totalsPayload } from "../savings/savings";
 import { UsageError, isCliError } from "./errors";
@@ -20,6 +22,7 @@ const USAGE = `Usage: tokenforge <command> [root] [options]
 Commands:
   scan [root]         Score high-risk paths and write .tokenforge/scan-report.json
   apply [root]        Write lean instructions + exclusion candidates (provider adapter)
+  discover [root]     Find missed savings (scan vs on-disk exclusions)
   init [root]         Bootstrap .tokenforge/, scan, and apply (--skip-apply for scan only)
   pilot [root]        Org pilot pack: scan → apply → Prove-ready (#100)
   org-pack <seed.json>
@@ -58,7 +61,9 @@ Options:
                         open paths. Those files are reported but never proposed
                         for exclusion. Not auto-detected: a stale export would
                         silently protect paths nobody has open any more.
-  --skip-apply          Pilot: scan only (still writes report)
+  --report <path>       Discover: Token Risk report JSON (default: .tokenforge/scan-report.json)
+  --rescan              Discover: run a fresh scan instead of reusing the saved report
+  --skip-apply          Pilot/init: scan only (still writes report)
   --dry-run             Print planned create/merge/replace; do not write
   --json                Print machine JSON totals (savedPercent included) to stdout
   -h, --help            Show this help
@@ -153,6 +158,8 @@ export async function runCli(
         "llm-timeout": { type: "string" },
         "allow-external": { type: "boolean", default: false },
         "active-paths-file": { type: "string" },
+        report: { type: "string" },
+        rescan: { type: "boolean", default: false },
         "skip-apply": { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
@@ -198,6 +205,39 @@ export async function runCli(
         io.stderr.write(`wrote ${result.reportPath}\n`);
       }
       return savingsExitCode(result.report.totals);
+    }
+
+    if (command === "discover") {
+      const discovered = await runDiscover({
+        ...common,
+        provider: values.provider ?? "copilot",
+        reportPath: values.report,
+        rescan: values.rescan,
+        writeReport: true,
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              missedTokens: discovered.missedTokens,
+              opportunities: discovered.opportunities,
+              exclusionPath: discovered.exclusionPath,
+              appliedPatterns: discovered.appliedPatterns,
+              hasApplyMarker: discovered.hasApplyMarker,
+              reportPath: discovered.reportPath,
+              discoverReportPath: discovered.discoverReportPath,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        io.stdout.write(formatDiscoverTable(discovered));
+        if (discovered.discoverReportPath) {
+          io.stderr.write(`wrote ${discovered.discoverReportPath}\n`);
+        }
+      }
+      return discovered.missedTokens > 0 ? 0 : 3;
     }
 
     if (command === "apply" || command === "init") {

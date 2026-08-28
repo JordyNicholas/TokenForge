@@ -23,3 +23,4 @@ export {
   type OrgApplyResult,
 } from "./org-apply/org-apply";
 export { parseProviderId, scanRepo, type ScanOptions, type ScanResult } from "./scan/scan";
+export { runDiscover, type DiscoverOptions, type DiscoverResult } from "./discover/discover";
