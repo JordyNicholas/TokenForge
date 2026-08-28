@@ -14,6 +14,8 @@ import {
   leanAppRoot,
   monorepoConfigAppExpectedTotalsPath,
   monorepoConfigAppRoot,
+  outputShapeAppExpectedTotalsPath,
+  outputShapeAppRoot,
   semanticDuplicatesAppExpectedTotalsPath,
   semanticDuplicatesAppRoot,
 } from "../test/helpers";
@@ -52,6 +54,7 @@ describe.each([
     activeSessionAppRoot,
     activeSessionAppExpectedTotalsPath,
   ],
+  ["output-shape-app", outputShapeAppRoot, outputShapeAppExpectedTotalsPath],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {
     const seed = await loadSeed(expectedTotalsPath);

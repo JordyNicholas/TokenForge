@@ -77,6 +77,18 @@ export function templateSuggestion(finding: TokenRiskFinding): FindingSuggestion
     };
   }
 
+  if (
+    fileClass === "test_output" ||
+    fileClass === "ci_log" ||
+    fileClass === "build_artifact"
+  ) {
+    return {
+      kind: "exclude_from_context",
+      summary:
+        "Exclude this output-shape artifact from agent context (ignore pack / content exclusion). Prefer compact test/lint summaries when you need signal.",
+    };
+  }
+
   switch (finding.reason) {
     case "inactive_tab":
       return {

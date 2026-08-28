@@ -1,3 +1,11 @@
+import {
+  BUILD_ARTIFACT_DIR_NAMES,
+  BUILD_ARTIFACT_EXTENSIONS,
+  CI_LOG_BASENAMES,
+  CI_LOG_DIR_NAMES,
+  GENERATED_TREE_DIR_NAMES,
+  TEST_OUTPUT_DIR_NAMES,
+} from "../domain/constants";
 import type { FiletypeRiskClass } from "../domain/types";
 
 const LOCKFILE_NAMES = new Set([
@@ -17,22 +25,7 @@ const LOCKFILE_NAMES = new Set([
   "pdm.lock",
 ]);
 
-const GENERATED_DIR_NAMES = new Set([
-  "dist",
-  "build",
-  "out",
-  "coverage",
-  "node_modules",
-  ".next",
-  "target",
-  // A `generated/` tree is generated output by name. Not every such tree is
-  // waste — see `isNecessaryGeneratedPath`, which exempts generated API
-  // clients from the high-risk class without changing what they classify as.
-  "generated",
-  ".generated",
-]);
-
-const GENERATED_SUFFIXES = [".min.js", ".min.css", ".map", ".wasm"];
+const GENERATED_SUFFIXES = [".min.js", ".min.css", ".map"];
 
 const SOURCE_EXTENSIONS = new Set([
   ".c",
@@ -81,6 +74,10 @@ function extensionOf(name: string): string {
   return dot === -1 ? "" : lower.slice(dot);
 }
 
+function hasDirSegment(segments: readonly string[], names: ReadonlySet<string>): boolean {
+  return segments.some((segment) => names.has(segment));
+}
+
 function isPrismaishDir(segment: string): boolean {
   const lower = segment.toLowerCase();
   return lower.includes("prisma") || lower === "database" || lower === "db";
@@ -125,14 +122,39 @@ export function isPrismaGeneratedPath(filePath: string): boolean {
   return false;
 }
 
+/** True for CI / pipeline log files by basename or parent directory. */
+export function isCiLogPath(filePath: string): boolean {
+  const segments = pathSegments(filePath);
+  const name = fileName(filePath).toLowerCase();
+  if (!name.endsWith(".log")) {
+    return false;
+  }
+  if (CI_LOG_BASENAMES.has(name)) {
+    return true;
+  }
+  return segments
+    .slice(0, -1)
+    .some((segment) => CI_LOG_DIR_NAMES.has(segment.toLowerCase()));
+}
+
 /**
- * Classify a path for Token Risk. Order: generated dir → Prisma client →
- * lockfile → generated suffix → source → config → unknown.
+ * Classify a path for Token Risk. Order: output-shape dirs → CI logs →
+ * Prisma client → lockfile → suffixes → source → config → unknown.
  */
 export function classifyFiletype(filePath: string): FiletypeRiskClass {
   const segments = pathSegments(filePath);
-  if (segments.some((segment) => GENERATED_DIR_NAMES.has(segment))) {
+  if (hasDirSegment(segments, TEST_OUTPUT_DIR_NAMES)) {
+    return "test_output";
+  }
+  if (hasDirSegment(segments, BUILD_ARTIFACT_DIR_NAMES)) {
+    return "build_artifact";
+  }
+  if (hasDirSegment(segments, GENERATED_TREE_DIR_NAMES)) {
     return "generated";
+  }
+
+  if (isCiLogPath(filePath)) {
+    return "ci_log";
   }
 
   if (isPrismaGeneratedPath(filePath)) {
@@ -150,6 +172,9 @@ export function classifyFiletype(filePath: string): FiletypeRiskClass {
   }
 
   const ext = extensionOf(name);
+  if (BUILD_ARTIFACT_EXTENSIONS.has(ext)) {
+    return "build_artifact";
+  }
   if (SOURCE_EXTENSIONS.has(ext)) {
     return "source";
   }
