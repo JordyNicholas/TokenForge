@@ -99,7 +99,7 @@ describe("tokensByFileClass", () => {
     const buckets = tokensByFileClass(demoSeed().reports);
     expect(buckets[0]?.fileClass).toBe("lockfile");
     expect(buckets.map((bucket) => bucket.fileClass)).toEqual(
-      expect.arrayContaining(["lockfile", "generated", "config"]),
+      expect.arrayContaining(["lockfile", "build_artifact", "config"]),
     );
   });
 });
