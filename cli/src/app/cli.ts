@@ -61,8 +61,9 @@ Options:
                         open paths. Those files are reported but never proposed
                         for exclusion. Not auto-detected: a stale export would
                         silently protect paths nobody has open any more.
-  --report <path>       Discover: Token Risk report JSON (default: .tokenforge/scan-report.json)
+  --report <path>       Discover: input Token Risk JSON (default: .tokenforge/scan-report.json)
   --rescan              Discover: run a fresh scan instead of reusing the saved report
+                        (writes .tokenforge/discover-latest.json by default)
   --skip-apply          Pilot/init: scan only (still writes report)
   --dry-run             Print planned create/merge/replace; do not write
   --json                Print machine JSON totals (savedPercent included) to stdout
