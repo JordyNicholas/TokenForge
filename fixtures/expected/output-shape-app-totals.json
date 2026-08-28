@@ -1,0 +1,12 @@
+{
+  "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
+  "pitchNote": "This raw exclusion ratio is not the pitch 30%. The dashboard converts these token totals to $ via editable assumptions.",
+  "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
+  "fixture": "fixtures/output-shape-app",
+  "totals": {
+    "beforeTokens": 203,
+    "afterTokens": 89,
+    "savedTokens": 114
+  },
+  "savedPercent": 56.2
+}

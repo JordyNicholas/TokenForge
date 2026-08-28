@@ -26,7 +26,11 @@ out/
 
 # Logs / local
 *.log
+!fixtures/output-shape-app/logs/
+!fixtures/output-shape-app/logs/**
 .tokenforge/
 dashboard/public/last-scan.json
 coverage/
+!fixtures/output-shape-app/coverage/
+!fixtures/output-shape-app/coverage/**
 .cursor/mcp.json

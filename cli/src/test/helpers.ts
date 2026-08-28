@@ -81,6 +81,13 @@ export const activeSessionLastScanPath = resolve(
   "fixtures/expected/active-session-last-scan.json",
 );
 
+/** Output-shape file classes (#171): test/CI logs and build artifacts. */
+export const outputShapeAppRoot = resolve(repoRoot, "fixtures/output-shape-app");
+export const outputShapeAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/output-shape-app-totals.json",
+);
+
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });
