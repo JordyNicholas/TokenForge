@@ -267,7 +267,9 @@ describe("cursorCliEnricher", () => {
     expect(result.meta.candidatesSent).toBe(0);
   });
 
-  it("splits candidates into bounded batches", async () => {
+  it("sends the whole candidate set in one request", async () => {
+    // Single pass: cross-file findings must not depend on where the chunker
+    // happened to split the list.
     const runner = okRunner();
     const many = Array.from({ length: 9 }, (_, index) => ({
       ...candidate,
@@ -276,7 +278,15 @@ describe("cursorCliEnricher", () => {
 
     await enrich(runner, { candidates: many });
 
-    expect(runner).toHaveBeenCalledTimes(4);
+    // Counted by prompt-carrying calls rather than total, because this backend
+    // also makes an auth preflight that has nothing to do with batching.
+    // Cursor sends a short prompt as a positional arg and a long one on stdin,
+    // so look in both rather than assuming a transport.
+    const enrichmentCalls = runner.mock.calls.filter(
+      ([args, options]) =>
+        `${args.join(" ")}${options?.input ?? ""}`.includes("### doc-"),
+    );
+    expect(enrichmentCalls).toHaveLength(1);
   });
 
   it("wraps unexpected command startup failures", async () => {

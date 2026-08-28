@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RuntimeError, UsageError } from "../errors";
 import {
-  CLAUDE_CODE_BATCH_SIZE,
+  SINGLE_PASS_BATCH_SIZE,
   resolveClaudeCodeTimeoutMs,
 } from "../limits";
 import { mapStructuredFindings } from "../parse";
@@ -324,7 +324,7 @@ export function createClaudeCodeEnricher(
       const temporaryRoot = await mkdtemp(join(tmpdir(), "tokenforge-claude-code-"));
 
       try {
-        const batches = chunkCandidates(input.candidates, CLAUDE_CODE_BATCH_SIZE);
+        const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
 
         for (let index = 0; index < batches.length; index += 1) {

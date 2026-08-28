@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RuntimeError, UsageError } from "../errors";
 import {
-  CODEX_BATCH_SIZE,
+  SINGLE_PASS_BATCH_SIZE,
   CODEX_STATUS_TIMEOUT_MS,
   resolveCodexTimeoutMs,
 } from "../limits";
@@ -317,7 +317,7 @@ export function createCodexEnricher(
         await writeFile(schemaPath, JSON.stringify(CODEX_OUTPUT_SCHEMA), "utf8");
         await assertCodexReady(run, temporaryRoot);
 
-        const batches = chunkCandidates(input.candidates, CODEX_BATCH_SIZE);
+        const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
 
         for (let index = 0; index < batches.length; index += 1) {

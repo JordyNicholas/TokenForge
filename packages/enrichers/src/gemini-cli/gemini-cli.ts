@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RuntimeError, UsageError } from "../errors";
 import {
-  GEMINI_CLI_BATCH_SIZE,
+  SINGLE_PASS_BATCH_SIZE,
   GEMINI_CLI_STATUS_TIMEOUT_MS,
   resolveGeminiCliTimeoutMs,
 } from "../limits";
@@ -302,7 +302,7 @@ export function createGeminiCliEnricher(
       try {
         await assertGeminiCliReady(run, temporaryRoot);
 
-        const batches = chunkCandidates(input.candidates, GEMINI_CLI_BATCH_SIZE);
+        const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
 
         for (let index = 0; index < batches.length; index += 1) {

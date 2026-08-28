@@ -245,7 +245,9 @@ describe("geminiCliEnricher", () => {
     expect(result.meta.candidatesSent).toBe(0);
   });
 
-  it("splits candidates into bounded batches", async () => {
+  it("sends the whole candidate set in one request", async () => {
+    // Single pass: cross-file findings must not depend on where the chunker
+    // happened to split the list.
     const runner = okRunner();
     const many = Array.from({ length: 9 }, (_, index) => ({
       ...candidate,
@@ -254,7 +256,12 @@ describe("geminiCliEnricher", () => {
 
     await enrich(runner, { candidates: many });
 
-    expect(runner).toHaveBeenCalledTimes(4);
+    // Counted by prompt-carrying calls rather than total, because this backend
+    // also makes an auth preflight that has nothing to do with batching.
+    const enrichmentCalls = runner.mock.calls.filter(([, options]) =>
+      String(options?.input ?? "").includes("### doc-"),
+    );
+    expect(enrichmentCalls).toHaveLength(1);
   });
 
   it("wraps unexpected command startup failures", async () => {
