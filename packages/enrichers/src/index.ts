@@ -46,6 +46,7 @@ export { codexEnricher, createCodexEnricher } from "./codex/codex";
 export {
   createCursorCliEnricher,
   cursorCliEnricher,
+  resolveCursorCliCommand,
 } from "./cursor-cli/cursor-cli";
 export {
   createGeminiCliEnricher,

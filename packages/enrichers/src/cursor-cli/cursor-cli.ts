@@ -1,4 +1,5 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -43,6 +44,62 @@ export function buildCursorCliEnvironment(
   return { ...source };
 }
 
+/**
+ * Resolve the Cursor CLI executable for child_process.spawn.
+ *
+ * Windows installs often ship only `agent.cmd` shims that delegate to
+ * `versions/<build>/node.exe`. Node cannot spawn `.cmd` files with
+ * `shell: false` (EINVAL), so callers must route those through cmd.exe.
+ */
+export function resolveCursorCliCommand(
+  source: NodeJS.ProcessEnv = process.env,
+  fileExists: (path: string) => boolean = existsSync,
+): string {
+  const fromEnv = source.TOKENFORGE_CURSOR_CLI_PATH?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (process.platform === "win32") {
+    const localAppData = source.LOCALAPPDATA?.trim();
+    if (localAppData) {
+      const root = join(localAppData, "cursor-agent");
+      for (const name of ["agent.exe", "cursor-agent.exe", "agent.cmd"]) {
+        const candidate = join(root, name);
+        if (fileExists(candidate)) {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return "agent";
+}
+
+function spawnCursorCliProcess(
+  command: string,
+  args: readonly string[],
+  options: {
+    cwd: string;
+    env: NodeJS.ProcessEnv;
+  },
+): ChildProcessWithoutNullStreams {
+  const spawnOptions = {
+    cwd: options.cwd,
+    env: options.env,
+    shell: false,
+    stdio: ["pipe", "pipe", "pipe"] as ["pipe", "pipe", "pipe"],
+    windowsHide: true,
+  };
+
+  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(command)) {
+    const comspec = options.env.ComSpec ?? "cmd.exe";
+    return spawn(comspec, ["/d", "/s", "/c", command, ...args], spawnOptions);
+  }
+
+  return spawn(command, [...args], spawnOptions);
+}
+
 function appendBounded(current: string, chunk: Buffer | string): string {
   if (current.length >= MAX_PROCESS_OUTPUT_CHARS) {
     return current;
@@ -51,15 +108,13 @@ function appendBounded(current: string, chunk: Buffer | string): string {
 }
 
 export const runCursorCliCommand: CursorCliCommandRunner = (args, options) => {
-  const command = process.env.TOKENFORGE_CURSOR_CLI_PATH?.trim() || "agent";
+  const command = resolveCursorCliCommand();
+  const env = buildCursorCliEnvironment();
 
   return new Promise((resolve, reject) => {
-    const child = spawn(command, [...args], {
+    const child = spawnCursorCliProcess(command, args, {
       cwd: options.cwd,
-      env: buildCursorCliEnvironment(),
-      shell: false,
-      stdio: ["pipe", "pipe", "pipe"],
-      windowsHide: true,
+      env,
     });
     let stdout = "";
     let stderr = "";

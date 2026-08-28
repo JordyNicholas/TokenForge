@@ -1,9 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { join } from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { RuntimeError, UsageError } from "../errors";
 import {
   createCursorCliEnricher,
   cursorCliArgs,
   extractCursorPayload,
+  resolveCursorCliCommand,
   type CursorCliCommandResult,
   type CursorCliCommandRunner,
 } from "./cursor-cli";
@@ -64,6 +66,42 @@ function enrich(runner: CursorCliCommandRunner, overrides = {}) {
     ...overrides,
   });
 }
+
+describe("resolveCursorCliCommand", () => {
+  const originalPlatform = process.platform;
+
+  afterEach(() => {
+    Object.defineProperty(process, "platform", { value: originalPlatform });
+  });
+
+  it("honors TOKENFORGE_CURSOR_CLI_PATH when set", () => {
+    expect(
+      resolveCursorCliCommand(
+        { TOKENFORGE_CURSOR_CLI_PATH: "C:\\tools\\agent.cmd" },
+        () => false,
+      ),
+    ).toBe("C:\\tools\\agent.cmd");
+  });
+
+  it("auto-detects agent.cmd under LocalAppData on Windows", () => {
+    Object.defineProperty(process, "platform", { value: "win32" });
+    const cmdPath = join("C:\\Users\\dev\\AppData\\Local", "cursor-agent", "agent.cmd");
+    const fileExists = vi.fn((path: string) => path === cmdPath);
+
+    expect(
+      resolveCursorCliCommand(
+        { LOCALAPPDATA: "C:\\Users\\dev\\AppData\\Local" },
+        fileExists,
+      ),
+    ).toBe(cmdPath);
+  });
+
+  it("defaults to agent on non-Windows platforms", () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+
+    expect(resolveCursorCliCommand({}, () => false)).toBe("agent");
+  });
+});
 
 describe("cursorCliEnricher", () => {
   it("never passes --force or --yolo", () => {

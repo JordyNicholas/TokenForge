@@ -178,8 +178,11 @@ The `tokenforge` binary is not on `PATH` unless you link or install the CLI glob
   warning and exits before starting the CLI.
 - `--llm-timeout <sec>` — per-batch timeout in seconds (default 180).
 - `TOKENFORGE_CURSOR_CLI_TIMEOUT_MS` — env var fallback for the same timeout.
-- `TOKENFORGE_CURSOR_CLI_PATH` — path to the executable when it is not `agent`
-  on `PATH`.
+- `TOKENFORGE_CURSOR_CLI_PATH` — optional override when `agent` is not on `PATH`.
+  On Windows, TokenForge auto-detects `%LOCALAPPDATA%\cursor-agent\agent.cmd`
+  and invokes it through `cmd.exe` (required because Node cannot spawn `.cmd`
+  shims directly). Point at `agent.cmd` or leave unset; do not expect
+  `agent.exe` — recent Windows installs are Node-based and ship only the shim.
 - `--llm-endpoint` is **rejected**: the CLI owns its own connection.
 
 **Latency.** Each batch runs a full `agent -p` session (often 30–90s per batch on
