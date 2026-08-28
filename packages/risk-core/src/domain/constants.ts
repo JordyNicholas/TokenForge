@@ -95,6 +95,19 @@ export const TOKEN_RISK_REPORT_SCHEMA_V4_ID =
 export const TOKEN_RISK_REPORT_SCHEMA_V4_PATH =
   "docs/schemas/risk-event.v4.schema.json";
 
+/**
+ * Global ceiling on paths handed to an LLM enricher in one scan.
+ *
+ * Owned here rather than in `enrichers` because `selectEnrichmentCandidates`
+ * is what enforces it, and the dependency direction is `enrichers → risk-core`.
+ * It bounds three unrelated things at once, which is why it is a contract and
+ * not a tuning knob: how much source leaves the machine on an external backend,
+ * how much a hosted backend is billed for, and — on the local Ollama path,
+ * where each batch of 2 has its own 900s timeout — whether a scan of a large
+ * monorepo terminates at all.
+ */
+export const DEFAULT_MAX_ENRICHMENT_CANDIDATES = 30;
+
 /** Default largest-file bucket size for LLM enrichment candidates. */
 export const DEFAULT_TOP_CANDIDATE_COUNT = 10;
 

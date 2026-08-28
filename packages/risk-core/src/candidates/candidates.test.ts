@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { RiskAssessment } from "../domain/types";
-import { DEFAULT_REPEATED_CONFIG_COUNT } from "../domain/constants";
+import {
+  DEFAULT_MAX_ENRICHMENT_CANDIDATES,
+  DEFAULT_REPEATED_CONFIG_COUNT,
+} from "../domain/constants";
+import { scoreRisk } from "../score/score";
 import {
   repeatedConfigBasenames,
   selectEnrichmentCandidates,
@@ -323,5 +327,43 @@ describe("selectEnrichmentCandidates", () => {
 
     expect(selected.filter((item) => item.path === "AGENTS.md")).toHaveLength(1);
     expect(selected[0].path).toBe("AGENTS.md");
+  });
+});
+
+describe("the enrichment candidate cap is a contract", () => {
+  const many = (count: number): RiskAssessment[] =>
+    Array.from({ length: count }, (_, index) =>
+      scoreRisk({
+        // Instruction paths, so every one lands in the first bucket and the cap
+        // is the only thing that can stop the list growing.
+        path: `packages/pkg-${index}/AGENTS.md`,
+        bytes: 8_192,
+        inactiveMs: 0,
+      }),
+    );
+
+  it("caps a caller that passes no options at all", () => {
+    // cli/src/commands/scan/scan.ts calls the selector with no second argument,
+    // so this default is the only limit on the primary scan path.
+    expect(selectEnrichmentCandidates(many(80))).toHaveLength(
+      DEFAULT_MAX_ENRICHMENT_CANDIDATES,
+    );
+  });
+
+  it("uses the shared constant, not a private literal", () => {
+    // Guards the failure this replaced: risk-core capped at a bare 30 while
+    // enrichers exported its own MAX_ENRICHMENT_CANDIDATES that nothing read,
+    // so raising one silently changed nothing.
+    expect(DEFAULT_MAX_ENRICHMENT_CANDIDATES).toBe(30);
+    expect(selectEnrichmentCandidates(many(40), { maxCandidates: 7 })).toHaveLength(7);
+  });
+
+  it("bounds the Ollama batch count, which bounds its wall clock", () => {
+    // OLLAMA_BATCH_SIZE is 2 and each batch has its own 900s timeout, so an
+    // unbounded candidate set is a scan that never returns, not a costly one.
+    const batches = Math.ceil(
+      selectEnrichmentCandidates(many(500)).length / 2,
+    );
+    expect(batches).toBe(15);
   });
 });

@@ -88,8 +88,10 @@ export async function collectInstructionCandidates(
   }
 
   const assessments = [...byPath.values()];
-  return selectEnrichmentCandidates(assessments, {
-    topCount: 0,
-    maxCandidates: 30,
-  }).filter((assessment) => isInstructionPath(assessment.path));
+  // topCount 0 is the deliberate part: the extension enriches instruction paths
+  // only. maxCandidates is left to risk-core's enforced default rather than
+  // restated here, so the extension cannot drift from the CLI.
+  return selectEnrichmentCandidates(assessments, { topCount: 0 }).filter(
+    (assessment) => isInstructionPath(assessment.path),
+  );
 }

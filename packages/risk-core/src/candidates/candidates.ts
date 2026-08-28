@@ -1,5 +1,6 @@
 import type { FiletypeRiskClass, RiskAssessment } from "../domain/types";
 import {
+  DEFAULT_MAX_ENRICHMENT_CANDIDATES,
   DEFAULT_REPEATED_CONFIG_COUNT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
   DEFAULT_TOP_CANDIDATE_COUNT,
@@ -18,7 +19,11 @@ export type EnrichmentCandidateOptions = {
   sourceTopCount?: number;
   /** Max paths from the repeated-config bucket (see #136). */
   repeatedConfigCount?: number;
-  /** Max candidates returned after dedupe and cap. */
+  /**
+   * Max candidates returned after dedupe and cap. Omitting it is the normal
+   * case and yields `DEFAULT_MAX_ENRICHMENT_CANDIDATES` — the cap is a
+   * contract every caller gets, not something each one has to remember.
+   */
   maxCandidates?: number;
 };
 
@@ -160,7 +165,7 @@ export function selectEnrichmentCandidates(
   const sourceTopCount = options.sourceTopCount ?? DEFAULT_SOURCE_CANDIDATE_COUNT;
   const repeatedConfigCount =
     options.repeatedConfigCount ?? DEFAULT_REPEATED_CONFIG_COUNT;
-  const maxCandidates = options.maxCandidates ?? 30;
+  const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_ENRICHMENT_CANDIDATES;
 
   // Runs before every bucket, not as a filter on the result: a credential-
   // shaped path must never reach an enricher, and hybrid mode may send
