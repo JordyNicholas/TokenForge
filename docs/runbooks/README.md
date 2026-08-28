@@ -7,6 +7,7 @@
 
 | Doc | Duration / cadence |
 | --- | --- |
+| [QUICKSTART.md](./QUICKSTART.md) | One-shot `tokenforge init` on a repo |
 | [DEMO_RUNBOOK.md](./DEMO_RUNBOOK.md) | ≤5 min hackathon demo |
 | [PILOT_RUNBOOK.md](./PILOT_RUNBOOK.md) | One-team estimate vs imported bill |
 | [prove-monthly.md](./prove-monthly.md) | Monthly GitHub Actions `usage-sync` |
