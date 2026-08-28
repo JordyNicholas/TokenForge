@@ -9,9 +9,18 @@ describe("classifyFiletype", () => {
   });
 
   it("classifies generated dirs before filename", () => {
-    expect(classifyFiletype("dist/bundle.js")).toBe("generated");
-    expect(classifyFiletype("packages/app/build/index.js")).toBe("generated");
-    expect(classifyFiletype("coverage/lcov.info")).toBe("generated");
+    expect(classifyFiletype("dist/bundle.js")).toBe("build_artifact");
+    expect(classifyFiletype("packages/app/build/index.js")).toBe("build_artifact");
+    expect(classifyFiletype("coverage/lcov.info")).toBe("test_output");
+  });
+
+  it("classifies output-shape paths (#171)", () => {
+    expect(classifyFiletype("test-results/junit.xml")).toBe("test_output");
+    expect(classifyFiletype("playwright-report/index.html")).toBe("test_output");
+    expect(classifyFiletype("logs/ci-pipeline.log")).toBe("ci_log");
+    expect(classifyFiletype("ci.log")).toBe("ci_log");
+    expect(classifyFiletype("artifacts/app.jar")).toBe("build_artifact");
+    expect(classifyFiletype("release/app.whl")).toBe("build_artifact");
   });
 
   it("classifies minified and source-map suffixes", () => {
@@ -58,6 +67,6 @@ describe("classifyFiletype", () => {
   });
 
   it("accepts Windows separators", () => {
-    expect(classifyFiletype("dist\\out.js")).toBe("generated");
+    expect(classifyFiletype("dist\\out.js")).toBe("build_artifact");
   });
 });
