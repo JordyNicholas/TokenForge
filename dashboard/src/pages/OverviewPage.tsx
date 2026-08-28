@@ -25,6 +25,7 @@ import {
   tokensByArchitecture,
 } from "../domain";
 import { useLayerView } from "../state/useLayerView";
+import { AdoptionMetricsCard } from "../ui/AdoptionMetricsCard";
 import { AfterFixCompareCard } from "../ui/AfterFixCompareCard";
 import { ArchitectureChart } from "../ui/ArchitectureChart";
 import { ChartCard } from "../ui/ChartCard";
@@ -60,6 +61,7 @@ export function OverviewPage() {
     assumptions,
     patchAssumptions,
     usageLabel,
+    fixOnTeams,
   } = useLayerView();
   const llmBoardEmpty =
     boardLayer === "llm" &&
@@ -114,6 +116,7 @@ export function OverviewPage() {
         usage={seed?.usage}
         teamId={teamId}
       />
+      <AdoptionMetricsCard reports={reports} fixOnTeams={fixOnTeams} />
       <PrivacyControls showNote />
 
       <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />

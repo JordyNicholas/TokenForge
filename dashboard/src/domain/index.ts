@@ -148,3 +148,10 @@ export {
   type SavingsTierId,
   type TierDisplayValue,
 } from "./savingsTiers";
+export {
+  ADOPTION_HONESTY_NOTE,
+  ADOPTION_UNAVAILABLE,
+  computeRepoCoverage,
+  formatCoverageLabel,
+  type RepoCoverageMetrics,
+} from "./adoptionMetrics";
