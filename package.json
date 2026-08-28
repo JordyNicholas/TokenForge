@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "build:cli": "npm run build -w @tokenforge/cli",
+    "build:vsc-e": "npm run build -w @tokenforge/extension",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "tokenforge": "node ./cli/bin/tokenforge.mjs",

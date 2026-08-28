@@ -7,6 +7,7 @@
     "tokenforge": "./bin/tokenforge.mjs"
   },
   "scripts": {
+    "build": "npm run typecheck",
     "tokenforge": "node ./bin/tokenforge.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"

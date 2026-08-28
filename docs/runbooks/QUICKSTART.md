@@ -10,7 +10,13 @@ From the TokenForge monorepo root:
 
 ```bash
 npm install
-npm run build -w @tokenforge/cli
+```
+
+The CLI runs TypeScript directly via `tsx` (see `cli/bin/tokenforge.mjs`) — there is no
+`dist/` compile step. Optional verification:
+
+```bash
+npm run build:cli   # typecheck only
 ```
 
 Or link the CLI globally if you prefer (`npm link -w @tokenforge/cli`).
