@@ -34,6 +34,16 @@ function isHistoryEntry(value: unknown): boolean {
   );
 }
 
+function isOptionalFilteredPercent(value: unknown): value is number | undefined {
+  return (
+    value === undefined ||
+    (typeof value === "number" &&
+      Number.isInteger(value) &&
+      value >= 0 &&
+      value <= 100)
+  );
+}
+
 export function isSessionStatsReport(value: unknown): value is SessionStatsReport {
   if (!isRecord(value)) {
     return false;
@@ -47,7 +57,9 @@ export function isSessionStatsReport(value: unknown): value is SessionStatsRepor
     typeof value.team !== "string" ||
     value.team.length === 0 ||
     !isNonNegativeInt(value.sessionAvoidedTokens) ||
-    !Array.isArray(value.sessionHistory)
+    !Array.isArray(value.sessionHistory) ||
+    !isOptionalFilteredPercent(value.atRiskTabsFilteredPercent) ||
+    (value.filterEventCount !== undefined && !isNonNegativeInt(value.filterEventCount))
   ) {
     return false;
   }

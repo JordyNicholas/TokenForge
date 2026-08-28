@@ -7,5 +7,7 @@ export function sessionStatsFingerprint(report: SessionStatsReport): string {
     team: report.team,
     sessionAvoidedTokens: report.sessionAvoidedTokens,
     sessionHistory: report.sessionHistory,
+    atRiskTabsFilteredPercent: report.atRiskTabsFilteredPercent,
+    filterEventCount: report.filterEventCount,
   });
 }

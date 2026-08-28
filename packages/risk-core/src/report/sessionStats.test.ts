@@ -22,6 +22,21 @@ describe("isSessionStatsReport", () => {
     ).toBe(true);
   });
 
+  it("accepts optional adoption fields (#174)", () => {
+    expect(
+      isSessionStatsReport({
+        source: "extension",
+        timestamp: "2026-08-27T19:00:00.000Z",
+        repo: "TokenForge",
+        team: "default",
+        sessionAvoidedTokens: 0,
+        sessionHistory: [],
+        atRiskTabsFilteredPercent: 40,
+        filterEventCount: 2,
+      }),
+    ).toBe(true);
+  });
+
   it("rejects invalid payloads", () => {
     expect(isSessionStatsReport({ source: "cli" })).toBe(false);
     expect(isSessionStatsReport(null)).toBe(false);

@@ -1,4 +1,4 @@
-import { estimateTokens, isSessionStatsReport } from "@tokenforge/risk-core";
+import { estimateTokens, isSessionStatsReport, sessionAdoptionFromCounts } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
 import { TabFilterStore } from "../filter/filterStore";
 import { TabRegistry } from "../tabs/registry";
@@ -18,17 +18,22 @@ describe("buildSessionStatsReport", () => {
     );
     session.filter("file:///lock");
 
+    const pulse = session.pulse(now);
+    const adoption = sessionAdoptionFromCounts(pulse);
     const report = buildSessionStatsReport({
       repo: "TokenForge",
       team: "default",
       timestamp: new Date(now).toISOString(),
       sessionAvoidedTokens: session.sessionAvoidedTokens(),
       sessionHistory: session.sessionHistory(),
+      adoption,
     });
 
     expect(isSessionStatsReport(report)).toBe(true);
     expect(report.sessionAvoidedTokens).toBe(estimateTokens(4_000));
     expect(report.sessionHistory).toHaveLength(1);
     expect(report.sessionHistory[0]?.path).toBe("package-lock.json");
+    expect(report.filterEventCount).toBe(1);
+    expect(report.atRiskTabsFilteredPercent).toBe(100);
   });
 });

@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { isSessionStatsReport, type SessionStatsReport } from "@tokenforge/risk-core";
+import { isSessionStatsReport, sessionAdoptionFromCounts, type SessionStatsReport } from "@tokenforge/risk-core";
 import type { RiskSession } from "../session/riskSession";
 import { buildSessionStatsReport } from "./buildSessionStats";
 import { ensureTokenforgeGitignored } from "./gitignore";
@@ -45,6 +45,8 @@ export async function writeSessionStats(
   nowMs: number = Date.now(),
 ): Promise<ExportSessionStatsResult> {
   const root = resolveWorkspaceRoot();
+  const pulse = session.pulse(nowMs);
+  const adoption = sessionAdoptionFromCounts(pulse);
   const report = assertValidSessionStats(
     buildSessionStatsReport({
       repo: repoLabel(root),
@@ -52,6 +54,7 @@ export async function writeSessionStats(
       timestamp: new Date(nowMs).toISOString(),
       sessionAvoidedTokens: session.sessionAvoidedTokens(),
       sessionHistory: session.sessionHistory(),
+      adoption,
     }),
   );
 

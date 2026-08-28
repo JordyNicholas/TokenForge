@@ -11,6 +11,7 @@ import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import type { RiskSession } from "../session/riskSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
+import { sessionAdoptionFromCounts } from "@tokenforge/risk-core";
 
 export const RISK_PULSE_VIEW_ID = "tokenforge.riskPulse";
 
@@ -53,12 +54,14 @@ class RiskPulseProvider implements WebviewViewProvider {
     }
     const model = this.session.pulse();
     const sessionAvoided = this.session.sessionAvoidedTokens();
+    const filterEventCount = this.session.sessionHistory().length;
     const autoFilterOn = isAutoFilterEnabled();
     this.view.webview.html = renderPulseHtml(
       this.view.webview,
       model,
       autoFilterOn,
       sessionAvoided,
+      filterEventCount,
     );
     this.view.description = autoFilterOn ? "Auto-filter on" : undefined;
     this.view.badge = hasTokenReduction(model)
@@ -94,8 +97,10 @@ function renderPulseHtml(
   model: RiskPulseModel,
   autoFilterOn: boolean,
   sessionAvoided: number,
+  filterEventCount: number,
 ): string {
   const { totals, segments, displayAtRiskTokens } = model;
+  const adoption = sessionAdoptionFromCounts(model);
   const before = Math.max(totals.beforeTokens, 1);
   const csp = webview.cspSource;
   const showReduction = hasTokenReduction(model);
@@ -156,6 +161,19 @@ function renderPulseHtml(
   const autoBanner = autoFilterOn
     ? `<div class="auto-on" role="status">Auto-filter ON · lockfile / generated</div>`
     : "";
+
+  const adoptionBlock =
+    adoption.atRiskTabCount > 0 || filterEventCount > 0
+      ? `<div class="adoption" role="status">
+  <div class="adoption-label">Adoption</div>
+  <div class="adoption-value">${
+    adoption.filteredPercent !== null
+      ? `${adoption.filteredPercent}% of at-risk tabs Filtered`
+      : "Not available"
+  }</div>
+  <div class="adoption-hint">${filterEventCount} Filter event${filterEventCount === 1 ? "" : "s"} this window · measures TokenForge usage, not agent internals</div>
+</div>`
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -248,12 +266,29 @@ function renderPulseHtml(
     .tag.risk { color: var(--risk); }
     .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 10px 0 14px; }
     .hint.session-hint { margin-top: -8px; margin-bottom: 16px; font-size: 11px; }
+    .adoption {
+      margin: 0 0 12px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--fg) 4%, transparent);
+    }
+    .adoption-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .adoption-value { font-size: 13px; font-weight: 600; }
+    .adoption-hint { margin-top: 4px; font-size: 10px; color: var(--muted); line-height: 1.35; }
     .foot { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.35; }
   </style>
 </head>
 <body>
   ${autoBanner}
   ${sessionKpi}
+  ${adoptionBlock}
   <h1>${showReduction ? "Tier 1 · Live hygiene" : "Tier 1 · Context risk"}</h1>
   ${bodyMain}
   <p class="foot">Live Filter estimate from open tabs. Same math as last-scan.json. Hygiene advice only — not agent interception. Higher Prove tiers (scan $, billed usage) live on the dashboard.</p>

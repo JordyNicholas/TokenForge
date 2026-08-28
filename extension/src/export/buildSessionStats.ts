@@ -1,4 +1,5 @@
 import type {
+  SessionAdoptionSnapshot,
   SessionStatsHistoryEntry,
   SessionStatsReport,
 } from "@tokenforge/risk-core";
@@ -10,17 +11,25 @@ export type BuildSessionStatsInput = {
   timestamp: string;
   sessionAvoidedTokens: number;
   sessionHistory: readonly SessionLedgerEntry[];
+  adoption?: SessionAdoptionSnapshot;
 };
 
 export function buildSessionStatsReport(input: BuildSessionStatsInput): SessionStatsReport {
-  return {
+  const report: SessionStatsReport = {
     source: "extension",
     timestamp: input.timestamp,
     repo: input.repo,
     team: input.team,
     sessionAvoidedTokens: input.sessionAvoidedTokens,
     sessionHistory: input.sessionHistory.map(toHistoryEntry),
+    filterEventCount: input.sessionHistory.length,
   };
+
+  if (input.adoption !== undefined && input.adoption.filteredPercent !== null) {
+    report.atRiskTabsFilteredPercent = input.adoption.filteredPercent;
+  }
+
+  return report;
 }
 
 function toHistoryEntry(entry: SessionLedgerEntry): SessionStatsHistoryEntry {

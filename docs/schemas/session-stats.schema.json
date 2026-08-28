@@ -39,6 +39,17 @@
       "items": {
         "$ref": "#/$defs/historyEntry"
       }
+    },
+    "atRiskTabsFilteredPercent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Share of at-risk open tabs marked Filtered when export ran."
+    },
+    "filterEventCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Filter actions recorded this IDE window."
     }
   },
   "$defs": {

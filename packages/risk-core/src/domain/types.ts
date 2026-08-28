@@ -228,4 +228,8 @@ export type SessionStatsReport = {
   team: string;
   sessionAvoidedTokens: number;
   sessionHistory: SessionStatsHistoryEntry[];
+  /** Share of at-risk open tabs marked Filtered when export ran (0–100). */
+  atRiskTabsFilteredPercent?: number;
+  /** Filter actions recorded this IDE window. */
+  filterEventCount?: number;
 };
