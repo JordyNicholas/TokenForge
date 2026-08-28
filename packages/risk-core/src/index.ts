@@ -85,6 +85,14 @@ export {
   type SynthesizeLeanInstructionsOptions,
 } from "./advise/instructions";
 export { collapseExclusionPaths } from "./policy/collapse";
+export {
+  discoverMissedOpportunities,
+  isPathCoveredByExclusion,
+  missedOpportunityTokens,
+  proposedExclusionPaths,
+  type DiscoverOpportunity,
+  type DiscoverOpportunityCategory,
+} from "./policy/exclusions";
 export { activePathSet, isActivePath } from "./policy/active";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
