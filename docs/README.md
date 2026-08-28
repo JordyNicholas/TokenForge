@@ -79,7 +79,7 @@ Non-deterministic LLM paths stay manual; heuristic paths are covered by `npm tes
 
 | Asset | Purpose |
 | --- | --- |
-| [TokenForge-Pitch.pptx](./pitch/TokenForge-Pitch.pptx) | Hackathon deck |
+| [TokenForge-Pitch.pptx](./pitch/TokenForge-Pitch.pptx) | Pitch deck |
 | [PITCH_BOARD_PREP.md](./pitch/PITCH_BOARD_PREP.md) | Shark Tank–style spoken answers |
 | [README.md](./pitch/README.md) | Regenerate deck, slide list |
 
