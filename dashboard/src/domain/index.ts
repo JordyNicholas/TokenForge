@@ -135,3 +135,16 @@ export {
   resolveBootSourceUrl,
   type DashboardSeed,
 } from "./seed";
+export {
+  SAVINGS_TIERS,
+  SAVINGS_TIERS_DILUTION_NOTE,
+  TIER_UNAVAILABLE,
+  buildSavingsTierValues,
+  tierValueImportedBill,
+  tierValueLiveHygiene,
+  tierValueProjectedUsd,
+  tierValueScanDelta,
+  type SavingsTierDefinition,
+  type SavingsTierId,
+  type TierDisplayValue,
+} from "./savingsTiers";
