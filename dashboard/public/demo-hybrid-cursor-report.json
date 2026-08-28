@@ -1,0 +1,142 @@
+{
+  "source": "cli",
+  "timestamp": "2026-08-28T17:00:00.000Z",
+  "repo": "fixtures/instructions-app",
+  "team": "local",
+  "provider": "generic",
+  "findings": [
+    {
+      "path": "AGENTS.md",
+      "reason": "redundant_instructions",
+      "bytes": 3840,
+      "estTokens": 960,
+      "action": "kept",
+      "source": "llm",
+      "confidence": 0.91,
+      "detail": "The same lint, test, and PR guidance block is repeated many times — semantic duplication, not copy-paste.",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Keep one concise AGENTS.md block; remove repeated guidance. TokenForge will not apply this."
+      }
+    },
+    {
+      "path": "CLAUDE.md",
+      "reason": "redundant_instructions",
+      "bytes": 3720,
+      "estTokens": 930,
+      "action": "kept",
+      "source": "llm",
+      "confidence": 0.87,
+      "detail": "Paraphrases the same always/never lists already in AGENTS.md.",
+      "suggestion": {
+        "kind": "dedupe_rules",
+        "summary": "Merge into a single instruction file or cross-link once. TokenForge will not apply this."
+      }
+    }
+  ],
+  "totals": {
+    "beforeTokens": 7269,
+    "afterTokens": 7269,
+    "savedTokens": 0
+  },
+  "layers": {
+    "heuristic": {
+      "findings": [],
+      "totals": {
+        "beforeTokens": 7269,
+        "afterTokens": 7269,
+        "savedTokens": 0
+      }
+    },
+    "llm": {
+      "findings": [
+        {
+          "path": "AGENTS.md",
+          "reason": "redundant_instructions",
+          "bytes": 3840,
+          "estTokens": 960,
+          "action": "kept",
+          "source": "llm",
+          "confidence": 0.91,
+          "detail": "The same lint, test, and PR guidance block is repeated many times — semantic duplication, not copy-paste.",
+          "suggestion": {
+            "kind": "dedupe_rules",
+            "summary": "Keep one concise AGENTS.md block; remove repeated guidance. TokenForge will not apply this."
+          }
+        },
+        {
+          "path": "CLAUDE.md",
+          "reason": "redundant_instructions",
+          "bytes": 3720,
+          "estTokens": 930,
+          "action": "kept",
+          "source": "llm",
+          "confidence": 0.87,
+          "detail": "Paraphrases the same always/never lists already in AGENTS.md.",
+          "suggestion": {
+            "kind": "dedupe_rules",
+            "summary": "Merge into a single instruction file or cross-link once. TokenForge will not apply this."
+          }
+        }
+      ],
+      "totals": {
+        "beforeTokens": 7269,
+        "afterTokens": 7269,
+        "savedTokens": 0
+      }
+    },
+    "combined": {
+      "findings": [
+        {
+          "path": "AGENTS.md",
+          "reason": "redundant_instructions",
+          "bytes": 3840,
+          "estTokens": 960,
+          "action": "kept",
+          "source": "llm",
+          "confidence": 0.91,
+          "detail": "The same lint, test, and PR guidance block is repeated many times — semantic duplication, not copy-paste.",
+          "suggestion": {
+            "kind": "dedupe_rules",
+            "summary": "Keep one concise AGENTS.md block; remove repeated guidance. TokenForge will not apply this."
+          }
+        },
+        {
+          "path": "CLAUDE.md",
+          "reason": "redundant_instructions",
+          "bytes": 3720,
+          "estTokens": 930,
+          "action": "kept",
+          "source": "llm",
+          "confidence": 0.87,
+          "detail": "Paraphrases the same always/never lists already in AGENTS.md.",
+          "suggestion": {
+            "kind": "dedupe_rules",
+            "summary": "Merge into a single instruction file or cross-link once. TokenForge will not apply this."
+          }
+        }
+      ],
+      "totals": {
+        "beforeTokens": 7269,
+        "afterTokens": 7269,
+        "savedTokens": 0
+      }
+    }
+  },
+  "scan": {
+    "mode": "hybrid",
+    "llm": {
+      "backend": "cursor-cli",
+      "model": "composer-2.5",
+      "durationMs": 45000,
+      "candidatesSent": 4,
+      "analysisOverview": {
+        "summary": "Hybrid scan (Cursor CLI / Composer 2.5) found repeated agent-instruction bloat in AGENTS.md and CLAUDE.md — paraphrased duplicates that heuristic size rules miss. Advisory only; savedTokens stays 0 until Fix apply.",
+        "themes": ["redundant instructions", "semantic bloat"],
+        "caveats": [
+          "Sample hybrid report for dashboard demo; regenerate with a live hybrid scan when preparing."
+        ]
+      }
+    }
+  }
+}

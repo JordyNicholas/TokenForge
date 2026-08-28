@@ -31,6 +31,12 @@ SLIDE_W = Inches(13.333)
 SLIDE_H = Inches(7.5)
 MARGIN_X = Inches(0.7)
 MARGIN_Y = Inches(0.5)
+SLIDE_COUNT = 11
+
+
+def _speaker_notes(slide, text: str) -> None:
+    notes = slide.notes_slide.notes_text_frame
+    notes.text = text
 
 
 def _set_run(
@@ -248,7 +254,7 @@ def problem_slide(prs: Presentation) -> None:
         lead.text_frame,
         [
             (
-                "Low-value context inflates Chat/Agent workflows. There’s no clear loop to see → fix → prove savings.",
+                "Managers see the invoice — not the waste loop. Low-value context inflates every Agent turn.",
                 {"size": 16, "color": INK_MUTED, "space_after": 0},
             )
         ],
@@ -263,7 +269,7 @@ def problem_slide(prs: Presentation) -> None:
     w, h, gap = Inches(2.85), Inches(2.85), Inches(0.22)
     for i, (title, body) in enumerate(cards):
         add_card(slide, MARGIN_X + i * (w + gap), Inches(2.3), w, h, title, body)
-    footer(slide, "2 / 10")
+    footer(slide, f"2 / {SLIDE_COUNT}")
 
 
 def landscape_slide(prs: Presentation) -> None:
@@ -328,74 +334,112 @@ def landscape_slide(prs: Presentation) -> None:
             )
             x += width
 
-    footer(slide, "3 / 10")
+    bridge = _textbox(slide, MARGIN_X, Inches(5.35), Inches(12), Inches(0.75))
+    _write_lines(
+        bridge.text_frame,
+        [
+            (
+                "TokenForge is the only loop that Detects IDE/repo context waste, "
+                "Fixes via provider policy packs, and Proves $ to FinOps — provider-agnostic.",
+                {"size": 14, "bold": True, "color": TEAL_DEEP, "space_after": 0},
+            )
+        ],
+    )
+    footer(slide, f"3 / {SLIDE_COUNT}")
 
 
 def differentiation_slide(prs: Presentation) -> None:
     slide = blank_slide(prs)
     paint_surface(slide)
-    section_label(slide, "03  ·  Competitive differentiation")
+    section_label(slide, "03  ·  Differentiation & uniqueness")
     headline(
         slide,
         "Memory helps the agent. We stop the organisation bleeding tokens.",
         size=26,
-        height=Inches(0.75),
+        height=Inches(0.65),
     )
 
-    col_w = Inches(5.7)
-    col_h = Inches(3.35)
-    left = MARGIN_X
-    right = Inches(6.9)
-    top = Inches(1.8)
-    header_h = Inches(0.55)
-
-    # Left column
-    _add_rect(slide, left, top, col_w, col_h, CARD)
-    _add_rect(slide, left, top, col_w, header_h, RGBColor(0x5B, 0x67, 0x75))
-    left_h = _textbox(slide, left + Inches(0.28), top + Inches(0.12), col_w - Inches(0.5), Inches(0.35))
+    sub = _textbox(slide, MARGIN_X, Inches(1.55), Inches(12), Inches(0.35))
     _write_lines(
-        left_h.text_frame,
-        [("Auto Memory / continuity", {"size": 16, "bold": True, "color": WHITE, "space_after": 0})],
-    )
-    left_b = _textbox(slide, left + Inches(0.28), top + header_h + Inches(0.25), col_w - Inches(0.5), Inches(2.4))
-    _write_lines(
-        left_b.text_frame,
-        [
-            ("Remembers useful project knowledge", {"size": 15, "color": INK_MUTED, "space_after": 12}),
-            ("Enriches one agent’s continuity", {"size": 15, "color": INK_MUTED, "space_after": 12}),
-            ("Metric: memory quality", {"size": 15, "color": INK_MUTED, "space_after": 0}),
-        ],
-    )
-
-    # Right column
-    _add_rect(slide, right, top, col_w, col_h, CARD)
-    _add_rect(slide, right, top, col_w, header_h, TEAL)
-    right_h = _textbox(slide, right + Inches(0.28), top + Inches(0.12), col_w - Inches(0.5), Inches(0.35))
-    _write_lines(
-        right_h.text_frame,
-        [("TokenForge", {"size": 16, "bold": True, "color": WHITE, "space_after": 0})],
-    )
-    right_b = _textbox(slide, right + Inches(0.28), top + header_h + Inches(0.25), col_w - Inches(0.5), Inches(2.4))
-    _write_lines(
-        right_b.text_frame,
-        [
-            ("Stops paying for useless context", {"size": 15, "bold": True, "color": INK, "space_after": 12}),
-            ("Cuts billable waste for the team", {"size": 15, "bold": True, "color": INK, "space_after": 12}),
-            ("Metric: tokens / credits / $ avoided", {"size": 15, "bold": True, "color": INK, "space_after": 0}),
-        ],
-    )
-
-    bite = _textbox(slide, MARGIN_X, Inches(5.45), Inches(12), Inches(0.9))
-    _write_lines(
-        bite.text_frame,
+        sub.text_frame,
         [
             (
-                "Unique wedge: Token Risk → provider policy pack → global + per-team $ proof.",
-                {"size": 15, "bold": True, "color": TEAL_DEEP, "space_after": 0},
+                "Slide 3 categories optimise spend or recall — none remove billable context waste and prove $.",
+                {"size": 14, "color": INK_MUTED, "space_after": 0},
             )
         ],
     )
-    footer(slide, "4 / 10")
+
+    col_w = Inches(5.7)
+    col_h = Inches(2.05)
+    left = MARGIN_X
+    right = Inches(6.9)
+    top = Inches(2.0)
+    header_h = Inches(0.48)
+
+    _add_rect(slide, left, top, col_w, col_h, CARD)
+    _add_rect(slide, left, top, col_w, header_h, RGBColor(0x5B, 0x67, 0x75))
+    left_h = _textbox(slide, left + Inches(0.28), top + Inches(0.1), col_w - Inches(0.5), Inches(0.32))
+    _write_lines(
+        left_h.text_frame,
+        [("Auto Memory / continuity", {"size": 15, "bold": True, "color": WHITE, "space_after": 0})],
+    )
+    left_b = _textbox(slide, left + Inches(0.28), top + header_h + Inches(0.15), col_w - Inches(0.5), Inches(1.35))
+    _write_lines(
+        left_b.text_frame,
+        [
+            ("Remembers useful project knowledge", {"size": 13, "color": INK_MUTED, "space_after": 8}),
+            ("Metric: memory quality", {"size": 13, "color": INK_MUTED, "space_after": 0}),
+        ],
+    )
+
+    _add_rect(slide, right, top, col_w, col_h, CARD)
+    _add_rect(slide, right, top, col_w, header_h, TEAL)
+    right_h = _textbox(slide, right + Inches(0.28), top + Inches(0.1), col_w - Inches(0.5), Inches(0.32))
+    _write_lines(
+        right_h.text_frame,
+        [("TokenForge", {"size": 15, "bold": True, "color": WHITE, "space_after": 0})],
+    )
+    right_b = _textbox(slide, right + Inches(0.28), top + header_h + Inches(0.15), col_w - Inches(0.5), Inches(1.35))
+    _write_lines(
+        right_b.text_frame,
+        [
+            ("Stops paying for useless context", {"size": 13, "bold": True, "color": INK, "space_after": 8}),
+            ("Metric: tokens / credits / $ avoided", {"size": 13, "bold": True, "color": INK, "space_after": 0}),
+        ],
+    )
+
+    uniq_top = Inches(4.25)
+    uniq_h = Inches(2.05)
+    _add_rect(slide, MARGIN_X, uniq_top, Inches(12), uniq_h, TEAL_DEEP)
+    uniq_title = _textbox(slide, MARGIN_X + Inches(0.25), uniq_top + Inches(0.12), Inches(11.5), Inches(0.35))
+    _write_lines(
+        uniq_title.text_frame,
+        [("What makes us unique", {"size": 16, "bold": True, "color": WHITE, "space_after": 0})],
+    )
+    uniq_body = _textbox(slide, MARGIN_X + Inches(0.25), uniq_top + Inches(0.5), Inches(11.5), Inches(1.45))
+    _write_lines(
+        uniq_body.text_frame,
+        [
+            (
+                "• Detect → Fix → Prove closed loop on billable context waste",
+                {"size": 13, "color": MINT, "space_after": 6},
+            ),
+            (
+                "• Provider-agnostic kernel + pluggable Fix / LLM enricher adapters",
+                {"size": 13, "color": MINT, "space_after": 6},
+            ),
+            (
+                "• Estimate vs imported bill reconciliation — not scan totals alone",
+                {"size": 13, "color": MINT, "space_after": 6},
+            ),
+            (
+                "• Hybrid AI opt-in (cursor-cli:composer-2.5) on bounded candidates",
+                {"size": 13, "color": MINT, "space_after": 0},
+            ),
+        ],
+    )
+    footer(slide, f"4 / {SLIDE_COUNT}")
 
 
 def buyers_slide(prs: Presentation) -> None:
@@ -425,7 +469,7 @@ def buyers_slide(prs: Presentation) -> None:
             title_size=14,
             body_size=14,
         )
-    footer(slide, "5 / 10")
+    footer(slide, f"5 / {SLIDE_COUNT}")
 
 
 def loop_slide(prs: Presentation) -> None:
@@ -435,9 +479,9 @@ def loop_slide(prs: Presentation) -> None:
     headline(slide, "Detect → Fix → Prove", size=32)
 
     steps = [
-        ("01", "Detect", "Score risky tabs & paths.\nProvider-agnostic.\nHybrid LLM optional."),
+        ("01", "Detect", "Heuristic default +\nopt-in hybrid\n(cursor-cli:composer-2.5)."),
         ("02", "Fix", "Lean instructions +\nexclusions via adapters.\nOrg-pack for multi-repo."),
-        ("03", "Prove", "Global BU dashboard +\nper-team / per-repo views.\nArchitecture-aware."),
+        ("03", "Prove", "Variance board +\nAssumptions + imported bill.\nArchitecture-aware."),
     ]
     w = Inches(3.85)
     gap = Inches(0.25)
@@ -477,65 +521,78 @@ def loop_slide(prs: Presentation) -> None:
             ],
         )
 
-    footer(slide, "6 / 10")
+    footer(slide, f"6 / {SLIDE_COUNT}")
 
 
-def demo_slide(prs: Presentation) -> None:
+def presenter_runof_show_slide(prs: Presentation) -> None:
+    """Slide 7 — presenter crib sheet. DO NOT show to judges during live demo."""
     slide = blank_slide(prs)
     paint_surface(slide)
-    section_label(slide, "06  ·  Live demo")
-    headline(slide, "Five minutes. Three surfaces. One loop.", size=30)
+    section_label(slide, "Presenter run-of-show  ·  do not show live")
+    headline(slide, "Ten minutes. Four live beats.", size=28, height=Inches(0.6))
 
     beats = [
-        ("1. Detect", "Context Guard on noisy tabs.\nFilter lockfile → risk drops."),
-        ("2. Fix", "CLI scan → apply policy pack\n(or org-pack for the estate)."),
-        ("3. Prove", "Global Overview → team drill-down.\nArchitecture mix + usage import."),
-        ("4. Close", "Assumptions → ~30% scenario.\nMemory ≠ FinOps sound bite."),
+        ("Open 0:00–2:15", "A", "Slides 1–6\nCompetition + uniqueness"),
+        ("Detect+Fix 2:15–4:45", "B", "Extension → scan → apply --dry-run"),
+        ("Prove 4:45–7:00", "C", "Assumptions ~30%\nVariance 3 KPIs"),
+        ("Hybrid 7:00–8:30", "D/B", "cursor-cli:composer-2.5\ninstructions-app"),
+        ("Close 8:30–10:00", "A", "Honesty → Architecture → Takeaway"),
     ]
-    w = Inches(2.85)
-    gap = Inches(0.22)
-    for i, (title, body) in enumerate(beats):
+    w = Inches(2.35)
+    gap = Inches(0.18)
+    for i, (title, owner, body) in enumerate(beats):
         add_card(
             slide,
             MARGIN_X + i * (w + gap),
-            Inches(1.85),
+            Inches(1.75),
             w,
-            Inches(3.7),
-            title,
+            Inches(3.85),
+            f"{title}  [{owner}]",
             body,
-            accent=ACCENT_WARM if i == 3 else TEAL,
-            title_size=15,
-            body_size=13,
+            accent=ACCENT_WARM if i == 4 else TEAL,
+            title_size=12,
+            body_size=12,
         )
-    footer(slide, "7 / 10")
+    footer(slide, f"7 / {SLIDE_COUNT}")
+    _speaker_notes(
+        slide,
+        "HIDDEN during demo. Full script: .presentation/hackathon-2026-09/PRESENTER_RUNBOOK.md\n"
+        "Hybrid: npm run tokenforge -- scan fixtures/instructions-app "
+        "--mode hybrid --llm cursor-cli:composer-2.5 --allow-external\n"
+        "Fallback: dashboard/public/demo-hybrid-cursor-report.json\n"
+        "Cut order: team scope → live hybrid → architecture slide",
+    )
 
 
 def honesty_slide(prs: Presentation) -> None:
     slide = blank_slide(prs)
     paint_surface(slide)
-    section_label(slide, "07  ·  Honesty")
+    section_label(slide, "08  ·  Honesty")
     headline(slide, "What we claim — and what we refuse to claim.", size=28)
 
     claims = [
         (
             "We do",
-            "Advise, filter recommended context, write exclusion / instruction packs, prove with transparent assumptions.",
+            "Advise, filter context, write policy packs, prove with transparent assumptions + imported bills.",
         ),
         ("We don’t", "Intercept any vendor’s private Chat/Agent pipeline."),
-        ("Default scan", "Heuristic only — no AI. Hybrid enrich is explicit and bounded."),
-        ("~30%", "Scenario math on the demo seed — not a universal SLA."),
-        ("Usage", "Import or live sync into UsageMetrics. Estimate vs bill + cohort note."),
-        ("Metering", "Chat / Agent / AI credits — not unlimited completions."),
+        (
+            "Hybrid scan",
+            "Default: heuristic. Opt-in: cursor-cli:composer-2.5 on bounded candidates; --allow-external.",
+        ),
+        ("Uniqueness claims", "Prove $ via assumptions + bill import — not vendor pipeline metering."),
+        ("~30%", "Scenario math on Assumptions — not a universal SLA."),
+        ("Usage", "Import or sync UsageMetrics. Estimate vs bill + variance board."),
     ]
     card_w = Inches(5.85)
-    card_h = Inches(1.4)
+    card_h = Inches(1.35)
     for i, (title, body) in enumerate(claims):
         col = i % 2
         row = i // 2
         left = MARGIN_X + col * (card_w + Inches(0.2))
         top = Inches(1.7) + row * (card_h + Inches(0.15))
         add_card(slide, left, top, card_w, card_h, title, body, title_size=14, body_size=12)
-    footer(slide, "8 / 10")
+    footer(slide, f"8 / {SLIDE_COUNT}")
 
 
 def roadmap_slide(prs: Presentation) -> None:
@@ -551,7 +608,7 @@ def roadmap_slide(prs: Presentation) -> None:
         Inches(5.85),
         Inches(3.8),
         "Shipped for the hackathon demo",
-        "Per-team + global Prove\nArchitecture tags + usage import/sync\nVariance board + change markers + cohort\nOrg-pack + Cursor/Claude adapters\nAdvisory levers (do not lead the pitch)",
+        "Hybrid enrichers (Cursor CLI, Ollama, …)\nVariance board + honest savings tiers\nPer-team + global Prove + usage import\nOrg-pack + Cursor/Claude adapters\nAdvisory levers (do not lead the pitch)",
         accent=TEAL,
         title_size=16,
         body_size=14,
@@ -568,7 +625,62 @@ def roadmap_slide(prs: Presentation) -> None:
         title_size=16,
         body_size=15,
     )
-    footer(slide, "9 / 10")
+    footer(slide, f"9 / {SLIDE_COUNT}")
+
+
+def architecture_slide(prs: Presentation) -> None:
+    slide = blank_slide(prs)
+    paint_surface(slide)
+    section_label(slide, "09  ·  Architecture")
+    headline(slide, "Ports & adapters — shared JSON contract.", size=28, height=Inches(0.65))
+
+    add_card(
+        slide,
+        MARGIN_X,
+        Inches(1.75),
+        Inches(3.7),
+        Inches(3.9),
+        "risk-core (kernel)",
+        "Classify, score, protect,\npolicy synthesis, usage math.\nNo VS Code / React / CLI frameworks.",
+        accent=TEAL_DEEP,
+        title_size=15,
+        body_size=13,
+    )
+    add_card(
+        slide,
+        Inches(4.8),
+        Inches(1.75),
+        Inches(3.7),
+        Inches(3.9),
+        ".tokenforge/*.json",
+        "scan-report.json\nlast-scan.json\nUsageMetrics import\nFile contract between surfaces.",
+        accent=TEAL,
+        title_size=15,
+        body_size=13,
+    )
+    add_card(
+        slide,
+        Inches(8.9),
+        Inches(1.75),
+        Inches(3.7),
+        Inches(3.9),
+        "Adapters",
+        "Extension — Detect (tabs)\nCLI — Fix + hybrid enrichers\nDashboard — Prove / variance",
+        accent=TEAL,
+        title_size=15,
+        body_size=13,
+    )
+    foot = _textbox(slide, MARGIN_X, Inches(5.85), Inches(12), Inches(0.55))
+    _write_lines(
+        foot.text_frame,
+        [
+            (
+                "Provider adapters write Copilot / Cursor / Claude policy packs from the same findings.",
+                {"size": 14, "bold": True, "color": TEAL_DEEP, "space_after": 0},
+            )
+        ],
+    )
+    footer(slide, f"10 / {SLIDE_COUNT}")
 
 
 def ask_slide(prs: Presentation) -> None:
@@ -614,6 +726,7 @@ def ask_slide(prs: Presentation) -> None:
         foot.text_frame,
         [("TokenForge  ·  Hackathon pitch", {"size": 14, "color": TEAL, "space_after": 0})],
     )
+    # Slide 11 — no footer bar on dark takeaway slide
 
 
 def main() -> None:
@@ -627,9 +740,10 @@ def main() -> None:
     differentiation_slide(prs)
     buyers_slide(prs)
     loop_slide(prs)
-    demo_slide(prs)
+    presenter_runof_show_slide(prs)
     honesty_slide(prs)
     roadmap_slide(prs)
+    architecture_slide(prs)
     ask_slide(prs)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
