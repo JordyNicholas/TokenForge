@@ -33,6 +33,7 @@ import { DemoOnboardingBanner } from "../ui/DemoOnboardingBanner";
 import { EmptyState } from "../ui/EmptyState";
 import { FutureLeversCard } from "../ui/FutureLeversCard";
 import { GlossaryTip } from "../ui/GlossaryTip";
+import { HonestSavingsTiers } from "../ui/HonestSavingsTiers";
 import { HybridScanMetaCard } from "../ui/HybridScanMetaCard";
 import { KpiCard, KpiRow } from "../ui/Kpi";
 import { LlmAnalysisOverviewCard } from "../ui/LlmAnalysisOverviewCard";
@@ -106,6 +107,13 @@ export function OverviewPage() {
     >
       <DemoOnboardingBanner />
       <ProveStoryRail />
+      <HonestSavingsTiers
+        hasScan={reports.length > 0}
+        totals={totals}
+        assumptions={assumptions}
+        usage={seed?.usage}
+        teamId={teamId}
+      />
       <PrivacyControls showNote />
 
       <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />
