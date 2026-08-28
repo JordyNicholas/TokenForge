@@ -1,12 +1,13 @@
 import {
   MAX_LEAN_INSTRUCTION_BYTES,
-  activePathSet,
-  collapseExclusionPaths,
-  isActivePath,
+  proposedExclusionPaths,
   synthesizeLeanInstructions,
+  type ProviderId,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 import { RuntimeError } from "../app/errors";
+import { CLAUDE_EXCLUSIONS_PATH } from "./claude/claude";
+import { CURSOR_EXCLUSIONS_PATH } from "./cursor/cursor";
 import type { PolicyFile } from "./types";
 
 /** @deprecated Prefer MAX_LEAN_INSTRUCTION_BYTES from risk-core. */
@@ -37,22 +38,24 @@ export function assertLeanInstruction(file: PolicyFile): PolicyFile {
   return file;
 }
 
+export function exclusionPathForProvider(provider: ProviderId): string {
+  if (provider === "copilot") {
+    return COPILOT_EXCLUSIONS_PATH;
+  }
+  if (provider === "cursor") {
+    return CURSOR_EXCLUSIONS_PATH;
+  }
+  if (provider === "claude") {
+    return CLAUDE_EXCLUSIONS_PATH;
+  }
+  return GENERIC_EXCLUSIONS_PATH;
+}
+
 export function renderExclusionYaml(
   report: TokenRiskReport,
   headerLines: readonly string[],
 ): string {
-  // Second guard, not a redundant one: scan already downgrades an active
-  // path's action to `kept`, but this file is a durable policy artifact and
-  // the report reaching it may predate that flag or have been hand-edited.
-  const active = activePathSet(report);
-  const lines = collapseExclusionPaths(
-    report.findings
-      .filter(
-        (finding) =>
-          finding.action === "excluded" && !isActivePath(active, finding.path),
-      )
-      .map((finding) => finding.path),
-  ).map((path) => `  - ${path}`);
+  const lines = proposedExclusionPaths(report).map((path) => `  - ${path}`);
 
   return `${headerLines.join("\n")}
 provider: ${report.provider}
