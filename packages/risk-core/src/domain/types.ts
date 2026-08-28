@@ -73,6 +73,12 @@ export type LlmBackendId =
 export type FiletypeRiskClass =
   | "lockfile"
   | "generated"
+  /** CI / unit test output trees (coverage, junit, playwright reports). */
+  | "test_output"
+  /** Pipeline or build log files — high volume, low signal in agent context. */
+  | "ci_log"
+  /** Compiled bundles, binary artifacts, and build output dirs. */
+  | "build_artifact"
   | "config"
   | "source"
   | "unknown";

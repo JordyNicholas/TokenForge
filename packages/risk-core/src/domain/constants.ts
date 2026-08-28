@@ -27,12 +27,18 @@ export const AUXILIARY_OVERSIZED_BYTES = 25_000;
 export const HIGH_RISK_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
   "lockfile",
   "generated",
+  "test_output",
+  "ci_log",
+  "build_artifact",
 ]);
 
 /** Contribution of filetype class to `scoreRisk` (0–1). */
 export const CLASS_WEIGHT: Record<FiletypeRiskClass, number> = {
   lockfile: 1,
   generated: 0.9,
+  test_output: 0.88,
+  ci_log: 0.85,
+  build_artifact: 0.9,
   config: 0.5,
   unknown: 0.3,
   source: 0.15,
@@ -176,6 +182,71 @@ export const AUXILIARY_DATA_DIR_NAMES: ReadonlySet<string> = new Set([
   "testdata",
   "snapshots",
   "__snapshots__",
+]);
+
+/**
+ * Directories whose contents are test / CI output (coverage, junit, e2e
+ * reports). RTK-style output-shape classes — see #171 / HEURISTICS_AUDIT B16.
+ */
+export const TEST_OUTPUT_DIR_NAMES: ReadonlySet<string> = new Set([
+  "coverage",
+  "test-results",
+  "test-output",
+  "playwright-report",
+  "playwright",
+  "junit",
+  ".nyc_output",
+  "allure-results",
+  "cypress",
+]);
+
+/**
+ * Build output and binary artifact directories (distinct from codegen trees).
+ */
+export const BUILD_ARTIFACT_DIR_NAMES: ReadonlySet<string> = new Set([
+  "dist",
+  "build",
+  "out",
+  "target",
+  ".next",
+  "artifacts",
+  ".turbo",
+  ".parcel-cache",
+]);
+
+/** Remaining generated / vendor trees after output-shape split (#171). */
+export const GENERATED_TREE_DIR_NAMES: ReadonlySet<string> = new Set([
+  "node_modules",
+  "generated",
+  ".generated",
+]);
+
+/** Binary / archive extensions treated as build artifacts by shape. */
+export const BUILD_ARTIFACT_EXTENSIONS: ReadonlySet<string> = new Set([
+  ".jar",
+  ".war",
+  ".whl",
+  ".apk",
+  ".aab",
+  ".tgz",
+  ".wasm",
+]);
+
+/** Basenames for CI / pipeline log files (extension must be `.log`). */
+export const CI_LOG_BASENAMES: ReadonlySet<string> = new Set([
+  "ci.log",
+  "build.log",
+  "pipeline.log",
+  "actions.log",
+  "github-actions.log",
+]);
+
+/** Parent directory segments where any `.log` file is treated as CI output. */
+export const CI_LOG_DIR_NAMES: ReadonlySet<string> = new Set([
+  "logs",
+  "log",
+  "ci",
+  ".circleci",
 ]);
 
 /**
