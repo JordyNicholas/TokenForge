@@ -13,6 +13,7 @@ import Box from "@mui/material/Box";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -284,25 +285,41 @@ export function AppShell({ children }: { children: ReactNode }) {
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {compact ? null : <Toolbar />}
-      <Toolbar sx={{ flexDirection: "column", alignItems: "flex-start", py: 2, gap: 0.25 }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: 0.5,
+          flexShrink: 0,
+        }}
+      >
         <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.4 }}>
           TokenForge
         </Typography>
         <Typography variant="body2" color="primary">
           Tokens Saved
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
           {seed?.businessUnit ?? "Loading…"}
         </Typography>
         <Chip
           size="small"
-          sx={{ mt: 0.5 }}
+          sx={{ mt: 0.25 }}
           color={teamId ? "primary" : "default"}
           label={teamId ? `Team · ${teamId}` : "Global · all teams"}
         />
-      </Toolbar>
+      </Box>
 
-      <Typography variant="overline" sx={{ px: 2, color: "text.secondary" }}>
+      <Divider sx={{ mx: 2, mb: 1 }} />
+
+      <Typography
+        variant="overline"
+        component="p"
+        sx={{ px: 2, mb: 0.5, color: "text.secondary", lineHeight: 1.6 }}
+      >
         Scope
       </Typography>
       <List dense sx={{ px: 1, mb: 1 }} aria-label="Team scope">
