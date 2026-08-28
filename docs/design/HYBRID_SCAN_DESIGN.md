@@ -82,10 +82,18 @@ candidate when **any** of:
 Credential-shaped paths (`isSecretPath`) are removed **before** any bucket
 runs, so no selection rule can surface one.
 
-Hard caps (CLI `enrichers/limits.ts`):
+Hard caps:
 
-- `MAX_ENRICHMENT_CANDIDATES` = 30 files per run
-- `MAX_CANDIDATE_BYTES` = 32 KiB read per file (excerpt for the model)
+- `DEFAULT_MAX_ENRICHMENT_CANDIDATES` = 30 files per run —
+  `risk-core/domain/constants.ts`, applied as the default inside
+  `selectEnrichmentCandidates`. A caller that omits `maxCandidates` gets it by
+  contract; `enrichers/limits.ts` re-exports it as `MAX_ENRICHMENT_CANDIDATES`.
+  It is not a tuning knob: it bounds how much source leaves the machine on an
+  external backend, what a hosted backend is billed for, and — on Ollama, where
+  each batch of 2 has its own 900s timeout — whether a scan of a large monorepo
+  terminates at all.
+- `MAX_CANDIDATE_BYTES` = 32 KiB read per file (`enrichers/limits.ts`), applied
+  at the read boundary before a backend is chosen.
 - `DEFAULT_REPEATED_CONFIG_COUNT` = 8 paths from bucket 4 (B4: every bucket
   gets its own cap — `package.json` recurs in every package of a large
   monorepo). A group may be truncated but never cut below two members, since
