@@ -1,8 +1,10 @@
 import { MAX_LEAN_INSTRUCTION_BYTES } from "../domain/constants";
 import type {
+  FiletypeRiskClass,
   TokenRiskFinding,
   TokenRiskReport,
 } from "../domain/types";
+import { classifyFiletype } from "../classify/classify";
 import { resolveSuggestion } from "../advise/suggest";
 import { activePathSet, isActivePath } from "../policy/active";
 import { collapseExclusionPaths } from "../policy/collapse";
@@ -19,6 +21,12 @@ const MAX_HYGIENE_SUMMARY_CHARS = 120;
 const MAX_WHY_THEMES = 3;
 const MAX_EXCLUDE_BULLETS = 24;
 const MAX_HYGIENE_BULLETS = 8;
+
+const COMPACT_OUTPUT_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
+  "test_output",
+  "ci_log",
+  "build_artifact",
+]);
 
 function utf8Bytes(text: string): number {
   return new TextEncoder().encode(text).length;
@@ -96,6 +104,27 @@ function whyThemes(report: TokenRiskReport): string[] {
     .slice(0, MAX_WHY_THEMES);
 }
 
+/** True when the scan flagged output-shape waste worth compact-output guidance (#172). */
+export function shouldIncludeCompactOutputGuidance(
+  findings: readonly TokenRiskFinding[],
+): boolean {
+  return findings.some((finding) => {
+    if (finding.action !== "excluded" && finding.action !== "filtered") {
+      return false;
+    }
+    return COMPACT_OUTPUT_FILE_CLASSES.has(classifyFiletype(finding.path));
+  });
+}
+
+function compactOutputSection(): string {
+  return [
+    "## Compact tool output",
+    "- For test and lint runs: share failing cases and counts — not full CI logs or coverage trees.",
+    "- For build or docker output: cite the error line or exit code — not multi-page logs.",
+    "- TokenForge does not intercept terminal output; this is prompt hygiene only.",
+  ].join("\n");
+}
+
 function joinSections(sections: string[]): string {
   return `${sections.filter((section) => section.length > 0).join("\n\n")}\n`;
 }
@@ -135,6 +164,7 @@ export function synthesizeLeanInstructions(
   );
   let hygiene = hygieneBullets(report.findings);
   let themes = whyThemes(report);
+  const includeCompactOutput = shouldIncludeCompactOutputGuidance(report.findings);
 
   const build = (): string => {
     const sections: string[] = [header];
@@ -152,6 +182,10 @@ export function synthesizeLeanInstructions(
           ),
         ].join("\n"),
       );
+    }
+
+    if (includeCompactOutput) {
+      sections.push(compactOutputSection());
     }
 
     sections.push(prefer);

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { MAX_LEAN_INSTRUCTION_BYTES } from "../domain/constants";
 import type { TokenRiskReport } from "../domain/types";
-import { synthesizeLeanInstructions } from "./instructions";
+import { synthesizeLeanInstructions, shouldIncludeCompactOutputGuidance } from "./instructions";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
@@ -52,10 +52,50 @@ describe("synthesizeLeanInstructions", () => {
     expect(md).toContain("## Do not load");
     expect(md).toContain("`package-lock.json`");
     expect(md).toContain("`dist/bundle.js`");
+    expect(md).toContain("## Compact tool output");
+    expect(md).toContain("does not intercept terminal output");
     expect(md).toContain("## Prefer");
     expect(md).not.toContain("## Instruction hygiene");
     expect(md).not.toContain("## Why");
     expect(utf8Bytes(md)).toBeLessThanOrEqual(MAX_LEAN_INSTRUCTION_BYTES);
+  });
+
+  it("omits compact tool output when no output-shape paths are flagged", () => {
+    const lockfileOnly: TokenRiskReport = {
+      ...heuristicReport,
+      findings: [heuristicReport.findings[0]!],
+    };
+    expect(shouldIncludeCompactOutputGuidance(lockfileOnly.findings)).toBe(false);
+    const md = synthesizeLeanInstructions(lockfileOnly);
+    expect(md).not.toContain("## Compact tool output");
+  });
+
+  it("adds compact tool output for test and CI log findings", () => {
+    const withOutputShape: TokenRiskReport = {
+      ...heuristicReport,
+      findings: [
+        {
+          path: "test-results/junit.xml",
+          reason: "high_risk_filetype",
+          bytes: 100,
+          estTokens: 25,
+          action: "excluded",
+          source: "heuristic",
+        },
+        {
+          path: "logs/ci-pipeline.log",
+          reason: "high_risk_filetype",
+          bytes: 100,
+          estTokens: 30,
+          action: "excluded",
+          source: "heuristic",
+        },
+      ],
+    };
+    expect(shouldIncludeCompactOutputGuidance(withOutputShape.findings)).toBe(true);
+    const md = synthesizeLeanInstructions(withOutputShape);
+    expect(md).toContain("## Compact tool output");
+    expect(md).toMatch(/test and lint/i);
   });
 
   it("adds hygiene and themes from a hybrid report", () => {

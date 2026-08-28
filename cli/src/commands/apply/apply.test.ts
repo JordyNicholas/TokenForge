@@ -72,6 +72,8 @@ describe("apply / init on noisy-app", () => {
     expect(instructions).toContain(TOKENFORGE_SECTION_BEGIN);
     expect(instructions).toContain(TOKENFORGE_SECTION_END);
     expect(instructions).toContain("Copilot instructions (TokenForge)");
+    expect(instructions).toContain("## Compact tool output");
+    expect(instructions).toContain("does not intercept terminal output");
     expect(Buffer.byteLength(instructions, "utf8")).toBeLessThanOrEqual(
       MAX_INSTRUCTION_BYTES + 80,
     );
