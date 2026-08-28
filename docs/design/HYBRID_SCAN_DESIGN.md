@@ -250,6 +250,19 @@ bounded prompt on stdin, structured JSON out).
 
 Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
 
+### Single pass (hosted / CLI backends)
+
+`anthropic`, `claude-code`, `codex`, `gemini-cli` and `cursor-cli` send the
+**whole candidate set in one request** (`SINGLE_PASS_BATCH_SIZE`, derived from
+the candidate cap). Chunking them was costing findings: a claim about two files
+is unreachable when the chunker separates them, and measured against the real
+CLI, batches of 4 missed a third `tsconfig.json` copy and one side of a
+duplicate-function pair that a single pass found. See
+[`E2E_CLAUDE_CODE_ENRICH_TEST.md`](../testing/E2E_CLAUDE_CODE_ENRICH_TEST.md).
+
+The full 30-candidate prompt is ~17K tokens, so there is nothing to chunk
+around on a model with a large context window.
+
 ### Multi-pass enrich (local-first)
 
 Flat independent batches lose cross-file context (e.g. `redundant_instructions`

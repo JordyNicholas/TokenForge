@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RuntimeError, UsageError } from "../errors";
 import {
-  CURSOR_CLI_BATCH_SIZE,
+  SINGLE_PASS_BATCH_SIZE,
   CURSOR_CLI_STATUS_TIMEOUT_MS,
   resolveCursorCliTimeoutMs,
 } from "../limits";
@@ -346,7 +346,7 @@ export function createCursorCliEnricher(
       try {
         await assertCursorCliReady(run, temporaryRoot);
 
-        const batches = chunkCandidates(input.candidates, CURSOR_CLI_BATCH_SIZE);
+        const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
 
         for (let index = 0; index < batches.length; index += 1) {

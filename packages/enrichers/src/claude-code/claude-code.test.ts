@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { RuntimeError, UsageError } from "../errors";
+import { MAX_ENRICHMENT_CANDIDATES } from "../limits";
 import {
   buildClaudeCodeEnvironment,
   claudeCodeArgs,
@@ -279,7 +280,10 @@ describe("claudeCodeEnricher", () => {
     expect(result.meta.candidatesSent).toBe(0);
   });
 
-  it("splits candidates into bounded batches", async () => {
+  it("sends the whole candidate set in one request", async () => {
+    // The point of the single pass: a finding about two files is reachable
+    // wherever they sit in the list, instead of only when the chunker happened
+    // to put them together.
     const runner = okRunner();
     const many = Array.from({ length: 9 }, (_, index) => ({
       ...candidate,
@@ -288,7 +292,25 @@ describe("claudeCodeEnricher", () => {
 
     await enrich(runner, { candidates: many });
 
-    expect(runner).toHaveBeenCalledTimes(3); // CLAUDE_CODE_BATCH_SIZE = 4
+    expect(runner).toHaveBeenCalledTimes(1);
+    const prompt = String(runner.mock.calls[0]![1].input);
+    for (let index = 0; index < 9; index += 1) {
+      expect(prompt).toContain(`### doc-${index}.md`);
+    }
+  });
+
+  it("still sends one request at the candidate cap", async () => {
+    // SINGLE_PASS_BATCH_SIZE is derived from the cap, so the two cannot drift
+    // into a silent second batch.
+    const runner = okRunner();
+    const many = Array.from({ length: MAX_ENRICHMENT_CANDIDATES }, (_, index) => ({
+      ...candidate,
+      path: `doc-${index}.md`,
+    }));
+
+    await enrich(runner, { candidates: many });
+
+    expect(runner).toHaveBeenCalledTimes(1);
   });
 
   it("wraps unexpected command startup failures", async () => {

@@ -1,7 +1,7 @@
 import { RuntimeError } from "../errors";
 import {
   ANTHROPIC_API_VERSION,
-  ANTHROPIC_BATCH_SIZE,
+  SINGLE_PASS_BATCH_SIZE,
   ANTHROPIC_MAX_OUTPUT_TOKENS,
   DEFAULT_ANTHROPIC_ENDPOINT,
   resolveAnthropicTimeoutMs,
@@ -156,7 +156,7 @@ export const anthropicEnricher: LlmEnricher = {
         "Anthropic's API (external — data leaves this machine).",
     );
 
-    const batches = chunkCandidates(input.candidates, ANTHROPIC_BATCH_SIZE);
+    const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
     const findings = [];
 
     for (let index = 0; index < batches.length; index += 1) {

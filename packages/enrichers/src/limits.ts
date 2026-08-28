@@ -7,6 +7,23 @@
  */
 export { DEFAULT_MAX_ENRICHMENT_CANDIDATES as MAX_ENRICHMENT_CANDIDATES } from "@tokenforge/risk-core";
 
+import { DEFAULT_MAX_ENRICHMENT_CANDIDATES } from "@tokenforge/risk-core";
+
+/**
+ * Candidates per request for backends whose context window is not the binding
+ * constraint — every hosted/CLI adapter.
+ *
+ * Equal to the candidate cap, so the whole set travels in one request and a
+ * finding about two files is reachable no matter where they sit in the list.
+ * The measured cost of that is small: the full 30-candidate prompt is ~17K
+ * tokens, well under 2% of a 1M window. Derived from the cap rather than
+ * written as 30 so the two cannot drift apart.
+ *
+ * Ollama keeps `OLLAMA_BATCH_SIZE` and its multipass pipeline: there the small
+ * batch is a real accommodation, not an inherited default.
+ */
+export const SINGLE_PASS_BATCH_SIZE = DEFAULT_MAX_ENRICHMENT_CANDIDATES;
+
 /** Max bytes read from each candidate file for the model prompt. */
 export const MAX_CANDIDATE_BYTES = 32 * 1024;
 
@@ -97,9 +114,6 @@ export const MIN_CODEX_TIMEOUT_MS = 10_000;
 /** Authentication detection should fail quickly and never receive source excerpts. */
 export const CODEX_STATUS_TIMEOUT_MS = 10_000;
 
-/** Candidates sent to each non-interactive Codex run. */
-export const CODEX_BATCH_SIZE = 4;
-
 export function resolveCodexTimeoutMs(overrideMs?: number): number {
   if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_CODEX_TIMEOUT_MS) {
     return overrideMs;
@@ -126,9 +140,6 @@ export const DEFAULT_CLAUDE_CODE_TIMEOUT_MS = 180_000;
 /** Minimum timeout accepted via CLI/env for Claude Code. */
 export const MIN_CLAUDE_CODE_TIMEOUT_MS = 10_000;
 
-/** Candidates sent to each non-interactive Claude Code run. */
-export const CLAUDE_CODE_BATCH_SIZE = 4;
-
 /** Default Gemini CLI timeout for each bounded batch. */
 export const DEFAULT_GEMINI_CLI_TIMEOUT_MS = 120_000;
 
@@ -137,9 +148,6 @@ export const MIN_GEMINI_CLI_TIMEOUT_MS = 10_000;
 
 /** Authentication detection should fail quickly and never receive source excerpts. */
 export const GEMINI_CLI_STATUS_TIMEOUT_MS = 10_000;
-
-/** Candidates sent to each non-interactive Gemini CLI run. */
-export const GEMINI_CLI_BATCH_SIZE = 4;
 
 export function resolveGeminiCliTimeoutMs(overrideMs?: number): number {
   if (
@@ -172,9 +180,6 @@ export const MIN_CURSOR_CLI_TIMEOUT_MS = 10_000;
 
 /** Authentication detection should fail quickly and never receive source excerpts. */
 export const CURSOR_CLI_STATUS_TIMEOUT_MS = 10_000;
-
-/** Candidates sent to each non-interactive Cursor CLI run. */
-export const CURSOR_CLI_BATCH_SIZE = 4;
 
 export function resolveCursorCliTimeoutMs(overrideMs?: number): number {
   if (
@@ -240,9 +245,6 @@ export const DEFAULT_ANTHROPIC_TIMEOUT_MS = 120_000;
 
 /** Minimum per-batch timeout accepted via CLI/env for Anthropic. */
 export const MIN_ANTHROPIC_TIMEOUT_MS = 10_000;
-
-/** Candidates per Anthropic request — hosted API tolerates larger batches than local Ollama. */
-export const ANTHROPIC_BATCH_SIZE = 4;
 
 export function resolveAnthropicTimeoutMs(overrideMs?: number): number {
   if (overrideMs !== undefined && Number.isFinite(overrideMs) && overrideMs >= MIN_ANTHROPIC_TIMEOUT_MS) {

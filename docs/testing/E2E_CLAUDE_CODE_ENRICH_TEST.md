@@ -205,6 +205,39 @@ node cli/bin/tokenforge.mjs scan fixtures/active-session-app \
 rm -rf fixtures/*/.tokenforge
 ```
 
+## Single-pass vs flat batching (measured)
+
+The hosted/CLI backends send the whole candidate set in one request
+(`SINGLE_PASS_BATCH_SIZE`). This is the comparison that justified it — run
+against the real CLI on v2.1.247, same fixtures, only `SINGLE_PASS_BATCH_SIZE`
+changed between the two columns.
+
+| Fixture | Batch = 4 | Single pass |
+| --- | --- | --- |
+| `monorepo-config-app` (12 candidates) | 3 calls, 30s, **2** findings | 1 call, 19s, **3** findings |
+| `semantic-duplicates-app` (11 candidates) | 3 calls, 39s, **6** findings | 1 call, 32s, **8** findings |
+
+Single pass returned a strict **superset** on both, and faster.
+
+What batching missed is the point, not the count:
+
+- `monorepo-config-app` — batching found `packages/b` and `packages/c` but not
+  `packages/a/tsconfig.json`, which the chunker had put in a different call.
+- `semantic-duplicates-app` — batching reported `src/format/formatCurrency.js`
+  as `duplicate_logic` and **named its pair in the detail**, but could not
+  produce a finding for `src/helpers/toMoneyString.js`, a file that call was
+  never shown. Single pass returns both sides of the pair, and adds
+  `src/utils/checkEmailFormat.js`.
+
+The `package.json` false-positive control stayed clean in every run.
+
+### If you re-run this
+
+Flip `SINGLE_PASS_BATCH_SIZE` to 4, scan, record; restore it, scan, compare. The
+kill condition in #167 is that single pass must not find **less** than batching
+and must not start reporting the `package.json` trio. Both are checked by
+reading the findings table, not the exit code — see the exit-3 note above.
+
 ## Reference run
 
 Recorded so a later run has something to diverge from.
