@@ -16,80 +16,12 @@ import { formatDiscoverTable } from "../output/discover-table";
 import { formatScanTable } from "../output/table";
 import { savingsExitCode, totalsPayload } from "../savings/savings";
 import { UsageError, isCliError } from "./errors";
-
-const USAGE = `Usage: tokenforge <command> [root] [options]
-
-Commands:
-  scan [root]         Score high-risk paths and write .tokenforge/scan-report.json
-  apply [root]        Write lean instructions + exclusion candidates (provider adapter)
-  discover [root]     Find missed savings (scan vs on-disk exclusions)
-  init [root]         Bootstrap .tokenforge/, scan, and apply (--skip-apply for scan only)
-  pilot [root]        Org pilot pack: scan → apply → Prove-ready (#100)
-  org-pack <seed.json>
-                      Aggregate a multi-team seed into .tokenforge/org-policy/ (#28)
-  org-apply [root]    Stage / push org content exclusions via PolicyApplyProvider (#99)
-  usage-pull          Fetch billed usage into UsageMetrics JSON (Wave B / #90)
-  usage-sync [root]   Pull usage via UsageProvider into .tokenforge/ (Wave B / #94)
-  mcp                 Start the TokenForge MCP server on stdio (agent CLIs)
-
-Options:
-  --team <name>         Team label (default: local)
-  --repo <name>         Repo label (default: directory name)
-  --provider <id>       copilot | cursor | claude | generic
-                        scan default: generic; apply/init/pilot/org-apply default: copilot
-  --apply-provider <id> fixture | copilot | cursor | claude (org-apply; default: --provider)
-  --usage-provider <id>
-                        fixture | copilot | cursor | claude (usage-pull/sync; default: copilot)
-  --period <YYYY-MM>    Billing period for usage-pull / usage-sync
-  --org <slug>          GitHub org (Copilot) or Cursor organizationId (required for org-apply)
-  --file <path>         UsageMetrics fixture file (usage-pull with fixture)
-  --out <path>          Write UsageMetrics JSON (usage-pull; also copied when --root set)
-  --out <dir>           Output root for org-pack (default: cwd)
-  --mode <mode>         heuristic | hybrid (default: heuristic; scan and init)
-  --llm <spec>          LLM enricher backend[:model] (hybrid only; scan and init)
-                        noop (default) | ollama:<model> | anthropic:<model> |
-                        codex | claude-code | gemini-cli | cursor-cli. The CLI backends take no model:
-                        they use whatever that CLI is signed in and configured
-                        with. e.g. ollama:qwen2.5-coder:7b, cursor-cli, gemini-cli
-  --llm-endpoint <url>  Override Ollama/Anthropic API base URL
-                        (rejected by codex, claude-code, gemini-cli, and cursor-cli)
-  --llm-timeout <sec>   Per-batch timeout in seconds
-                        (Ollama: 900; Codex/Gemini: 120; Claude/Cursor: 180)
-  --allow-external      Confirm that bounded source excerpts may leave this
-                        machine (required by anthropic and all CLI backends above)
-  --active-paths-file <p>  Report (e.g. .tokenforge/last-scan.json) or JSON array of
-                        open paths. Those files are reported but never proposed
-                        for exclusion. Not auto-detected: a stale export would
-                        silently protect paths nobody has open any more.
-  --report <path>       Discover: input Token Risk JSON (default: .tokenforge/scan-report.json)
-  --rescan              Discover: run a fresh scan instead of reusing the saved report
-                        (writes .tokenforge/discover-latest.json by default)
-  --skip-apply          Pilot/init: scan only (still writes report)
-  --dry-run             Print planned create/merge/replace; do not write
-  --json                Print machine JSON totals (savedPercent included) to stdout
-  -h, --help            Show this help
-
-Apply safety (#130):
-  Instruction markdown (e.g. .github/copilot-instructions.md, CLAUDE.md) gets a
-  managed <!-- tokenforge:begin --> … <!-- tokenforge:end --> section: create the
-  file when missing, otherwise keep user text outside the markers. Exclusion YAML
-  / TokenForge-owned rule files may still fully replace.
-
-Exit codes:
-  0   success, savedTokens > 0
-  1   runtime error
-  2   usage error
-  3   success, but savedTokens is 0
-`;
+import { USAGE_HINT, printHelp } from "./help";
 
 export type CliIo = {
   stdout: { write(chunk: string): void };
   stderr: { write(chunk: string): void };
 };
-
-function printHelp(io: CliIo): void {
-  io.stdout.write(`${USAGE}\n`);
-}
 
 function printReport(
   io: CliIo,
@@ -167,14 +99,13 @@ export async function runCli(
       },
     });
 
-    if (values.help || positionals[0] === "help") {
-      printHelp(io);
-      return 0;
-    }
-
     const [command, rootArg] = positionals;
-    if (!command) {
-      throw new UsageError("Missing command.\n" + USAGE);
+
+    if (values.help || command === "help" || !command) {
+      const topic =
+        command === "help" ? rootArg : values.help && command ? command : undefined;
+      printHelp(io, topic);
+      return 0;
     }
 
     const root = resolve(rootArg ?? process.cwd());
@@ -358,7 +289,7 @@ export async function runCli(
 
     if (command === "org-pack") {
       if (!rootArg) {
-        throw new UsageError("org-pack requires a seed JSON path.\n" + USAGE);
+        throw new UsageError("org-pack requires a seed JSON path.\n" + USAGE_HINT);
       }
       const pack = await applyOrgPack({
         seedPath: rootArg,
@@ -403,7 +334,7 @@ export async function runCli(
 
     if (command === "org-apply") {
       if (!values.org?.trim()) {
-        throw new UsageError("org-apply requires --org <slug>.\n" + USAGE);
+        throw new UsageError("org-apply requires --org <slug>.\n" + USAGE_HINT);
       }
       const remote = await applyOrgRemote({
         root,
@@ -453,7 +384,7 @@ export async function runCli(
       return 0;
     }
 
-    throw new UsageError(`Unknown command "${command}".\n` + USAGE);
+    throw new UsageError(`Unknown command "${command}".\n` + USAGE_HINT);
   } catch (error) {
     if (isCliError(error)) {
       io.stderr.write(`${error.message}\n`);

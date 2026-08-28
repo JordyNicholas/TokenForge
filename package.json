@@ -16,6 +16,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "tokenforge": "node ./cli/bin/tokenforge.mjs",
+    "tokenforge:help": "node ./cli/bin/tokenforge.mjs help",
     "tokenforge:scan": "node ./cli/bin/tokenforge.mjs scan fixtures/noisy-app",
     "tokenforge:apply": "node ./cli/bin/tokenforge.mjs apply fixtures/noisy-app",
     "tokenforge:init": "node ./cli/bin/tokenforge.mjs init fixtures/noisy-app",
