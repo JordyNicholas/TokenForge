@@ -181,8 +181,8 @@ The `tokenforge` binary is not on `PATH` unless you link or install the CLI glob
 - `TOKENFORGE_CURSOR_CLI_PATH` — optional override when `agent` is not on `PATH`.
   On Windows, TokenForge auto-detects `%LOCALAPPDATA%\cursor-agent\agent.cmd`
   and invokes it through `cmd.exe` (required because Node cannot spawn `.cmd`
-  shims directly). Point at `agent.cmd` or leave unset; do not expect
-  `agent.exe` — recent Windows installs are Node-based and ship only the shim.
+  shims directly). Hybrid prompts are sent on **stdin** on Windows so the
+  ~8191-character command-line cap is not exceeded (`spawn ENAMETOOLONG`).
 - `--llm-endpoint` is **rejected**: the CLI owns its own connection.
 
 **Latency.** Each batch runs a full `agent -p` session (often 30–90s per batch on

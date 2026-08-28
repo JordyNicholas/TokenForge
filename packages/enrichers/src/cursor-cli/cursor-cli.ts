@@ -239,6 +239,12 @@ function hasFindingsArray(value: unknown): value is { findings: unknown[] } {
 /** Keep positional prompts under typical ARG_MAX while allowing stdin fallback. */
 const MAX_POSITIONAL_PROMPT_CHARS = 120_000;
 
+function maxPositionalPromptChars(platform: NodeJS.Platform = process.platform): number {
+  // Windows CreateProcess/cmd.exe command lines are capped at ~8191 chars.
+  // Hybrid enrichment prompts are always sent on stdin there (spawn ENAMETOOLONG).
+  return platform === "win32" ? 0 : MAX_POSITIONAL_PROMPT_CHARS;
+}
+
 export type CursorCliInvocation = {
   args: readonly string[];
   input?: string;
@@ -334,6 +340,7 @@ export function cursorCliArgs(
   model: string | undefined,
   workspace: string,
   prompt: string,
+  platform: NodeJS.Platform = process.platform,
 ): CursorCliInvocation {
   const base = [
     "-p",
@@ -347,8 +354,8 @@ export function cursorCliArgs(
     ...(model ? ["--model", model] : []),
   ] as const;
 
-  if (prompt.length <= MAX_POSITIONAL_PROMPT_CHARS) {
-    return { args: [...base, prompt] };
+  if (prompt.length <= maxPositionalPromptChars(platform)) {
+    return prompt.length === 0 ? { args: base } : { args: [...base, prompt] };
   }
 
   return { args: base, input: prompt };

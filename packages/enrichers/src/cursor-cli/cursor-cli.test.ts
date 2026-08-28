@@ -337,10 +337,19 @@ describe("cursorCliEnricher", () => {
 
   it("falls back to stdin when the prompt exceeds argv limits", () => {
     const prompt = "x".repeat(120_001);
-    const invocation = cursorCliArgs(undefined, "/tmp/workspace", prompt);
+    const invocation = cursorCliArgs(undefined, "/tmp/workspace", prompt, "linux");
 
     expect(invocation.input).toBe(prompt);
     expect(invocation.args).not.toContain(prompt);
+  });
+
+  it("sends prompts on stdin on Windows to avoid ENAMETOOLONG", () => {
+    const prompt = "### AGENTS.md\nbounded excerpt";
+    const invocation = cursorCliArgs("composer-2.5", "C:\\temp\\ws", prompt, "win32");
+
+    expect(invocation.input).toBe(prompt);
+    expect(invocation.args).not.toContain(prompt);
+    expect(invocation.args).toContain("composer-2.5");
   });
 });
 
