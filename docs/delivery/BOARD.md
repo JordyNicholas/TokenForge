@@ -155,25 +155,33 @@ Deliberately **not** filed under F4 #156, which excludes Claude Code stories.
 
 | Issue | Title | Depends on |
 | --- | --- | --- |
-| #166 | enrichers: cut the per-batch session prefix cost of the CLI-transport backends | — |
-| #167 | enrichers: run the CLI-transport backends through the multi-pass pipeline | #166 scope item 0 |
+| #166 | risk-core: single-source and enforce the 30-candidate enrichment cap | — |
+| #167 | enrichers: run the CLI-transport backends through the multi-pass pipeline | #166 |
 
-Both come out of the #148 verification pass, and both were **re-scoped** after
-F4 #161/#162 shipped `gemini-cli` / `cursor-cli` (PR #182) from the `claude-code`
-template: `codex`, `claude-code`, `gemini-cli` and `cursor-cli` all flat-batch at
-`*_BATCH_SIZE = 4`, spawn a fresh CLI per batch, and pay a ~30K-token
-session-boot prefix each time. The fix belongs on the shared batch loop.
+Both come out of the #148 verification pass.
 
-#166 now carries **scope item 0**: single-source the 30-candidate cap. Today
-`MAX_ENRICHMENT_CANDIDATES` is exported and documented as the hard cap but wired
-to nothing — the real limit is a `?? 30` fallback inside
-`selectEnrichmentCandidates`, and the CLI scan path passes no cap at all. Every
-cost number in both issues is `ceil(candidateCap / batchSize)`, so an enforced,
-named default is a precondition. It matters for Ollama too: at
-`OLLAMA_BATCH_SIZE = 2` and a 900s per-batch timeout, an unbounded candidate set
-is a scan that never returns.
+**#166 started as a cost story** — the CLI-transport backends (`codex`,
+`claude-code`, `gemini-cli`, `cursor-cli`, all flat-batching at `*_BATCH_SIZE =
+4` with a fresh process per batch) looked like they re-paid a ~30K-token session
+prefix on every batch. **Measured on Claude Code v2.1.247 and it does not**: the
+~23K stable prefix is a `cache_read` on every batch (1-hour cache), a cold scan
+pays full creation only on batch 1, and a whole 3-batch scan costs ~$0.14. The
+cost levers (session reuse, bigger batches) are closed, won't-do. What remains is
+the regression guard: `MAX_ENRICHMENT_CANDIDATES` is exported and documented as
+the hard cap but wired to nothing — the real limit is a `?? 30` fallback inside
+`selectEnrichmentCandidates`, and the CLI scan path passes no cap at all. Make it
+a named `risk-core` default, enforced by contract. ~0.5d.
 
-**#166 scope item 0 → rest of #166 → #167.**
+**#167 is a recall bet, not a cost fix.** Flat batching means a batch cannot see
+files in another batch; multipass (map → judge → reconcile, already used by
+Ollama) groups related files deliberately. It costs `1 + N + 1` model calls at
+~$0.05 each — 2 extra per scan — paid back only if the fixture comparison shows
+it surfaces cross-file redundancy that flat batching misses. #166 is a hard
+precondition: multipass batch count is `ceil(cap / batchSize)`, and on Ollama
+(`OLLAMA_BATCH_SIZE = 2`, 900s per-batch timeout) an unbounded cap is a scan that
+never returns.
+
+**#166 → #167.**
 
 ### F2 attractiveness backlog (filed under #61)
 
@@ -285,7 +293,7 @@ MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
 Phase 2:
 
 1. **F1** (#60) — complete (#45/#46/#66/#48 shipped)
-   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (per-batch prefix cost + single-sourcing the 30-candidate cap) and **#167** (multi-pass) remain as follow-on stories, in that order. Both re-scoped to the CLI-transport family (`codex`/`claude-code`/`gemini-cli`/`cursor-cli`) after F4 #182
+   - **F1.1** (#145) — epic closed; `claude-code` CLI backend shipped and verified against the real binary. **#166** (enforce the 30-candidate cap as a named default — its cost premise was measured away) and **#167** (multi-pass, a recall bet at ~2 extra model calls/scan) remain as follow-on stories, #166 first
 2. **F2** (#61) — epic closed; **Wave C (#95–#98)** attribution/calibration and remotes for **#28** (#99/#100) remain as follow-on stories. Detail: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
