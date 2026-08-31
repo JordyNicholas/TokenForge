@@ -1,6 +1,8 @@
 # Hackathon final — team assignments (Sep 1–2)
 
-Fill this in before rehearsal. See [`.presentation/hackathon-2026-09/README.md`](../../.presentation/hackathon-2026-09/README.md).
+Fill this in before rehearsal. Index: [`.presentation/hackathon-2026-09/en/README.md`](./README.md).
+
+Português (Brasil): [`../pt-br/EQUIPE.md`](../pt-br/EQUIPE.md).
 
 ## Slot (confirm with organisers)
 
@@ -36,7 +38,7 @@ Merge **D into B** — B runs extension, CLI, and hybrid AI.
 
 | Topic | Owner |
 | --- | --- |
-| Architecture / extensibility | A or D |
+| Architecture / extensibility | A |
 | Why AI / hybrid enrichers | B |
 | Local vs external LLM | B |
 | Security / data leaving org | B |

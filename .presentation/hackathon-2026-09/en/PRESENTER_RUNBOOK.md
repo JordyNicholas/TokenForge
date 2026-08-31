@@ -109,7 +109,7 @@ cp fixtures/instructions-app/.tokenforge/scan-report.json \
 | Codex repo audit vs Cursor CLI? | B |
 | Data leaving the org? | B |
 
-Product FAQ: [`docs/product/PITCH_FAQ.md`](../../docs/product/PITCH_FAQ.md) · Board prep: [`docs/pitch/PITCH_BOARD_PREP.md`](../../docs/pitch/PITCH_BOARD_PREP.md).
+Product FAQ: [`docs/product/PITCH_FAQ.md`](../../../docs/product/PITCH_FAQ.md) · Board prep: [`docs/pitch/PITCH_BOARD_PREP.md`](../../../docs/pitch/PITCH_BOARD_PREP.md).
 
 ---
 

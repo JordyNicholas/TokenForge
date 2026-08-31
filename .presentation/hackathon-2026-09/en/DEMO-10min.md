@@ -1,6 +1,6 @@
 # Demo script — 10 minutes (Sep 1–2)
 
-Situational script for the hackathon final. Product runbook: [`docs/runbooks/DEMO_RUNBOOK.md`](../../docs/runbooks/DEMO_RUNBOOK.md) (≤5 min).
+Situational script for the hackathon final. Product runbook: [`docs/runbooks/DEMO_RUNBOOK.md`](../../../docs/runbooks/DEMO_RUNBOOK.md) (≤5 min).
 
 Presenter cues: [`PRESENTER_RUNBOOK.md`](./PRESENTER_RUNBOOK.md). Roles: [`TEAM_ASSIGNMENTS.md`](./TEAM_ASSIGNMENTS.md).
 
