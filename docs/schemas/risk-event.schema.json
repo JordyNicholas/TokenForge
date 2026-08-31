@@ -269,6 +269,67 @@
                   }
                 }
               }
+            },
+            "contextIndexRecommendations": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "path",
+                  "purpose",
+                  "summary"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 400
+                  }
+                }
+              }
+            },
+            "repoAuditCoverage": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "filesCopied",
+                "filesSkippedSecret",
+                "filesSkippedHardDir",
+                "bytesCopied"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "codex_repo_audit"
+                },
+                "filesCopied": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "filesSkippedSecret": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "filesSkippedHardDir": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "bytesCopied": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
             }
           }
         },
