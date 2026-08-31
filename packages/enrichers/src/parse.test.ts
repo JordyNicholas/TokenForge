@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLlmSpec } from "./parse";
+import { mapStructuredFinding, parseLlmSpec } from "./parse";
 
 describe("parseLlmSpec", () => {
   it("defaults to noop when omitted", () => {
@@ -81,5 +81,51 @@ describe("parseLlmSpec", () => {
     expect(() => parseLlmSpec("openai:gpt-5.6-sol")).toThrow(
       'Unknown LLM backend "openai"',
     );
+  });
+});
+
+describe("mapStructuredFinding", () => {
+  const candidate = {
+    path: "src/util.ts",
+    bytes: 400,
+    estTokens: 100,
+    excerpt: "export function util() {}",
+  };
+
+  it("downgrades unsafe LLM exclude to kept (review verdict)", () => {
+    const finding = mapStructuredFinding(
+      {
+        path: "src/util.ts",
+        verdict: "exclude",
+        reason: "semantic_bloat",
+        confidence: 0.9,
+      },
+      [candidate],
+    );
+    expect(finding).toMatchObject({
+      path: "src/util.ts",
+      reason: "semantic_bloat",
+      action: "kept",
+      source: "llm",
+    });
+  });
+
+  it("maps safe exclude on instruction paths", () => {
+    const agents = {
+      path: "AGENTS.md",
+      bytes: 6400,
+      estTokens: 1600,
+      excerpt: "# Agents",
+    };
+    const finding = mapStructuredFinding(
+      {
+        path: "AGENTS.md",
+        verdict: "exclude",
+        reason: "semantic_bloat",
+        confidence: 0.85,
+      },
+      [agents],
+    );
+    expect(finding?.action).toBe("excluded");
   });
 });
