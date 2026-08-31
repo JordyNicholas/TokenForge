@@ -39,6 +39,16 @@
     "afterTokens": 7269,
     "savedTokens": 0
   },
+  "instructionBudget": {
+    "alwaysOnTokens": 4200,
+    "recommendedMax": 1800,
+    "files": [
+      { "path": "AGENTS.md", "estTokens": 960 },
+      { "path": "CLAUDE.md", "estTokens": 930 },
+      { "path": ".cursorrules", "estTokens": 1155 },
+      { "path": ".github/copilot-instructions.md", "estTokens": 1155 }
+    ]
+  },
   "layers": {
     "heuristic": {
       "findings": [],
@@ -125,6 +135,13 @@
   },
   "scan": {
     "mode": "hybrid",
+    "hybridDelta": {
+      "heuristicSavedTokens": 0,
+      "llmExclusiveSavedTokens": 0,
+      "combinedSavedTokens": 0,
+      "llmFindingCount": 2,
+      "complementarityStatus": "ok"
+    },
     "llm": {
       "backend": "cursor-cli",
       "model": "composer-2.5",
