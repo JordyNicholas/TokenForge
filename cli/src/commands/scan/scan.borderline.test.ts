@@ -4,7 +4,7 @@ import { borderlineAppRoot } from "../../test/helpers";
 import { scanRepo } from "./scan";
 
 describe("scanRepo (borderline-app, precision stress test)", () => {
-  it("flags legitimate large files with today's class-blind oversized rule (docs/design/HEURISTICS_AUDIT.md B2/B3)", async () => {
+  it("keeps oversized-only source in context while still flagging oversized config (B2)", async () => {
     const { report } = await scanRepo({
       root: borderlineAppRoot,
       now: new Date("2026-08-20T18:00:00.000Z"),
@@ -14,7 +14,7 @@ describe("scanRepo (borderline-app, precision stress test)", () => {
     expect(report.findings).toHaveLength(2);
 
     const types = report.findings.find((finding) => finding.path === "src/generated-types.ts");
-    expect(types).toMatchObject({ reason: "oversized", action: "excluded" });
+    expect(types).toMatchObject({ reason: "oversized", action: "kept" });
 
     const locales = report.findings.find((finding) => finding.path === "config/locales.json");
     expect(locales).toMatchObject({ reason: "oversized", action: "excluded" });

@@ -101,7 +101,7 @@ export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { isSessionStatsReport } from "./report/sessionStats";
 export { sessionAdoptionFromCounts } from "./adoption/sessionAdoption";
-export { primaryReason, scoreRisk } from "./score/score";
+export { heuristicFindingAction, primaryReason, scoreRisk } from "./score/score";
 export {
   isUsageMetrics,
   totalsFromUsageTeams,
