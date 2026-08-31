@@ -6,6 +6,7 @@ import {
   CLAUDE_INSTRUCTIONS_PATH,
   COPILOT_EXCLUSIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
+  CURSOR_IGNORE_CANDIDATES_PATH,
   MAX_INSTRUCTION_BYTES,
   TOKENFORGE_SECTION_BEGIN,
   TOKENFORGE_SECTION_END,
@@ -217,5 +218,17 @@ describe("apply / init on noisy-app", () => {
     );
     expect(code).toBe(0);
     expect(captured.stdout + captured.stderr).toMatch(/\.cursor\//);
+
+    const result = await applyPolicy({
+      root: fixtureRoot,
+      provider: "cursor",
+      dryRun: true,
+    });
+    const ignore = result.files.find((file) => file.path === CURSOR_IGNORE_CANDIDATES_PATH);
+    expect(ignore).toBeDefined();
+    expect(ignore?.contents).toContain("human review required");
+    expect(ignore?.contents).toContain("package-lock.json");
+    expect(ignore?.contents).toContain("dist/**");
+    expect(ignore?.contents).not.toContain(".cursorignore\n");
   });
 });

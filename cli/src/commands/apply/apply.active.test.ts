@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  CURSOR_IGNORE_CANDIDATES_PATH,
+} from "../../adapters";
+import {
   activeSessionAppRoot,
   activeSessionLastScanPath,
   cleanupFixtureAt,
@@ -16,6 +19,14 @@ function exclusionYaml(files: readonly { path: string; contents: string }[]): st
   const file = files.find((entry) => entry.path.endsWith(".yml"));
   if (!file) {
     throw new Error("no exclusion YAML in the rendered pack");
+  }
+  return file.contents;
+}
+
+function ignoreCandidates(files: readonly { path: string; contents: string }[]): string {
+  const file = files.find((entry) => entry.path === CURSOR_IGNORE_CANDIDATES_PATH);
+  if (!file) {
+    throw new Error("no cursor ignore candidates in the rendered pack");
   }
   return file.contents;
 }
@@ -129,6 +140,23 @@ describe("active session paths (#137)", () => {
       expect(yaml).toContain(LOCALE);
       expect(yaml).toContain(LOCKFILE);
       expect(applied.report.activePaths).toBeUndefined();
+    });
+
+    it("never names an open path in cursor ignore candidates", async () => {
+      const { report } = await scanRepo({
+        root: activeSessionAppRoot,
+        activePathsFile: activeSessionLastScanPath,
+      });
+      const applied = await applyPolicy({
+        root: activeSessionAppRoot,
+        report,
+        provider: "cursor",
+        dryRun: true,
+      });
+
+      const ignore = ignoreCandidates(applied.files);
+      expect(ignore).not.toContain(LOCALE);
+      expect(ignore).toContain(LOCKFILE);
     });
   });
 });

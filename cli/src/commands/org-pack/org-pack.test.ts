@@ -75,7 +75,7 @@ describe("cursor / claude adapters", () => {
       ],
       totals: { beforeTokens: 250, afterTokens: 0, savedTokens: 250 },
     };
-    expect(getAdapter("cursor").render(report).length).toBe(2);
+    expect(getAdapter("cursor").render(report).length).toBe(3);
     expect(getAdapter("claude").render({ ...report, provider: "claude" }).length).toBe(
       2,
     );
