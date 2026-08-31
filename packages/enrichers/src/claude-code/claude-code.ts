@@ -8,6 +8,8 @@ import {
   resolveClaudeCodeTimeoutMs,
 } from "../limits";
 import { mapStructuredFindings } from "../parse";
+import { resolveSinglePassAnalysisOverview } from "../singlePassOverview";
+import { LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA } from "../analysisOverviewSchema";
 import {
   buildEnrichmentPrompt,
   LARGE_CONTEXT_PROMPT,
@@ -75,6 +77,7 @@ const CLAUDE_CODE_OUTPUT_SCHEMA = {
         additionalProperties: false,
       },
     },
+    analysisOverview: LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA,
   },
   required: ["findings"],
   additionalProperties: false,
@@ -326,6 +329,7 @@ export function createClaudeCodeEnricher(
       try {
         const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
+        const payloads: unknown[] = [];
 
         for (let index = 0; index < batches.length; index += 1) {
           const batch = batches[index]!;
@@ -374,6 +378,7 @@ export function createClaudeCodeEnricher(
           }
 
           const payload = extractStructuredPayload(result.stdout);
+          payloads.push(payload);
           try {
             const structured = parseStructuredFindings(payload, batch);
             findings.push(...mapStructuredFindings(structured, batch));
@@ -397,6 +402,11 @@ export function createClaudeCodeEnricher(
             model: reportedModel,
             durationMs: Date.now() - started,
             candidatesSent: input.candidates.length,
+            analysisOverview: resolveSinglePassAnalysisOverview({
+              payloads,
+              findingCount: findings.length,
+              candidateCount: input.candidates.length,
+            }),
           },
         };
       } finally {

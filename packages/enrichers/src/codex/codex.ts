@@ -9,6 +9,8 @@ import {
   resolveCodexTimeoutMs,
 } from "../limits";
 import { mapStructuredFindings } from "../parse";
+import { resolveSinglePassAnalysisOverview } from "../singlePassOverview";
+import { LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA } from "../analysisOverviewSchema";
 import {
   buildEnrichmentPrompt,
   LARGE_CONTEXT_PROMPT,
@@ -75,6 +77,7 @@ const CODEX_OUTPUT_SCHEMA = {
         additionalProperties: false,
       },
     },
+    analysisOverview: LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA,
   },
   required: ["findings"],
   additionalProperties: false,
@@ -319,6 +322,7 @@ export function createCodexEnricher(
 
         const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
+        const payloads: unknown[] = [];
 
         for (let index = 0; index < batches.length; index += 1) {
           const batch = batches[index]!;
@@ -361,6 +365,7 @@ export function createCodexEnricher(
 
           try {
             const payload = extractJsonPayload(result.stdout);
+            payloads.push(payload);
             if (!hasFindingsArray(payload)) {
               throw new Error('response must contain a "findings" array');
             }
@@ -386,6 +391,11 @@ export function createCodexEnricher(
             model: reportedModel,
             durationMs: Date.now() - started,
             candidatesSent: input.candidates.length,
+            analysisOverview: resolveSinglePassAnalysisOverview({
+              payloads,
+              findingCount: findings.length,
+              candidateCount: input.candidates.length,
+            }),
           },
         };
       } finally {
