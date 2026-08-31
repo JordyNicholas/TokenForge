@@ -5,6 +5,7 @@ import {
   isPathCoveredByExclusion,
   missedOpportunityTokens,
   proposedExclusionPaths,
+  proposedIgnorePaths,
 } from "./exclusions";
 
 function report(
@@ -57,6 +58,72 @@ describe("proposedExclusionPaths", () => {
       ),
     );
     expect(paths).toEqual(["package-lock.json"]);
+  });
+});
+
+describe("proposedIgnorePaths", () => {
+  it("includes exclusion paths and extra add_ignore suggestions", () => {
+    const paths = proposedIgnorePaths(
+      report(
+        [
+          {
+            path: "package-lock.json",
+            reason: "high_risk_filetype",
+            bytes: 100,
+            estTokens: 25,
+            action: "excluded",
+          },
+          {
+            path: "config/low-signal.json",
+            reason: "low_signal_config",
+            bytes: 80,
+            estTokens: 20,
+            action: "kept",
+            source: "llm",
+            suggestion: {
+              kind: "add_ignore",
+              summary: "Low-signal config; ignore in agent context.",
+            },
+          },
+        ],
+        ["locales/en.json"],
+      ),
+    );
+    expect(paths).toContain("package-lock.json");
+    expect(paths).toContain("config/low-signal.json");
+    expect(paths).not.toContain("locales/en.json");
+  });
+
+  it("drops advisory and unsafe LLM add_ignore paths", () => {
+    const paths = proposedIgnorePaths(
+      report([
+        {
+          path: "src/utils/checkEmailFormat.js",
+          reason: "duplicate_logic",
+          bytes: 100,
+          estTokens: 25,
+          action: "kept",
+          source: "llm",
+          suggestion: {
+            kind: "add_ignore",
+            summary: "Should never land in ignore candidates.",
+          },
+        },
+        {
+          path: "src/index.ts",
+          reason: "semantic_bloat",
+          bytes: 100,
+          estTokens: 25,
+          action: "kept",
+          source: "llm",
+          suggestion: {
+            kind: "add_ignore",
+            summary: "Unsafe source exclude.",
+          },
+        },
+      ]),
+    );
+    expect(paths).toEqual([]);
   });
 });
 

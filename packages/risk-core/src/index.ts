@@ -93,6 +93,7 @@ export {
   isPathCoveredByExclusion,
   missedOpportunityTokens,
   proposedExclusionPaths,
+  proposedIgnorePaths,
   type DiscoverOpportunity,
   type DiscoverOpportunityCategory,
 } from "./policy/exclusions";
