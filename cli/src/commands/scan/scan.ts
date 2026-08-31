@@ -333,12 +333,18 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     scan = hybrid.scan;
   }
 
-  const layers = buildScanLayers({
+  const layerResult = buildScanLayers({
     assessments,
     heuristicFindings,
     llmFindings,
     llmCandidateTokens,
+    ...(mode === "hybrid" ? { candidatesSent: scan?.llm?.candidatesSent ?? 0 } : {}),
   });
+  const { hybridDelta, ...layers } = layerResult;
+
+  if (scan && hybridDelta) {
+    scan = { ...scan, hybridDelta };
+  }
 
   const report: TokenRiskReport = {
     source: "cli",
