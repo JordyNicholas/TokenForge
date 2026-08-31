@@ -14,7 +14,7 @@ describe("instruction repetition heuristics", () => {
     const repeated = Array.from({ length: MIN_INSTRUCTION_PARAGRAPH_REPEATS }, () => block).join(
       "\n\n",
     );
-    expect(splitParagraphs(repeated)).toHaveLength(1);
+    expect(splitParagraphs(repeated)).toHaveLength(MIN_INSTRUCTION_PARAGRAPH_REPEATS);
     expect(maxParagraphRepeatCount(repeated)).toBe(MIN_INSTRUCTION_PARAGRAPH_REPEATS);
     expect(hasInstructionRepetition(repeated)).toBe(true);
   });
