@@ -22,6 +22,11 @@ const MAX_HYGIENE_SUMMARY_CHARS = 120;
 const MAX_WHY_THEMES = 3;
 const MAX_EXCLUDE_BULLETS = 24;
 const MAX_HYGIENE_BULLETS = 8;
+const MAX_ADVISORY_BULLETS = 6;
+const ADVISORY_REASONS = new Set<TokenRiskFinding["reason"]>([
+  "duplicate_logic",
+  "redundant_config",
+]);
 
 const COMPACT_OUTPUT_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
   "test_output",
@@ -58,7 +63,25 @@ function excludedPathsForInstructions(
   return collapseExclusionPaths(paths).slice(0, MAX_EXCLUDE_BULLETS);
 }
 
-type HygieneBullet = { path: string; summary: string; estTokens: number };
+type HygieneBullet = {
+  path: string;
+  summary: string;
+  estTokens: number;
+  confidence: number;
+};
+
+type AdvisoryBullet = HygieneBullet;
+
+function isAdvisoryFinding(finding: TokenRiskFinding): boolean {
+  if (finding.action !== "kept") {
+    return false;
+  }
+  if (ADVISORY_REASONS.has(finding.reason)) {
+    return true;
+  }
+  const kind = resolveSuggestion(finding).kind;
+  return kind === "review" || kind === "consolidate_duplicates";
+}
 
 function hygieneBullets(
   findings: readonly TokenRiskFinding[],
@@ -83,6 +106,7 @@ function hygieneBullets(
       path: finding.path,
       summary: truncateSummary(suggestion.summary),
       estTokens: finding.estTokens,
+      confidence: finding.confidence ?? 0,
     };
     const existing = byPath.get(finding.path);
     if (!existing || next.estTokens > existing.estTokens) {
@@ -92,9 +116,46 @@ function hygieneBullets(
   return [...byPath.values()]
     .sort(
       (a, b) =>
-        b.estTokens - a.estTokens || a.path.localeCompare(b.path),
+        b.confidence - a.confidence ||
+        b.estTokens - a.estTokens ||
+        a.path.localeCompare(b.path),
     )
     .slice(0, MAX_HYGIENE_BULLETS);
+}
+
+function advisoryBullets(
+  findings: readonly TokenRiskFinding[],
+): AdvisoryBullet[] {
+  const byPath = new Map<string, AdvisoryBullet>();
+  for (const finding of findings) {
+    if (!isAdvisoryFinding(finding)) {
+      continue;
+    }
+    const suggestion = resolveSuggestion(finding);
+    const next: AdvisoryBullet = {
+      path: finding.path,
+      summary: truncateSummary(suggestion.summary),
+      estTokens: finding.estTokens,
+      confidence: finding.confidence ?? 0,
+    };
+    const existing = byPath.get(finding.path);
+    if (
+      !existing ||
+      next.confidence > existing.confidence ||
+      (next.confidence === existing.confidence &&
+        next.estTokens > existing.estTokens)
+    ) {
+      byPath.set(finding.path, next);
+    }
+  }
+  return [...byPath.values()]
+    .sort(
+      (a, b) =>
+        b.confidence - a.confidence ||
+        b.estTokens - a.estTokens ||
+        a.path.localeCompare(b.path),
+    )
+    .slice(0, MAX_ADVISORY_BULLETS);
 }
 
 function whyThemes(report: TokenRiskReport): string[] {
@@ -128,14 +189,19 @@ function compactOutputSection(): string {
 
 function instructionStackSection(report: TokenRiskReport): string | undefined {
   const budget = report.instructionBudget;
-  if (!budget || !isInstructionStackOverBudget(budget)) {
+  if (!budget) {
     return undefined;
   }
-  return [
+  const lines = [
     "## Instruction stack",
     `- Always-on instruction files total ~${budget.alwaysOnTokens.toLocaleString()} est. tokens (recommended ≤ ${budget.recommendedMax.toLocaleString()}).`,
-    "- Trim or dedupe rules files — heuristic stack budget, not a repo edit.",
-  ].join("\n");
+  ];
+  if (isInstructionStackOverBudget(budget)) {
+    lines.push(
+      "- Trim or dedupe rules files — heuristic stack budget, not a repo edit.",
+    );
+  }
+  return lines.join("\n");
 }
 
 function joinSections(sections: string[]): string {
@@ -176,6 +242,7 @@ export function synthesizeLeanInstructions(
     (path) => `- \`${path}\``,
   );
   let hygiene = hygieneBullets(report.findings);
+  let advisory = advisoryBullets(report.findings);
   let themes = whyThemes(report);
   const includeCompactOutput = shouldIncludeCompactOutputGuidance(report.findings);
   const stackSection = instructionStackSection(report);
@@ -203,6 +270,18 @@ export function synthesizeLeanInstructions(
       sections.push(stackSection);
     }
 
+    if (advisory.length > 0) {
+      sections.push(
+        [
+          "## Review only",
+          "- These rows are advisory — TokenForge does not apply excludes or refactors.",
+          ...advisory.map(
+            (item) => `- \`${item.path}\`: ${item.summary}`,
+          ),
+        ].join("\n"),
+      );
+    }
+
     if (includeCompactOutput) {
       sections.push(compactOutputSection());
     }
@@ -228,6 +307,8 @@ export function synthesizeLeanInstructions(
       includeStack = false;
     } else if (excludeLines.length > 0) {
       excludeLines = excludeLines.slice(0, -1);
+    } else if (advisory.length > 0) {
+      advisory = advisory.slice(0, -1);
     } else {
       // Extreme: trim by UTF-8 byte budget without splitting code points.
       const encoded = new TextEncoder().encode(text);
