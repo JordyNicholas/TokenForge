@@ -5,6 +5,8 @@ this document defines the contract and scaffolding so implementation can land in
 small PRs mapped to board issues.
 
 Related: [`SOLUTION_DESIGN.md`](./SOLUTION_DESIGN.md#architecture),
+[`COMPLEMENTARY_HYBRID_SCAN.md`](./COMPLEMENTARY_HYBRID_SCAN.md) (F6 — complementary
+layers + policy safety),
 [`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json).
 
 ## Problem

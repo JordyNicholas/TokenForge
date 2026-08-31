@@ -3,7 +3,7 @@
 **Status:** Locked  
 **Scope:** Stack, ports & adapters, monorepo layout, JSON contract.  
 **Audience:** Implementers and reviewers.  
-**Companion:** [`CONCEPT_BRIEF.md`](../product/CONCEPT_BRIEF.md) · [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · [`../schemas/`](../schemas/)
+**Companion:** [`CONCEPT_BRIEF.md`](../product/CONCEPT_BRIEF.md) · [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · [`COMPLEMENTARY_HYBRID_SCAN.md`](./COMPLEMENTARY_HYBRID_SCAN.md) · [`../schemas/`](../schemas/)
 
 ---
 
