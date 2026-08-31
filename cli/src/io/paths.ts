@@ -5,10 +5,31 @@ export const SKIP_DIR_NAMES = new Set([
   ".git",
   "node_modules",
   ".tokenforge",
-  ".cursor",
   ".idea",
   "coverage",
 ]);
+
+/** Ephemeral subtrees under `.cursor/` that must not be scanned. */
+export const CURSOR_EPHEMERAL_DIR_NAMES = new Set(["cache", "logs", "tmp"]);
+
+/**
+ * Whether a directory entry should be skipped during repo walk.
+ * `.cursor/` itself is walkable; only ephemeral subtrees (e.g. cache) are skipped.
+ */
+export function shouldSkipWalkDirectory(
+  dirName: string,
+  relativeParentDir: string,
+): boolean {
+  if (SKIP_DIR_NAMES.has(dirName)) {
+    return true;
+  }
+  const parent =
+    relativeParentDir.replaceAll("\\", "/").replace(/\/$/, "") || ".";
+  if (parent === ".cursor" || parent.endsWith("/.cursor")) {
+    return CURSOR_EPHEMERAL_DIR_NAMES.has(dirName);
+  }
+  return false;
+}
 
 export const SCAN_REPORT_FILE = "scan-report.json";
 export const DISCOVER_LATEST_FILE = "discover-latest.json";

@@ -1,0 +1,15 @@
+---
+description: Demo always-on Cursor rules for TokenForge scan fixture (#203)
+alwaysApply: true
+---
+
+# Demo project rules
+
+- Prefer small, reviewable diffs.
+- Run tests before opening a pull request.
+- Do not commit secrets or local MCP credentials.
+- Keep agent instructions in `.cursor/rules` concise and non-duplicative.
+- When changing scan behavior, update fixture expectations in the same change.
+
+These rules exist so CLI scan walks `.cursor/rules/*.mdc` instead of skipping
+the whole `.cursor` directory.
