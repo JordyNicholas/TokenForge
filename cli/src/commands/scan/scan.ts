@@ -2,9 +2,12 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import {
   activePathSet,
+  buildInstructionHeuristicFindings,
   buildScanLayers,
+  computeInstructionBudget,
   heuristicFindingAction,
   isActivePath,
+  isInstructionPath,
   isTokenRiskReport,
   primaryReason,
   scoreRisk,
@@ -171,6 +174,25 @@ function toFinding(
   };
 }
 
+async function loadInstructionContents(
+  root: string,
+  assessments: RiskAssessment[],
+): Promise<Map<string, string>> {
+  const contents = new Map<string, string>();
+  for (const assessment of assessments) {
+    if (!isInstructionPath(assessment.path)) {
+      continue;
+    }
+    const abs = join(root, assessment.path);
+    try {
+      contents.set(assessment.path, (await readFile(abs)).toString("utf8"));
+    } catch {
+      // Unreadable instruction paths are skipped — repetition audit is best-effort.
+    }
+  }
+  return contents;
+}
+
 async function loadCandidateExcerpt(
   root: string,
   assessment: RiskAssessment,
@@ -287,10 +309,18 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     : undefined;
   const active = activePathSet({ activePaths });
 
-  const heuristicFindings = assessments.flatMap((assessment) => {
+  const pathHeuristicFindings = assessments.flatMap((assessment) => {
     const finding = toFinding(assessment, active);
     return finding ? [finding] : [];
   });
+
+  const instructionContents = await loadInstructionContents(root, assessments);
+  const instructionBudget = computeInstructionBudget(assessments);
+  const instructionFindings = buildInstructionHeuristicFindings({
+    assessments,
+    contentsByPath: instructionContents,
+  });
+  const heuristicFindings = [...pathHeuristicFindings, ...instructionFindings];
 
   let llmFindings: TokenRiskFinding[] = [];
   let llmCandidateTokens = 0;
@@ -320,6 +350,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     totals: layers.combined.totals,
     layers,
     ...(scan ? { scan } : {}),
+    ...(instructionBudget.files.length > 0 ? { instructionBudget } : {}),
     // Recorded even when nothing matched, so a later `apply` on this report
     // can tell "the session was checked and these were open" apart from "no
     // session signal was available".
