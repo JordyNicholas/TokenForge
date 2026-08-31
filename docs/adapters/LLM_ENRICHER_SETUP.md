@@ -137,18 +137,23 @@ tokenforge scan . --mode hybrid --llm codex --allow-external
   API-key/access-token authentication for this backend.
 - `--llm codex` respects the model configured by Codex. Use
   `--llm codex:<model>` only when an explicit per-scan override is wanted.
-- `--llm-timeout <sec>` — per-batch timeout in seconds (default 120).
+- `--llm-timeout <sec>` — audit timeout in seconds (default 120).
 - `TOKENFORGE_CODEX_TIMEOUT_MS` — env var fallback for the same timeout.
 - `TOKENFORGE_CODEX_PATH` — optional path to the Codex executable when it is
   not available as `codex` on `PATH`.
-- `--allow-external` — explicit confirmation that bounded source excerpts may
+- `--allow-external` — explicit confirmation that a sanitized repository copy may
   be sent to OpenAI through Codex. Without it, TokenForge prints a privacy
   warning and exits before starting Codex.
 
-TokenForge invokes `codex exec` non-interactively in a new empty temporary
-directory with a read-only sandbox, an ephemeral session, a JSON output schema,
-and the bounded enrichment prompt on stdin. The repository path is not exposed
-as the Codex working directory. `OPENAI_API_KEY` and `CODEX_API_KEY` are removed
+TokenForge stages a **sanitized eligible copy** of the repository (hard-skips
+`.git`, `node_modules`, `.tokenforge`; omits credential-shaped paths and
+secret-shaped file content), then invokes one non-interactive `codex exec` in a
+read-only sandbox with that copy as the working directory. The prompt is a
+repository audit (not per-file excerpt batches): heuristic findings and
+candidate paths are context only; findings must reference candidate paths.
+Optional `contextIndexRecommendations` (`.md` index files) and `repoAuditCoverage`
+metadata are written to `scan.llm` in the Token Risk JSON. `.cursor` remains
+visible in the staged tree. `OPENAI_API_KEY` and `CODEX_API_KEY` are removed
 from the child process environment so they cannot silently replace the saved
 ChatGPT login with usage-based authentication.
 

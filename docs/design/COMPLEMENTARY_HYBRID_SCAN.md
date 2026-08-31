@@ -99,7 +99,12 @@ Entry: `--mode hybrid --llm ollama:…`
 Transport differs (JSON schema vs prose parse); **analysis scope does not**.
 
 Related extension: [#189](https://github.com/JordyNicholas/TokenForge/issues/189) —
-Codex full-repo context-index audit (Tier 2+).
+**Codex full-repo context-index audit** (shipped on `codex` backend only):
+
+- Stages a sanitized eligible copy (hard-skip `.git` / `node_modules` / `.tokenforge`; secret path + content gates).
+- One `codex exec` read-only audit with heuristic findings as context (not constraints).
+- Returns candidate-path findings plus optional `contextIndexRecommendations` (`.md` indexes) and `repoAuditCoverage` on `scan.llm`.
+- Other Tier-2 backends keep single-pass excerpt enrichment unchanged.
 
 ---
 
