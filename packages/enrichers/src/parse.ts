@@ -1,4 +1,4 @@
-import type { TokenRiskFinding } from "@tokenforge/risk-core";
+import { coerceLlmVerdict, type TokenRiskFinding } from "@tokenforge/risk-core";
 import { UsageError } from "./errors";
 import type {
   EnrichmentCandidate,
@@ -81,10 +81,16 @@ export function mapStructuredFinding(
     return undefined;
   }
 
+  const verdict = coerceLlmVerdict({
+    path: row.path,
+    reason: row.reason,
+    verdict: row.verdict,
+  });
+
   const action =
-    row.verdict === "exclude"
+    verdict === "exclude"
       ? "excluded"
-      : row.verdict === "keep"
+      : verdict === "keep"
         ? "kept"
         : "kept";
 

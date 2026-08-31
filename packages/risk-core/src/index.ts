@@ -95,6 +95,8 @@ export {
   type DiscoverOpportunityCategory,
 } from "./policy/exclusions";
 export { activePathSet, isActivePath } from "./policy/active";
+export { coerceLlmVerdict, isLlmExcludeSafe } from "./policy/safety";
+export type { LlmVerdict as PolicyLlmVerdict } from "./policy/safety";
 export { mergeFindings } from "./merge/merge";
 export { isTokenRiskReport } from "./report/report";
 export { isSessionStatsReport } from "./report/sessionStats";
