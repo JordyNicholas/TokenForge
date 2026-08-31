@@ -10,6 +10,7 @@ After the event, delete this folder or archive it locally.
 | --- | --- |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](../../docs/pitch/TokenForge-Pitch.pptx) |
 | Hybrid demo report | [`dashboard/public/demo-hybrid-cursor-report.json`](../../dashboard/public/demo-hybrid-cursor-report.json) |
+| Live hybrid slot (gitignored path during demo) | `dashboard/public/live-hybrid-report.json` (copied after live scan) |
 
 Regenerate deck: `python3 scripts/generate-pitch-deck.py` (from repo root).
 

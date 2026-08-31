@@ -16,12 +16,19 @@ Fill this in before rehearsal. See [`.presentation/hackathon-2026-09/README.md`]
 | Role | Name | Segment |
 | --- | --- | --- |
 | **A — Narrator** | | Slides open (0:00–2:15) + close (8:30–10:00) |
-| **B — Detect / Fix / Hybrid** | | Extension + CLI + hybrid AI (2:15–8:30, or split D) |
-| **C — Prove / FinOps** | | Dashboard, Assumptions, Variance (4:45–7:00) |
-| **D — Hybrid AI** *(optional, 4+ presenters)* | | Hybrid beat only (7:00–8:30) |
+| **B — Detect / Fix / Hybrid** | | Extension + CLI apply + hybrid AI (2:15–8:15) |
+| **C — Prove / FinOps** | | Dashboard Tab 1, Assumptions, Variance (4:30–6:45) |
+| **D — Hybrid AI** *(optional, 4+ presenters)* | | Hybrid beat only — **skip with 3 presenters** (merged into B) |
 | **Timekeeper** *(does not present)* | | 2-min / 1-min / 30-s cards; enforces cut order |
 
-### Three presenters
+### Three presenters (recommended split)
+
+| Person | Segments | ~talk time |
+| --- | --- | --- |
+| **A** | Slides open + close | ~3:45 |
+| **B** | Extension, CLI scan/apply, hybrid scan + Tab 2 | ~4:30 |
+| **C** | Dashboard Prove + variance (Tab 1) | ~2:15 |
+| *(rotate)* | **Timekeeper** during another person's segment | — |
 
 Merge **D into B** — B runs extension, CLI, and hybrid AI.
 
@@ -30,9 +37,10 @@ Merge **D into B** — B runs extension, CLI, and hybrid AI.
 | Topic | Owner |
 | --- | --- |
 | Architecture / extensibility | A or D |
-| Why AI / hybrid enrichers | D or B |
-| Local vs external LLM | D or B |
-| Security / data leaving org | B or D |
+| Why AI / hybrid enrichers | B |
+| Local vs external LLM | B |
+| Security / data leaving org | B |
+| Codex full-repo audit vs Cursor CLI excerpts | B |
 | Prove savings / variance | C |
 | ~30% vs ~99.8% | C |
 | Break the agent? | B |
