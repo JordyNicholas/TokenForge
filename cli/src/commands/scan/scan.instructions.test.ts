@@ -8,16 +8,25 @@ import { scanRepo } from "./scan";
 // `.github/copilot-instructions.md` as source content that the shared
 // cleanup helper would delete if pointed at this root.
 describe("scanRepo (instructions-app, hybrid candidate selection)", () => {
-  it("does not flag verbose instruction files in the heuristic layer alone", async () => {
+  it("flags repeated instruction paragraphs in the heuristic layer without savings", async () => {
     const { report, assessments } = await scanRepo({
       root: instructionsAppRoot,
       now: new Date("2026-08-20T18:00:00.000Z"),
     });
 
     expect(isTokenRiskReport(report)).toBe(true);
-    expect(report.findings).toEqual([]);
     expect(report.totals.savedTokens).toBe(0);
     expect(assessments.every((assessment) => !assessment.atRisk)).toBe(true);
+    expect(report.instructionBudget?.stackTokens).toBeGreaterThan(0);
+    expect(
+      report.findings.some(
+        (finding) =>
+          finding.source === "heuristic" &&
+          finding.reason === "semantic_bloat" &&
+          finding.action === "kept" &&
+          finding.detail?.includes("Repeated paragraph"),
+      ),
+    ).toBe(true);
   });
 
   it("prioritizes all four instruction files for LLM enrichment", async () => {
