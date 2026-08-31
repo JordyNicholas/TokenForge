@@ -12,6 +12,7 @@ import type {
   ScanMetadata,
   ScanMode,
   ScanSource,
+  InstructionBudget,
   TokenRiskFinding,
   TokenRiskReport,
   TokenRiskTotals,
@@ -160,6 +161,28 @@ function isActivePaths(value: unknown): boolean {
   );
 }
 
+function isInstructionBudget(value: unknown): value is InstructionBudget {
+  if (!isRecord(value)) {
+    return false;
+  }
+  if (
+    !isNonNegativeInt(value.stackTokens) ||
+    !isNonNegativeInt(value.recommendedMax)
+  ) {
+    return false;
+  }
+  if (!Array.isArray(value.files)) {
+    return false;
+  }
+  return value.files.every(
+    (file) =>
+      isRecord(file) &&
+      typeof file.path === "string" &&
+      file.path.length > 0 &&
+      isNonNegativeInt(file.estTokens),
+  );
+}
+
 /** Runtime guard aligned with `docs/schemas/risk-event.schema.json`. */
 export function isTokenRiskReport(value: unknown): value is TokenRiskReport {
   if (!isRecord(value)) {
@@ -172,6 +195,9 @@ export function isTokenRiskReport(value: unknown): value is TokenRiskReport {
     return false;
   }
   if (value.activePaths !== undefined && !isActivePaths(value.activePaths)) {
+    return false;
+  }
+  if (value.instructionBudget !== undefined && !isInstructionBudget(value.instructionBudget)) {
     return false;
   }
   return (
