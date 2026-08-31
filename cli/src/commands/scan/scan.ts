@@ -28,7 +28,7 @@ import {
   type LlmEnricher,
 } from "../../enrichers";
 import { readActivePathsFile } from "../../io/active-paths-file";
-import { SKIP_DIR_NAMES, defaultRepoLabel, scanReportPath } from "../../io/paths";
+import { defaultRepoLabel, scanReportPath, shouldSkipWalkDirectory } from "../../io/paths";
 
 const PROVIDERS = new Set<ProviderId>([
   "copilot",
@@ -108,6 +108,7 @@ function toPosix(path: string): string {
 
 async function walkFiles(root: string): Promise<string[]> {
   const files: string[] = [];
+  const rootResolved = resolve(root);
 
   async function walk(dir: string): Promise<void> {
     let entries;
@@ -118,13 +119,16 @@ async function walkFiles(root: string): Promise<string[]> {
       throw new RuntimeError(`Cannot read directory ${dir}: ${reason}`);
     }
 
+    const relativeDir = toPosix(relative(rootResolved, dir));
+    const parentForSkip = relativeDir === "" ? "." : relativeDir;
+
     for (const entry of entries) {
       if (entry.isSymbolicLink()) {
         continue;
       }
       const abs = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (!SKIP_DIR_NAMES.has(entry.name)) {
+        if (!shouldSkipWalkDirectory(entry.name, parentForSkip)) {
           await walk(abs);
         }
         continue;
