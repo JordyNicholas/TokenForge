@@ -3,6 +3,7 @@ import { join, relative, resolve } from "node:path";
 import {
   activePathSet,
   buildScanLayers,
+  heuristicFindingAction,
   isActivePath,
   isTokenRiskReport,
   primaryReason,
@@ -152,12 +153,13 @@ function toFinding(
   // totals honest — it is not counted as saved, so Prove cannot claim a
   // reduction the policy pack never applies.
   const isOpen = isActivePath(active, assessment.path);
+  const action = isOpen ? "kept" : heuristicFindingAction(assessment, reason);
   return {
     path: assessment.path,
     reason,
     bytes: assessment.bytes,
     estTokens: assessment.estTokens,
-    action: isOpen ? "kept" : "excluded",
+    action,
     source: "heuristic",
     ...(isOpen
       ? { detail: "Open in the editor session that produced this scan." }

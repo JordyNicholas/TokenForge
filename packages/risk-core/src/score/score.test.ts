@@ -4,7 +4,7 @@ import {
   INACTIVE_MS,
   OVERSIZED_BYTES,
 } from "../domain/constants";
-import { primaryReason, scoreRisk } from "./score";
+import { primaryReason, heuristicFindingAction, scoreRisk } from "./score";
 
 
 describe("scoreRisk", () => {
@@ -183,5 +183,44 @@ describe("scoreRisk", () => {
       expect(result.reasons).toEqual(["inactive_tab"]);
       expect(result.atRisk).toBe(true);
     });
+  });
+});
+
+describe("heuristicFindingAction", () => {
+  it("keeps oversized-only application source out of Fix exclusions (B2)", () => {
+    const assessment = scoreRisk({
+      path: "src/generated-types.ts",
+      bytes: OVERSIZED_BYTES + 1,
+      inactiveMs: 0,
+    });
+    expect(assessment.fileClass).toBe("source");
+    expect(heuristicFindingAction(assessment, "oversized")).toBe("kept");
+  });
+
+  it("still excludes oversized config and high-risk filetypes", () => {
+    const config = scoreRisk({
+      path: "config/locales.json",
+      bytes: OVERSIZED_BYTES + 1,
+      inactiveMs: 0,
+    });
+    expect(heuristicFindingAction(config, "oversized")).toBe("excluded");
+
+    const lockfile = scoreRisk({
+      path: "package-lock.json",
+      bytes: OVERSIZED_BYTES + 1,
+      inactiveMs: 0,
+    });
+    expect(heuristicFindingAction(lockfile, "high_risk_filetype")).toBe("excluded");
+  });
+
+  it("excludes source when oversized is not the sole reason", () => {
+    const assessment = scoreRisk({
+      path: "src/app.ts",
+      bytes: OVERSIZED_BYTES + 1,
+      inactiveMs: INACTIVE_MS,
+    });
+    expect(assessment.reasons).toContain("oversized");
+    expect(assessment.reasons).toContain("inactive_tab");
+    expect(heuristicFindingAction(assessment, "oversized")).toBe("excluded");
   });
 });

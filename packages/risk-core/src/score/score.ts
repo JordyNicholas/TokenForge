@@ -49,6 +49,25 @@ export function primaryReason(
 }
 
 /**
+ * Map a heuristic at-risk assessment to a Fix-facing `action`.
+ * Oversized-only application source stays in context — size alone must not
+ * drive exclusion (HEURISTICS_AUDIT B2; F6 safety invariant).
+ */
+export function heuristicFindingAction(
+  assessment: RiskAssessment,
+  reason: FindingReason,
+): "excluded" | "kept" {
+  if (
+    reason === "oversized" &&
+    assessment.reasons.length === 1 &&
+    assessment.fileClass === "source"
+  ) {
+    return "kept";
+  }
+  return "excluded";
+}
+
+/**
  * Score a path for Detect (tabs) and Fix (repo scan).
  * `atRisk` when inactive past the threshold (default 10 min focused / 5 min
  * background via `inactiveThresholdMs`), high-risk filetype, or oversized.
