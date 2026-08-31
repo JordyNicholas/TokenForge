@@ -99,6 +99,34 @@
         "beforeTokens": 455959,
         "afterTokens": 733,
         "savedTokens": 455226
+      },
+      "instructionBudget": {
+        "alwaysOnTokens": 2100,
+        "recommendedMax": 1800,
+        "files": [
+          { "path": "AGENTS.md", "estTokens": 1050 },
+          { "path": "README.md", "estTokens": 1050 }
+        ]
+      },
+      "scan": {
+        "mode": "hybrid",
+        "hybridDelta": {
+          "heuristicSavedTokens": 455226,
+          "llmExclusiveSavedTokens": 0,
+          "combinedSavedTokens": 455226,
+          "llmFindingCount": 1,
+          "complementarityStatus": "ok"
+        },
+        "llm": {
+          "backend": "ollama",
+          "model": "qwen2.5-coder:7b",
+          "durationMs": 842,
+          "candidatesSent": 8,
+          "analysisOverview": {
+            "summary": "Hybrid enrichment flagged lockfile-class waste and overlapping agent instructions. Heuristic savings dominate; LLM adds hygiene on AGENTS.md.",
+            "themes": ["lockfiles", "redundant instructions"]
+          }
+        }
       }
     },
     {

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateLayerTotals,
+  getHybridDelta,
+  getInstructionBudget,
   getLlmAnalysisOverview,
+  isComplementarityFailure,
   parseBoardLayerFromPath,
   reportHasHybridLlm,
   reportsForLayer,
@@ -145,5 +148,51 @@ describe("dashboard layer helpers", () => {
       }),
     ).toEqual(overview);
     expect(getLlmAnalysisOverview(sampleReport)).toBeUndefined();
+  });
+
+  it("reads hybridDelta and instructionBudget from the report", () => {
+    const delta = {
+      heuristicSavedTokens: 100,
+      llmExclusiveSavedTokens: 50,
+      combinedSavedTokens: 150,
+      llmFindingCount: 2,
+      complementarityStatus: "ok" as const,
+    };
+    const budget = {
+      alwaysOnTokens: 900,
+      recommendedMax: 1200,
+      files: [{ path: "AGENTS.md", estTokens: 900 }],
+    };
+    const report = {
+      ...sampleReport,
+      instructionBudget: budget,
+      scan: { mode: "hybrid" as const, hybridDelta: delta },
+    };
+    expect(getHybridDelta(report)).toEqual(delta);
+    expect(getInstructionBudget(report)).toEqual(budget);
+  });
+
+  it("detects complementarity failure when candidates were sent but findings are empty", () => {
+    expect(
+      isComplementarityFailure({
+        ...sampleReport,
+        scan: {
+          mode: "hybrid",
+          hybridDelta: {
+            heuristicSavedTokens: 100,
+            llmExclusiveSavedTokens: 0,
+            combinedSavedTokens: 100,
+            llmFindingCount: 0,
+            complementarityStatus: "llm_empty",
+          },
+          llm: {
+            backend: "codex",
+            model: "default",
+            durationMs: 400,
+            candidatesSent: 6,
+          },
+        },
+      }),
+    ).toBe(true);
   });
 });
