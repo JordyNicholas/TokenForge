@@ -108,16 +108,15 @@ describe("synthesizeLeanInstructions", () => {
     expect(md).toContain("## Instruction hygiene");
     expect(md).toContain("`AGENTS.md`");
     expect(md).toMatch(/dedupe|duplicate|README/i);
+    expect(md).toContain("## Review only");
+    expect(md).toContain("`.cursor/rules/testing.mdc`");
     expect(md).toContain("## Why");
     expect(md).toContain("lockfiles");
     expect(md).toContain("redundant instructions");
     expect(utf8Bytes(md)).toBeLessThanOrEqual(MAX_LEAN_INSTRUCTION_BYTES);
   });
 
-  it("keeps duplicate_logic findings out of the instruction hygiene section", () => {
-    // duplicate_logic is about application code, so it must never become a
-    // bullet in a synthesized AGENTS.md. Its suggestion kind is
-    // `consolidate_duplicates` (not in HYGIENE_KINDS).
+  it("routes duplicate_logic findings to the advisory section", () => {
     const withDuplicateLogic: TokenRiskReport = {
       ...heuristicReport,
       findings: [
@@ -129,20 +128,20 @@ describe("synthesizeLeanInstructions", () => {
           estTokens: 99,
           action: "kept",
           source: "llm",
+          confidence: 0.82,
         },
       ],
     };
 
     const md = synthesizeLeanInstructions(withDuplicateLogic);
     expect(md).not.toContain("## Instruction hygiene");
-    expect(md).not.toContain("checkEmailFormat");
+    expect(md).toContain("## Review only");
+    expect(md).toContain("checkEmailFormat");
+    expect(md).toMatch(/Consolidate|shared helper/i);
+    expect(md).not.toMatch(/exclude.*checkEmailFormat/i);
   });
 
-  it("keeps redundant_config out of the hygiene section despite dedupe_rules", () => {
-    // redundant_config reuses `dedupe_rules`, which IS in HYGIENE_KINDS — so
-    // without an explicit guard it would land in the provider instruction file
-    // that `apply` writes, putting build-config refactoring advice in front of
-    // the agent on every turn. Reason-level skip, not kind-level (#136).
+  it("routes redundant_config to the advisory section", () => {
     const withRedundantConfig: TokenRiskReport = {
       ...heuristicReport,
       findings: [
@@ -154,13 +153,72 @@ describe("synthesizeLeanInstructions", () => {
           estTokens: 75,
           action: "kept",
           source: "llm",
+          confidence: 0.77,
         },
       ],
     };
 
     const md = synthesizeLeanInstructions(withRedundantConfig);
-    expect(md).not.toContain("tsconfig.json");
-    expect(md).not.toContain("shared base");
+    expect(md).toContain("## Review only");
+    expect(md).toContain("tsconfig.json");
+    expect(md).toContain("shared base");
+    expect(md).not.toContain("## Instruction hygiene");
+  });
+
+  it("ranks hygiene bullets by LLM confidence when present", () => {
+    const report: TokenRiskReport = {
+      ...heuristicReport,
+      findings: [
+        {
+          path: "AGENTS.md",
+          reason: "redundant_instructions",
+          bytes: 100,
+          estTokens: 50,
+          action: "excluded",
+          source: "llm",
+          confidence: 0.55,
+          suggestion: {
+            kind: "dedupe_rules",
+            summary: "Lower-confidence duplicate guidance.",
+          },
+        },
+        {
+          path: "README.md",
+          reason: "semantic_bloat",
+          bytes: 200,
+          estTokens: 40,
+          action: "excluded",
+          source: "llm",
+          confidence: 0.91,
+          suggestion: {
+            kind: "trim_instructions",
+            summary: "Higher-confidence trim candidate.",
+          },
+        },
+      ],
+    };
+
+    const md = synthesizeLeanInstructions(report);
+    const hygieneBlock =
+      md.split("## Instruction hygiene")[1]?.split("\n## ")[0] ?? "";
+    expect(hygieneBlock.indexOf("README.md")).toBeLessThan(
+      hygieneBlock.indexOf("AGENTS.md"),
+    );
+  });
+
+  it("includes instruction stack budget even when under the recommended max", () => {
+    const md = synthesizeLeanInstructions({
+      ...heuristicReport,
+      instructionBudget: {
+        alwaysOnTokens: 900,
+        recommendedMax: 1200,
+        overBudget: false,
+      },
+    });
+    expect(md).toContain("## Instruction stack");
+    expect(md).toContain("900");
+    expect(md).toContain("1,200");
+    expect(md).not.toContain("Trim or dedupe rules files");
   });
 
   it("never writes a 'do not load' bullet for a path the developer has open", () => {
