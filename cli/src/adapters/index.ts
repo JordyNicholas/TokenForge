@@ -16,6 +16,7 @@ export {
 export { copilotAdapter } from "./copilot/copilot";
 export {
   CURSOR_EXCLUSIONS_PATH,
+  CURSOR_IGNORE_CANDIDATES_PATH,
   CURSOR_INSTRUCTIONS_PATH,
   cursorAdapter,
 } from "./cursor/cursor";

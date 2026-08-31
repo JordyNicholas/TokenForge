@@ -3,8 +3,11 @@ import type {
   TokenRiskFinding,
   TokenRiskReport,
 } from "../domain/types";
+import { resolveSuggestion } from "../advise/suggest";
+import { classifyFiletype } from "../classify/classify";
 import { activePathSet, isActivePath } from "./active";
 import { collapseExclusionPaths } from "./collapse";
+import { isLlmExcludeSafe } from "./safety";
 
 export type DiscoverOpportunityCategory = "policy_gap" | "session_kept";
 
@@ -34,6 +37,55 @@ export function proposedExclusionPaths(
     )
     .map((finding) => finding.path);
   return collapseExclusionPaths(paths);
+}
+
+const ADVISORY_IGNORE_REASONS = new Set<FindingReason>([
+  "duplicate_logic",
+  "redundant_config",
+]);
+
+function isSafeIgnoreCandidate(finding: TokenRiskFinding): boolean {
+  if (ADVISORY_IGNORE_REASONS.has(finding.reason)) {
+    return false;
+  }
+  if (finding.source === "llm" || finding.suggestion) {
+    return isLlmExcludeSafe({
+      path: finding.path,
+      reason: finding.reason,
+      fileClass: classifyFiletype(finding.path),
+    });
+  }
+  return true;
+}
+
+/**
+ * Paths Fix would suggest for `.cursorignore` (or provider equivalent).
+ * Unions exclusion YAML paths with `add_ignore` suggestions; never includes
+ * active session paths. LLM-suggested ignores use the same safety gate as excludes.
+ */
+export function proposedIgnorePaths(
+  report: Pick<TokenRiskReport, "findings" | "activePaths">,
+): string[] {
+  const active = activePathSet(report);
+  const fromExclusions = proposedExclusionPaths(report);
+  const seen = new Set(fromExclusions);
+  const extra: string[] = [];
+
+  for (const finding of report.findings) {
+    if (isActivePath(active, finding.path) || seen.has(finding.path)) {
+      continue;
+    }
+    if (resolveSuggestion(finding).kind !== "add_ignore") {
+      continue;
+    }
+    if (!isSafeIgnoreCandidate(finding)) {
+      continue;
+    }
+    seen.add(finding.path);
+    extra.push(finding.path);
+  }
+
+  return collapseExclusionPaths([...fromExclusions, ...extra]);
 }
 
 /** True when `filePath` matches an applied exclusion entry (`dist/**` or exact). */

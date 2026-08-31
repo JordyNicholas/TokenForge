@@ -1,6 +1,7 @@
 import {
   MAX_LEAN_INSTRUCTION_BYTES,
   proposedExclusionPaths,
+  proposedIgnorePaths,
   synthesizeLeanInstructions,
   type ProviderId,
   type TokenRiskReport,
@@ -63,6 +64,23 @@ repo: ${JSON.stringify(report.repo)}
 paths:
 ${lines.join("\n") || "  []"}
 `;
+}
+
+export function renderIgnoreCandidates(
+  report: TokenRiskReport,
+  headerLines: readonly string[],
+): string {
+  const patterns = proposedIgnorePaths(report);
+  return [
+    ...headerLines,
+    "# Merge these into .cursorignore manually after review.",
+    "# TokenForge never overwrites an existing .cursorignore.",
+    `# provider: ${report.provider}`,
+    `# repo: ${JSON.stringify(report.repo)}`,
+    "",
+    ...patterns,
+    "",
+  ].join("\n");
 }
 
 export function renderInstructionsFile(
