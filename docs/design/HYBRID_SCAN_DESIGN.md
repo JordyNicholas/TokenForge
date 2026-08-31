@@ -27,7 +27,7 @@ Optional **LLM enrichment** closes that gap without making AI the default scan p
 | `risk-core` stays pure | No HTTP, Ollama, vendor SDKs, or subprocesses in the kernel |
 | Enrichers live in CLI (like Fix adapters) | Pluggable local **and** external backends |
 | Bounded candidate set | Never send whole lockfiles / `node_modules` trees |
-| External mode is explicit | Candidate excerpts may leave the machine |
+| External mode is explicit | Candidate excerpts may leave the machine (`codex`: sanitized repo copy) |
 
 ## Architecture
 
@@ -52,7 +52,7 @@ Optional **LLM enrichment** closes that gap without making AI the default scan p
 **Fix adapters** and **LLM enrichers** are separate port families:
 
 - Fix: findings → vendor policy files (`copilot`, `cursor`, …)
-- Enricher: candidate excerpts → additional / enriched findings
+- Enricher: candidate excerpts → additional / enriched findings (Codex: staged repo audit)
 
 ## Scan modes
 
@@ -217,6 +217,20 @@ and keeping the model off it is the prompt's job, not the router's.
       "summary": "3–6 sentence capsule of enricher conclusions (optional).",
       "themes": ["lockfiles", "redundant instructions"],
       "caveats": ["optional quality notes"]
+    },
+    "contextIndexRecommendations": [
+      {
+        "path": "docs/INDEX.md",
+        "purpose": "Progressive disclosure for agents",
+        "summary": "Link to package READMEs; do not duplicate AGENTS.md rules."
+      }
+    ],
+    "repoAuditCoverage": {
+      "mode": "codex_repo_audit",
+      "filesCopied": 142,
+      "filesSkippedSecret": 3,
+      "filesSkippedHardDir": 0,
+      "bytesCopied": 524288
     }
   }
 }
@@ -238,7 +252,7 @@ type LlmEnricher = {
 | --- | --- | --- |
 | `noop` | — | Default; no network |
 | `ollama` | Local Ollama | Qwen 2.5-Coder, etc. |
-| `codex` | Local Codex CLI process | Reuses the user's saved ChatGPT login |
+| `codex` | Local Codex CLI process | Reuses the user's saved ChatGPT login; **full-repo audit** on staged copy (#189) |
 | `anthropic` | Anthropic Messages API | Org-approved cloud; `ANTHROPIC_API_KEY` |
 | `claude-code` | Local Claude Code CLI process | Reuses the user's saved subscription login |
 | `gemini-cli` | Local Gemini CLI process | Reuses the user's saved Google login |
@@ -246,17 +260,22 @@ type LlmEnricher = {
 
 `anthropic` and `claude-code` reach the same models and differ only in **who
 pays**: an API key billed per call, versus a Claude Pro/Max plan. That is the
-same split `codex` provides against an OpenAI API key, which is why the two CLI
-backends share a shape (spawn, strip the API key from the child environment,
-bounded prompt on stdin, structured JSON out).
+same split `codex` provides against an OpenAI API key.
+
+**Excerpt-based CLI backends** (`anthropic`, `claude-code`, `gemini-cli`,
+`cursor-cli`) share a shape: spawn in an empty temp dir, strip API keys from the
+child environment, bounded prompt on stdin with candidate excerpts, structured
+JSON out. **Codex** differs (#189): stage a sanitized eligible repo copy, run
+one read-only `codex exec` with that copy as cwd; the prompt lists candidate
+paths and heuristic findings — not inlined file bodies.
 
 Registry: `cli/src/enrichers/registry.ts` — mirrors Fix adapter pattern.
 
 ### Single pass (hosted / CLI backends)
 
-`anthropic`, `claude-code`, `codex`, `gemini-cli` and `cursor-cli` send the
-**whole candidate set in one request** (`SINGLE_PASS_BATCH_SIZE`, derived from
-the candidate cap). Chunking them was costing findings: a claim about two files
+`anthropic`, `claude-code`, `gemini-cli` and `cursor-cli` send the **whole
+candidate set in one request** (`SINGLE_PASS_BATCH_SIZE`, derived from the
+candidate cap). Chunking them was costing findings: a claim about two files
 is unreachable when the chunker separates them, and measured against the real
 CLI, batches of 4 missed a third `tsconfig.json` copy and one side of a
 duplicate-function pair that a single pass found. See
@@ -264,6 +283,22 @@ duplicate-function pair that a single pass found. See
 
 The full 30-candidate prompt is ~17K tokens, so there is nothing to chunk
 around on a model with a large context window.
+
+### Codex full-repo audit (#189)
+
+The `codex` backend does **not** use excerpt batching. Instead:
+
+1. **Stage** a sanitized eligible copy of the repository (hard-skip `.git`,
+   `node_modules`, `.tokenforge`; omit credential-shaped paths and
+   secret-shaped content; `.cursor` remains visible).
+2. **Audit** with one non-interactive `codex exec` in a read-only sandbox,
+   staged copy as cwd. The stdin prompt carries candidate paths and heuristic
+   findings as informational context — not hard constraints.
+3. **Emit** candidate-path findings plus optional `contextIndexRecommendations`
+   (`.md` index proposals) and `repoAuditCoverage` on `scan.llm`.
+
+Findings still validate against the candidate path set only; index proposals
+use a separate parser (`isContextIndexPath`).
 
 ### Multi-pass enrich (local-first)
 
@@ -323,27 +358,34 @@ Environment (external backends):
 
 ### Trust boundary for CLI backends
 
-Both CLI backends run in a fresh empty temporary directory, never the scanned
-repository. For Codex that is defence in depth on top of `--sandbox read-only`.
-For Claude Code it is the **primary** control: a `claude -p` session loads
-settings, hooks, MCP servers, and `CLAUDE.md` from its working directory with no
-trust dialog, so pointing it at the repository under analysis would let that
+**Excerpt-based CLI backends** (`claude-code`, `gemini-cli`, `cursor-cli`) run
+in a fresh empty temporary directory, never the scanned repository. For Claude
+Code that is the **primary** control: a `claude -p` session loads settings,
+hooks, MCP servers, and `CLAUDE.md` from its working directory with no trust
+dialog, so pointing it at the repository under analysis would let that
 repository configure the process analyzing it.
+
+**Codex** uses a **staged sanitized copy** as the working directory with
+`--sandbox read-only` — defence in depth on top of staging gates. The audit
+prompt lists candidate paths and heuristic findings; file bodies are read
+on demand from the staged tree, not inlined as excerpts.
 
 The CLI's own `--bare` flag would also suppress that discovery, but it never
 reads OAuth credentials — it requires `ANTHROPIC_API_KEY`, which is exactly the
-thing this backend exists to avoid. The empty working directory buys back most
-of what `--bare` gives up, without giving up the login.
+thing the Claude Code backend exists to avoid. The empty working directory buys
+back most of what `--bare` gives up, without giving up the login.
 
 The tool surface is deny-by-default (`--permission-mode dontAsk`,
 `--strict-mcp-config`) — deliberately **not**
 `--dangerously-skip-permissions`, which is `bypassPermissions` and would
-auto-approve every tool. The candidate excerpts are already in the prompt, so
-the pass needs no file access at all.
+auto-approve every tool. Excerpt-based passes need no file access beyond what
+is already in the prompt.
 
 ### Structured LLM output
 
-Enrichers request JSON matching an internal schema (not yet in the public report schema):
+Enrichers request JSON matching an internal schema. `analysisOverview`,
+`contextIndexRecommendations`, and `repoAuditCoverage` are optional on `scan.llm`
+in the public report schema (`docs/schemas/risk-event.schema.json`):
 
 ```json
 {
@@ -418,6 +460,7 @@ Epic: **[#60 F1 — Hybrid Detect backends](https://github.com/JordyNicholas/Tok
 | #55 | Advisory finding suggestions (copy-only, never applied) | Shipped |
 | #49 | Pitch FAQ + deck: hybrid scan talking points | Shipped (deck roadmap refresh in #63) |
 | #45 | CLI: Codex CLI enricher (re-scoped from direct OpenAI-compatible API) | Shipped |
+| #189 | Codex full-repo audit + context index proposals | Shipped |
 | #46 | CLI: Anthropic enricher | Shipped |
 | #66 | CLI: multi-pass local-first enrich (map → judge → reconcile) | Shipped |
 | #48 | Extension: optional enricher on instruction paths | Shipped — F1 complete |

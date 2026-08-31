@@ -53,4 +53,4 @@ Full write-up: [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md
 - Do not claim interception of any agent/LLM’s private context pipeline.
 - Pitch Chat/Agent / metered AI-credit workflows, not unlimited completions metering.
 - “30%” is scenario-based via the dashboard calculator.
-- Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — see [`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md).
+- Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — Codex hybrid stages a sanitized repo copy for a read-only audit instead of excerpt batching. See [`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md).

@@ -27,7 +27,8 @@ How much of that reaches the prompt is per-backend:
 | Backend | Excerpt in prompt |
 | --- | --- |
 | `ollama` | first `MAX_LLM_EXCERPT_CHARS` (2 KiB) — a small local model does worse with more |
-| `anthropic`, `claude-code`, `codex`, `gemini-cli`, `cursor-cli` | untrimmed, up to the full 32 KiB read |
+| `anthropic`, `claude-code`, `gemini-cli`, `cursor-cli` | untrimmed, up to the full 32 KiB read |
+| `codex` | *not excerpt-based* — stages a sanitized eligible repo copy for one read-only audit (#189) |
 
 The 2 KiB figure was calibrated for a 7B on low-spec hardware and used to apply
 to every backend, so a frontier model saw only the first 2 KiB of each file

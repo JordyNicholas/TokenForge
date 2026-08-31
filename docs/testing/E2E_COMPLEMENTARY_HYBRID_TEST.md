@@ -22,8 +22,9 @@ Use this matrix when validating a **real** LLM backend before release or pilot s
 
 1. **Complementarity:** hybrid adds distinct signal (findings, overview, or delta) without reducing heuristic savings on `noisy-app`.
 2. **Safety:** no `action: excluded` on protected / source paths unless policy allowlist permits (#201).
-3. **Honesty:** do not claim pipeline interception; hybrid sends bounded excerpts only.
+3. **Honesty:** do not claim pipeline interception; non-Codex hybrids send bounded excerpts only. **Codex** sends a sanitized eligible repo copy (`scan.llm.repoAuditCoverage.mode === "codex_repo_audit"`).
 4. **Prove:** `scan.hybridDelta` and `instructionBudget` present on v5 reports when hybrid ran.
+5. **Codex-only (when using `--llm codex`):** optional `contextIndexRecommendations` (`.md` index proposals) on `scan.llm`.
 
 ## Suggested commands
 
@@ -34,3 +35,5 @@ npm run tokenforge -- apply fixtures/noisy-app --provider cursor --dry-run
 ```
 
 Record backend, model, duration, and whether `analysisOverview.summary` is populated.
+For Codex runs, also record `repoAuditCoverage.filesCopied` and whether
+`contextIndexRecommendations` is non-empty.

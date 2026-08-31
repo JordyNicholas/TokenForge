@@ -417,8 +417,11 @@ already sent it the secret.
 2. **Content gate**, `hasSecretContent` in `packages/enrichers` — runs at the
    CLI read boundary, where the excerpt already exists, and catches the
    innocuously named file the name gate cannot see. The candidate is dropped
-   whole rather than redacted: a redacted excerpt still tells a remote model
-   where the secret lives.
+   before enrichment — whole rather than redacted: a redacted excerpt still
+   tells a remote model where the secret lives.
+
+   For **Codex** (#189), the same gates apply at **repo staging** time
+   (`stageRepositoryForAudit`) rather than per-candidate excerpt batching.
 
 `risk-core` stays filesystem-free, so the content half necessarily lives at the
 CLI edge — that split is architectural, not incidental.

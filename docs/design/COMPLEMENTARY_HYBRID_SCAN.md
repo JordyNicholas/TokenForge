@@ -1,6 +1,6 @@
 # Complementary hybrid scan — AI-first Detect design
 
-**Status:** Locked (F6 epic #199)  
+**Status:** Locked — F6 shipped (epic #199 closed)  
 **Scope:** How heuristic and LLM layers complement each other in every scan; policy
 safety invariants; enrichment tiers; acceptance criteria.  
 **Audience:** Implementers, reviewers, pitch.  
@@ -91,6 +91,8 @@ Entry: `--mode hybrid --llm ollama:…`
 
 **Owns:** same semantic scope as Tier 1; **must not** be a thinner code path.
 
+**Non-Codex Tier-2 backends** (`anthropic`, `claude-code`, `gemini-cli`, `cursor-cli`):
+
 - Single large-context pass (all candidates, up to 30) — not chunked batching
 - Full read-boundary excerpts (32 KiB per file)
 - **Mandatory** `analysisOverview` on every successful enrich (#206)
@@ -98,8 +100,7 @@ Entry: `--mode hybrid --llm ollama:…`
 
 Transport differs (JSON schema vs prose parse); **analysis scope does not**.
 
-Related extension: [#189](https://github.com/JordyNicholas/TokenForge/issues/189) —
-**Codex full-repo context-index audit** (shipped on `codex` backend only):
+**Codex** (`codex` backend only — [#189](https://github.com/JordyNicholas/TokenForge/issues/189), shipped):
 
 - Stages a sanitized eligible copy (hard-skip `.git` / `node_modules` / `.tokenforge`; secret path + content gates).
 - One `codex exec` read-only audit with heuristic findings as context (not constraints).
@@ -187,8 +188,9 @@ Epic: **[#199 F6 — AI-first complementary hybrid Detect](https://github.com/Jo
 | #209 | Complementarity acceptance tests |
 | #210 | Dashboard hybrid delta + instruction stack |
 | #211 | Pitch FAQ + BOARD index |
+| #189 | Codex full-repo audit + context index proposals |
 
-Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #207 → #208 → #209 → #210 → #211**
+Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #207 → #208 → #209 → #210 → #211 → #189**
 
 ---
 

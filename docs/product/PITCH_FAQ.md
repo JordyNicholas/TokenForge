@@ -35,7 +35,7 @@ When hybrid runs, it should add **distinct** value — overview themes, advisory
 Backends are pluggable:
 
 - **Local** — Ollama multipass (data stays on machine)
-- **External** — Codex, Claude Code, Cursor CLI, Anthropic, Gemini CLI (excerpts may leave the machine; `--allow-external` required)
+- **External** — Claude Code, Cursor CLI, Anthropic, Gemini CLI send bounded candidate excerpts (`--allow-external` required). **Codex** stages a sanitized eligible repo copy for one read-only audit (not per-file excerpts); optional `contextIndexRecommendations` and `repoAuditCoverage` appear on `scan.llm`.
 
 Token math stays heuristic; models add semantic findings and explanations, not primary token counts. We do **not** intercept any vendor’s private context pipeline.
 

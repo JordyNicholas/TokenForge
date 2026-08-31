@@ -29,7 +29,7 @@ Phase 2. Former catch-all #7 was split:
 | F3 Adjacent (do not pitch) | #62 | Future | **Epics Finished** |
 | F4 Extension session Prove & provider CLI transports | #156 | Future | **To-Do** (open) |
 | F5 RTK-inspired native product patterns | #177 | Future | **To-Do** (open; #176 **Done**) |
-| F6 AI-first complementary hybrid Detect | #199 | Future | **In Progress** (PRs #218–#222 open) |
+| F6 AI-first complementary hybrid Detect | #199 | Future | **Epics Finished** (#189 shipped with #224) |
 
 F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 #136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
@@ -293,14 +293,15 @@ Build order when prioritized: **#175** (`init`) and **#170** (discover) for fast
 | #203 | Selective `.cursor/rules` walk | CLI | **Done** |
 | #204 | Deterministic instruction bloat audit | `risk-core` / CLI | **Done** |
 | #205 | `hybridDelta` + `instructionBudget` on scan JSON | `risk-core` / CLI | **Done** |
-| #206 | Mandatory `analysisOverview` (Tier-2 backends) | `enrichers` | Ready for Review (#218) |
-| #207 | Cursor `.cursorignore` candidates sidecar | CLI adapters | Ready for Review (#219) |
-| #208 | Policy advisory block + richer synthesis | `risk-core` | Ready for Review (#220) |
-| #209 | Complementarity acceptance test suite | CLI tests | Ready for Review (#221) |
-| #210 | Dashboard hybrid delta + instruction stack | Dashboard | Ready for Review (#222) |
-| #211 | Pitch FAQ + BOARD F6 index | Docs | In Progress |
+| #206 | Mandatory `analysisOverview` (Tier-2 backends) | `enrichers` | **Done** |
+| #207 | Cursor `.cursorignore` candidates sidecar | CLI adapters | **Done** |
+| #208 | Policy advisory block + richer synthesis | `risk-core` | **Done** |
+| #209 | Complementarity acceptance test suite | CLI tests | **Done** |
+| #210 | Dashboard hybrid delta + instruction stack | Dashboard | **Done** |
+| #211 | Pitch FAQ + BOARD F6 index | Docs | **Done** |
+| #189 | Codex full-repo audit + context index proposals | `enrichers` | **Done** |
 
-Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #207 → #208 → #209 → #210 → #211**
+Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #207 → #208 → #209 → #210 → #211 → #189**
 
 Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). Manual provider matrix: [`E2E_COMPLEMENTARY_HYBRID_TEST.md`](../testing/E2E_COMPLEMENTARY_HYBRID_TEST.md).
 
@@ -332,7 +333,7 @@ Phase 2:
 3. **F3** (#62) — epic closed; advisory panels for **#25** / **#26** shipped; full assistants remain post-hackathon (do not pitch)
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
-6. **F6** (#199) — complementary hybrid Detect (#200–#211); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
+6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
 7. **Candidates** below — promote to issues when the team agrees scope
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
