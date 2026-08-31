@@ -1,5 +1,14 @@
-import type { RiskAssessment, TokenRiskFinding, TokenRiskTotals } from "../domain/types";
+import type {
+  ComplementarityStatus,
+  HybridDelta,
+  RiskAssessment,
+  ScanLayers,
+  TokenRiskFinding,
+  TokenRiskTotals,
+} from "../domain/types";
 import { mergeFindings } from "../merge/merge";
+
+export type BuildScanLayersResult = ScanLayers & { hybridDelta?: HybridDelta };
 
 export function tallyHeuristicTotals(
   assessments: readonly RiskAssessment[],
@@ -59,16 +68,53 @@ export function tallyCombinedTotals(
   };
 }
 
+export function computeHybridDelta(input: {
+  assessments: readonly RiskAssessment[];
+  heuristicFindings: readonly TokenRiskFinding[];
+  llmFindings: readonly TokenRiskFinding[];
+  combinedFindings: readonly TokenRiskFinding[];
+  candidatesSent: number;
+}): HybridDelta {
+  const heuristicSavedTokens = tallyCombinedTotals(
+    input.assessments,
+    input.heuristicFindings,
+  ).savedTokens;
+  const combinedSavedTokens = tallyCombinedTotals(
+    input.assessments,
+    input.combinedFindings,
+  ).savedTokens;
+  const llmExclusiveSavedTokens = Math.max(
+    0,
+    combinedSavedTokens - heuristicSavedTokens,
+  );
+  const llmFindingCount = input.llmFindings.length;
+
+  let complementarityStatus: ComplementarityStatus;
+  if (input.candidatesSent === 0) {
+    complementarityStatus = "candidates_skipped";
+  } else if (llmFindingCount === 0) {
+    complementarityStatus = "llm_empty";
+  } else {
+    complementarityStatus = "ok";
+  }
+
+  return {
+    heuristicSavedTokens,
+    llmExclusiveSavedTokens,
+    combinedSavedTokens,
+    llmFindingCount,
+    complementarityStatus,
+  };
+}
+
 export function buildScanLayers(input: {
   assessments: readonly RiskAssessment[];
   heuristicFindings: readonly TokenRiskFinding[];
   llmFindings: readonly TokenRiskFinding[];
   llmCandidateTokens?: number;
-}): {
-  heuristic: { findings: TokenRiskFinding[]; totals: TokenRiskTotals };
-  llm: { findings: TokenRiskFinding[]; totals: TokenRiskTotals };
-  combined: { findings: TokenRiskFinding[]; totals: TokenRiskTotals };
-} {
+  /** When set, hybrid complementarity metrics are computed (#205). */
+  candidatesSent?: number;
+}): BuildScanLayersResult {
   const heuristicTotals = tallyHeuristicTotals(input.assessments);
   const combinedFindings = mergeFindings(input.heuristicFindings, input.llmFindings);
   const combinedTotals = tallyCombinedTotals(input.assessments, combinedFindings);
@@ -77,7 +123,7 @@ export function buildScanLayers(input: {
     input.llmFindings,
   );
 
-  return {
+  const layers: ScanLayers = {
     heuristic: {
       findings: [...input.heuristicFindings],
       totals: heuristicTotals,
@@ -90,5 +136,20 @@ export function buildScanLayers(input: {
       findings: combinedFindings,
       totals: combinedTotals,
     },
+  };
+
+  if (input.candidatesSent === undefined) {
+    return layers;
+  }
+
+  return {
+    ...layers,
+    hybridDelta: computeHybridDelta({
+      assessments: input.assessments,
+      heuristicFindings: input.heuristicFindings,
+      llmFindings: input.llmFindings,
+      combinedFindings,
+      candidatesSent: input.candidatesSent,
+    }),
   };
 }

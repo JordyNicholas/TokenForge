@@ -44,6 +44,28 @@ describe("buildScanLayers", () => {
     expect(layers.combined.findings).toHaveLength(2);
     expect(layers.llm.totals.savedTokens).toBe(500);
   });
+
+  it("computes hybridDelta when candidatesSent is provided", () => {
+    const assessments = [
+      assessment("lock.json", 1000, true),
+      assessment("AGENTS.md", 500, false),
+    ];
+    const layers = buildScanLayers({
+      assessments,
+      heuristicFindings: [finding("lock.json", 1000, "heuristic")],
+      llmFindings: [finding("AGENTS.md", 500, "llm")],
+      llmCandidateTokens: 500,
+      candidatesSent: 4,
+    });
+
+    expect(layers.hybridDelta).toEqual({
+      heuristicSavedTokens: 1000,
+      llmExclusiveSavedTokens: 500,
+      combinedSavedTokens: 1500,
+      llmFindingCount: 1,
+      complementarityStatus: "ok",
+    });
+  });
 });
 
 describe("kept findings and savings math", () => {

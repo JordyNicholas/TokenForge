@@ -12,7 +12,7 @@ describe("instruction budget heuristics", () => {
 
   it("sums instruction-path tokens for the stack budget", () => {
     const budget = computeInstructionBudget([agents, claude]);
-    expect(budget.stackTokens).toBe(agents.estTokens + claude.estTokens);
+    expect(budget.alwaysOnTokens).toBe(agents.estTokens + claude.estTokens);
     expect(budget.files.map((file) => file.path)).toEqual(["AGENTS.md", "CLAUDE.md"]);
   });
 
@@ -38,7 +38,7 @@ describe("instruction budget heuristics", () => {
   it("flags when stack exceeds recommended budget", () => {
     const budget = computeInstructionBudget([agents, claude]);
     expect(isInstructionStackOverBudget(budget)).toBe(
-      budget.stackTokens > budget.recommendedMax,
+      budget.alwaysOnTokens > budget.recommendedMax,
     );
   });
 });

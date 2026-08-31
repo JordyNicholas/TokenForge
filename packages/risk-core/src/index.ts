@@ -60,10 +60,12 @@ export {
 export { estimateTokens } from "./estimate/estimate";
 export {
   buildScanLayers,
+  computeHybridDelta,
   tallyCombinedTotals,
   tallyHeuristicTotals,
   tallyLlmTotals,
 } from "./layers/totals";
+export type { BuildScanLayersResult } from "./layers/totals";
 export {
   hasLlmLayerData,
   reportForLayer,
@@ -146,6 +148,8 @@ export type {
   TokenRiskReport,
   TokenRiskTotals,
   InstructionBudget,
+  HybridDelta,
+  ComplementarityStatus,
   SessionStatsHistoryEntry,
   SessionStatsReport,
 } from "./domain/types";

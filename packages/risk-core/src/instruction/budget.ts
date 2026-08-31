@@ -17,9 +17,9 @@ export function computeInstructionBudget(
     }))
     .sort((a, b) => b.estTokens - a.estTokens || a.path.localeCompare(b.path));
 
-  const stackTokens = files.reduce((sum, file) => sum + file.estTokens, 0);
+  const alwaysOnTokens = files.reduce((sum, file) => sum + file.estTokens, 0);
   return {
-    stackTokens,
+    alwaysOnTokens,
     recommendedMax: RECOMMENDED_INSTRUCTION_STACK_TOKENS,
     files,
   };
@@ -60,5 +60,5 @@ export function buildInstructionHeuristicFindings(input: {
 }
 
 export function isInstructionStackOverBudget(budget: InstructionBudget): boolean {
-  return budget.stackTokens > budget.recommendedMax;
+  return budget.alwaysOnTokens > budget.recommendedMax;
 }

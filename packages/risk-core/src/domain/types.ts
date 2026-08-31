@@ -165,6 +165,8 @@ export type ScanLlmMetadata = {
 export type ScanMetadata = {
   mode: ScanMode;
   llm?: ScanLlmMetadata;
+  /** Present when `mode` is `hybrid` — layer savings breakdown (#205). */
+  hybridDelta?: HybridDelta;
 };
 
 export type ScanLayerId = "heuristic" | "llm" | "combined";
@@ -185,9 +187,20 @@ export type TokenRiskTotals = {
 
 /** Heuristic audit of always-on instruction / rules files (#204). */
 export type InstructionBudget = {
-  stackTokens: number;
+  alwaysOnTokens: number;
   recommendedMax: number;
   files: Array<{ path: string; estTokens: number }>;
+};
+
+export type ComplementarityStatus = "ok" | "llm_empty" | "candidates_skipped";
+
+/** Hybrid layer savings breakdown for Prove / dashboard (#205). */
+export type HybridDelta = {
+  heuristicSavedTokens: number;
+  llmExclusiveSavedTokens: number;
+  combinedSavedTokens: number;
+  llmFindingCount: number;
+  complementarityStatus: ComplementarityStatus;
 };
 
 /**
