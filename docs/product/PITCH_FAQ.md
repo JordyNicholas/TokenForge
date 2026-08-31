@@ -26,16 +26,20 @@ See [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) for the ≤5-min live demo 
 
 ## Do you use AI to scan?
 
-**Default: no.** `tokenforge scan` is heuristic — file size, path class, inactivity, and `estTokens ≈ ceil(bytes / 4)`.
+**Baseline: heuristic.** `tokenforge scan` always runs deterministic rules — file size, path class, inactivity, and `estTokens ≈ ceil(bytes / 4)`. That baseline is what Fix adapters and savings totals trust.
 
-**Optional hybrid mode** (`--mode hybrid`) runs the same baseline plus an LLM **enricher** on a bounded candidate set (instruction files, borderline configs, top-N paths). Backends are pluggable:
+**Hybrid mode is complementary, not a replacement** (`--mode hybrid`). The same heuristic walk runs first; an optional LLM **enricher** then reviews a **bounded candidate set** (instruction files, borderline configs, top-N paths) and adds semantic findings, hygiene suggestions, and an `analysisOverview` capsule. Heuristic and LLM layers stay separate in the report (`scan.hybridDelta`); merge rules keep heuristic token fields authoritative on path collisions.
 
-- **Local** — Ollama / Qwen 2.5-Coder (data stays on machine)
-- **External** — Codex CLI with the user's ChatGPT login, or Anthropic with an org-approved key (excerpts may leave the machine)
+When hybrid runs, it should add **distinct** value — overview themes, advisory rows, or LLM-exclusive excludes — without undoing heuristic savings on fixtures like `noisy-app`. Default scan remains heuristic-only; hybrid is opt-in per run.
 
-Token math stays heuristic; the model adds semantic findings and explanations, not primary token counts.
+Backends are pluggable:
 
-Full design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md).
+- **Local** — Ollama multipass (data stays on machine)
+- **External** — Codex, Claude Code, Cursor CLI, Anthropic, Gemini CLI (excerpts may leave the machine; `--allow-external` required)
+
+Token math stays heuristic; models add semantic findings and explanations, not primary token counts. We do **not** intercept any vendor’s private context pipeline.
+
+Full design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) (F6) and [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md).
 
 ## Do you intercept the agent’s context pipeline?
 
