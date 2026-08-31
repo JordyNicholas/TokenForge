@@ -1,7 +1,13 @@
 import { isTokenRiskReport, type TokenRiskFinding } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
-import type { LlmEnricher, LlmEnricherInput } from "../../enrichers";
-import { semanticDuplicatesAppRoot } from "../../test/helpers";
+import type { LlmEnricher, LlmEnricherInput, LlmStructuredFinding } from "../../enrichers";
+import { mapStructuredFindings } from "../../enrichers";
+import {
+  fixtureRoot,
+  heuristicEdgeAppRoot,
+  instructionsAppRoot,
+  semanticDuplicatesAppRoot,
+} from "../../test/helpers";
 import { scanRepo } from "./scan";
 
 const DUPLICATE_A = "src/utils/checkEmailFormat.js";
@@ -23,12 +29,34 @@ const OTHER_CANDIDATE = "src/network/retryRequest.js";
  */
 function scriptedEnricher(
   findingsFor: (input: LlmEnricherInput) => TokenRiskFinding[],
+  metaExtra?: Record<string, unknown>,
 ): LlmEnricher {
   return {
     id: "noop",
     async enrich(input) {
       return {
         findings: findingsFor(input),
+        meta: {
+          backend: "noop",
+          model: input.model,
+          durationMs: 12,
+          candidatesSent: input.candidates.length,
+          ...metaExtra,
+        },
+      };
+    },
+  };
+}
+
+/** Applies the same safety gate production enrichers use via mapStructuredFindings. */
+function structuredEnricher(
+  rowsFor: (input: LlmEnricherInput) => readonly LlmStructuredFinding[],
+): LlmEnricher {
+  return {
+    id: "noop",
+    async enrich(input) {
+      return {
+        findings: mapStructuredFindings(rowsFor(input), input.candidates),
         meta: {
           backend: "noop",
           model: input.model,
@@ -170,5 +198,124 @@ describe("scanRepo (hybrid, non-empty LLM findings)", () => {
     expect(report.layers?.llm.findings).toHaveLength(2);
     expect(report.layers?.llm.totals.savedTokens).toBe(excludedTokens);
     expect(report.layers?.combined.totals.savedTokens).toBe(excludedTokens);
+  });
+});
+
+describe("complementarity acceptance (#209)", () => {
+  it("noisy-app: heuristic savings dominate and hybrid records delta metadata", async () => {
+    const heuristic = await scanRepo({
+      root: fixtureRoot,
+      now: new Date("2026-08-24T18:00:00.000Z"),
+    });
+    const hybrid = await scanRepo({
+      root: fixtureRoot,
+      mode: "hybrid",
+      now: new Date("2026-08-24T18:00:00.000Z"),
+      enricher: scriptedEnricher(
+        () => [],
+        {
+          analysisOverview: {
+            summary: "Scripted overview for complementarity acceptance.",
+            themes: ["lockfiles"],
+          },
+        },
+      ),
+    });
+
+    expect(heuristic.report.totals.savedTokens).toBeGreaterThan(0);
+    expect(hybrid.report.totals.savedTokens).toBe(heuristic.report.totals.savedTokens);
+    expect(hybrid.report.scan?.hybridDelta).toMatchObject({
+      heuristicSavedTokens: heuristic.report.totals.savedTokens,
+      combinedSavedTokens: heuristic.report.totals.savedTokens,
+      complementarityStatus: "llm_empty",
+    });
+    expect(hybrid.report.scan?.llm?.analysisOverview?.summary).toContain(
+      "complementarity",
+    );
+  });
+
+  it("instructions-app: heuristic keeps instruction files; hybrid LLM adds exclusive savings", async () => {
+    const { assessments } = await scanRepo({ root: instructionsAppRoot });
+    const index = assessments.find((assessment) => assessment.path === "src/index.js");
+    expect(index).toBeDefined();
+
+    const { report } = await scanRepo({
+      root: instructionsAppRoot,
+      mode: "hybrid",
+      enricher: scriptedEnricher(() => [
+        {
+          path: "src/index.js",
+          reason: "semantic_bloat",
+          bytes: index!.bytes,
+          estTokens: index!.estTokens,
+          action: "excluded",
+          source: "llm",
+        },
+      ]),
+    });
+
+    expect(report.layers?.heuristic.totals.savedTokens).toBe(0);
+    expect(report.totals.savedTokens).toBe(index!.estTokens);
+    expect(
+      report.findings.some(
+        (finding) =>
+          finding.source === "heuristic" &&
+          finding.reason === "semantic_bloat" &&
+          finding.action === "kept",
+      ),
+    ).toBe(true);
+    expect(report.scan?.hybridDelta).toMatchObject({
+      complementarityStatus: "ok",
+      llmFindingCount: 1,
+      llmExclusiveSavedTokens: index!.estTokens,
+    });
+  });
+
+  it("heuristic-edge-app: unsafe LLM excludes on protected source are gated", async () => {
+    const { report } = await scanRepo({
+      root: heuristicEdgeAppRoot,
+      mode: "hybrid",
+      enricher: structuredEnricher(() => [
+        {
+          path: "src/index.ts",
+          verdict: "exclude",
+          reason: "semantic_bloat",
+          confidence: 0.95,
+          detail: "Unsafe source exclude attempt.",
+        },
+      ]),
+    });
+
+    const indexed = report.layers?.llm.findings.find(
+      (finding) => finding.path === "src/index.ts",
+    );
+    expect(indexed?.action).toBe("kept");
+    expect(
+      report.findings.find((finding) => finding.path === "src/index.ts")?.action,
+    ).not.toBe("excluded");
+  });
+
+  it("semantic-duplicates-app: surfaces duplicate_logic as kept LLM advisory", async () => {
+    const { report } = await hybridScan((input) => [
+      {
+        path: DUPLICATE_A,
+        reason: "duplicate_logic",
+        bytes: 395,
+        estTokens: candidateTokens(input, DUPLICATE_A),
+        action: "kept",
+        source: "llm",
+        confidence: 0.84,
+        detail: `Same behavior as ${DUPLICATE_B}.`,
+      },
+    ]);
+
+    expect(report.scan?.hybridDelta).toMatchObject({
+      complementarityStatus: "ok",
+      llmFindingCount: 1,
+    });
+    expect(report.layers?.llm.findings[0]).toMatchObject({
+      reason: "duplicate_logic",
+      action: "kept",
+    });
   });
 });
