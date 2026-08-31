@@ -9,6 +9,7 @@ import {
   resolveGeminiCliTimeoutMs,
 } from "../limits";
 import { mapStructuredFindings } from "../parse";
+import { resolveSinglePassAnalysisOverview } from "../singlePassOverview";
 import {
   buildEnrichmentPrompt,
   LARGE_CONTEXT_PROMPT,
@@ -304,6 +305,7 @@ export function createGeminiCliEnricher(
 
         const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
         const findings = [];
+        const payloads: unknown[] = [];
 
         for (let index = 0; index < batches.length; index += 1) {
           const batch = batches[index]!;
@@ -352,6 +354,7 @@ export function createGeminiCliEnricher(
 
           try {
             const payload = extractGeminiPayload(result.stdout);
+            payloads.push(payload);
             if (!hasFindingsArray(payload)) {
               throw new Error('response must contain a "findings" array');
             }
@@ -377,6 +380,11 @@ export function createGeminiCliEnricher(
             model: reportedModel,
             durationMs: Date.now() - started,
             candidatesSent: input.candidates.length,
+            analysisOverview: resolveSinglePassAnalysisOverview({
+              payloads,
+              findingCount: findings.length,
+              candidateCount: input.candidates.length,
+            }),
           },
         };
       } finally {
