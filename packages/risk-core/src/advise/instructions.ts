@@ -8,6 +8,7 @@ import { classifyFiletype } from "../classify/classify";
 import { resolveSuggestion } from "../advise/suggest";
 import { activePathSet, isActivePath } from "../policy/active";
 import { collapseExclusionPaths } from "../policy/collapse";
+import { isInstructionStackOverBudget } from "../instruction/budget";
 
 export type SynthesizeLeanInstructionsOptions = {
   /** Markdown H1 title line without leading `# `. */
@@ -125,6 +126,18 @@ function compactOutputSection(): string {
   ].join("\n");
 }
 
+function instructionStackSection(report: TokenRiskReport): string | undefined {
+  const budget = report.instructionBudget;
+  if (!budget || !isInstructionStackOverBudget(budget)) {
+    return undefined;
+  }
+  return [
+    "## Instruction stack",
+    `- Always-on instruction files total ~${budget.stackTokens.toLocaleString()} est. tokens (recommended ≤ ${budget.recommendedMax.toLocaleString()}).`,
+    "- Trim or dedupe rules files — heuristic stack budget, not a repo edit.",
+  ].join("\n");
+}
+
 function joinSections(sections: string[]): string {
   return `${sections.filter((section) => section.length > 0).join("\n\n")}\n`;
 }
@@ -165,6 +178,8 @@ export function synthesizeLeanInstructions(
   let hygiene = hygieneBullets(report.findings);
   let themes = whyThemes(report);
   const includeCompactOutput = shouldIncludeCompactOutputGuidance(report.findings);
+  const stackSection = instructionStackSection(report);
+  let includeStack = stackSection !== undefined;
 
   const build = (): string => {
     const sections: string[] = [header];
@@ -182,6 +197,10 @@ export function synthesizeLeanInstructions(
           ),
         ].join("\n"),
       );
+    }
+
+    if (includeStack && stackSection) {
+      sections.push(stackSection);
     }
 
     if (includeCompactOutput) {
@@ -205,6 +224,8 @@ export function synthesizeLeanInstructions(
       themes = themes.slice(0, -1);
     } else if (hygiene.length > 0) {
       hygiene = hygiene.slice(0, -1);
+    } else if (includeStack) {
+      includeStack = false;
     } else if (excludeLines.length > 0) {
       excludeLines = excludeLines.slice(0, -1);
     } else {

@@ -103,6 +103,16 @@ export { isSessionStatsReport } from "./report/sessionStats";
 export { sessionAdoptionFromCounts } from "./adoption/sessionAdoption";
 export { heuristicFindingAction, primaryReason, scoreRisk } from "./score/score";
 export {
+  buildInstructionHeuristicFindings,
+  computeInstructionBudget,
+  isInstructionStackOverBudget,
+} from "./instruction/budget";
+export {
+  hasInstructionRepetition,
+  maxParagraphRepeatCount,
+  RECOMMENDED_INSTRUCTION_STACK_TOKENS,
+} from "./instruction/repetition";
+export {
   isUsageMetrics,
   totalsFromUsageTeams,
   usageForTeam,
@@ -135,6 +145,7 @@ export type {
   TokenRiskFinding,
   TokenRiskReport,
   TokenRiskTotals,
+  InstructionBudget,
   SessionStatsHistoryEntry,
   SessionStatsReport,
 } from "./domain/types";

@@ -183,6 +183,13 @@ export type TokenRiskTotals = {
   savedTokens: number;
 };
 
+/** Heuristic audit of always-on instruction / rules files (#204). */
+export type InstructionBudget = {
+  stackTokens: number;
+  recommendedMax: number;
+  files: Array<{ path: string; estTokens: number }>;
+};
+
 /**
  * Shared Detect/Fix → Prove document (`.tokenforge/scan-report.json`).
  * JSON Schema: `docs/schemas/risk-event.schema.json` (`TOKEN_RISK_REPORT_SCHEMA_ID`).
@@ -211,6 +218,8 @@ export type TokenRiskReport = {
    * when there is no session signal to report.
    */
   activePaths?: string[];
+  /** Heuristic instruction-stack audit when instruction paths exist (#204). */
+  instructionBudget?: InstructionBudget;
 };
 
 /** Extension session Prove handoff — cumulative Filter savings this IDE window. */
