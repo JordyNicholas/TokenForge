@@ -4,7 +4,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RuntimeError, UsageError } from "../errors";
 import {
-  SINGLE_PASS_BATCH_SIZE,
   CODEX_STATUS_TIMEOUT_MS,
   resolveCodexTimeoutMs,
 } from "../limits";
@@ -12,12 +11,17 @@ import { mapStructuredFindings } from "../parse";
 import { resolveSinglePassAnalysisOverview } from "../singlePassOverview";
 import { LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA } from "../analysisOverviewSchema";
 import {
-  buildEnrichmentPrompt,
-  LARGE_CONTEXT_PROMPT,
   extractJsonPayload,
   parseStructuredFindings,
 } from "../structured";
-import type { EnrichmentCandidate, LlmEnricher } from "../types";
+import {
+  stageRepositoryForAudit,
+  type RepositoryStagingResult,
+} from "../staging/repoStaging";
+import { buildCodexAuditPrompt } from "./auditPrompt";
+import { CONTEXT_INDEX_RECOMMENDATIONS_JSON_SCHEMA } from "./contextIndexSchema";
+import { contextIndexRecommendationsFromPayload } from "./contextIndex";
+import type { LlmEnricher } from "../types";
 
 const MAX_PROCESS_OUTPUT_CHARS = 1_048_576;
 
@@ -78,6 +82,7 @@ const CODEX_OUTPUT_SCHEMA = {
       },
     },
     analysisOverview: LLM_ANALYSIS_OVERVIEW_JSON_SCHEMA,
+    contextIndexRecommendations: CONTEXT_INDEX_RECOMMENDATIONS_JSON_SCHEMA,
   },
   required: ["findings"],
   additionalProperties: false,
@@ -100,6 +105,11 @@ export type CodexCommandRunner = (
   args: readonly string[],
   options: CodexCommandOptions,
 ) => Promise<CodexCommandResult>;
+
+export type StageRepositoryForAudit = (
+  sourceRoot: string,
+  destRoot: string,
+) => Promise<RepositoryStagingResult>;
 
 export function buildCodexEnvironment(
   source: NodeJS.ProcessEnv = process.env,
@@ -182,17 +192,6 @@ function failureDetail(result: CodexCommandResult): string {
   return (result.stderr.trim() || result.stdout.trim()).slice(0, 500);
 }
 
-function chunkCandidates(
-  candidates: readonly EnrichmentCandidate[],
-  size: number,
-): EnrichmentCandidate[][] {
-  const batches: EnrichmentCandidate[][] = [];
-  for (let index = 0; index < candidates.length; index += size) {
-    batches.push(candidates.slice(index, index + size));
-  }
-  return batches;
-}
-
 function hasFindingsArray(value: unknown): value is { findings: unknown[] } {
   return (
     typeof value === "object" &&
@@ -271,9 +270,10 @@ function codexExecArgs(schemaPath: string, model: string | undefined): string[] 
   ];
 }
 
-/** Codex CLI enricher using the user's saved ChatGPT authentication. */
+/** Codex CLI enricher — full-repo read-only audit with context-index proposals (#189). */
 export function createCodexEnricher(
   run: CodexCommandRunner = runCodexCommand,
+  stageRepository: StageRepositoryForAudit = stageRepositoryForAudit,
 ): LlmEnricher {
   return {
     id: "codex",
@@ -303,9 +303,9 @@ export function createCodexEnricher(
       }
 
       progress?.(
-        `Privacy warning: Codex enrichment will send ${input.candidates.length} bounded ` +
-          "source-code excerpt(s) to OpenAI through the user's Codex CLI session; data may " +
-          "leave this machine. TokenForge never sends the whole repository.",
+        "Privacy warning: Codex enrichment will copy a sanitized eligible repository tree " +
+          "and send it to OpenAI through the user's Codex CLI session for one read-only audit; " +
+          "credential-shaped paths and secret-shaped content are omitted. Data may leave this machine.",
       );
       if (!input.externalDataConsent) {
         throw new UsageError(
@@ -315,68 +315,71 @@ export function createCodexEnricher(
 
       const temporaryRoot = await mkdtemp(join(tmpdir(), "tokenforge-codex-"));
       const schemaPath = join(temporaryRoot, "enrichment-output.schema.json");
+      const stagedRoot = join(temporaryRoot, "repo");
 
       try {
         await writeFile(schemaPath, JSON.stringify(CODEX_OUTPUT_SCHEMA), "utf8");
         await assertCodexReady(run, temporaryRoot);
 
-        const batches = chunkCandidates(input.candidates, SINGLE_PASS_BATCH_SIZE);
-        const findings = [];
-        const payloads: unknown[] = [];
+        progress?.("Codex enricher: staging sanitized repository copy…");
+        const staging = await stageRepository(input.root, stagedRoot);
+        progress?.(
+          `Codex enricher: staged ${staging.coverage.filesCopied} file(s) ` +
+            `(${staging.coverage.bytesCopied} bytes); running one repository audit ` +
+            `(timeout ${Math.round(timeoutMs / 1000)}s)…`,
+        );
 
-        for (let index = 0; index < batches.length; index += 1) {
-          const batch = batches[index]!;
-          progress?.(
-            `Codex enricher: batch ${index + 1}/${batches.length} ` +
-              `(${batch.length} file(s), timeout ${Math.round(timeoutMs / 1000)}s per batch)…`,
+        const prompt = buildCodexAuditPrompt({
+          candidates: input.candidates,
+          heuristicFindings: input.heuristicFindings,
+        });
+
+        let result: CodexCommandResult;
+        try {
+          result = await run(codexExecArgs(schemaPath, model), {
+            cwd: stagedRoot,
+            input: prompt,
+            timeoutMs,
+          });
+        } catch (error) {
+          if (isMissingExecutable(error)) {
+            throw new RuntimeError(
+              "Codex CLI is not installed or is not available on PATH. Install it, then run `codex login`.",
+            );
+          }
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new RuntimeError(`Could not start Codex CLI. ${reason}`);
+        }
+
+        if (result.timedOut) {
+          throw new RuntimeError(
+            `Codex CLI enrichment timed out after ${Math.round(timeoutMs / 1000)}s. ` +
+              "Retry with a higher --llm-timeout (seconds) or scan a smaller folder.",
           );
+        }
+        if (result.exitCode !== 0) {
+          const detail = failureDetail(result);
+          throw new RuntimeError(
+            `Codex CLI enrichment failed (exit ${result.exitCode ?? "unknown"}).${
+              detail ? ` ${detail}` : ""
+            }`,
+          );
+        }
 
-          let result: CodexCommandResult;
-          try {
-            result = await run(codexExecArgs(schemaPath, model), {
-              cwd: temporaryRoot,
-              input: buildEnrichmentPrompt(batch, LARGE_CONTEXT_PROMPT),
-              timeoutMs,
-            });
-          } catch (error) {
-            if (isMissingExecutable(error)) {
-              throw new RuntimeError(
-                "Codex CLI is not installed or is not available on PATH. Install it, then run `codex login`.",
-              );
-            }
-            const reason = error instanceof Error ? error.message : String(error);
-            throw new RuntimeError(`Could not start Codex CLI. ${reason}`);
+        let findings = [];
+        let payload: unknown;
+        try {
+          payload = extractJsonPayload(result.stdout);
+          if (!hasFindingsArray(payload)) {
+            throw new Error('response must contain a "findings" array');
           }
-
-          if (result.timedOut) {
-            throw new RuntimeError(
-              `Codex CLI enrichment timed out after ${Math.round(timeoutMs / 1000)}s. ` +
-                "Retry with a higher --llm-timeout (seconds) or scan a smaller folder.",
-            );
-          }
-          if (result.exitCode !== 0) {
-            const detail = failureDetail(result);
-            throw new RuntimeError(
-              `Codex CLI enrichment failed (exit ${result.exitCode ?? "unknown"}).${
-                detail ? ` ${detail}` : ""
-              }`,
-            );
-          }
-
-          try {
-            const payload = extractJsonPayload(result.stdout);
-            payloads.push(payload);
-            if (!hasFindingsArray(payload)) {
-              throw new Error('response must contain a "findings" array');
-            }
-            const structured = parseStructuredFindings(payload, batch);
-            findings.push(...mapStructuredFindings(structured, batch));
-          } catch (error) {
-            const reason = error instanceof Error ? error.message : String(error);
-            throw new RuntimeError(
-              `Codex CLI returned malformed structured output. ${reason}`,
-            );
-          }
+          const structured = parseStructuredFindings(payload, input.candidates);
+          findings = mapStructuredFindings(structured, input.candidates);
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new RuntimeError(
+            `Codex CLI returned malformed structured output. ${reason}`,
+          );
         }
 
         progress?.(
@@ -392,10 +395,13 @@ export function createCodexEnricher(
             durationMs: Date.now() - started,
             candidatesSent: input.candidates.length,
             analysisOverview: resolveSinglePassAnalysisOverview({
-              payloads,
+              payloads: [payload],
               findingCount: findings.length,
               candidateCount: input.candidates.length,
             }),
+            contextIndexRecommendations:
+              contextIndexRecommendationsFromPayload(payload),
+            repoAuditCoverage: staging.coverage,
           },
         };
       } finally {

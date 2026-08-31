@@ -2,6 +2,8 @@ import type {
   FindingReason,
   LlmAnalysisOverview,
   LlmBackendId,
+  RepoAuditCoverage,
+  ContextIndexRecommendation,
   TokenRiskFinding,
 } from "@tokenforge/risk-core";
 
@@ -18,6 +20,8 @@ export type LlmEnricherInput = {
   candidates: EnrichmentCandidate[];
   model: string;
   endpoint?: string;
+  /** Heuristic-layer findings for repo audit context (#189). */
+  heuristicFindings?: readonly TokenRiskFinding[];
   /** Per-batch request timeout in milliseconds. */
   timeoutMs?: number;
   /** Optional progress sink (CLI writes to stderr). */
@@ -35,6 +39,8 @@ export type LlmEnrichmentResult = {
     durationMs: number;
     candidatesSent: number;
     analysisOverview?: LlmAnalysisOverview;
+    contextIndexRecommendations?: ContextIndexRecommendation[];
+    repoAuditCoverage?: RepoAuditCoverage;
   };
 };
 
