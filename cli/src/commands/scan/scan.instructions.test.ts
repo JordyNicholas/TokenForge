@@ -23,14 +23,6 @@ function scriptedEnricher(
   };
 }
 
-function candidateTokens(input: LlmEnricherInput, path: string): number {
-  const candidate = input.candidates.find((item) => item.path === path);
-  if (candidate === undefined) {
-    throw new Error(`Fixture no longer offers ${path} as an enrichment candidate.`);
-  }
-  return candidate.estTokens;
-}
-
 // No cleanupFixture(Fixture) call in this file: scanRepo() never writes to
 // disk (only `runCli scan` does), and this fixture ships a real
 // `.github/copilot-instructions.md` as source content that the shared
@@ -91,15 +83,19 @@ describe("scanRepo (instructions-app, hybrid candidate selection)", () => {
   });
 
   it("records hybridDelta when a scripted enricher adds LLM findings", async () => {
+    const { assessments } = await scanRepo({ root: instructionsAppRoot });
+    const index = assessments.find((assessment) => assessment.path === "src/index.js");
+    expect(index).toBeDefined();
+
     const { report } = await scanRepo({
       root: instructionsAppRoot,
       mode: "hybrid",
-      enricher: scriptedEnricher((input) => [
+      enricher: scriptedEnricher(() => [
         {
-          path: "AGENTS.md",
-          reason: "redundant_instructions",
-          bytes: 6400,
-          estTokens: candidateTokens(input, "AGENTS.md"),
+          path: "src/index.js",
+          reason: "semantic_bloat",
+          bytes: index!.bytes,
+          estTokens: index!.estTokens,
           action: "excluded",
           source: "llm",
         },
@@ -110,10 +106,8 @@ describe("scanRepo (instructions-app, hybrid candidate selection)", () => {
       heuristicSavedTokens: 0,
       complementarityStatus: "ok",
       llmFindingCount: 1,
+      llmExclusiveSavedTokens: index!.estTokens,
+      combinedSavedTokens: index!.estTokens,
     });
-    expect(report.scan!.hybridDelta!.llmExclusiveSavedTokens).toBeGreaterThan(0);
-    expect(report.scan!.hybridDelta!.combinedSavedTokens).toBe(
-      report.scan!.hybridDelta!.llmExclusiveSavedTokens,
-    );
   });
 });
