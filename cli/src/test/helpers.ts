@@ -88,6 +88,9 @@ export const outputShapeAppExpectedTotalsPath = resolve(
   "fixtures/expected/output-shape-app-totals.json",
 );
 
+/** Cursor rules fixture (#203): `.cursor/rules` must be walked by CLI scan. */
+export const cursorRulesAppRoot = resolve(repoRoot, "fixtures/cursor-rules-app");
+
 export async function cleanupFixture(): Promise<void> {
   await rm(resolve(fixtureRoot, ".tokenforge"), { recursive: true, force: true });
   await rm(resolve(fixtureRoot, ".github"), { recursive: true, force: true });

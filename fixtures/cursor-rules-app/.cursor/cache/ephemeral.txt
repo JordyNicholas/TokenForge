@@ -1,0 +1,1 @@
+ephemeral cursor cache payload — must not appear in scan assessments
