@@ -20,6 +20,9 @@ import {
   formatUsd,
   getLlmAnalysisOverview,
   listHybridScanSummaries,
+  getHybridDelta,
+  getInstructionBudget,
+  isComplementarityFailure,
   seedHasLlmLayer,
   tokenSavedPercent,
   tokensByArchitecture,
@@ -36,6 +39,8 @@ import { FutureLeversCard } from "../ui/FutureLeversCard";
 import { GlossaryTip } from "../ui/GlossaryTip";
 import { HonestSavingsTiers } from "../ui/HonestSavingsTiers";
 import { HybridScanMetaCard } from "../ui/HybridScanMetaCard";
+import { HybridDeltaCard } from "../ui/HybridDeltaCard";
+import { InstructionStackCard } from "../ui/InstructionStackCard";
 import { KpiCard, KpiRow } from "../ui/Kpi";
 import { LlmAnalysisOverviewCard } from "../ui/LlmAnalysisOverviewCard";
 import { MixChart } from "../ui/MixChart";
@@ -79,6 +84,15 @@ export function OverviewPage() {
         })
       : [];
   const hybridSummaries = listHybridScanSummaries(reports);
+  const hybridDeltaRows = reports.flatMap((report) => {
+    const delta = getHybridDelta(report);
+    return delta ? [{ team: report.team, repo: report.repo, delta }] : [];
+  });
+  const instructionStackRows = reports.flatMap((report) => {
+    const budget = getInstructionBudget(report);
+    return budget ? [{ team: report.team, repo: report.repo, budget }] : [];
+  });
+  const complementarityFailures = reports.filter(isComplementarityFailure);
   const singleTeam = Boolean(teamId) || reports.length === 1;
   const archBuckets =
     !teamId && seed?.architectures
@@ -151,13 +165,22 @@ export function OverviewPage() {
 
       <AfterFixCompareCard beforeTotals={totals} />
       <HybridScanMetaCard summaries={hybridSummaries} />
+      <HybridDeltaCard rows={hybridDeltaRows} />
+      <InstructionStackCard rows={instructionStackRows} />
       {llmBoardUnavailable ? (
         <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
           No LLM layer in the loaded JSON. Run a hybrid scan (
           <code>--mode hybrid --llm ollama:…</code>) and load the report to populate this board.
         </Alert>
       ) : null}
-      {llmBoardEmpty ? (
+      {llmBoardEmpty && complementarityFailures.length > 0 ? (
+        <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
+          Hybrid scan sent {complementarityFailures[0]?.scan?.llm?.candidatesSent ?? 0}{" "}
+          candidate(s) but returned zero LLM findings (
+          <code>complementarityStatus: llm_empty</code>). Check backend logs, timeout, or
+          load a report with <code>analysisOverview</code> for overview-only complementarity.
+        </Alert>
+      ) : llmBoardEmpty ? (
         <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
           Hybrid scan ran, but the model did not flag any paths for exclusion. Try a smaller
           path (e.g. <code>docs/</code>) or increase <code>--llm-timeout</code> on slower hardware.

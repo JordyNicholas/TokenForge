@@ -1,6 +1,8 @@
 import {
   reportForLayer,
   resolveScanLayer,
+  type HybridDelta,
+  type InstructionBudget,
   type LlmAnalysisOverview,
   type ScanLayerId,
   type TokenRiskReport,
@@ -107,4 +109,27 @@ export function getLlmAnalysisOverview(
   report: TokenRiskReport,
 ): LlmAnalysisOverview | undefined {
   return report.scan?.llm?.analysisOverview;
+}
+
+/** Hybrid complementarity breakdown when present on `scan.hybridDelta` (#205). */
+export function getHybridDelta(report: TokenRiskReport): HybridDelta | undefined {
+  return report.scan?.hybridDelta;
+}
+
+/** Always-on instruction stack audit from the scan report (#204). */
+export function getInstructionBudget(
+  report: TokenRiskReport,
+): InstructionBudget | undefined {
+  return report.instructionBudget;
+}
+
+/** Hybrid ran with candidates but returned zero LLM findings. */
+export function isComplementarityFailure(report: TokenRiskReport): boolean {
+  const delta = report.scan?.hybridDelta;
+  const candidatesSent = report.scan?.llm?.candidatesSent ?? 0;
+  return (
+    delta?.complementarityStatus === "llm_empty" &&
+    candidatesSent > 0 &&
+    delta.llmFindingCount === 0
+  );
 }

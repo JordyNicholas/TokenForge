@@ -48,6 +48,9 @@ export {
   reportHasHybridLlm,
   seedHasLlmLayer,
   getLlmAnalysisOverview,
+  getHybridDelta,
+  getInstructionBudget,
+  isComplementarityFailure,
   type ScanLayerId,
 } from "./layers";
 export {
