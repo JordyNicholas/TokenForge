@@ -78,6 +78,10 @@ export {
   parseLlmAnalysisOverview,
 } from "./advise/overview";
 export {
+  parseContextIndexRecommendations,
+  isContextIndexPath,
+} from "./advise/contextIndex";
+export {
   isFindingSuggestion,
   isSuggestionKind,
   resolveSuggestion,
@@ -132,6 +136,8 @@ export type {
   FindingSource,
   FindingSuggestion,
   LlmAnalysisOverview,
+  ContextIndexRecommendation,
+  RepoAuditCoverage,
   LlmBackendId,
   ProtectionKind,
   ProviderId,

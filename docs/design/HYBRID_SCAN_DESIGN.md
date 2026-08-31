@@ -379,7 +379,7 @@ Prompt rules forbid architecture, API, or product refactors.
 | --- | --- | --- |
 | `heuristic` | No | None |
 | `hybrid` + `ollama` | No (local) | Local GPU/CPU only |
-| `hybrid` + `codex` | Yes — candidate excerpts via Codex CLI | ChatGPT plan limits |
+| `hybrid` + `codex` | Yes — sanitized repo copy via Codex CLI (one read-only audit) | ChatGPT plan limits |
 | `hybrid` + `anthropic` | Yes — candidate excerpts | Per-provider API usage |
 | `hybrid` + `claude-code` | Yes — candidate excerpts via Claude Code CLI | Claude plan limits |
 | `hybrid` + `gemini-cli` | Yes — candidate excerpts via Gemini CLI | Google/Gemini plan limits |

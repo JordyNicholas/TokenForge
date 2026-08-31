@@ -1,4 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { describe, expect, it, vi } from "vitest";
 import { RuntimeError, UsageError } from "../errors";
 import {
@@ -6,6 +8,7 @@ import {
   createCodexEnricher,
   type CodexCommandResult,
   type CodexCommandRunner,
+  type StageRepositoryForAudit,
 } from "./codex";
 
 const candidate = {
@@ -35,6 +38,23 @@ function successfulRunner(output: unknown = { findings: [] }) {
   );
 }
 
+function mockStageRepository(): StageRepositoryForAudit {
+  return vi.fn(async (_source, dest) => {
+    await mkdir(dest, { recursive: true });
+    await writeFile(join(dest, "README.md"), "# Demo", "utf8");
+    return {
+      coverage: {
+        mode: "codex_repo_audit",
+        filesCopied: 1,
+        filesSkippedSecret: 0,
+        filesSkippedHardDir: 0,
+        bytesCopied: 6,
+      },
+      stagedPaths: new Set(["README.md"]),
+    };
+  });
+}
+
 describe("codexEnricher", () => {
   it("removes API credentials from the Codex child environment", () => {
     expect(
@@ -46,8 +66,10 @@ describe("codexEnricher", () => {
     ).toEqual({ SAFE_VALUE: "preserved" });
   });
 
-  it("constructs a bounded non-interactive request and maps structured output", async () => {
+  it("runs one repository audit against a staged copy and maps structured output", async () => {
     let schema: unknown;
+    let stagedCwd = "";
+    const stageRepository = mockStageRepository();
     const runner = vi.fn<CodexCommandRunner>(async (args, options) => {
       if (args[0] === "login") {
         expect(args).toEqual(["login", "status"]);
@@ -59,6 +81,7 @@ describe("codexEnricher", () => {
       schema = JSON.parse(
         await readFile(String(args[schemaIndex + 1]), "utf8"),
       );
+      stagedCwd = options.cwd;
       expect(args).toEqual(
         expect.arrayContaining([
           "exec",
@@ -71,9 +94,10 @@ describe("codexEnricher", () => {
         ]),
       );
       expect(args).not.toContain("--model");
-      expect(options.cwd).not.toBe("/repo");
-      expect(options.input).toContain("### README.md");
-      expect(options.input).toContain("# Demo");
+      expect(options.input).toContain("You audit an entire repository copy");
+      expect(options.input).toContain("Candidate paths for findings");
+      expect(options.input).toContain("README.md");
+      expect(options.input).not.toContain("# Demo");
 
       return commandResult({
         stdout: JSON.stringify({
@@ -92,18 +116,37 @@ describe("codexEnricher", () => {
               "README is mostly onboarding boilerplate with little engineering signal for agent context.",
             themes: ["low signal"],
           },
+          contextIndexRecommendations: [
+            {
+              path: "docs/INDEX.md",
+              purpose: "Progressive disclosure for agents",
+              summary: "Link to package READMEs and ADRs; do not duplicate AGENTS.md rules.",
+            },
+          ],
         }),
       });
     });
 
-    const result = await createCodexEnricher(runner).enrich({
+    const result = await createCodexEnricher(runner, stageRepository).enrich({
       root: "/repo",
       model: "default",
       candidates: [candidate],
+      heuristicFindings: [
+        {
+          path: "package-lock.json",
+          reason: "high_risk_filetype",
+          bytes: 100,
+          estTokens: 25,
+          action: "excluded",
+          source: "heuristic",
+        },
+      ],
       externalDataConsent: true,
     });
 
     expect(runner).toHaveBeenCalledTimes(2);
+    expect(stageRepository).toHaveBeenCalledWith("/repo", expect.any(String));
+    expect(stagedCwd).toContain("repo");
     expect(schema).toMatchObject({
       type: "object",
       required: ["findings"],
@@ -111,6 +154,7 @@ describe("codexEnricher", () => {
         analysisOverview: expect.objectContaining({
           required: ["summary"],
         }),
+        contextIndexRecommendations: expect.any(Object),
       },
     });
     expect(result.findings[0]).toMatchObject({
@@ -127,13 +171,23 @@ describe("codexEnricher", () => {
         summary: expect.stringContaining("README is mostly onboarding"),
         themes: ["low signal"],
       },
+      repoAuditCoverage: {
+        mode: "codex_repo_audit",
+        filesCopied: 1,
+      },
+      contextIndexRecommendations: [
+        {
+          path: "docs/INDEX.md",
+          purpose: "Progressive disclosure for agents",
+        },
+      ],
     });
   });
 
   it("attaches a deterministic fallback overview when the model omits it", async () => {
     const runner = successfulRunner({ findings: [] });
 
-    const result = await createCodexEnricher(runner).enrich({
+    const result = await createCodexEnricher(runner, mockStageRepository()).enrich({
       root: "/repo",
       model: "default",
       candidates: [candidate],
@@ -147,7 +201,7 @@ describe("codexEnricher", () => {
   it("passes an explicitly configured model to Codex", async () => {
     const runner = successfulRunner();
 
-    const result = await createCodexEnricher(runner).enrich({
+    const result = await createCodexEnricher(runner, mockStageRepository()).enrich({
       root: "/repo",
       model: "gpt-5.6-sol",
       candidates: [candidate],
@@ -167,7 +221,7 @@ describe("codexEnricher", () => {
     const onProgress = vi.fn();
 
     await expect(
-      createCodexEnricher(runner).enrich({
+      createCodexEnricher(runner, mockStageRepository()).enrich({
         root: "/repo",
         model: "default",
         candidates: [candidate],
@@ -214,7 +268,7 @@ describe("codexEnricher", () => {
     );
 
     await expect(
-      createCodexEnricher(runner).enrich({
+      createCodexEnricher(runner, mockStageRepository()).enrich({
         root: "/repo",
         model: "default",
         candidates: [candidate],
@@ -235,7 +289,7 @@ describe("codexEnricher", () => {
           : execResult,
       );
       await expect(
-        createCodexEnricher(runner).enrich({
+        createCodexEnricher(runner, mockStageRepository()).enrich({
           root: "/repo",
           model: "default",
           candidates: [candidate],
@@ -267,7 +321,7 @@ describe("codexEnricher", () => {
     const runner = successfulRunner();
 
     await expect(
-      createCodexEnricher(runner).enrich({
+      createCodexEnricher(runner, mockStageRepository()).enrich({
         root: "/repo",
         model: "default",
         endpoint: "https://api.openai.com/v1",
@@ -298,7 +352,7 @@ describe("codexEnricher", () => {
     });
 
     await expect(
-      createCodexEnricher(runner).enrich({
+      createCodexEnricher(runner, mockStageRepository()).enrich({
         root: "/repo",
         model: "default",
         candidates: [candidate],

@@ -1,4 +1,8 @@
 import { isLlmAnalysisOverview } from "../advise/overview";
+import {
+  isContextIndexRecommendation,
+  isRepoAuditCoverage,
+} from "../advise/contextIndex";
 import { isFindingSuggestion } from "../advise/suggest";
 import type {
   FindingAction,
@@ -155,7 +159,12 @@ function isScanMetadata(value: unknown): value is ScanMetadata {
     value.llm.durationMs >= 0 &&
     isNonNegativeInt(value.llm.candidatesSent) &&
     (value.llm.analysisOverview === undefined ||
-      isLlmAnalysisOverview(value.llm.analysisOverview))
+      isLlmAnalysisOverview(value.llm.analysisOverview)) &&
+    (value.llm.contextIndexRecommendations === undefined ||
+      (Array.isArray(value.llm.contextIndexRecommendations) &&
+        value.llm.contextIndexRecommendations.every(isContextIndexRecommendation))) &&
+    (value.llm.repoAuditCoverage === undefined ||
+      isRepoAuditCoverage(value.llm.repoAuditCoverage))
   );
 }
 

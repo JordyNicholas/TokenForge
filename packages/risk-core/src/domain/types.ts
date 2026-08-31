@@ -152,6 +152,22 @@ export type LlmAnalysisOverview = {
   caveats?: string[];
 };
 
+/** Suggested thin Markdown index for progressive disclosure (#189). */
+export type ContextIndexRecommendation = {
+  path: string;
+  purpose: string;
+  summary: string;
+};
+
+/** Honest coverage metadata for Codex full-repo audit (#189). */
+export type RepoAuditCoverage = {
+  mode: "codex_repo_audit";
+  filesCopied: number;
+  filesSkippedSecret: number;
+  filesSkippedHardDir: number;
+  bytesCopied: number;
+};
+
 export type ScanLlmMetadata = {
   backend: LlmBackendId;
   model: string;
@@ -160,6 +176,10 @@ export type ScanLlmMetadata = {
   candidatesSent: number;
   /** Short Pass C capsule for Prove / dashboard LLM board (optional). */
   analysisOverview?: LlmAnalysisOverview;
+  /** Codex repo audit: suggested context indexes (optional, #189). */
+  contextIndexRecommendations?: ContextIndexRecommendation[];
+  /** Codex repo audit: staged copy coverage (optional, #189). */
+  repoAuditCoverage?: RepoAuditCoverage;
 };
 
 export type ScanMetadata = {

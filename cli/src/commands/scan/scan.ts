@@ -224,6 +224,7 @@ async function runHybridEnrichment(
   root: string,
   assessments: RiskAssessment[],
   options: ScanOptions,
+  heuristicFindings: TokenRiskFinding[],
 ): Promise<{
   llmFindings: TokenRiskFinding[];
   llmCandidateTokens: number;
@@ -249,6 +250,7 @@ async function runHybridEnrichment(
   const enrichment = await enricher.enrich({
     root,
     candidates,
+    heuristicFindings,
     model: spec.model,
     endpoint: options.llmEndpoint,
     timeoutMs: parseLlmTimeoutOption(options.llmTimeout),
@@ -327,7 +329,12 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
   let scan: ScanMetadata | undefined;
 
   if (mode === "hybrid") {
-    const hybrid = await runHybridEnrichment(root, assessments, options);
+    const hybrid = await runHybridEnrichment(
+      root,
+      assessments,
+      options,
+      heuristicFindings,
+    );
     llmFindings = hybrid.llmFindings;
     llmCandidateTokens = hybrid.llmCandidateTokens;
     scan = hybrid.scan;
