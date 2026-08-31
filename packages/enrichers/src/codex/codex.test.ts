@@ -87,6 +87,11 @@ describe("codexEnricher", () => {
               suggestion: null,
             },
           ],
+          analysisOverview: {
+            summary:
+              "README is mostly onboarding boilerplate with little engineering signal for agent context.",
+            themes: ["low signal"],
+          },
         }),
       });
     });
@@ -102,6 +107,11 @@ describe("codexEnricher", () => {
     expect(schema).toMatchObject({
       type: "object",
       required: ["findings"],
+      properties: {
+        analysisOverview: expect.objectContaining({
+          required: ["summary"],
+        }),
+      },
     });
     expect(result.findings[0]).toMatchObject({
       path: "README.md",
@@ -113,7 +123,25 @@ describe("codexEnricher", () => {
       backend: "codex",
       model: "default",
       candidatesSent: 1,
+      analysisOverview: {
+        summary: expect.stringContaining("README is mostly onboarding"),
+        themes: ["low signal"],
+      },
     });
+  });
+
+  it("attaches a deterministic fallback overview when the model omits it", async () => {
+    const runner = successfulRunner({ findings: [] });
+
+    const result = await createCodexEnricher(runner).enrich({
+      root: "/repo",
+      model: "default",
+      candidates: [candidate],
+      externalDataConsent: true,
+    });
+
+    expect(result.meta.analysisOverview?.summary).toMatch(/reviewed 1 candidate path/);
+    expect(result.meta.analysisOverview?.themes).toEqual(["no llm findings"]);
   });
 
   it("passes an explicitly configured model to Codex", async () => {

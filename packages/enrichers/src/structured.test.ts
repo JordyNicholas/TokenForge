@@ -27,6 +27,8 @@ describe("buildEnrichmentPrompt", () => {
     expect(prompt).toContain("preserving repository functionality and documentation");
     expect(prompt).toContain("RULEBOOK");
     expect(prompt).toContain("never exclude");
+    expect(prompt).toContain("analysisOverview");
+    expect(prompt).toContain("analysisOverview.summary is required");
   });
 });
 
