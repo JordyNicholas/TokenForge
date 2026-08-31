@@ -12,6 +12,8 @@ import type {
   ScanMetadata,
   ScanMode,
   ScanSource,
+  ComplementarityStatus,
+  HybridDelta,
   InstructionBudget,
   TokenRiskFinding,
   TokenRiskReport,
@@ -133,8 +135,11 @@ function isScanMetadata(value: unknown): value is ScanMetadata {
   if (typeof value.mode !== "string" || !SCAN_MODES.has(value.mode as ScanMode)) {
     return false;
   }
+  if (value.hybridDelta !== undefined && !isHybridDelta(value.hybridDelta)) {
+    return false;
+  }
   if (value.llm === undefined) {
-    return true;
+    return value.hybridDelta === undefined;
   }
   if (!isRecord(value.llm)) {
     return false;
@@ -166,7 +171,7 @@ function isInstructionBudget(value: unknown): value is InstructionBudget {
     return false;
   }
   if (
-    !isNonNegativeInt(value.stackTokens) ||
+    !isNonNegativeInt(value.alwaysOnTokens) ||
     !isNonNegativeInt(value.recommendedMax)
   ) {
     return false;
@@ -180,6 +185,26 @@ function isInstructionBudget(value: unknown): value is InstructionBudget {
       typeof file.path === "string" &&
       file.path.length > 0 &&
       isNonNegativeInt(file.estTokens),
+  );
+}
+
+const COMPLEMENTARITY_STATUSES = new Set<ComplementarityStatus>([
+  "ok",
+  "llm_empty",
+  "candidates_skipped",
+]);
+
+function isHybridDelta(value: unknown): value is HybridDelta {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    isNonNegativeInt(value.heuristicSavedTokens) &&
+    isNonNegativeInt(value.llmExclusiveSavedTokens) &&
+    isNonNegativeInt(value.combinedSavedTokens) &&
+    isNonNegativeInt(value.llmFindingCount) &&
+    typeof value.complementarityStatus === "string" &&
+    COMPLEMENTARITY_STATUSES.has(value.complementarityStatus as ComplementarityStatus)
   );
 }
 

@@ -133,7 +133,7 @@ function instructionStackSection(report: TokenRiskReport): string | undefined {
   }
   return [
     "## Instruction stack",
-    `- Always-on instruction files total ~${budget.stackTokens.toLocaleString()} est. tokens (recommended ≤ ${budget.recommendedMax.toLocaleString()}).`,
+    `- Always-on instruction files total ~${budget.alwaysOnTokens.toLocaleString()} est. tokens (recommended ≤ ${budget.recommendedMax.toLocaleString()}).`,
     "- Trim or dedupe rules files — heuristic stack budget, not a repo edit.",
   ].join("\n");
 }

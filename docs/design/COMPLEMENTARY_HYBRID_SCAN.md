@@ -175,7 +175,7 @@ Epic: **[#199 F6 — AI-first complementary hybrid Detect](https://github.com/Jo
 | #202 | B2 — class-aware `excluded` for oversized source |
 | #203 | CLI walk `.cursor/rules` (remove blanket `.cursor` skip) |
 | #204 | Deterministic instruction bloat (repetition + stack budget) |
-| #205 | JSON `hybridDelta` + `instructionBudget` |
+| #205 | JSON `hybridDelta` + `instructionBudget` (`alwaysOnTokens`) — v5 schema superset |
 | #206 | Mandatory `analysisOverview` for Tier-2 backends |
 | #207 | Cursor `.cursorignore` candidates |
 | #208 | Policy advisory section + richer hygiene |
