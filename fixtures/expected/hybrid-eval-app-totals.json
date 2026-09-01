@@ -1,12 +1,12 @@
 {
   "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
-  "pitchNote": "Heuristic layer: lockfile + output-shape excludes drive ~88% savings; four LLM-style instruction files + RULEBOOK stay in keep-set for hybrid eval. Use --mode hybrid + hybrid apply for policy demos.",
+  "pitchNote": "Heuristic layer: lockfile + output-shape excludes drive ~84% savings; four LLM-style instruction files + RULEBOOK stay in keep-set for hybrid eval. Use --mode hybrid + hybrid apply for policy demos.",
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/hybrid-eval-app",
   "totals": {
-    "beforeTokens": 50639,
-    "afterTokens": 6594,
+    "beforeTokens": 52230,
+    "afterTokens": 8185,
     "savedTokens": 44045
   },
-  "savedPercent": 87
+  "savedPercent": 84.3
 }
