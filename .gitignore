@@ -33,4 +33,6 @@ dashboard/public/last-scan.json
 coverage/
 !fixtures/output-shape-app/coverage/
 !fixtures/output-shape-app/coverage/**
+!fixtures/hybrid-eval-app/coverage/
+!fixtures/hybrid-eval-app/coverage/**
 .cursor/mcp.json
