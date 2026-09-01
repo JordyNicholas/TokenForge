@@ -3,7 +3,7 @@
 #
 # Usage (from repo root):
 #   npm run tokenforge:presentation-heuristic
-#   npm run tokenforge:presentation-heuristic -- fixtures/noisy-app
+#   npm run tokenforge:presentation-heuristic -- fixtures/hybrid-eval-app
 #
 # No LLM, no network, no --allow-external. Fast and CI-safe path.
 set -euo pipefail
@@ -11,10 +11,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-TOKENFORGE=(node ./cli/bin/tokenforge.mjs)
 DASHBOARD_PORT="${TOKENFORGE_DASHBOARD_PORT:-5173}"
-STAGED="dashboard/public/last-scan.json"
-DEMO_ROOT="${1:-fixtures/noisy-app}"
+DEMO_ROOT="${1:-fixtures/hybrid-eval-app}"
 
 if [[ "$DEMO_ROOT" != /* ]]; then
   DEMO_ROOT="$ROOT/$DEMO_ROOT"
@@ -27,26 +25,20 @@ echo "  mode: heuristic (default — no LLM)"
 
 echo ""
 echo "== Step 1: heuristic scan =="
-"${TOKENFORGE[@]}" scan "$DEMO_ROOT" \
+npm run tokenforge -- scan "$DEMO_ROOT" \
   --mode heuristic \
   --team tokenforge-demo \
   --repo "$(basename "$DEMO_ROOT")"
 
 echo ""
 echo "== Step 2: heuristic apply =="
-"${TOKENFORGE[@]}" apply "$DEMO_ROOT" \
+npm run tokenforge -- apply "$DEMO_ROOT" \
   --mode heuristic \
   --provider copilot
 
-report="$DEMO_ROOT/.tokenforge/scan-report.json"
-if [[ ! -f "$report" ]]; then
-  echo "presentation-heuristic: missing $report" >&2
-  exit 1
-fi
-
-mkdir -p "$(dirname "$STAGED")"
-cp "$report" "$STAGED"
-echo "presentation-heuristic: staged $STAGED"
+echo ""
+echo "== Step 3: stage for dashboard =="
+TOKENFORGE_PROVE_NO_OPEN=1 TOKENFORGE_PROVE_NO_DASHBOARD=1 npm run tokenforge:prove -- stage "$DEMO_ROOT"
 
 dashboard_up() {
   curl -sf -o /dev/null "http://127.0.0.1:${DASHBOARD_PORT}/" 2>/dev/null
