@@ -305,6 +305,26 @@ Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #2
 
 Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). Manual provider matrix: [`E2E_COMPLEMENTARY_HYBRID_TEST.md`](../testing/E2E_COMPLEMENTARY_HYBRID_TEST.md).
 
+### F7 — Hybrid Fix: heuristic-routed LLM policy synthesis (#225)
+
+**Fix must reduce instruction bleed** — complete managed policy text, not truncated reminders. Design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md).
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #226 | Design doc + BOARD F7 index | Docs | **In Progress** |
+| #227 | Heuristic attention set for LLM routing | `risk-core` | **In Progress** |
+| #228 | Tiered enrichment (local cap vs vendor full set) | CLI scan | **In Progress** |
+| #229 | Configurable policy budget | `risk-core` / CLI | **In Progress** |
+| #230 | PolicySynthesizerPort (cursor-cli apply) | `enrichers` | **In Progress** |
+| #231 | `apply --mode hybrid` + config file | CLI | **In Progress** |
+| #232 | Tests: attention set + hybrid apply | Tests | **In Progress** |
+| #233 | Docs refresh for F7 | Docs | **In Progress** |
+| #234 | Presentation hybrid script | Scripts | **In Progress** |
+
+Build order: **#226 → #227 → #228 → #229 → #230 → #231 → #232 → #234 → #233**
+
+Presentation backup: `npm run tokenforge:presentation-hybrid` (cursor-cli:composer-2.5).
+
 ### Further improvement candidates (not yet filed as issues)
 
 Board-map only until the team promotes them to an epic/stories. Do not treat as
@@ -334,6 +354,7 @@ Phase 2:
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
-7. **Candidates** below — promote to issues when the team agrees scope
+7. **F7** (#225) — Hybrid Fix: heuristic attention set + hybrid apply (**In Progress**); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
+8. **Candidates** below — promote to issues when the team agrees scope
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
