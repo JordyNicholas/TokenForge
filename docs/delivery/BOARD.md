@@ -323,7 +323,7 @@ Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). M
 
 Build order: **#226 → #227 → #228 → #229 → #230 → #231 → #232 → #234 → #233**
 
-Presentation backup: `npm run tokenforge:presentation-hybrid` (cursor-cli:composer-2.5).
+Presentation: `npm run tokenforge:presentation-full` (see [`PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md)); hybrid act uses `cursor-cli:composer-2.5`.
 
 ### Further improvement candidates (not yet filed as issues)
 

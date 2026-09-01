@@ -108,6 +108,8 @@ Settings written into the report: `tokenforge.team`, `tokenforge.repo`,
 
 ## Demo tip
 
-Open `fixtures/noisy-app/package-lock.json` and `dist/bundle.js` — they flag
-immediately. Filter one and watch Risk pulse unlock before/after/saved. Full stage
-script: [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md).
+Open `fixtures/hybrid-eval-app/package-lock.json` and
+`fixtures/hybrid-eval-app/test-results/junit.xml` — they flag immediately. Filter the
+lockfile and watch Risk pulse unlock before/after/saved. Full stage script:
+[`PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md) (or legacy
+≤5 min [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) on `noisy-app`).

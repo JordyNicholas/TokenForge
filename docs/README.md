@@ -13,6 +13,7 @@
 | --- | --- |
 | New collaborator / agent | [`../AGENTS.md`](../AGENTS.md) → [`product/CONCEPT_BRIEF.md`](./product/CONCEPT_BRIEF.md) → [`design/SOLUTION_DESIGN.md`](./design/SOLUTION_DESIGN.md) |
 | Running the hackathon demo | [`runbooks/DEMO_RUNBOOK.md`](./runbooks/DEMO_RUNBOOK.md) |
+| Full hybrid-eval presentation (extension + heuristic + hybrid) | [`runbooks/PRESENTATION_HYBRID_EVAL.md`](./runbooks/PRESENTATION_HYBRID_EVAL.md) |
 | FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) |
 | Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
 | Extension (Context Guard) | [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
@@ -65,6 +66,7 @@ Architecture, contracts narrative, audits, phased plans.
 | Doc | Purpose |
 | --- | --- |
 | [DEMO_RUNBOOK.md](./runbooks/DEMO_RUNBOOK.md) | ≤5 min live demo (Detect → Fix → Prove) |
+| [PRESENTATION_HYBRID_EVAL.md](./runbooks/PRESENTATION_HYBRID_EVAL.md) | ~15 min hybrid-eval-app demo (extension → heuristic → hybrid) |
 | [PILOT_RUNBOOK.md](./runbooks/PILOT_RUNBOOK.md) | One-team baseline → apply → import bill |
 | [prove-monthly.md](./runbooks/prove-monthly.md) | Platform monthly `usage-sync` via GitHub Actions |
 

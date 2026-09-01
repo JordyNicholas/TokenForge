@@ -57,8 +57,12 @@ tokenforge scan . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
 tokenforge apply . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
 
 # Presentation backup
-npm run tokenforge:presentation-hybrid
+npm run tokenforge:presentation-full          # extension checklist + heuristic + hybrid
+npm run tokenforge:presentation-heuristic     # Act 2 only (fixtures/hybrid-eval-app)
+npm run tokenforge:presentation-hybrid        # Act 3 only
 ```
+
+Runbook: [`../runbooks/PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md).
 
 ## Safety (unchanged)
 

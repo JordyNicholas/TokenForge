@@ -33,12 +33,18 @@ fixtures/hybrid-eval-app/
 ## Demo commands
 
 ```bash
-# Hybrid presentation (default target after this fixture lands)
-npm run tokenforge:presentation-hybrid -- fixtures/hybrid-eval-app
+# Full guided script (extension checklist → heuristic → hybrid)
+npm run tokenforge:presentation-full
+
+# Individual acts
+npm run tokenforge:presentation-heuristic
+npm run tokenforge:presentation-hybrid
 
 # Regenerate instruction files via Cursor CLI (optional)
 npm run tokenforge:generate-hybrid-eval-instructions
 ```
+
+Runbook: [`docs/runbooks/PRESENTATION_HYBRID_EVAL.md`](../../docs/runbooks/PRESENTATION_HYBRID_EVAL.md). Reset: `npm run tokenforge:reset-hybrid-eval`.
 
 ## Golden totals
 
