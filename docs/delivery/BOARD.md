@@ -311,15 +311,15 @@ Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). M
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #226 | Design doc + BOARD F7 index | Docs | **In Progress** |
-| #227 | Heuristic attention set for LLM routing | `risk-core` | **In Progress** |
-| #228 | Tiered enrichment (local cap vs vendor full set) | CLI scan | **In Progress** |
-| #229 | Configurable policy budget | `risk-core` / CLI | **In Progress** |
-| #230 | PolicySynthesizerPort (cursor-cli apply) | `enrichers` | **In Progress** |
-| #231 | `apply --mode hybrid` + config file | CLI | **In Progress** |
-| #232 | Tests: attention set + hybrid apply | Tests | **In Progress** |
-| #233 | Docs refresh for F7 | Docs | **In Progress** |
-| #234 | Presentation hybrid script | Scripts | **In Progress** |
+| #226 | Design doc + BOARD F7 index | Docs | **Done** |
+| #227 | Heuristic attention set for LLM routing | `risk-core` | **Done** |
+| #228 | Tiered enrichment (local cap vs vendor full set) | CLI scan | **Done** |
+| #229 | Configurable policy budget | `risk-core` / CLI | **Done** |
+| #230 | PolicySynthesizerPort (cursor-cli apply) | `enrichers` | **Done** |
+| #231 | `apply --mode hybrid` + config file | CLI | **Done** |
+| #232 | Tests: attention set + hybrid apply | Tests | **Done** |
+| #233 | Docs refresh for F7 | Docs | **Done** |
+| #234 | Presentation hybrid script | Scripts | **Done** |
 
 Build order: **#226 → #227 → #228 → #229 → #230 → #231 → #232 → #234 → #233**
 
@@ -354,7 +354,7 @@ Phase 2:
 4. **F4** (#156) — filed; implement only when prioritized (#157/#158 first)
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
-7. **F7** (#225) — Hybrid Fix: heuristic attention set + hybrid apply (**In Progress**); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
+7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
 8. **Candidates** below — promote to issues when the team agrees scope
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
