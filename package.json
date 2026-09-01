@@ -23,6 +23,7 @@
     "tokenforge:prove": "bash ./scripts/prove-scan.sh",
     "tokenforge:pilot": "bash ./scripts/pilot-pack.sh",
     "tokenforge:presentation-hybrid": "bash ./scripts/presentation-hybrid.sh",
+    "tokenforge:presentation-heuristic": "bash ./scripts/presentation-heuristic.sh",
     "tokenforge:usage-sync": "bash ./scripts/prove-usage-sync.sh",
     "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
     "tokenforge:dashboard:build": "npm run build -w @tokenforge/dashboard",
