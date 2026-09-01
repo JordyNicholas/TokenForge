@@ -131,4 +131,3 @@ Document HTTP-facing changes for downstream teams.
 
 For standards questions, open the specific RULEBOOK section — avoid loading all 30
 chapters into Copilot chat for every autocomplete request.
-

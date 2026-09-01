@@ -152,4 +152,3 @@ Call out HTTP-visible changes in release notes.
 ## Instruction file sprawl
 
 Multiple provider instruction files exist; consolidate toward `AGENTS.md` over time.
-

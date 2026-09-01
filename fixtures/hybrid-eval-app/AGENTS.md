@@ -165,4 +165,3 @@ User-visible HTTP changes need a line in the platform release doc — link the P
 
 This repository also contains `CLAUDE.md`, Copilot instructions, and Cursor rules.
 Prefer editing **this file** for cross-provider guidance and trim duplicates elsewhere.
-
