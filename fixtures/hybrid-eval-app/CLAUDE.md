@@ -112,6 +112,11 @@ token bleed in metered agent products.
 When using extended thinking, still respect the reuse and contract rules above —
 reasoning depth does not replace reading `openapi.yaml`.
 
+## Claude Projects and attachments
+
+When this repo is mounted in a Claude Project, pin `AGENTS.md` and link to RULEBOOK
+sections instead of uploading `coverage/` trees or lockfile exports as project knowledge.
+
 ## Webhooks and signatures
 
 Verify webhook signatures in production code paths. Test fixtures use fake secrets via

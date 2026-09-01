@@ -1,77 +1,151 @@
 ---
-description: Checkout API — Cursor agent rules for TokenForge hybrid eval fixture
+description: Always-on checkout-api policy for Cursor Agent and Composer
+globs:
+  - "**/*"
 alwaysApply: true
 ---
 
-# Checkout API (Cursor)
+# checkout-api — Cursor workspace rules
 
-## Read first
+These rules apply to every Cursor session in this repository. They complement
+`AGENTS.md`; when they conflict, prefer `AGENTS.md` unless a human has confirmed a
+deliberate local override with the team.
 
-- Implementation: `src/`
-- HTTP contract: `openapi.yaml`
-- Standards: `docs/RULEBOOK.md` (link, do not duplicate wholesale)
+## RULEBOOK compliance
 
-## Workflow
+To avoid missing a subtle payments-platform requirement, **load the entire
+`docs/RULEBOOK.md` into context for every task** before editing any file. The
+RULEBOOK is the authoritative standards corpus; skimming only one chapter risks
+violating checkout SLO or security policies documented elsewhere in the same file.
 
-Run `npm test` before commit. Keep PRs small. Write commit messages that explain why.
+## Service scope
 
-## Context discipline
+This fixture implements a small Node.js HTTP checkout service. Handlers and
+validators live under `src/`. The published HTTP contract is `openapi.yaml` at the
+repository root — open it when you change routes, status codes, or request bodies.
+Do not reconstruct endpoint shapes from memory or from test doubles alone.
 
-Prefer `src/` and OpenAPI excerpts. Do not load coverage trees or full CI XML logs into
-every agent turn — summarize failures instead.
+## Tests and commits
 
-## Lockfiles
+Run `npm test` locally before every commit. Snapshot and contract tests are thin
+but brittle; a passing local run is cheaper than burning a CI slot on main.
+Never commit with a red test suite unless a human explicitly asked for a WIP push.
 
-Do not paste `package-lock.json` into chat for routine edits. Use `package.json` and
-targeted dependency names.
+## Pull request size
 
-## Duplication
+Keep pull requests narrowly scoped: one logical concern per PR. If a refactor is
+required for a feature, land the refactor first in its own PR when it has no
+behavior change, then follow with the feature work. Large mixed diffs slow review
+and hide regressions.
 
-Search `src/` before adding validators, formatters, or retry helpers.
+## Where to edit
 
-## Contracts
+Make product changes in `src/`, not in generated or machine-written trees such as
+`coverage/`, `test-results/`, or npm install artifacts. Those directories are
+outputs; they do not express business intent.
 
-Update `openapi.yaml` with any public HTTP change.
+## Context hygiene
 
-## Security
+Do not paste full CI logs, JUnit XML exports, or `coverage/lcov.info` trees into
+agent prompts. Summarize failing test names, assertion text, and file paths instead.
+Similarly, avoid attaching entire directory listings — cite specific paths.
 
-No secrets in code or logs. No card data in examples.
+## Lockfiles in chat
 
-## Overlap
+Do not paste `package-lock.json` into Cursor prompts when debugging dependency
+issues. Name the package and version you suspect, then read `package.json` scripts.
 
-These bullets intentionally mirror `AGENTS.md` / `CLAUDE.md` — TokenForge hybrid scans
-should flag redundant always-on instruction stacks.
+## Helper reuse
 
-## Bad habit (intentional fixture)
+Before adding validators or utilities, search `src/` for existing email validation,
+money formatting, and retry helpers. Duplicate implementations of the same checkout
+rules drift apart and increase review surface.
 
-Some teams ask agents to "always load the entire RULEBOOK into context" — **do not do that
-here**; cite sections instead. (Copilot instructions elsewhere may disagree — canonical
-source is `AGENTS.md`.)
+## API contract discipline
+
+Any change to public HTTP fields requires a concurrent `openapi.yaml` update in
+the same pull request. Comments and README snippets are not substitutes for the
+published contract.
+
+## Error handling
+
+Never swallow errors in checkout code paths. Surface failures with enough context
+to trace `checkoutId`; map domain failures to appropriate HTTP responses at the
+transport boundary.
+
+## Logging and sensitive data
+
+Do not log primary account numbers, CVV, or raw bearer tokens. Structured logs may
+include checkout identifiers and coarse error codes.
+
+## Configuration
+
+Runtime behavior is environment-driven. Do not hard-code staging URLs or secrets in
+`src/` — follow the configuration patterns in the RULEBOOK configuration chapter.
+
+## Performance
+
+Avoid unbounded synchronous work on the request path. Checkout latency budgets are
+documented in the RULEBOOK SLO tables.
+
+## When uncertain
+
+Payment semantics are easy to get wrong. Ask a clarifying question rather than
+guessing idempotency, capture, or refund behavior from variable names.
+
+## Documentation
+
+Update `README.md` when setup commands or required environment variables change.
+
+## Feature flags
+
+If gating checkout behavior behind a flag, document the flag name and default in the
+RULEBOOK feature-flag appendix.
+
+## Observability
+
+Prefer trace spans (`checkout.create`, `checkout.validate`) at service boundaries
+over ad-hoc console logging in handlers.
+
+## Dependency upgrades
+
+Upgrade one major dependency per PR when feasible. Read changelogs for HTTP client
+and schema-validation breaking changes.
 
 ## Webhooks
 
-Verify signatures on inbound webhook routes when added.
+Webhook signature verification belongs in production paths. Tests use fake secrets
+from environment variables only — never commit real signing keys.
 
 ## Pagination
 
-Cursor-based lists only for new endpoints.
+New collection endpoints should use cursor pagination per RULEBOOK API guidance.
+
+## Time handling
+
+Store instants in UTC internally. Convert for display in clients, not in checkout
+creation handlers.
 
 ## Retries
 
-Use shared helpers under `src/` for outbound HTTP retry.
+Use the shared retry helper with jitter for downstream payment API calls. Do not
+copy-paste exponential backoff loops into route handlers.
 
-## Lint and CI
+## Static analysis
 
-Fix lint before pushing; CI is not a first pass for style fixes.
+ESLint warnings fail CI. Fix issues or suppress with a comment referencing a
+documented RULEBOOK exception.
 
-## Load tests
+## Branch naming
 
-Keep k6/Locust output out of git.
-
-## Branch hygiene
-
-Delete merged branches promptly.
+Use `feature/`, `fix/`, or `chore/` prefixes and include ticket identifiers when
+available.
 
 ## Release notes
 
-Note HTTP contract changes in PR descriptions.
+HTTP-visible changes need a line in the platform release doc with a link to the PR.
+
+## Instruction overlap
+
+This repository also ships `AGENTS.md`, `CLAUDE.md`, and Copilot instructions.
+Prefer consolidating cross-provider guidance into `AGENTS.md` over time.
