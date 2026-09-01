@@ -14,7 +14,7 @@ cd "$ROOT"
 TOKENFORGE=(node ./cli/bin/tokenforge.mjs)
 DASHBOARD_PORT="${TOKENFORGE_DASHBOARD_PORT:-5173}"
 STAGED="dashboard/public/last-scan.json"
-DEMO_ROOT="${1:-.}"
+DEMO_ROOT="${1:-fixtures/hybrid-eval-app}"
 LLM="${TOKENFORGE_PRESENTATION_LLM:-cursor-cli:composer-2.5}"
 
 if [[ "$DEMO_ROOT" != /* ]]; then

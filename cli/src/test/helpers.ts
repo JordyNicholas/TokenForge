@@ -88,6 +88,13 @@ export const outputShapeAppExpectedTotalsPath = resolve(
   "fixtures/expected/output-shape-app-totals.json",
 );
 
+/** Hybrid eval: LLM-style instruction sprawl for scan/apply demos. */
+export const hybridEvalAppRoot = resolve(repoRoot, "fixtures/hybrid-eval-app");
+export const hybridEvalAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/hybrid-eval-app-totals.json",
+);
+
 /** Cursor rules fixture (#203): `.cursor/rules` must be walked by CLI scan. */
 export const cursorRulesAppRoot = resolve(repoRoot, "fixtures/cursor-rules-app");
 

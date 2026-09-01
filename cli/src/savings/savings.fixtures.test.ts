@@ -8,6 +8,8 @@ import {
   borderlineAppRoot,
   heuristicEdgeAppExpectedTotalsPath,
   heuristicEdgeAppRoot,
+  hybridEvalAppExpectedTotalsPath,
+  hybridEvalAppRoot,
   instructionsAppExpectedTotalsPath,
   instructionsAppRoot,
   leanAppExpectedTotalsPath,
@@ -55,6 +57,7 @@ describe.each([
     activeSessionAppExpectedTotalsPath,
   ],
   ["output-shape-app", outputShapeAppRoot, outputShapeAppExpectedTotalsPath],
+  ["hybrid-eval-app", hybridEvalAppRoot, hybridEvalAppExpectedTotalsPath],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {
     const seed = await loadSeed(expectedTotalsPath);

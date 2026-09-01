@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: Checkout API (fixture)
+  version: 0.0.0
+paths:
+  /v1/checkouts:
+    post:
+      summary: Create a checkout session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [totalCents, currency]
+              properties:
+                totalCents:
+                  type: integer
+                  minimum: 0
+                currency:
+                  type: string
+                  example: USD
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  totalCents:
+                    type: integer
+                  currency:
+                    type: string

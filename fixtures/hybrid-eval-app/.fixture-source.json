@@ -1,0 +1,6 @@
+{
+  "provenance": "Authored for TokenForge hybrid eval using GENERATION_BRIEF.md (LLM-style policy sprawl). Regenerate with npm run tokenforge:generate-hybrid-eval-instructions when Cursor CLI is available.",
+  "generator": "cursor-cli:composer-2.5",
+  "brief": "fixtures/hybrid-eval-app/GENERATION_BRIEF.md",
+  "generatedAt": "2026-09-01"
+}
