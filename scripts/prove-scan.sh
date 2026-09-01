@@ -6,29 +6,31 @@
 #   npm run tokenforge:prove -- scan fixtures/noisy-app
 #   npm run tokenforge:prove -- scan /path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
 #   npm run tokenforge:prove -- init fixtures/noisy-app --mode hybrid
+#   npm run tokenforge:prove -- apply fixtures/noisy-app --mode hybrid --llm cursor-cli --allow-external
+#   npm run tokenforge:prove -- stage fixtures/noisy-app
 #   npm run tokenforge:prove -- fixtures/noisy-app   # implies scan
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-TOKENFORGE=(node ./cli/bin/tokenforge.mjs)
 DASHBOARD_PORT="${TOKENFORGE_DASHBOARD_PORT:-5173}"
 STAGED="dashboard/public/last-scan.json"
 PROVE_URL="http://127.0.0.1:${DASHBOARD_PORT}/board/combined?src=/last-scan.json"
 
 usage() {
   cat <<'EOF'
-Usage: prove-scan.sh [scan|init] [root] [tokenforge options...]
+Usage: prove-scan.sh [scan|init|apply|stage] [root] [tokenforge options...]
 
-Runs tokenforge, copies <root>/.tokenforge/scan-report.json to
+Runs tokenforge (except stage), copies <root>/.tokenforge/scan-report.json to
 dashboard/public/last-scan.json, starts the dashboard if needed, and opens Prove.
 
 Examples:
-  prove-scan.sh scan fixtures/noisy-app
-  prove-scan.sh scan /path/to/repo --mode hybrid --llm ollama:qwen2.5-coder:7b
-  prove-scan.sh init fixtures/noisy-app --provider generic
-  prove-scan.sh fixtures/noisy-app
+  npm run tokenforge:prove -- scan fixtures/noisy-app
+  npm run tokenforge:prove -- scan fixtures/hybrid-eval-app --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
+  npm run tokenforge:prove -- apply fixtures/hybrid-eval-app --mode heuristic --provider copilot
+  npm run tokenforge:prove -- stage fixtures/hybrid-eval-app
+  npm run tokenforge:prove -- fixtures/noisy-app
 EOF
 }
 
@@ -43,14 +45,17 @@ if [[ ${#args[@]} -eq 0 ]]; then
 fi
 
 cmd="${args[0]}"
-if [[ "$cmd" != "scan" && "$cmd" != "init" && "$cmd" != "apply" ]]; then
+if [[ "$cmd" != "scan" && "$cmd" != "init" && "$cmd" != "apply" && "$cmd" != "stage" ]]; then
   args=(scan "${args[@]}")
   cmd=scan
 fi
 
 # Positional root: first non-option after the command (mirrors CLI).
-scan_root="$PWD"
+scan_root=""
 i=1
+if [[ "$cmd" == "scan" || "$cmd" == "init" || "$cmd" == "apply" || "$cmd" == "stage" ]]; then
+  i=2
+fi
 while [[ $i -lt ${#args[@]} ]]; do
   arg="${args[$i]}"
   if [[ "$arg" == -* ]]; then
@@ -77,6 +82,10 @@ while [[ $i -lt ${#args[@]} ]]; do
   break
 done
 
+if [[ -z "$scan_root" ]]; then
+  scan_root="$PWD"
+fi
+
 if [[ "$scan_root" != /* ]]; then
   scan_root="$ROOT/$scan_root"
 fi
@@ -86,44 +95,52 @@ scan_root="$(cd "$scan_root" 2>/dev/null && pwd)" || {
   exit 1
 }
 
-echo "prove-scan: running tokenforge ${args[*]}"
-set +e
-"${TOKENFORGE[@]}" "${args[@]}"
-tf_status=$?
-set -e
-# 0 = savings, 3 = success with zero savings — both OK for Prove.
-if [[ "$tf_status" -ne 0 && "$tf_status" -ne 3 ]]; then
-  exit "$tf_status"
-fi
+stage_report() {
+  local report="$scan_root/.tokenforge/scan-report.json"
+  if [[ ! -f "$report" ]]; then
+    echo "prove-scan: missing report at $report" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$STAGED")"
+  cp "$report" "$STAGED"
+  echo "prove-scan: staged $STAGED"
+}
 
-report="$scan_root/.tokenforge/scan-report.json"
-if [[ ! -f "$report" ]]; then
-  echo "prove-scan: missing report at $report" >&2
-  exit 1
+if [[ "$cmd" == "stage" ]]; then
+  stage_report
+else
+  echo "prove-scan: running tokenforge ${args[*]}"
+  set +e
+  npm run tokenforge -- "${args[@]}"
+  tf_status=$?
+  set -e
+  # 0 = savings, 3 = success with zero savings — both OK for Prove.
+  if [[ "$tf_status" -ne 0 && "$tf_status" -ne 3 ]]; then
+    exit "$tf_status"
+  fi
+  stage_report
 fi
-
-mkdir -p "$(dirname "$STAGED")"
-cp "$report" "$STAGED"
-echo "prove-scan: staged $STAGED"
 
 dashboard_up() {
   curl -sf -o /dev/null "http://127.0.0.1:${DASHBOARD_PORT}/" 2>/dev/null
 }
 
-if dashboard_up; then
-  echo "prove-scan: dashboard already on :${DASHBOARD_PORT}"
-else
-  echo "prove-scan: starting dashboard on :${DASHBOARD_PORT}…"
-  npm run tokenforge:dashboard >/tmp/tokenforge-dashboard.log 2>&1 &
-  for _ in $(seq 1 60); do
-    if dashboard_up; then
-      break
+if [[ "${TOKENFORGE_PROVE_NO_DASHBOARD:-0}" != "1" ]]; then
+  if dashboard_up; then
+    echo "prove-scan: dashboard already on :${DASHBOARD_PORT}"
+  else
+    echo "prove-scan: starting dashboard on :${DASHBOARD_PORT}…"
+    npm run tokenforge:dashboard >/tmp/tokenforge-dashboard.log 2>&1 &
+    for _ in $(seq 1 60); do
+      if dashboard_up; then
+        break
+      fi
+      sleep 0.5
+    done
+    if ! dashboard_up; then
+      echo "prove-scan: dashboard did not become ready (see /tmp/tokenforge-dashboard.log)" >&2
+      exit 1
     fi
-    sleep 0.5
-  done
-  if ! dashboard_up; then
-    echo "prove-scan: dashboard did not become ready (see /tmp/tokenforge-dashboard.log)" >&2
-    exit 1
   fi
 fi
 
@@ -140,5 +157,7 @@ open_browser() {
   echo "prove-scan: opened $url"
 }
 
-open_browser "$PROVE_URL"
+if [[ "${TOKENFORGE_PROVE_NO_OPEN:-0}" != "1" && "${TOKENFORGE_PRESENTATION_NO_OPEN:-0}" != "1" ]]; then
+  open_browser "$PROVE_URL"
+fi
 exit 0
