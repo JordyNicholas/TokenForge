@@ -22,7 +22,7 @@ export {
 } from "./cursor/cursor";
 export { genericAdapter } from "./generic/generic";
 export { getAdapter } from "./registry";
-export type { PolicyFile, PolicyWriteMode, ProviderAdapter } from "./types";
+export type { PolicyFile, PolicyRenderContext, PolicyWriteMode, ProviderAdapter } from "./types";
 export {
   TOKENFORGE_SECTION_BEGIN,
   TOKENFORGE_SECTION_END,

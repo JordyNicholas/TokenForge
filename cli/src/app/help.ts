@@ -75,12 +75,19 @@ const COMMAND_HELP: Record<string, string> = {
 
   apply: `tokenforge apply [path] [options]
 
-  Write lean agent instructions and exclusion candidates for your provider adapter.
+  Write agent policy pack: managed instruction section + exclusion candidates.
 
   Options:
     --provider copilot            Default apply adapter (copilot | cursor | claude | generic)
+    --mode heuristic | hybrid     Policy synthesis mode (default: heuristic)
+    --llm <backend[:model]>       Hybrid apply — compiles scan JSON into policy text
+    --allow-external              Required for hybrid apply with vendor CLI backends
+    --policy-max-bytes <n>        Override managed section byte budget
     --dry-run                     List planned writes without changing files
     --json                        Include totals JSON on stdout
+
+  Example:
+    npm run tokenforge -- apply . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
 
   Safety: instruction markdown gets a managed <!-- tokenforge:begin/end --> section;
   user text outside the markers is kept. Exclusion YAML may fully replace.

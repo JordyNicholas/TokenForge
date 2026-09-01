@@ -16,8 +16,14 @@ export type PolicyFile = {
   writeMode?: PolicyWriteMode;
 };
 
+/** Optional pre-synthesized managed instruction bodies keyed by adapter path. */
+export type PolicyRenderContext = {
+  managedInstructionBodies?: ReadonlyMap<string, string>;
+  policyMaxBytes?: number;
+};
+
 export type ProviderAdapter = {
   id: ProviderId;
   /** Build lean instruction + exclusion files from a scan report. No I/O. */
-  render(report: TokenRiskReport): PolicyFile[];
+  render(report: TokenRiskReport, context?: PolicyRenderContext): PolicyFile[];
 };

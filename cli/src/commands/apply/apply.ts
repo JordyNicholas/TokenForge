@@ -6,7 +6,7 @@ import {
   type ProviderId,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
-import { getAdapter, type PolicyFile } from "../../adapters";
+import { getAdapter, type PolicyFile, type PolicyRenderContext } from "../../adapters";
 import { mergeTokenForgeSection } from "../../adapters/section-merge";
 import { RuntimeError } from "../../app/errors";
 import { readActivePathsFile } from "../../io/active-paths-file";
@@ -18,6 +18,11 @@ import {
   writeScanReport,
 } from "../../io/report-file";
 import { parseProviderId, scanRepo } from "../scan/scan";
+import { synthesizeManagedInstructionBody } from "../../policy/apply-synthesis";
+import {
+  instructionPathForProvider,
+  instructionTitleForProvider,
+} from "../../policy/provider-instruction-path";
 
 export type ApplyOptions = {
   root: string;
@@ -33,6 +38,10 @@ export type ApplyOptions = {
   externalDataConsent?: boolean;
   /** Session signal; see `ScanOptions.activePathsFile`. */
   activePathsFile?: string;
+  /** Override managed policy byte budget. */
+  policyMaxBytes?: number;
+  /** Progress sink for hybrid apply LLM synthesis. */
+  onProgress?: (message: string) => void;
   /** When set (init), skip a second walk. */
   report?: TokenRiskReport;
   skipApply?: boolean;
@@ -202,7 +211,18 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   const provider = parseProviderId(options.provider ?? "copilot");
   const adapter = getAdapter(provider);
   const report = await resolveReport(options, root, provider);
-  const files = adapter.render(report);
+  const instructionPath = instructionPathForProvider(provider);
+  const synthesis = await synthesizeManagedInstructionBody({
+    root,
+    report,
+    title: instructionTitleForProvider(provider),
+    applyOptions: options,
+  });
+  const renderContext: PolicyRenderContext = {
+    managedInstructionBodies: new Map([[instructionPath, synthesis.markdown]]),
+    policyMaxBytes: synthesis.policyMaxBytes,
+  };
+  const files = adapter.render(report, renderContext);
   const reportPath = scanReportPath(root);
   const dryRun = Boolean(options.dryRun);
   const { resolvedFiles, writes } = await resolvePolicyWrites(root, files);

@@ -91,6 +91,7 @@ export async function runCli(
         "llm-timeout": { type: "string" },
         "allow-external": { type: "boolean", default: false },
         "active-paths-file": { type: "string" },
+        "policy-max-bytes": { type: "string" },
         report: { type: "string" },
         rescan: { type: "boolean", default: false },
         "skip-apply": { type: "boolean", default: false },
@@ -109,6 +110,11 @@ export async function runCli(
     }
 
     const root = resolve(rootArg ?? process.cwd());
+    const policyMaxBytesRaw = values["policy-max-bytes"];
+    const policyMaxBytes =
+      policyMaxBytesRaw !== undefined
+        ? Number.parseInt(String(policyMaxBytesRaw), 10)
+        : undefined;
     const common = {
       root,
       team: values.team,
@@ -120,6 +126,10 @@ export async function runCli(
       llmTimeout: values["llm-timeout"],
       externalDataConsent: values["allow-external"],
       activePathsFile: values["active-paths-file"],
+      policyMaxBytes:
+        policyMaxBytes !== undefined && Number.isFinite(policyMaxBytes)
+          ? policyMaxBytes
+          : undefined,
     };
 
     if (command === "scan") {
@@ -180,7 +190,13 @@ export async function runCli(
               dryRun: values["dry-run"],
               skipApply: values["skip-apply"],
             })
-          : await applyPolicy({ ...common, dryRun: values["dry-run"] });
+          : await applyPolicy({
+              ...common,
+              dryRun: values["dry-run"],
+              onProgress: (message) => {
+                io.stderr.write(`tokenforge: ${message}\n`);
+              },
+            });
       printApply(
         io,
         { report: applied.report, reportPath: applied.reportPath, assessments: [] },

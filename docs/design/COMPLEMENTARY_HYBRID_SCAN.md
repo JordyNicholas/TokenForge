@@ -122,7 +122,7 @@ Enforced in `risk-core` and at enricher parse boundaries — **not** prompt trus
 | `activePaths` never in exclusion YAML or “Do not load” | `activePathSet()` in apply + synthesis |
 | Advisory findings never in exclusion YAML | `proposedExclusionPaths` filters `action: excluded` only |
 | `redundant_config` never in synthesized instruction hygiene | `synthesizeLeanInstructions` skips at reason level |
-| Policy file ≤ 2048 bytes | `assertLeanInstruction()` |
+| Policy file ≤ configured budget | `assertLeanInstruction()` + mode defaults (#225) |
 
 ### Instruction allowlist (LLM exclude on non-heuristic paths)
 

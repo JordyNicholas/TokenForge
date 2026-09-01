@@ -15,10 +15,13 @@ export type SynthesizeLeanInstructionsOptions = {
   title?: string;
   /** Soft byte budget; synthesizer trims sections to stay under this. */
   maxBytes?: number;
+  /** When true, do not truncate hygiene/advisory summaries at 120 chars. */
+  completeSummaries?: boolean;
 };
 
 const HYGIENE_KINDS = new Set(["trim_instructions", "dedupe_rules"]);
 const MAX_HYGIENE_SUMMARY_CHARS = 120;
+const COMPLETE_HYGIENE_SUMMARY_CHARS = 480;
 const MAX_WHY_THEMES = 3;
 const MAX_EXCLUDE_BULLETS = 24;
 const MAX_HYGIENE_BULLETS = 8;
@@ -85,6 +88,7 @@ function isAdvisoryFinding(finding: TokenRiskFinding): boolean {
 
 function hygieneBullets(
   findings: readonly TokenRiskFinding[],
+  summaryMaxChars: number,
 ): HygieneBullet[] {
   const byPath = new Map<string, HygieneBullet>();
   for (const finding of findings) {
@@ -104,7 +108,7 @@ function hygieneBullets(
     }
     const next: HygieneBullet = {
       path: finding.path,
-      summary: truncateSummary(suggestion.summary),
+      summary: truncateSummary(suggestion.summary, summaryMaxChars),
       estTokens: finding.estTokens,
       confidence: finding.confidence ?? 0,
     };
@@ -125,6 +129,7 @@ function hygieneBullets(
 
 function advisoryBullets(
   findings: readonly TokenRiskFinding[],
+  summaryMaxChars: number,
 ): AdvisoryBullet[] {
   const byPath = new Map<string, AdvisoryBullet>();
   for (const finding of findings) {
@@ -134,7 +139,7 @@ function advisoryBullets(
     const suggestion = resolveSuggestion(finding);
     const next: AdvisoryBullet = {
       path: finding.path,
-      summary: truncateSummary(suggestion.summary),
+      summary: truncateSummary(suggestion.summary, summaryMaxChars),
       estTokens: finding.estTokens,
       confidence: finding.confidence ?? 0,
     };
@@ -218,6 +223,9 @@ export function synthesizeLeanInstructions(
 ): string {
   const title = options.title?.trim() || "TokenForge instructions";
   const maxBytes = options.maxBytes ?? MAX_LEAN_INSTRUCTION_BYTES;
+  const summaryMaxChars = options.completeSummaries
+    ? COMPLETE_HYGIENE_SUMMARY_CHARS
+    : MAX_HYGIENE_SUMMARY_CHARS;
 
   const header = [
     `# ${title}`,
@@ -241,8 +249,8 @@ export function synthesizeLeanInstructions(
   let excludeLines = excludedPathsForInstructions(report.findings, active).map(
     (path) => `- \`${path}\``,
   );
-  let hygiene = hygieneBullets(report.findings);
-  let advisory = advisoryBullets(report.findings);
+  let hygiene = hygieneBullets(report.findings, summaryMaxChars);
+  let advisory = advisoryBullets(report.findings, summaryMaxChars);
   let themes = whyThemes(report);
   const includeCompactOutput = shouldIncludeCompactOutputGuidance(report.findings);
   const stackSection = instructionStackSection(report);

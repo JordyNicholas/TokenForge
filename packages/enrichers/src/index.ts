@@ -96,3 +96,13 @@ export type {
   LlmVerdict,
   ParsedLlmSpec,
 } from "./types";
+export {
+  buildPolicySynthesisPrompt,
+  parsePolicyMarkdownPayload,
+} from "./policy/prompt";
+export {
+  synthesizePolicyHeuristic,
+  synthesizePolicyHybrid,
+} from "./policy/synthesizer";
+export { synthesizePolicyWithCursorCli } from "./policy/cursor-cli";
+export type { PolicySynthesisInput, PolicySynthesisResult } from "./policy/types";

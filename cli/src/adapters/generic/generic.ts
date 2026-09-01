@@ -9,12 +9,18 @@ import type { PolicyFile, ProviderAdapter } from "../types";
 
 export const genericAdapter: ProviderAdapter = {
   id: "generic",
-  render(report: TokenRiskReport): PolicyFile[] {
+  render(report, context): PolicyFile[] {
     return [
       renderInstructionsFile(
         report,
         GENERIC_INSTRUCTIONS_PATH,
         "TokenForge instructions (generic)",
+        {
+          managedBody: context?.managedInstructionBodies?.get(
+            GENERIC_INSTRUCTIONS_PATH,
+          ),
+          maxBytes: context?.policyMaxBytes,
+        },
       ),
       {
         path: GENERIC_EXCLUSIONS_PATH,

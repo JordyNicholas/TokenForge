@@ -13,12 +13,18 @@ export const CURSOR_IGNORE_CANDIDATES_PATH =
 
 export const cursorAdapter: ProviderAdapter = {
   id: "cursor",
-  render(report: TokenRiskReport): PolicyFile[] {
+  render(report, context): PolicyFile[] {
     return [
       renderInstructionsFile(
         report,
         CURSOR_INSTRUCTIONS_PATH,
         "Cursor rules (TokenForge)",
+        {
+          managedBody: context?.managedInstructionBodies?.get(
+            CURSOR_INSTRUCTIONS_PATH,
+          ),
+          maxBytes: context?.policyMaxBytes,
+        },
       ),
       {
         path: CURSOR_EXCLUSIONS_PATH,

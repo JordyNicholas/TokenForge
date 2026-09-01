@@ -9,12 +9,18 @@ import type { PolicyFile, ProviderAdapter } from "../types";
 
 export const copilotAdapter: ProviderAdapter = {
   id: "copilot",
-  render(report: TokenRiskReport): PolicyFile[] {
+  render(report, context): PolicyFile[] {
     return [
       renderInstructionsFile(
         report,
         COPILOT_INSTRUCTIONS_PATH,
         "Copilot instructions (TokenForge)",
+        {
+          managedBody: context?.managedInstructionBodies?.get(
+            COPILOT_INSTRUCTIONS_PATH,
+          ),
+          maxBytes: context?.policyMaxBytes,
+        },
       ),
       {
         path: COPILOT_EXCLUSIONS_PATH,

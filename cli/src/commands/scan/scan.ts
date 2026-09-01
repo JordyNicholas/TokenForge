@@ -2,16 +2,18 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import {
   activePathSet,
+  buildHeuristicAttentionSet,
   buildInstructionHeuristicFindings,
   buildScanLayers,
   computeInstructionBudget,
+  enrichmentTierForBackend,
   heuristicFindingAction,
   isActivePath,
   isInstructionPath,
   isTokenRiskReport,
   primaryReason,
   scoreRisk,
-  selectEnrichmentCandidates,
+  type InstructionBudget,
   type LlmBackendId,
   type ProviderId,
   type RiskAssessment,
@@ -225,6 +227,7 @@ async function runHybridEnrichment(
   assessments: RiskAssessment[],
   options: ScanOptions,
   heuristicFindings: TokenRiskFinding[],
+  instructionBudget: InstructionBudget,
 ): Promise<{
   llmFindings: TokenRiskFinding[];
   llmCandidateTokens: number;
@@ -232,7 +235,15 @@ async function runHybridEnrichment(
 }> {
   const spec = parseLlmSpec(options.llm);
   const enricher = options.enricher ?? getEnricher(spec.backend as LlmBackendId);
-  const candidateAssessments = selectEnrichmentCandidates(assessments);
+  const tier = enrichmentTierForBackend(spec.backend as LlmBackendId);
+  const candidateAssessments = buildHeuristicAttentionSet(
+    {
+      assessments,
+      findings: heuristicFindings,
+      instructionBudget,
+    },
+    { tier },
+  );
   const loaded = await Promise.all(
     candidateAssessments.map((assessment) => loadCandidateExcerpt(root, assessment)),
   );
@@ -334,6 +345,7 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
       assessments,
       options,
       heuristicFindings,
+      instructionBudget,
     );
     llmFindings = hybrid.llmFindings;
     llmCandidateTokens = hybrid.llmCandidateTokens;

@@ -29,11 +29,14 @@ export const GENERIC_INSTRUCTIONS_PATH = ".github/tokenforge-instructions.md";
 export const GENERIC_EXCLUSIONS_PATH = ".github/tokenforge-exclusions.yml";
 
 /** Reject instruction files that would themselves bloat context. */
-export function assertLeanInstruction(file: PolicyFile): PolicyFile {
+export function assertLeanInstruction(
+  file: PolicyFile,
+  maxBytes: number = MAX_INSTRUCTION_BYTES,
+): PolicyFile {
   const bytes = Buffer.byteLength(file.contents, "utf8");
-  if (bytes > MAX_INSTRUCTION_BYTES) {
+  if (bytes > maxBytes) {
     throw new RuntimeError(
-      `${file.path} is ${bytes} bytes; policy files must stay under ${MAX_INSTRUCTION_BYTES}.`,
+      `${file.path} is ${bytes} bytes; policy files must stay under ${maxBytes}.`,
     );
   }
   return file;
@@ -87,13 +90,25 @@ export function renderInstructionsFile(
   report: TokenRiskReport,
   path: string,
   title: string,
+  options: {
+    managedBody?: string;
+    maxBytes?: number;
+  } = {},
 ): PolicyFile {
-  return assertLeanInstruction({
-    path,
-    writeMode: "merge-section",
-    contents: synthesizeLeanInstructions(report, {
+  const maxBytes = options.maxBytes ?? MAX_INSTRUCTION_BYTES;
+  const contents =
+    options.managedBody ??
+    synthesizeLeanInstructions(report, {
       title,
-      maxBytes: MAX_INSTRUCTION_BYTES,
-    }),
-  });
+      maxBytes,
+      completeSummaries: true,
+    });
+  return assertLeanInstruction(
+    {
+      path,
+      writeMode: "merge-section",
+      contents,
+    },
+    maxBytes,
+  );
 }

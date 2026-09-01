@@ -279,7 +279,7 @@ function statusLooksAuthenticated(stdout: string): boolean {
   return /authenticated|logged in|email/i.test(stdout);
 }
 
-async function assertCursorCliReady(
+export async function assertCursorCliReady(
   run: CursorCliCommandRunner,
   workspace: string,
 ): Promise<void> {

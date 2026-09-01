@@ -17,6 +17,7 @@
 | Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
 | Extension (Context Guard) | [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
 | Hybrid scan / LLM backends | [`design/COMPLEMENTARY_HYBRID_SCAN.md`](./design/COMPLEMENTARY_HYBRID_SCAN.md) → [`design/HYBRID_SCAN_DESIGN.md`](./design/HYBRID_SCAN_DESIGN.md) → [`adapters/LLM_ENRICHER_SETUP.md`](./adapters/LLM_ENRICHER_SETUP.md) |
+| Hybrid Fix / LLM policy apply | [`design/HYBRID_FIX_DESIGN.md`](./design/HYBRID_FIX_DESIGN.md) |
 
 ---
 
@@ -39,6 +40,7 @@ Architecture, contracts narrative, audits, phased plans.
 | --- | --- |
 | [SOLUTION_DESIGN.md](./design/SOLUTION_DESIGN.md) | Stack, ports & adapters, monorepo layout, JSON contract |
 | [COMPLEMENTARY_HYBRID_SCAN.md](./design/COMPLEMENTARY_HYBRID_SCAN.md) | F6 — AI-first complementary heuristic + LLM layers, safety invariants |
+| [HYBRID_FIX_DESIGN.md](./design/HYBRID_FIX_DESIGN.md) | F7 — heuristic-routed hybrid apply + policy synthesis |
 | [HYBRID_SCAN_DESIGN.md](./design/HYBRID_SCAN_DESIGN.md) | Heuristic + optional LLM enrichment (Phase 2 Detect) |
 | [HEURISTICS_AUDIT.md](./design/HEURISTICS_AUDIT.md) | Point-in-time audit of default scan rules + fixture map |
 | [USAGE_RECONCILIATION_PLAN.md](./design/USAGE_RECONCILIATION_PLAN.md) | Estimate vs actual usage (Prove Wave A→C) |

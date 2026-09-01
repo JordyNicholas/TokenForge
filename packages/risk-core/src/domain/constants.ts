@@ -324,7 +324,17 @@ export const MAX_ANALYSIS_OVERVIEW_CAVEAT_CHARS = 160;
 export const MAX_ANALYSIS_OVERVIEW_CAVEATS = 4;
 
 /**
- * Hard cap for synthesized provider instruction files so the policy pack
- * cannot become another fat always-on context file.
+ * Default byte budget for heuristic (deterministic) policy synthesis.
  */
-export const MAX_LEAN_INSTRUCTION_BYTES = 2_048;
+export const DEFAULT_HEURISTIC_POLICY_MAX_BYTES = 4_096;
+
+/**
+ * Default byte budget for hybrid (LLM-compiled) policy synthesis.
+ */
+export const DEFAULT_HYBRID_POLICY_MAX_BYTES = 8_192;
+
+/**
+ * Legacy default cap for synthesized provider instruction files.
+ * Prefer {@link DEFAULT_HEURISTIC_POLICY_MAX_BYTES} or mode-specific budgets.
+ */
+export const MAX_LEAN_INSTRUCTION_BYTES = DEFAULT_HEURISTIC_POLICY_MAX_BYTES;

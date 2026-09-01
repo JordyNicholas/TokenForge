@@ -16,12 +16,18 @@ export const CLAUDE_EXCLUSIONS_PATH = ".claude/tokenforge-exclusion-candidates.y
 
 export const claudeAdapter: ProviderAdapter = {
   id: "claude",
-  render(report: TokenRiskReport): PolicyFile[] {
+  render(report, context): PolicyFile[] {
     return [
       renderInstructionsFile(
         report,
         CLAUDE_INSTRUCTIONS_PATH,
         "Claude / Codex instructions (TokenForge)",
+        {
+          managedBody: context?.managedInstructionBodies?.get(
+            CLAUDE_INSTRUCTIONS_PATH,
+          ),
+          maxBytes: context?.policyMaxBytes,
+        },
       ),
       {
         path: CLAUDE_EXCLUSIONS_PATH,
