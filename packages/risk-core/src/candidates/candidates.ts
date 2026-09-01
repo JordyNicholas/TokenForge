@@ -150,14 +150,10 @@ function isEligibleForTopBucket(assessment: RiskAssessment): boolean {
 }
 
 /**
- * Pick paths for optional LLM enrichment. Order: instruction paths, a
- * guaranteed `source`-class sample, repeated per-package configs, borderline
- * configs, then largest eligible files. Caller applies byte/read caps at the
- * CLI edge.
- *
+ * Bucket-ordered assessments for LLM enrichment (no global count cap).
  * Credential-shaped paths are dropped up front and can never be selected.
  */
-export function selectEnrichmentCandidates(
+export function orderedBucketAssessments(
   allAssessments: readonly RiskAssessment[],
   options: EnrichmentCandidateOptions = {},
 ): RiskAssessment[] {
@@ -165,28 +161,16 @@ export function selectEnrichmentCandidates(
   const sourceTopCount = options.sourceTopCount ?? DEFAULT_SOURCE_CANDIDATE_COUNT;
   const repeatedConfigCount =
     options.repeatedConfigCount ?? DEFAULT_REPEATED_CONFIG_COUNT;
-  const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_ENRICHMENT_CANDIDATES;
 
-  // Runs before every bucket, not as a filter on the result: a credential-
-  // shaped path must never reach an enricher, and hybrid mode may send
-  // excerpts to an external backend. Asking a remote model whether a file
-  // holds a secret leaks the secret either way.
   const assessments = allAssessments.filter(
     (assessment) => !isSecretPath(assessment.path),
   );
 
   const instruction = assessments.filter((assessment) => isInstructionPath(assessment.path));
-  // Ranked within its own class (no byte floor) so small utility files don't
-  // have to out-compete every other file class for a spot — see B8.
   const topSourceEligible = assessments
     .filter((assessment) => assessment.fileClass === "source")
     .sort((a, b) => b.bytes - a.bytes || a.path.localeCompare(b.path))
     .slice(0, sourceTopCount);
-  // Independent of MIN_BORDERLINE_BYTES: a per-package tsconfig.json is a few
-  // hundred bytes, so the borderline floor would never let one through, and
-  // the top-files bucket ranks by size — the exact axis on which these are
-  // uninteresting. Redundancy is about how many copies exist, not how big
-  // each one is (#136).
   const repeatedConfig = repeatedConfigCandidates(assessments, repeatedConfigCount);
   const borderline = assessments.filter(isBorderline);
   const topEligible = [...assessments]
@@ -195,9 +179,6 @@ export function selectEnrichmentCandidates(
     .slice(0, topCount);
 
   const seen = new Set<string>();
-  // topSourceEligible and repeatedConfig both come before the (per B4,
-  // uncapped) borderline bucket so a repo with many mid-size config files
-  // can't crowd them out before the global cap is reached.
   const ordered = [
     ...instruction,
     ...topSourceEligible,
@@ -213,10 +194,21 @@ export function selectEnrichmentCandidates(
     }
     seen.add(assessment.path);
     selected.push(assessment);
-    if (selected.length >= maxCandidates) {
-      break;
-    }
   }
 
   return selected;
+}
+
+/**
+ * Pick paths for optional LLM enrichment. Order: instruction paths, a
+ * guaranteed `source`-class sample, repeated per-package configs, borderline
+ * configs, then largest eligible files. Caller applies byte/read caps at the
+ * CLI edge.
+ */
+export function selectEnrichmentCandidates(
+  allAssessments: readonly RiskAssessment[],
+  options: EnrichmentCandidateOptions = {},
+): RiskAssessment[] {
+  const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_ENRICHMENT_CANDIDATES;
+  return orderedBucketAssessments(allAssessments, options).slice(0, maxCandidates);
 }

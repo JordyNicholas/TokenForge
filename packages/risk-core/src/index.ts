@@ -41,12 +41,32 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V4_ID,
   TOKEN_RISK_REPORT_SCHEMA_V4_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
+  DEFAULT_HEURISTIC_POLICY_MAX_BYTES,
+  DEFAULT_HYBRID_POLICY_MAX_BYTES,
 } from "./domain/constants";
 export {
   selectEnrichmentCandidates,
+  orderedBucketAssessments,
   isInstructionPath,
   repeatedConfigBasenames,
 } from "./candidates/candidates";
+export {
+  buildHeuristicAttentionSet,
+  orderedAttentionAssessments,
+  attentionPriorityScore,
+  enrichmentTierForBackend,
+  type EnrichmentTier,
+  type HeuristicAttentionInput,
+  type HeuristicAttentionOptions,
+} from "./candidates/attention";
+export {
+  resolvePolicyMaxBytes,
+  parseApplyMode,
+  isTokenForgeConfig,
+  type ApplyMode,
+  type TokenForgeConfig,
+  type EnrichmentTierSetting,
+} from "./config/tokenforge-config";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export {
   isApiContractPath,
