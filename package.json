@@ -24,6 +24,8 @@
     "tokenforge:pilot": "bash ./scripts/pilot-pack.sh",
     "tokenforge:presentation-hybrid": "bash ./scripts/presentation-hybrid.sh",
     "tokenforge:presentation-heuristic": "bash ./scripts/presentation-heuristic.sh",
+    "tokenforge:presentation-full": "bash ./scripts/presentation-full.sh",
+    "tokenforge:reset-hybrid-eval": "rm -rf fixtures/hybrid-eval-app/.tokenforge && git checkout -- fixtures/hybrid-eval-app/.github/copilot-instructions.md",
     "tokenforge:generate-hybrid-eval-instructions": "node ./scripts/generate-hybrid-eval-instructions.mjs",
     "tokenforge:usage-sync": "bash ./scripts/prove-usage-sync.sh",
     "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
