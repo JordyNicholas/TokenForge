@@ -13,8 +13,12 @@ import {
 } from "vscode";
 import { primaryReason } from "@tokenforge/risk-core";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
+import {
+  isDurableFilterEnabled,
+  toggleDurableFilterDecisions,
+} from "../filter/durableFilterSettings";
 import type { TabDecision } from "../filter/types";
-import type { RiskSession } from "../session/riskSession";
+import type { ShieldSession } from "../session/shieldSession";
 import type { SessionLedgerEntry } from "../session/sessionLedger";
 import { idleHintForTab } from "../tabs/idleHint";
 import type { TrackedTab } from "../tabs/types";
@@ -25,25 +29,88 @@ export const RISK_PANEL_VIEW_ID = "tokenforge.riskPanel";
 
 type SectionId = "pending" | "kept" | "filtered" | "approaching" | "history";
 
-export class RiskAutoFilterItem extends TreeItem {
+function isCloseTabOnHardShieldEnabled(): boolean {
+  return workspace.getConfiguration("tokenforge").get<boolean>("closeTabOnHardShield", false);
+}
+
+function isNotifyOnIdleEnabled(): boolean {
+  return workspace.getConfiguration("tokenforge").get<boolean>("notifyOnIdle", false);
+}
+
+abstract class ShieldSettingItem extends TreeItem {
+  constructor(label: string, enabled: boolean, tooltipOn: string, tooltipOff: string) {
+    super(label, TreeItemCollapsibleState.None);
+    this.description = enabled ? "On" : "Off";
+    this.tooltip = enabled ? tooltipOn : tooltipOff;
+    this.iconPath = new ThemeIcon(enabled ? "check" : "circle-outline");
+  }
+}
+
+export class ShieldAutoFilterItem extends ShieldSettingItem {
   constructor(enabled: boolean) {
-    super("Auto-filter high-risk", TreeItemCollapsibleState.None);
-    this.description = enabled ? "On · lockfile / generated" : "Off";
-    this.tooltip = enabled
-      ? "Auto-filter is ON. Pending lockfile and generated tabs Filter automatically. Click to turn off."
-      : "Auto-filter is OFF. Click to auto-Filter pending lockfile and generated tabs.";
-    this.iconPath = new ThemeIcon(enabled ? "check" : "zap");
-    this.contextValue = enabled
-      ? "tokenforge.autoFilterOn"
-      : "tokenforge.autoFilterOff";
+    super(
+      "Auto-shield lockfiles",
+      enabled,
+      "Auto-shield ON — pending lockfile/generated tabs Shield automatically. Click to turn off.",
+      "Auto-shield OFF. Click to Shield pending lockfile and generated tabs automatically.",
+    );
+    this.contextValue = enabled ? "tokenforge.autoFilterOn" : "tokenforge.autoFilterOff";
     this.command = {
       command: "tokenforge.toggleAutoFilterHighRisk",
-      title: "Toggle Auto-filter High-Risk",
+      title: "Auto-shield lockfiles",
     };
   }
 }
 
-export class RiskSectionItem extends TreeItem {
+export class ShieldCloseOnHardItem extends ShieldSettingItem {
+  constructor(enabled: boolean) {
+    super(
+      "Close tab on hard Shield",
+      enabled,
+      "Hard Shield closes the editor tab after applying levers. Click to turn off.",
+      "Hard Shield keeps tabs open. Click to close tabs after hard Shield.",
+    );
+    this.contextValue = "tokenforge.closeOnHardSetting";
+    this.command = {
+      command: "tokenforge.toggleCloseTabOnHardShield",
+      title: "Toggle close tab on hard Shield",
+    };
+  }
+}
+
+export class ShieldDurableItem extends ShieldSettingItem {
+  constructor(enabled: boolean) {
+    super(
+      "Durable choices",
+      enabled,
+      "Allow/Shield choices persist in .tokenforge/ for this workspace. Click to turn off.",
+      "Choices reset when tabs close. Click to persist Allow/Shield in .tokenforge/.",
+    );
+    this.contextValue = "tokenforge.durableSetting";
+    this.command = {
+      command: "tokenforge.toggleDurableFilterDecisions",
+      title: "Toggle durable choices",
+    };
+  }
+}
+
+export class ShieldNotifyIdleItem extends ShieldSettingItem {
+  constructor(enabled: boolean) {
+    super(
+      "Notify on idle",
+      enabled,
+      "Idle threshold notifications are ON. Click to turn off.",
+      "Idle threshold notifications are OFF. Click to enable nudges.",
+    );
+    this.contextValue = "tokenforge.notifyIdleSetting";
+    this.command = {
+      command: "tokenforge.toggleNotifyOnIdle",
+      title: "Toggle notify on idle",
+    };
+  }
+}
+
+export class ShieldSectionItem extends TreeItem {
   constructor(
     readonly sectionId: SectionId,
     label: string,
@@ -61,7 +128,7 @@ export class RiskSectionItem extends TreeItem {
         : sectionId === "kept"
           ? "pinned"
           : sectionId === "filtered"
-            ? "filter"
+            ? "shield"
             : sectionId === "history"
               ? "history"
               : "clock",
@@ -69,29 +136,29 @@ export class RiskSectionItem extends TreeItem {
   }
 }
 
-export class RiskSummaryItem extends TreeItem {
+export class ShieldSummaryItem extends TreeItem {
   constructor(
-    atRiskTokens: number,
+    contextCost: number,
     savedTokens: number,
     beforeTokens: number,
     sessionAvoidedTokens: number,
   ) {
-    super("Live estimate", TreeItemCollapsibleState.None);
+    super("Context cost", TreeItemCollapsibleState.None);
     const liveSaved =
-      savedTokens > 0 ? ` · ${formatTokenCount(savedTokens)} saved` : "";
+      savedTokens > 0 ? ` · ${formatTokenCount(savedTokens)} shielded` : "";
     const sessionSaved =
       sessionAvoidedTokens > 0
-        ? ` · ${formatTokenCount(sessionAvoidedTokens)} session`
+        ? ` · ${formatTokenCount(sessionAvoidedTokens)} session saved`
         : "";
-    this.description = `${formatTokenCount(atRiskTokens)} at risk${liveSaved}${sessionSaved}`;
+    this.description = `${formatTokenCount(contextCost)} open${liveSaved}${sessionSaved}`;
     this.tooltip = [
       `Open-tab estimate: ${beforeTokens} tokens`,
-      `Still at risk: ${atRiskTokens} tokens`,
+      `Context cost (needs review + allowed): ${contextCost} tokens`,
       savedTokens > 0
-        ? `Saved by Filter (open tabs): ${savedTokens} tokens`
-        : "Filter a tab to record savings in last-scan.json",
+        ? `Shielded from estimate (open tabs): ${savedTokens} tokens`
+        : "Shield a tab to record savings in last-scan.json",
       sessionAvoidedTokens > 0
-        ? `Session avoided (this window): ${sessionAvoidedTokens} tokens`
+        ? `Session saved (this window): ${sessionAvoidedTokens} tokens`
         : undefined,
       "",
       "Recommendations only — TokenForge does not intercept any agent pipeline.",
@@ -103,12 +170,12 @@ export class RiskSummaryItem extends TreeItem {
   }
 }
 
-export class RiskEmptyItem extends TreeItem {
+export class ShieldEmptyItem extends TreeItem {
   constructor() {
-    super("No at-risk tabs", TreeItemCollapsibleState.None);
+    super("No tabs need review", TreeItemCollapsibleState.None);
     this.description = "Open noisy files or wait for idle (10m focused / 5m background)";
     this.tooltip =
-      "TokenForge scores open editors for inactive / high-risk context. This is hygiene advice, not interception.";
+      "TokenForge scores open editors for inactive / high-risk context. Hygiene advice, not interception.";
     this.iconPath = new ThemeIcon("pass");
     this.contextValue = "tokenforge.empty";
   }
@@ -118,6 +185,7 @@ export class RiskTabItem extends TreeItem {
   constructor(
     readonly tab: TrackedTab,
     readonly decision: Exclude<TabDecision, "filtered"> | "filtered" | "approaching",
+    session: ShieldSession,
     nowMs: number = Date.now(),
     options: { background?: boolean } = {},
   ) {
@@ -125,23 +193,30 @@ export class RiskTabItem extends TreeItem {
     const reason = primaryReason(tab.assessment.reasons);
     const background = options.background ?? false;
     const hint = idleHintForTab(tab, nowMs, { background });
+    const lever = session.leverRecord(tab.uri);
+    const leverBits =
+      lever !== undefined
+        ? [`${lever.mode} · ${lever.effectiveness}`]
+        : [];
     const bits = [
       formatTokenCount(tab.assessment.estTokens),
       reason,
       hint?.label,
+      ...leverBits,
     ].filter(Boolean);
     this.description = bits.join(" · ");
     this.tooltip = [
       tab.path,
       `${tab.assessment.estTokens} est. tokens · score ${tab.assessment.score}`,
       hint ? hint.label : undefined,
+      lever ? `Shield: ${lever.mode} · effectiveness ${lever.effectiveness}` : undefined,
     ]
       .filter(Boolean)
       .join("\n");
 
     if (decision === "filtered") {
       this.contextValue = "tokenforge.filteredTab";
-      this.iconPath = new ThemeIcon("filter");
+      this.iconPath = new ThemeIcon("shield");
     } else if (decision === "kept") {
       this.contextValue = "tokenforge.keptTab";
       this.iconPath = new ThemeIcon("pinned");
@@ -160,7 +235,7 @@ export class RiskTabItem extends TreeItem {
   }
 }
 
-export class RiskHistoryItem extends TreeItem {
+export class ShieldHistoryItem extends TreeItem {
   constructor(readonly entry: SessionLedgerEntry) {
     super(entry.path, TreeItemCollapsibleState.None);
     this.description = [formatTokenCount(entry.estTokens), entry.reason]
@@ -169,9 +244,9 @@ export class RiskHistoryItem extends TreeItem {
     this.tooltip = [
       entry.path,
       `${entry.estTokens} est. tokens · ${entry.reason}`,
-      "Filtered this session — remains after tab close until Restore or Clear decisions.",
+      "Shielded this session — remains after tab close until Unshield or Reset choices.",
     ].join("\n");
-    this.iconPath = new ThemeIcon("filter");
+    this.iconPath = new ThemeIcon("shield");
     this.contextValue = "tokenforge.historyTab";
     this.command = {
       command: "vscode.open",
@@ -182,19 +257,22 @@ export class RiskHistoryItem extends TreeItem {
 }
 
 export type RiskTreeNode =
-  | RiskAutoFilterItem
-  | RiskSummaryItem
-  | RiskSectionItem
+  | ShieldAutoFilterItem
+  | ShieldCloseOnHardItem
+  | ShieldDurableItem
+  | ShieldNotifyIdleItem
+  | ShieldSummaryItem
+  | ShieldSectionItem
   | RiskTabItem
-  | RiskHistoryItem
-  | RiskEmptyItem;
+  | ShieldHistoryItem
+  | ShieldEmptyItem;
 
 class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
   private readonly _onDidChangeTreeData = new EventEmitter<RiskTreeNode | undefined | void>();
   readonly onDidChangeTreeData: Event<RiskTreeNode | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  constructor(private readonly session: RiskSession) {}
+  constructor(private readonly session: ShieldSession) {}
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -208,7 +286,7 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     if (!element) {
       return this.rootChildren();
     }
-    if (element instanceof RiskSectionItem) {
+    if (element instanceof ShieldSectionItem) {
       return this.sectionChildren(element.sectionId);
     }
     return [];
@@ -219,32 +297,37 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     const pulse = this.session.pulse(nowMs);
     const approaching = this.session.listApproachingIdle(nowMs);
     const history = this.session.sessionHistory();
-    const atRiskTotal =
+    const reviewTotal =
       pulse.pendingCount + pulse.keptCount + pulse.filteredCount;
     const autoFilterOn = isAutoFilterEnabled();
 
-    const nodes: RiskTreeNode[] = [new RiskAutoFilterItem(autoFilterOn)];
+    const nodes: RiskTreeNode[] = [
+      new ShieldAutoFilterItem(autoFilterOn),
+      new ShieldCloseOnHardItem(isCloseTabOnHardShieldEnabled()),
+      new ShieldDurableItem(isDurableFilterEnabled()),
+      new ShieldNotifyIdleItem(isNotifyOnIdleEnabled()),
+    ];
 
-    if (atRiskTotal === 0 && approaching.length === 0 && history.length === 0) {
-      nodes.push(new RiskEmptyItem());
+    if (reviewTotal === 0 && approaching.length === 0 && history.length === 0) {
+      nodes.push(new ShieldEmptyItem());
       return nodes;
     }
 
-    if (atRiskTotal > 0) {
+    if (reviewTotal > 0) {
       nodes.push(
-        new RiskSummaryItem(
+        new ShieldSummaryItem(
           pulse.displayAtRiskTokens,
           pulse.totals.savedTokens,
           pulse.totals.beforeTokens,
           this.session.sessionAvoidedTokens(),
         ),
-        new RiskSectionItem("pending", "Pending", pulse.pendingCount),
-        new RiskSectionItem("kept", "Kept", pulse.keptCount),
-        new RiskSectionItem("filtered", "Filtered", pulse.filteredCount),
+        new ShieldSectionItem("pending", "Needs review", pulse.pendingCount),
+        new ShieldSectionItem("kept", "Allowed", pulse.keptCount),
+        new ShieldSectionItem("filtered", "Shielded", pulse.filteredCount),
       );
     } else if (history.length > 0) {
       nodes.push(
-        new RiskSummaryItem(
+        new ShieldSummaryItem(
           pulse.displayAtRiskTokens,
           pulse.totals.savedTokens,
           pulse.totals.beforeTokens,
@@ -254,12 +337,12 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     }
     if (history.length > 0) {
       nodes.push(
-        new RiskSectionItem("history", "Filtered this session", history.length),
+        new ShieldSectionItem("history", "Shielded this session", history.length),
       );
     }
     if (approaching.length > 0) {
       nodes.push(
-        new RiskSectionItem("approaching", "Approaching idle", approaching.length),
+        new ShieldSectionItem("approaching", "Approaching idle", approaching.length),
       );
     }
     return nodes;
@@ -270,7 +353,7 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
     if (sectionId === "history") {
       return this.session
         .sessionHistory()
-        .map((entry) => new RiskHistoryItem(entry));
+        .map((entry) => new ShieldHistoryItem(entry));
     }
 
     const activeUri = this.session.registry.getActiveUri();
@@ -297,7 +380,7 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
       .sort((a, b) => b.assessment.estTokens - a.assessment.estTokens)
       .map(
         (tab) =>
-          new RiskTabItem(tab, decision, nowMs, {
+          new RiskTabItem(tab, decision, this.session, nowMs, {
             background: activeUri !== tab.uri,
           }),
       );
@@ -313,13 +396,13 @@ export type RiskPanelHandle = {
 function syncAutoFilterChrome(view: TreeView<RiskTreeNode>): void {
   const enabled = isAutoFilterEnabled();
   view.message = enabled
-    ? "Auto-filter ON — lockfile/generated tabs Filter automatically."
+    ? "Auto-shield ON — lockfile/generated tabs Shield automatically."
     : undefined;
-  view.title = enabled ? "At-risk tabs · Auto" : "At-risk tabs";
+  view.title = enabled ? "Open tabs · Auto-shield" : "Open tabs";
 }
 
 export function createRiskPanel(
-  session: RiskSession,
+  session: ShieldSession,
   context: ExtensionContext,
 ): RiskPanelHandle {
   const provider = new RiskPanelProvider(session);
@@ -335,13 +418,18 @@ export function createRiskPanel(
     const tokens = session.displayAtRiskTokens();
     view.badge =
       count > 0
-        ? { value: count, tooltip: `${formatTokenCount(tokens)} tokens at risk` }
+        ? { value: count, tooltip: `${formatTokenCount(tokens)} context cost` }
         : undefined;
   };
 
   const subscription = session.onDidChange(syncBadge);
   const configSub = workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+    if (
+      event.affectsConfiguration("tokenforge.autoFilterHighRisk") ||
+      event.affectsConfiguration("tokenforge.closeTabOnHardShield") ||
+      event.affectsConfiguration("tokenforge.durableFilterDecisions") ||
+      event.affectsConfiguration("tokenforge.notifyOnIdle")
+    ) {
       syncBadge();
     }
   });
@@ -360,3 +448,20 @@ export function createRiskPanel(
     },
   };
 }
+
+/** Toggle helpers wired from index.ts for settings rows. */
+export async function toggleCloseTabOnHardShieldSetting(): Promise<boolean> {
+  const config = workspace.getConfiguration("tokenforge");
+  const next = !config.get<boolean>("closeTabOnHardShield", false);
+  await config.update("closeTabOnHardShield", next, true);
+  return next;
+}
+
+export async function toggleNotifyOnIdleSetting(): Promise<boolean> {
+  const config = workspace.getConfiguration("tokenforge");
+  const next = !config.get<boolean>("notifyOnIdle", false);
+  await config.update("notifyOnIdle", next, true);
+  return next;
+}
+
+export { toggleDurableFilterDecisions };

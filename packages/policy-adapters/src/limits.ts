@@ -6,7 +6,7 @@ import {
   type ProviderId,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
-import { RuntimeError } from "../app/errors";
+import { PolicyError } from "./errors";
 import { CLAUDE_EXCLUSIONS_PATH } from "./claude/claude";
 import { CURSOR_EXCLUSIONS_PATH } from "./cursor/cursor";
 import type { PolicyFile } from "./types";
@@ -35,7 +35,7 @@ export function assertLeanInstruction(
 ): PolicyFile {
   const bytes = Buffer.byteLength(file.contents, "utf8");
   if (bytes > maxBytes) {
-    throw new RuntimeError(
+    throw new PolicyError(
       `${file.path} is ${bytes} bytes; policy files must stay under ${maxBytes}.`,
     );
   }

@@ -6,8 +6,7 @@ import {
   type ProviderId,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
-import { getAdapter, type PolicyFile, type PolicyRenderContext } from "../../adapters";
-import { mergeTokenForgeSection } from "../../adapters/section-merge";
+import { getAdapter, mergeTokenForgeSection, type PolicyFile, type PolicyRenderContext } from "../../adapters";
 import { RuntimeError } from "../../app/errors";
 import { readActivePathsFile } from "../../io/active-paths-file";
 import { writeProveChangeMarker } from "../../io/change-marker-file";

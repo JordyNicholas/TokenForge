@@ -1,6 +1,6 @@
 import type { ProviderId } from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
-import { UsageError } from "../app/errors";
+import { PolicyError } from "./errors";
 import {
   COPILOT_EXCLUSIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
@@ -18,7 +18,7 @@ describe("getAdapter", () => {
   });
 
   it("rejects an unknown provider", () => {
-    expect(() => getAdapter("nope" as ProviderId)).toThrow(UsageError);
+    expect(() => getAdapter("nope" as ProviderId)).toThrow(PolicyError);
   });
 
   it("renders a short Copilot instruction file", () => {

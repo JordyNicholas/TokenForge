@@ -1,5 +1,9 @@
 import { ProgressLocation, window } from "vscode";
 import { parseLlmSpec } from "@tokenforge/enrichers";
+import {
+  confirmExternalLlmSend,
+  logLocalPreflight,
+} from "../ai/transparencyCoach";
 import { revealLastScan } from "../export/revealLastScan";
 import { resolveWorkspaceRoot, writeLastScan } from "../export/writeLastScan";
 import type { RiskSession } from "../session/riskSession";
@@ -7,12 +11,17 @@ import { collectInstructionCandidates } from "./collectCandidates";
 import { runInstructionEnrichment } from "./runInstructionEnrichment";
 import { isExternalBackend, readLlmSettings } from "./settings";
 
+export type EnrichCommandOptions = {
+  triggerPath?: string;
+};
+
 /**
  * Opt-in command: enrich instruction paths and merge into last-scan.json.
  * Does not change live Keep/Filter scoring (heuristic-first).
  */
 export async function enrichInstructionPathsCommand(
   session: RiskSession,
+  options: EnrichCommandOptions = {},
 ): Promise<void> {
   const settings = readLlmSettings();
   if (!settings.enrichmentEnabled) {
@@ -23,23 +32,35 @@ export async function enrichInstructionPathsCommand(
   }
 
   const spec = parseLlmSpec(settings.llm);
-  let externalConsent = settings.allowExternal;
-  if (isExternalBackend(spec.backend) && !settings.allowExternal) {
-    const choice = await window.showWarningMessage(
-      `Backend "${spec.backend}" sends instruction excerpts off this machine. Continue once?`,
-      { modal: true },
-      "Allow once",
-      "Cancel",
-    );
-    if (choice !== "Allow once") {
-      return;
-    }
-    externalConsent = true;
-  }
-
   const root = resolveWorkspaceRoot();
   const tabs = session.listAll();
   const candidates = await collectInstructionCandidates(root, tabs);
+
+  const preflightPaths = options.triggerPath
+    ? candidates.filter((c) => c.path === options.triggerPath).map((c) => c.path)
+    : candidates.map((c) => c.path);
+  const preflightBytes = candidates
+    .filter((c) => preflightPaths.includes(c.path))
+    .reduce((sum, c) => sum + c.bytes, 0);
+
+  let externalConsent = settings.allowExternal;
+  if (isExternalBackend(spec.backend)) {
+    const ok = await confirmExternalLlmSend({
+      paths: preflightPaths,
+      totalBytes: preflightBytes,
+      backend: spec.backend,
+    });
+    if (!ok) {
+      return;
+    }
+    externalConsent = true;
+  } else {
+    logLocalPreflight({
+      paths: preflightPaths,
+      totalBytes: preflightBytes,
+      backend: spec.backend,
+    });
+  }
 
   if (candidates.length === 0) {
     void window.showInformationMessage(

@@ -7,34 +7,36 @@ import {
   type StatusBarItem,
 } from "vscode";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
-import type { RiskSession } from "../session/riskSession";
+import type { ShieldSession } from "../session/shieldSession";
 import { formatTokenCount } from "./formatTokens";
 
-export function createStatusBar(session: RiskSession): Disposable {
+export function createStatusBar(session: ShieldSession): Disposable {
   const item: StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 100);
-  item.command = "tokenforge.focusRiskPanel";
+  item.command = "tokenforge.focusOverview";
 
   const refresh = (): void => {
-    const tokens = session.displayAtRiskTokens();
-    const count = session.listDisplayAtRisk().length;
+    const contextCost = session.displayAtRiskTokens();
+    const threshold = workspace
+      .getConfiguration("tokenforge")
+      .get<number>("rulesBudgetThreshold", 8_000);
+    const highContext = contextCost >= threshold;
+    const shieldedCount = session.listFilteredAtRisk().length;
     const sessionSaved = session.sessionAvoidedTokens();
     const auto = isAutoFilterEnabled();
-    const autoSuffix = auto ? " · auto" : "";
-    const sessionSuffix =
-      sessionSaved > 0 ? ` · ${formatTokenCount(sessionSaved)} saved` : "";
-    if (count === 0) {
-      item.text = `$(check) TokenForge: 0 at risk${sessionSuffix}${autoSuffix}`;
-    } else {
-      item.text = `$(warning) TokenForge: ${formatTokenCount(tokens)} at risk${sessionSuffix}${autoSuffix}`;
-    }
+    const autoSuffix = auto ? " · auto-shield" : "";
+    const prepareHint = highContext ? " · prepare session" : "";
+    item.text = `$(tokenforge) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
+    item.command = highContext ? "tokenforge.prepareAgentSession" : "tokenforge.focusOverview";
     item.tooltip = [
       auto
-        ? "TokenForge Context Guard — Auto-filter ON (lockfile/generated)."
-        : "TokenForge Context Guard.",
+        ? "TokenForge — Auto-shield ON (lockfile/generated)."
+        : "TokenForge — AI Context Guard.",
+      `Context cost: ${formatTokenCount(contextCost)} tokens (needs review + allowed).`,
+      shieldedCount > 0 ? `${shieldedCount} tab(s) Shielded.` : undefined,
       sessionSaved > 0
-        ? `Session avoided (estimate hygiene): ${formatTokenCount(sessionSaved)} tokens.`
+        ? `Session saved (estimate hygiene): ${formatTokenCount(sessionSaved)} tokens.`
         : undefined,
-      "Click to open panel.",
+      highContext ? "High context cost — click to Prepare agent session." : "Click for Overview.",
     ]
       .filter(Boolean)
       .join(" ");

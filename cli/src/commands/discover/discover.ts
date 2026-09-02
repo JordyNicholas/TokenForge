@@ -8,7 +8,7 @@ import {
   type DiscoverOpportunity,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
-import { exclusionPathForProvider } from "../../adapters/limits";
+import { exclusionPathForProvider } from "../../adapters";
 import { RuntimeError } from "../../app/errors";
 import { readActivePathsFile } from "../../io/active-paths-file";
 import { parseExclusionYaml } from "../../io/exclusion-file";

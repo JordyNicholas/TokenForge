@@ -1,5 +1,5 @@
 import type { ProviderId } from "@tokenforge/risk-core";
-import { UsageError } from "../app/errors";
+import { PolicyError } from "./errors";
 import { claudeAdapter } from "./claude/claude";
 import { copilotAdapter } from "./copilot/copilot";
 import { cursorAdapter } from "./cursor/cursor";
@@ -23,5 +23,5 @@ export function getAdapter(id: ProviderId): ProviderAdapter {
   if (id === "claude") {
     return claudeAdapter;
   }
-  throw new UsageError(`Unknown provider "${id}".`);
+  throw new PolicyError(`Unknown provider "${id}".`);
 }
