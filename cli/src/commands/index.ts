@@ -6,7 +6,7 @@ export {
   type PolicyWriteDisposition,
   type PolicyWritePlan,
 } from "./apply/apply";
-export type { PolicyWriteMode } from "../adapters/types";
+export type { PolicyWriteMode } from "../adapters";
 export {
   applyOrgPack,
   type OrgPackOptions,

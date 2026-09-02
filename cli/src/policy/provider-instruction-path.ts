@@ -1,10 +1,10 @@
 import type { ProviderId } from "@tokenforge/risk-core";
-import { CLAUDE_INSTRUCTIONS_PATH } from "../adapters/claude/claude";
 import {
+  CLAUDE_INSTRUCTIONS_PATH,
   COPILOT_INSTRUCTIONS_PATH,
+  CURSOR_INSTRUCTIONS_PATH,
   GENERIC_INSTRUCTIONS_PATH,
-} from "../adapters/limits";
-import { CURSOR_INSTRUCTIONS_PATH } from "../adapters/cursor/cursor";
+} from "../adapters";
 
 export function instructionPathForProvider(provider: ProviderId): string {
   if (provider === "copilot") {
