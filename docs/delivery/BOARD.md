@@ -30,6 +30,15 @@ Phase 2. Former catch-all #7 was split:
 | F4 Extension session Prove & provider CLI transports | #156 | Future | **To-Do** (open) |
 | F5 RTK-inspired native product patterns | #177 | Future | **To-Do** (open; #176 **Done**) |
 | F6 AI-first complementary hybrid Detect | #199 | Future | **Epics Finished** (#189 shipped with #224) |
+| F7 Hybrid Fix: heuristic-routed LLM policy synthesis | #225 | Future | **Epics Finished** |
+| F8 Extension rebuild Wave A: Foundation | #237 | Future | **To-Do** (open) |
+| F9 Extension rebuild Wave B: Real Shield | #238 | Future | **To-Do** (open) |
+| F10 Extension rebuild Wave C: Session AI | #239 | Future | **To-Do** (open) |
+| F11 Extension rebuild Wave D: Instructions & Fix in IDE | #240 | Future | **To-Do** (open) |
+| F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **To-Do** (open) |
+| F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **To-Do** (open) |
+
+**Extension rebuild (F8–F13):** one epic per wave; implement **in order F8 → F13**, one wave per delivery occasion. Plan: extension rebuild plan in `.cursor/plans/`. Product doc target: `docs/design/EXTENSION_PRODUCT.md` (#249 skeleton, #280 complete). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
 F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 #136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
@@ -325,21 +334,116 @@ Build order: **#226 → #227 → #228 → #229 → #230 → #231 → #232 → #2
 
 Presentation: `npm run tokenforge:presentation-full` (see [`PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md)); hybrid act uses `cursor-cli:composer-2.5`.
 
+### F8 — Extension rebuild Wave A: Foundation (#237)
+
+Integrated rebuild **wave 1** — packages, ShieldSession, brand, dual-view UX shell. **Start here.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #243 | packages/context-adapters — ProviderContextAdapter port | Core | To-Do |
+| #244 | packages/policy-adapters — extract CLI Fix adapters | Core / CLI | To-Do |
+| #245 | ShieldSession engine + provider auto-detect | Extension | To-Do |
+| #246 | brand identity — icon, CSS, marketplace metadata | Extension | To-Do |
+| #247 | Overview + Open tabs UX shell | Extension | To-Do |
+| #248 | commands, menus, and status bar regroup | Extension | To-Do |
+| #249 | EXTENSION_PRODUCT.md + BOARD F8 index | Docs | To-Do |
+
+Build order: **#243 → #244 ∥ #245 (after #243) → #246 → #247 → #248 → #249**
+
+### F9 — Extension rebuild Wave B: Real Shield (#238)
+
+Real provider-native Shield (Cursor first). **Depends on F8.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #250 | CursorContextAdapter — cursorignore merge + blocklist | context-adapters | To-Do |
+| #251 | Hard/Soft shield modes + ShieldSession wiring | Extension | To-Do |
+| #252 | close tab on Hard shield + Shield all + Clean session | Extension | To-Do |
+| #253 | Cursor hooks installer (opt-in) | Extension | To-Do |
+| #254 | effectiveness badges + Overview footnote | Extension | To-Do |
+| #255 | Copilot partial adapter | context-adapters | To-Do |
+| #256 | Tests: Real Shield integration | Tests | To-Do |
+
+Build order: **#250 → #251 → #252 ∥ #253 → #254 → #255 → #256**
+
+### F10 — Extension rebuild Wave C: Session AI (#239)
+
+Pre-prompt gate, task context pack, drift advisor. **Depends on F9.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #257 | configurable idle thresholds + proactive nudges | Extension | To-Do |
+| #258 | context drift advisor (heuristics) | Extension | To-Do |
+| #260 | pre-prompt gate command + Overview banner | Extension | To-Do |
+| #262 | task context pack (LLM + Apply pack) | Extension | To-Do |
+| #263 | Session AI Overview cards + status bar | Extension | To-Do |
+| #265 | Tests: Session AI flows | Tests | To-Do |
+
+Build order: **#257 → #258 → #260 → #262 → #263 → #265**
+
+### F11 — Extension rebuild Wave D: Instructions & Fix in IDE (#240)
+
+Live rules budget, compact rules Apply in IDE. **Depends on F8 #244; recommend after F9.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #259 | instruction watch + live rules budget meter | Extension | To-Do |
+| #261 | continuous analyze on save (debounced) | Extension | To-Do |
+| #264 | overlap radar Overview card | Extension | To-Do |
+| #266 | compact rules dry-run webview + Apply | Extension | To-Do |
+| #267 | Analyze rules UX + Overview Rules KPI | Extension | To-Do |
+| #268 | Tests: Instructions & Fix in extension | Tests | To-Do |
+
+Build order: **#259 → #261 → #264 → #266 → #267 → #268**
+
+### F12 — Extension rebuild Wave E: Discover & advisory (#241)
+
+Discover, MCP audit, smart excerpt. **Depends on F11.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #269 | Discover service (delta + heuristic rank) | Extension | To-Do |
+| #270 | Discover LLM rank + Overview card | Extension | To-Do |
+| #271 | MCP config audit | Extension | To-Do |
+| #272 | smart excerpt command | Extension | To-Do |
+| #273 | post-turn path logging hook (opt-in) | Extension | To-Do |
+| #274 | monorepo scope hints in Discover | Extension | To-Do |
+| #275 | Tests: Discover & advisory | Tests | To-Do |
+
+Build order: **#269 → #270 → #271 → #272 → #273 → #274 → #275**
+
+### F13 — Extension rebuild Wave F: Prove, docs & ship (#242)
+
+Walkthrough, marketplace, product docs. **Depends on F8–F12.**
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #276 | AI-narrated session summary (optional LLM) | Extension | To-Do |
+| #277 | external-send transparency coach | Extension | To-Do |
+| #278 | walkthrough + first-run onboarding | Extension | To-Do |
+| #279 | README + marketplace screenshots | Extension | To-Do |
+| #280 | EXTENSION_PRODUCT complete + CONTEXT_GUARD refresh | Docs | To-Do |
+| #281 | vsce package CI + marketplace publish prep | DevEx | To-Do |
+
+Build order: **#277 → #276 → #278 → #279 → #280 → #281**
+
+**Epic execution order:** F8 → F9 → F10 → F11 → F12 → F13 (one epic per delivery occasion).
+
 ### Further improvement candidates (not yet filed as issues)
 
 Board-map only until the team promotes them to an epic/stories. Do not treat as
 committed scope.
 
-| Candidate | Surface | Why |
-| --- | --- | --- |
-| One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE |
-| Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs |
-| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence |
-| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy |
-| Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs |
-| Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths |
-| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) |
-| Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing |
+| Candidate | Surface | Why | Status |
+| --- | --- | --- | --- |
+| One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE | **Filed** — F11 #266 |
+| Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs | Open |
+| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence | Open |
+| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | Open |
+| Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs | Open |
+| Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths | **Filed** — F10 #257, F9 #254 |
+| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) | Open |
+| Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing | Open |
 
 ## Build order
 
@@ -355,6 +459,7 @@ Phase 2:
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
-8. **Candidates** below — promote to issues when the team agrees scope
+8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (open); **execute F8 → F9 → F10 → F11 → F12 → F13** one wave at a time
+9. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
