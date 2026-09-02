@@ -1,7 +1,7 @@
 {
-  "name": "@tokenforge/extension",
+  "name": "tokenforge-context-guard",
   "displayName": "TokenForge — AI Context Guard",
-  "description": "Shield noisy editor tabs from AI agent context. See live context cost, apply provider-native Shield levers, and prove session savings — hygiene advice, not agent interception.",
+  "description": "Cut token bleed from open tabs and AI rules. Shield costly context, analyze instructions, and track savings — works with Cursor, Copilot, and other agents.",
   "publisher": "tokenforge",
   "icon": "media/tokenforge-icon.png",
   "categories": [
@@ -14,12 +14,17 @@
   },
   "version": "0.0.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JordyNicholas/TokenForge.git"
+  },
   "scripts": {
     "build": "node esbuild.config.mjs",
     "watch": "node esbuild.config.mjs --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run build",
+    "package:vsix": "vsce package --no-dependencies --allow-missing-repository"
   },
   "dependencies": {
     "@tokenforge/context-adapters": "*",
@@ -166,6 +171,12 @@
         "title": "Compact rules preview",
         "category": "TokenForge",
         "icon": "$(fold)"
+      },
+      {
+        "command": "tokenforge.applyTaskContextPack",
+        "title": "Apply task pack",
+        "category": "TokenForge",
+        "icon": "$(checklist)"
       },
       {
         "command": "tokenforge.exportLastScan",
@@ -432,6 +443,16 @@
           "default": false,
           "markdownDescription": "Debounced **Analyze rules** on save (opt-in; may call configured LLM enricher)."
         },
+        "tokenforge.installCursorHooks": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Install project-level **Cursor hooks** (`.cursor/hooks.json`) for Shield read deny and optional post-turn path logging. Opt-in; modifies workspace files."
+        },
+        "tokenforge.postTurnLogging": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "When Cursor hooks are installed, append agent read paths to `.tokenforge/post-turn-paths.jsonl` on each turn (observe-only)."
+        },
         "tokenforge.autoFilterHighRisk": {
           "type": "boolean",
           "default": false,
@@ -509,6 +530,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.28.2",
     "vitest": "^3.2.4"
   }

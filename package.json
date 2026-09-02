@@ -12,7 +12,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build:cli": "npm run build -w @tokenforge/cli",
-    "build:vsc-e": "npm run build -w @tokenforge/extension",
+    "build:vsc-e": "npm run build -w tokenforge-context-guard",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "tokenforge": "node ./cli/bin/tokenforge.mjs",
@@ -31,8 +31,8 @@
     "tokenforge:dashboard": "npm run dev -w @tokenforge/dashboard",
     "tokenforge:dashboard:build": "npm run build -w @tokenforge/dashboard",
     "tokenforge:dashboard:preview": "npm run preview -w @tokenforge/dashboard",
-    "tokenforge:extension": "npm run build -w @tokenforge/extension",
-    "tokenforge:extension:watch": "npm run watch -w @tokenforge/extension"
+    "tokenforge:extension": "npm run build -w tokenforge-context-guard",
+    "tokenforge:extension:watch": "npm run watch -w tokenforge-context-guard"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

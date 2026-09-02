@@ -1,8 +1,9 @@
 :root {
-  --tf-brand-primary: #4a90d9;
-  --tf-brand-shield: #3fae6d;
-  --tf-brand-warning: #e2a03f;
-  --tf-brand-risk: #e2a03f;
+  --tf-brand-primary: #006a64;
+  --tf-brand-accent: #4fdbd0;
+  --tf-brand-shield: #006a64;
+  --tf-brand-warning: #9a6700;
+  --tf-brand-risk: #f5c44c;
   --tf-brand-muted: var(--vscode-descriptionForeground, #888);
   --tf-brand-border: var(--vscode-widget-border, var(--vscode-panel-border, #444));
   --tf-brand-surface: color-mix(in srgb, var(--vscode-foreground, #ccc) 4%, transparent);
@@ -113,4 +114,19 @@
   color: var(--tf-brand-muted);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+}
+
+.tf-banner {
+  margin: var(--tf-space-md) 0;
+  padding: var(--tf-space-sm);
+  border: 1px solid var(--tf-brand-warning);
+  border-radius: var(--tf-radius);
+  background: var(--tf-brand-warning-bg);
+  font-size: 12px;
+}
+
+.tf-summary {
+  margin: 0 0 var(--tf-space-sm);
+  font-size: 12px;
+  line-height: 1.45;
 }

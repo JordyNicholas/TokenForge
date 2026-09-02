@@ -1,21 +1,28 @@
 import {
   commands,
-  ConfigurationTarget,
-  env,
   QuickPickItem,
   workspace,
   window,
   type ExtensionContext,
 } from "vscode";
+import { applyTaskContextPack } from "./ai/applyTaskPack";
 import { runPrePromptGate } from "./ai/prePromptGate";
+import { copySmartExcerpt } from "./ai/smartExcerpt";
 import { buildTaskContextPack } from "./ai/taskContextPack";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
 import { startAutoExport } from "./export/autoExport";
+import { assertValidLastScan, buildLastScanReport } from "./export/buildLastScan";
 import { revealLastScan } from "./export/revealLastScan";
 import { revealSessionStats } from "./export/revealSessionStats";
-import { writeLastScan, resolveWorkspaceRoot } from "./export/writeLastScan";
+import {
+  repoLabel,
+  teamLabel,
+  writeLastScan,
+  resolveWorkspaceRoot,
+} from "./export/writeLastScan";
 import { writeSessionStats } from "./export/writeSessionStats";
+import type { ProviderId } from "@tokenforge/risk-core";
 import {
   runAutoFilter,
   toggleAutoFilterHighRisk,
@@ -28,8 +35,16 @@ import {
   toggleDurableFilterDecisions,
 } from "./filter/durableFilterSettings";
 import { TabFilterStore } from "./filter/filterStore";
+import { installCursorShieldHooks } from "./hooks/cursorHooks";
+import {
+  applyCompactRules,
+  previewCompactRules,
+  showCompactRulesPreviewMessage,
+} from "./instructions/compactRules";
+import { startContinuousAnalyze } from "./instructions/continuousAnalyze";
 import { closeTabByUri } from "./shield/closeTab";
 import { createShieldSession, type ShieldSession } from "./session/shieldSession";
+import { startIdleNudges } from "./tabs/idleNudges";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
@@ -86,7 +101,10 @@ function startContextGuard(context: ExtensionContext): void {
     },
   });
   startInactivityTimer(registry, context);
+  startIdleNudges(registry, context);
+  startContinuousAnalyze(session, context);
   startAutoExport(session, context);
+  void maybeInstallCursorHooks();
 
   const syncAutoFilter = (): void => {
     runAutoFilter(session);
@@ -209,25 +227,58 @@ function startContextGuard(context: ExtensionContext): void {
     }
   });
 
-  const copySmartExcerpt = commands.registerCommand(
+  const copySmartExcerptCmd = commands.registerCommand(
     "tokenforge.copySmartExcerpt",
     async () => {
-      const tab = session.listDisplayAtRisk()[0];
-      if (!tab) {
-        void window.showWarningMessage("No context-cost tabs to excerpt.");
+      await copySmartExcerpt();
+    },
+  );
+
+  const applyTaskContextPackCmd = commands.registerCommand(
+    "tokenforge.applyTaskContextPack",
+    async () => {
+      const count = await applyTaskContextPack(session);
+      if (count === 0) {
+        void window.showInformationMessage("No pending tabs to adjust for task pack.");
         return;
       }
-      await env.clipboard.writeText(tab.path);
-      void window.showInformationMessage(`Copied path excerpt: ${tab.path}`);
+      void window.showInformationMessage(`Applied task context pack to ${count} tab(s).`);
+      await exportAfterShield(session);
     },
   );
 
   const compactRulesPreview = commands.registerCommand(
     "tokenforge.compactRulesPreview",
     async () => {
-      void window.showInformationMessage(
-        "Compact rules preview — coming in F11. Run Analyze rules for now.",
-      );
+      try {
+        const root = resolveWorkspaceRoot();
+        const report = assertValidLastScan(
+          buildLastScanReport({
+            tabs: session.listAll(),
+            decisionFor: (uri) => session.decision(uri),
+            repo: repoLabel(root),
+            team: teamLabel(),
+            provider: providerIdFromSettings(),
+          }),
+        );
+        const preview = await previewCompactRules(root, report);
+        if (preview.resolved.length === 0) {
+          void window.showInformationMessage(
+            "No compact rules changes suggested. Run Analyze rules first.",
+          );
+          return;
+        }
+        const apply = await showCompactRulesPreviewMessage(preview);
+        if (!apply) {
+          return;
+        }
+        const written = await applyCompactRules(root, report);
+        void window.showInformationMessage(
+          `Compact rules applied to ${written.length} file(s): ${written.join(", ")}`,
+        );
+      } catch (error) {
+        void window.showErrorMessage(formatError("Compact rules failed", error));
+      }
     },
   );
 
@@ -325,6 +376,7 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Run discover" },
       { label: "Copy smart excerpt" },
       { label: "Compact rules preview" },
+      { label: "Apply task pack" },
       { label: "Focus Open tabs" },
     ];
     const picked = await window.showQuickPick(items, { title: "TokenForge actions" });
@@ -343,6 +395,7 @@ function startContextGuard(context: ExtensionContext): void {
       "Run discover": "tokenforge.runDiscover",
       "Copy smart excerpt": "tokenforge.copySmartExcerpt",
       "Compact rules preview": "tokenforge.compactRulesPreview",
+      "Apply task pack": "tokenforge.applyTaskContextPack",
       "Focus Open tabs": "tokenforge.focusRiskPanel",
     };
     const cmd = commandMap[picked.label];
@@ -436,7 +489,8 @@ function startContextGuard(context: ExtensionContext): void {
     cleanSession,
     prepareAgentSession,
     runDiscover,
-    copySmartExcerpt,
+    copySmartExcerptCmd,
+    applyTaskContextPackCmd,
     compactRulesPreview,
     exportScan,
     reveal,
@@ -511,6 +565,34 @@ function rehydrateDurableDecisions(
       session.rehydrate(tab.uri, stored);
     }
   }
+}
+
+async function maybeInstallCursorHooks(): Promise<void> {
+  const enabled = workspace
+    .getConfiguration("tokenforge")
+    .get<boolean>("installCursorHooks", false);
+  if (!enabled) {
+    return;
+  }
+  try {
+    const root = resolveWorkspaceRoot();
+    await installCursorShieldHooks(root);
+  } catch {
+    /* no workspace */
+  }
+}
+
+function providerIdFromSettings(): ProviderId {
+  const value = workspace.getConfiguration("tokenforge").get<string>("provider");
+  if (
+    value === "copilot" ||
+    value === "cursor" ||
+    value === "claude" ||
+    value === "generic"
+  ) {
+    return value;
+  }
+  return "generic";
 }
 
 function maybeShowWelcome(context: ExtensionContext): void {

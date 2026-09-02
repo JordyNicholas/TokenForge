@@ -16,11 +16,17 @@ export function createStatusBar(session: ShieldSession): Disposable {
 
   const refresh = (): void => {
     const contextCost = session.displayAtRiskTokens();
+    const threshold = workspace
+      .getConfiguration("tokenforge")
+      .get<number>("rulesBudgetThreshold", 8_000);
+    const highContext = contextCost >= threshold;
     const shieldedCount = session.listFilteredAtRisk().length;
     const sessionSaved = session.sessionAvoidedTokens();
     const auto = isAutoFilterEnabled();
     const autoSuffix = auto ? " · auto-shield" : "";
-    item.text = `$(tokenforge) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}`;
+    const prepareHint = highContext ? " · prepare session" : "";
+    item.text = `$(tokenforge) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
+    item.command = highContext ? "tokenforge.prepareAgentSession" : "tokenforge.focusOverview";
     item.tooltip = [
       auto
         ? "TokenForge — Auto-shield ON (lockfile/generated)."
@@ -30,7 +36,7 @@ export function createStatusBar(session: ShieldSession): Disposable {
       sessionSaved > 0
         ? `Session saved (estimate hygiene): ${formatTokenCount(sessionSaved)} tokens.`
         : undefined,
-      "Click for Overview.",
+      highContext ? "High context cost — click to Prepare agent session." : "Click for Overview.",
     ]
       .filter(Boolean)
       .join(" ");
