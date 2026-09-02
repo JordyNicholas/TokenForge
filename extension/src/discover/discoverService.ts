@@ -1,18 +1,22 @@
 import { readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { auditMcpConfigs, type McpAuditFinding } from "./mcpAudit";
+import { monorepoScopeHint, type MonorepoHint } from "./monorepoHints";
 
 export type DiscoverCandidate = {
   path: string;
   delta: "added" | "changed";
   score: number;
+  kind?: "file" | "mcp" | "monorepo";
+  note?: string;
 };
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".tokenforge"]);
 
-/** Basic delta stub — ranks recently modified source files in the workspace root tree. */
+/** Delta scan + MCP audit + optional monorepo scope hint. */
 export async function discoverRecentChanges(
   root: string,
-  options: { maxResults?: number; sinceMs?: number } = {},
+  options: { maxResults?: number; sinceMs?: number; editorPath?: string } = {},
 ): Promise<DiscoverCandidate[]> {
   const maxResults = options.maxResults ?? 12;
   const sinceMs = options.sinceMs ?? 24 * 60 * 60 * 1000;
@@ -55,10 +59,36 @@ export async function discoverRecentChanges(
         path: rel,
         delta: "changed",
         score: Math.min(100, Math.round(size / 1024) + (mtimeMs - cutoff) / sinceMs),
+        kind: "file",
       });
     }
   }
 
   await walk(root);
+
+  const mcpFindings: McpAuditFinding[] = await auditMcpConfigs(root);
+  for (const finding of mcpFindings) {
+    found.push({
+      path: finding.path,
+      delta: "changed",
+      score: finding.score,
+      kind: "mcp",
+      note: finding.issue,
+    });
+  }
+
+  if (options.editorPath) {
+    const hint: MonorepoHint | undefined = monorepoScopeHint(root, options.editorPath);
+    if (hint) {
+      found.push({
+        path: hint.packageRoot,
+        delta: "changed",
+        score: 55,
+        kind: "monorepo",
+        note: hint.note,
+      });
+    }
+  }
+
   return found.sort((a, b) => b.score - a.score).slice(0, maxResults);
 }
