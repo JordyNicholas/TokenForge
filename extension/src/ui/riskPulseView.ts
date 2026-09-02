@@ -1,4 +1,5 @@
 import {
+  commands,
   Uri,
   window,
   workspace,
@@ -8,26 +9,43 @@ import {
   type WebviewViewProvider,
 } from "vscode";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
-import type { RiskSession } from "../session/riskSession";
+import { adviseContextDrift } from "../ai/driftAdvisor";
+import { discoverRecentChanges } from "../discover/discoverService";
+import { resolveWorkspaceRoot } from "../export/writeLastScan";
+import { estimateRulesBudget } from "../instructions/instructionWatch";
+import { buildTaskContextPack } from "../ai/taskContextPack";
+import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
-import { sessionAdoptionFromCounts } from "@tokenforge/risk-core";
 
 export const RISK_PULSE_VIEW_ID = "tokenforge.riskPulse";
+
+type OverviewModel = {
+  pulse: RiskPulseModel;
+  sessionSaved: number;
+  rulesCost: number;
+  autoShieldOn: boolean;
+  driftSummary?: string;
+  discoverPaths: readonly string[];
+  taskPackPaths: readonly string[];
+};
 
 class RiskPulseProvider implements WebviewViewProvider {
   private view?: WebviewView;
   private readonly disposables: Array<{ dispose(): void }> = [];
+  private rulesCost = 0;
 
   constructor(
-    private readonly session: RiskSession,
+    private readonly session: ShieldSession,
     private readonly extensionUri: Uri,
   ) {
     this.disposables.push(
-      session.onDidChange(() => this.render()),
+      session.onDidChange(() => {
+        void this.render();
+      }),
       workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
-          this.render();
+          void this.render();
         }
       }),
     );
@@ -36,10 +54,15 @@ class RiskPulseProvider implements WebviewViewProvider {
   resolveWebviewView(webviewView: WebviewView): void {
     this.view = webviewView;
     webviewView.webview.options = {
-      enableScripts: false,
+      enableScripts: true,
       localResourceRoots: [this.extensionUri],
     };
-    this.render();
+    webviewView.webview.onDidReceiveMessage((message: { type?: string; command?: string }) => {
+      if (message.type === "action" && message.command) {
+        void commands.executeCommand(message.command);
+      }
+    });
+    void this.render();
   }
 
   dispose(): void {
@@ -48,35 +71,66 @@ class RiskPulseProvider implements WebviewViewProvider {
     }
   }
 
-  private render(): void {
+  private async buildModel(): Promise<OverviewModel> {
+    const pulse = this.session.pulse();
+    const sessionSaved = this.session.sessionAvoidedTokens();
+    let rulesCost = this.rulesCost;
+    try {
+      const root = resolveWorkspaceRoot();
+      rulesCost = await estimateRulesBudget(root, this.session.listAll());
+      this.rulesCost = rulesCost;
+    } catch {
+      /* no folder workspace */
+    }
+
+    let discoverPaths: readonly string[] = [];
+    try {
+      const root = resolveWorkspaceRoot();
+      const hours = workspace.getConfiguration("tokenforge").get<number>("discoverIntervalHours", 24);
+      const candidates = await discoverRecentChanges(root, { sinceMs: hours * 60 * 60 * 1000 });
+      discoverPaths = candidates.map((c) => c.path);
+    } catch {
+      /* ignore */
+    }
+
+    const drift = adviseContextDrift(this.session);
+    const taskPack = buildTaskContextPack(this.session);
+
+    return {
+      pulse,
+      sessionSaved,
+      rulesCost,
+      autoShieldOn: isAutoFilterEnabled(),
+      driftSummary: drift?.summary,
+      discoverPaths,
+      taskPackPaths: taskPack.paths,
+    };
+  }
+
+  private async render(): Promise<void> {
     if (!this.view) {
       return;
     }
-    const model = this.session.pulse();
-    const sessionAvoided = this.session.sessionAvoidedTokens();
-    const filterEventCount = this.session.sessionHistory().length;
-    const autoFilterOn = isAutoFilterEnabled();
-    this.view.webview.html = renderPulseHtml(
-      this.view.webview,
-      model,
-      autoFilterOn,
-      sessionAvoided,
-      filterEventCount,
+    const model = await this.buildModel();
+    const cssUri = this.view.webview.asWebviewUri(
+      Uri.joinPath(this.extensionUri, "media", "tokenforge.css"),
     );
-    this.view.description = autoFilterOn ? "Auto-filter on" : undefined;
-    this.view.badge = hasTokenReduction(model)
-      ? {
-          value: Math.min(model.filteredCount, 99),
-          tooltip: `${formatTokenCount(model.totals.savedTokens)} tokens saved`,
-        }
-      : autoFilterOn
-        ? { value: 1, tooltip: "Auto-filter is on" }
-        : undefined;
+    this.view.webview.html = renderOverviewHtml(this.view.webview, cssUri, model);
+    this.view.description = model.autoShieldOn ? "Auto-shield on" : undefined;
+    this.view.badge =
+      model.pulse.totals.savedTokens > 0
+        ? {
+            value: Math.min(model.pulse.filteredCount, 99),
+            tooltip: `${formatTokenCount(model.pulse.totals.savedTokens)} shielded`,
+          }
+        : model.autoShieldOn
+          ? { value: 1, tooltip: "Auto-shield is on" }
+          : undefined;
   }
 }
 
 export function createRiskPulse(
-  session: RiskSession,
+  session: ShieldSession,
   context: ExtensionContext,
 ): { dispose(): void } {
   const provider = new RiskPulseProvider(session, context.extensionUri);
@@ -92,208 +146,119 @@ export function createRiskPulse(
   };
 }
 
-function renderPulseHtml(
+function renderOverviewHtml(
   webview: Webview,
-  model: RiskPulseModel,
-  autoFilterOn: boolean,
-  sessionAvoided: number,
-  filterEventCount: number,
+  cssUri: Uri,
+  model: OverviewModel,
 ): string {
-  const { totals, segments, displayAtRiskTokens } = model;
-  const adoption = sessionAdoptionFromCounts(model);
-  const before = Math.max(totals.beforeTokens, 1);
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverPaths, taskPackPaths } =
+    model;
   const csp = webview.cspSource;
-  const showReduction = hasTokenReduction(model);
-  const sessionKpi =
-    sessionAvoided > 0
-      ? `<div class="kpi session">
-    <div><span class="label">Session saved</span><span class="value">${formatTokenCount(sessionAvoided)}</span></div>
-  </div>
-  <p class="hint session-hint">Cumulative Filter savings this window — survives closed tabs. Estimate hygiene only, not agent interception.</p>`
-      : "";
+  const contextCost = formatTokenCount(pulse.displayAtRiskTokens);
+  const sessionKpi = formatTokenCount(sessionSaved);
+  const rulesKpi = formatTokenCount(rulesCost);
 
-  const segmentRows = segments
-    .slice(0, 8)
-    .map((segment) => {
-      const width = Math.max(2, Math.round((segment.tokens / before) * 100));
-      const tone =
-        segment.decision === "filtered"
-          ? "saved"
-          : segment.decision === "kept"
-            ? "kept"
-            : "risk";
-      const label = escapeHtml(basename(segment.path));
-      return `<div class="row">
-  <div class="meta"><span class="name">${label}</span><span class="tok">${formatTokenCount(segment.tokens)}</span></div>
-  <div class="track"><div class="fill ${tone}" style="width:${width}%"></div></div>
-  <div class="tag ${tone}">${segment.decision}</div>
-</div>`;
-    })
+  const bleeders = pulse.segments
+    .slice(0, 6)
+    .map(
+      (segment) => `<div class="tf-row">
+  <span class="tf-row-name">${escapeHtml(basename(segment.path))}</span>
+  <span class="tf-row-tokens">${formatTokenCount(segment.tokens)} · ${shieldLabel(segment.decision)}</span>
+</div>`,
+    )
     .join("\n");
 
-  let bodyMain: string;
-  if (segments.length === 0) {
-    bodyMain = `<p class="hint">No at-risk tabs yet. Open a lockfile or leave a tab idle (10m focused / 5m background).</p>`;
-  } else if (!showReduction) {
-    bodyMain = `
-  <div class="kpi single">
-    <div><span class="label">At risk now</span><span class="value">${formatTokenCount(displayAtRiskTokens)}</span></div>
-  </div>
-  <p class="hint">Filter a tab to unlock the reduction evidence (before → after → saved). Until then, before and after are the same — nothing has been filtered yet.</p>
-  ${segmentRows}`;
-  } else {
-    const savedPct = Math.round((totals.savedTokens / before) * 1000) / 10;
-    const afterPct = Math.round((totals.afterTokens / before) * 1000) / 10;
-    bodyMain = `
-  <div class="kpi">
-    <div><span class="label">Before</span><span class="value">${formatTokenCount(totals.beforeTokens)}</span></div>
-    <div><span class="label">After</span><span class="value">${formatTokenCount(totals.afterTokens)}</span></div>
-    <div><span class="label">Saved</span><span class="value">${formatTokenCount(totals.savedTokens)}</span></div>
-  </div>
-  <div class="bar" role="img" aria-label="${savedPct}% saved">
-    <div class="saved" style="width:${savedPct}%"></div>
-    <div class="after" style="width:${afterPct}%"></div>
-  </div>
-  <div class="caption">${savedPct}% filtered · ${formatTokenCount(displayAtRiskTokens)} still at risk</div>
-  ${segmentRows}`;
-  }
+  const bleedersBlock =
+    pulse.segments.length > 0
+      ? bleeders
+      : `<div class="tf-placeholder">No high context-cost tabs yet. Open lockfiles or leave tabs idle.</div>`;
 
-  const autoBanner = autoFilterOn
-    ? `<div class="auto-on" role="status">Auto-filter ON · lockfile / generated</div>`
+  const driftBlock = driftSummary
+    ? `<p>${escapeHtml(driftSummary)}</p>`
+    : `<div class="tf-placeholder">No drift advisory yet — Shield pending tabs before long agent turns.</div>`;
+
+  const discoverBlock =
+    discoverPaths.length > 0
+      ? `<ul>${discoverPaths
+          .slice(0, 5)
+          .map((p) => `<li>${escapeHtml(p)}</li>`)
+          .join("")}</ul>`
+      : `<div class="tf-placeholder">Run discover to rank recently changed workspace files.</div>`;
+
+  const taskPackBlock =
+    taskPackPaths.length > 0
+      ? `<ul>${taskPackPaths
+          .slice(0, 5)
+          .map((p) => `<li>${escapeHtml(p)}</li>`)
+          .join("")}</ul>`
+      : `<div class="tf-placeholder">Prepare agent session to build a task context pack.</div>`;
+
+  const autoBanner = autoShieldOn
+    ? `<div class="tf-placeholder" style="border-style:solid;background:var(--tf-brand-warning-bg)">Auto-shield ON · lockfile / generated</div>`
     : "";
 
-  const adoptionBlock =
-    adoption.atRiskTabCount > 0 || filterEventCount > 0
-      ? `<div class="adoption" role="status">
-  <div class="adoption-label">Adoption</div>
-  <div class="adoption-value">${
-    adoption.filteredPercent !== null
-      ? `${adoption.filteredPercent}% of at-risk tabs Filtered`
-      : "Not available"
-  }</div>
-  <div class="adoption-hint">${filterEventCount} Filter event${filterEventCount === 1 ? "" : "s"} this window · measures TokenForge usage, not agent internals</div>
-</div>`
-      : "";
+  const reductionNote = hasTokenReduction(pulse)
+    ? `<p class="tf-honesty">${formatTokenCount(pulse.totals.savedTokens)} shielded from open-tab estimate (${formatTokenCount(pulse.totals.beforeTokens)} → ${formatTokenCount(pulse.totals.afterTokens)}).</p>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp} 'unsafe-inline';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp}; script-src ${csp};" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="${cssUri}" />
   <style>
-    :root {
-      --bg: var(--vscode-sideBar-background);
-      --fg: var(--vscode-foreground);
-      --muted: var(--vscode-descriptionForeground);
-      --border: var(--vscode-widget-border, var(--vscode-panel-border));
-      --risk: var(--vscode-charts-orange, #e2a03f);
-      --saved: var(--vscode-charts-green, #3fae6d);
-      --kept: var(--vscode-charts-blue, #4a90d9);
-      --track: color-mix(in srgb, var(--fg) 12%, transparent);
-      --warn-bg: var(--vscode-inputValidation-warningBackground, color-mix(in srgb, var(--risk) 22%, transparent));
-      --warn-border: var(--vscode-inputValidation-warningBorder, var(--risk));
-    }
-    body {
-      margin: 0;
-      padding: 12px;
-      font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
-      color: var(--fg);
-      background: var(--bg);
-    }
-    h1 {
-      margin: 0 0 4px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .auto-on {
-      margin: 0 0 12px;
-      padding: 6px 8px;
-      border: 1px solid var(--warn-border);
-      border-radius: 4px;
-      background: var(--warn-bg);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-    }
-    .kpi {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 10px 0 14px;
-    }
-    .kpi.single, .kpi.session { grid-template-columns: 1fr; }
-    .kpi div {
-      padding: 8px 6px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-    .kpi .label { display: block; color: var(--muted); font-size: 11px; }
-    .kpi .value { display: block; margin-top: 2px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .bar {
-      display: flex;
-      height: 14px;
-      border-radius: 7px;
-      overflow: hidden;
-      background: var(--track);
-      margin-bottom: 6px;
-    }
-    .bar .saved { background: var(--saved); }
-    .bar .after { background: var(--risk); opacity: 0.85; }
-    .caption { color: var(--muted); font-size: 11px; margin-bottom: 14px; }
-    .row { margin-bottom: 10px; }
-    .meta { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; font-size: 12px; }
-    .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tok { color: var(--muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-    .track { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
-    .fill { height: 100%; border-radius: 3px; }
-    .fill.risk { background: var(--risk); }
-    .fill.saved { background: var(--saved); }
-    .fill.kept { background: var(--kept); }
-    .tag {
-      margin-top: 3px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-    .tag.saved { color: var(--saved); }
-    .tag.kept { color: var(--kept); }
-    .tag.risk { color: var(--risk); }
-    .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 10px 0 14px; }
-    .hint.session-hint { margin-top: -8px; margin-bottom: 16px; font-size: 11px; }
-    .adoption {
-      margin: 0 0 12px;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: color-mix(in srgb, var(--fg) 4%, transparent);
-    }
-    .adoption-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .adoption-value { font-size: 13px; font-weight: 600; }
-    .adoption-hint { margin-top: 4px; font-size: 10px; color: var(--muted); line-height: 1.35; }
-    .foot { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    body { margin: 0; padding: 12px; font-family: var(--tf-font-family); font-size: var(--tf-font-size); color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
+    ul { margin: 0; padding-left: 18px; font-size: 11px; }
+    li { margin-bottom: 4px; word-break: break-all; }
   </style>
 </head>
 <body>
   ${autoBanner}
-  ${sessionKpi}
-  ${adoptionBlock}
-  <h1>${showReduction ? "Tier 1 · Live hygiene" : "Tier 1 · Context risk"}</h1>
-  ${bodyMain}
-  <p class="foot">Live Filter estimate from open tabs. Same math as last-scan.json. Hygiene advice only — not agent interception. Higher Prove tiers (scan $, billed usage) live on the dashboard.</p>
+  <div class="tf-hero">
+    <div class="tf-kpi"><span class="tf-kpi-label">Context cost</span><span class="tf-kpi-value">${contextCost}</span></div>
+    <div class="tf-kpi"><span class="tf-kpi-label">Session saved</span><span class="tf-kpi-value">${sessionKpi}</span></div>
+    <div class="tf-kpi"><span class="tf-kpi-label">Rules cost</span><span class="tf-kpi-value">${rulesKpi}</span></div>
+  </div>
+  ${reductionNote}
+  <div class="tf-actions">
+    <button class="tf-btn" data-cmd="tokenforge.shieldAllPending">Shield all pending</button>
+    <button class="tf-btn" data-cmd="tokenforge.cleanSession">Clean session</button>
+    <button class="tf-btn" data-cmd="tokenforge.prepareAgentSession">Prepare session</button>
+    <button class="tf-btn" data-cmd="tokenforge.enrichInstructions">Analyze rules</button>
+    <button class="tf-btn" data-cmd="tokenforge.runDiscover">Run discover</button>
+    <button class="tf-btn" data-cmd="tokenforge.focusRiskPanel">Open tabs</button>
+  </div>
+  <div class="tf-section">Top bleeders</div>
+  ${bleedersBlock}
+  <div class="tf-honesty">Live open-tab estimate only. TokenForge recommends Shield/Allow — it does not intercept any agent or LLM context pipeline.</div>
+  <div class="tf-section">Context drift</div>
+  ${driftBlock}
+  <div class="tf-section">Discover</div>
+  ${discoverBlock}
+  <div class="tf-section">Task context pack</div>
+  ${taskPackBlock}
+  <script>
+    const vscode = acquireVsCodeApi();
+    for (const btn of document.querySelectorAll('[data-cmd]')) {
+      btn.addEventListener('click', () => {
+        vscode.postMessage({ type: 'action', command: btn.getAttribute('data-cmd') });
+      });
+    }
+  </script>
 </body>
 </html>`;
+}
+
+function shieldLabel(decision: string): string {
+  if (decision === "filtered") {
+    return "shielded";
+  }
+  if (decision === "kept") {
+    return "allowed";
+  }
+  return "needs review";
 }
 
 function basename(path: string): string {
