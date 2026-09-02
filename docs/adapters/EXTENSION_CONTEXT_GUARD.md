@@ -1,27 +1,21 @@
 # Context Guard — VS Code extension
 
 **Status:** Locked  
-**Scope:** Detect surface — tab scoring, Keep/Filter, exports.  
+**Scope:** Detect + Shield + embedded Fix/Prove — standalone extension product.  
 **Audience:** Extension developers and demo operators.  
-**Companion:** [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md) · [`../runbooks/DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md)
+**Companion:** [`../design/EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) · [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md)
 
 ---
 
 ## What it is (and is not)
 
-**Is:** recommended hygiene for Chat/Agent / metered AI-credit workflows. It scores
-open editors and lets you Filter high-bleed tabs out of the live estimate.
+**Is:** recommended hygiene for Chat/Agent / metered AI-credit workflows. It scores open editors, applies **Shield** levers where the provider allows, and tracks **context cost** and session savings in **Overview**.
 
-**Is not:** interception of any agent’s private context pipeline. Filtering updates
-TokenForge’s estimate and export file only — it does not close tabs or rewrite
-Copilot/Cursor/Claude config by itself (that is CLI **Fix** / `tokenforge apply`).
+**Is not:** interception of any agent's private context pipeline. TokenForge uses exclusion APIs, tab control, and optional project hooks the user opts into. UI shows **effectiveness tier** per provider (`full` / `partial` / `advisory`).
 
-Default Detect is **heuristic-only**. Optional LLM enrichment on instruction
-paths is **opt-in** (`tokenforge.llmEnrichment` + command
-**TokenForge: Enrich instruction paths**) and writes hybrid `layers` /
-`scan.llm` into `.tokenforge/last-scan.json` without changing live Keep/Filter
-scoring. Backends reuse `@tokenforge/enrichers` (noop, Ollama, Anthropic, Codex) —
-same port as the CLI ([`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md)).
+Default scoring is **heuristic-only**. Optional LLM enrichment on instruction paths is **opt-in** (`tokenforge.llmEnrichment` + **Analyze rules**) and writes hybrid `layers` / `scan.llm` into `.tokenforge/last-scan.json`. Backends reuse `@tokenforge/enrichers` — same port as the CLI.
+
+**Compact rules** and Shield levers use shared packages (`@tokenforge/policy-adapters`, `@tokenforge/context-adapters`) — extension never imports CLI.
 
 ## Quick start
 
@@ -29,17 +23,16 @@ same port as the CLI ([`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md)
 npm run tokenforge:extension
 ```
 
-Open the repo root → **Run Extension** (F5) → Extension Development Host →
-**TokenForge** activity-bar icon.
+Open the repo root → **Run Extension** (F5) → Extension Development Host → **TokenForge** activity-bar icon.
 
 ## Surfaces
 
 | Surface | Role |
 | --- | --- |
-| Status bar | Compact `TokenForge: … at risk` (click focuses the panel) |
-| **At-risk tabs** tree | Pending / Kept / Filtered (+ Approaching idle) with Keep, Filter, Restore |
-| **Risk pulse** webview | Live before → after → saved **after** you Filter; otherwise “at risk now” |
-| Toolbar | Refresh, Export, Reveal last-scan, Clear decisions, Enrich instruction paths (opt-in) |
+| Status bar | `context · shielded · saved` (click → Overview or Prepare session when cost is high) |
+| **Open tabs** tree | Settings row, then Needs review / Allowed / Shielded (+ Approaching idle) |
+| **Overview** webview | Hero KPIs, quick actions, discover/drift/task-pack cards, honesty strip |
+| Toolbar | Auto-shield toggle, Shield all pending, More (export, analyze, discover, …) |
 
 ## Scoring rules
 
@@ -47,69 +40,38 @@ Shared kernel: `@tokenforge/risk-core` (`scoreRisk`).
 
 A tab is **at-risk** when any of:
 
-1. **High-risk filetype** — lockfile or generated (e.g. `package-lock.json`, `dist/**`) — immediate
-2. **Oversized** — bytes ≥ 100 KiB
-3. **Inactive** —
-   - **Focused** editor: idle ≥ **10 minutes**
-   - **Background** (non-focused) tab: idle ≥ **5 minutes**
+1. **High-risk filetype** — lockfile or generated — immediate
+2. **Oversized** — bytes ≥ 100 KiB
+3. **Inactive** — focused ≥ `tokenforge.idleMinutesFocused` (default 10m); background ≥ `tokenforge.idleMinutesBackground` (default 5m)
 
 Token estimate: `estTokens ≈ ceil(bytes / 4)`.
 
-The panel’s **Approaching idle** section appears after ≥1 minute idle, with a
-countdown to the applicable threshold.
+## Shield / Allow / Unshield
 
-## Keep / Filter / Restore
+| Action | Display | Provider levers | Export |
+| --- | --- | --- | --- |
+| **Shield** | Removed from context cost | Adapter applies ignore / blocklist when available | `action: "filtered"` |
+| **Allow** | Still counted (honest) | Clears levers if previously Shielded | `action: "kept"` |
+| **Unshield** | Back to Allowed | Removes levers | `action: "kept"` |
 
-| Action | Effect on display | Effect on export |
-| --- | --- | --- |
-| **Filter** | Drops tab from at-risk readout and status bar | `action: "filtered"` → counts as saved |
-| **Keep** | Still at-risk (honest), marked Kept | `action: "kept"` |
-| **Restore** | Undoes Filter → **Kept** (so auto-filter does not instantly re-apply) | `action: "kept"` |
-| **Clear decisions** | All back to pending | pending → kept at export time until filtered |
+**Only Shield reduces displayed context cost.**
 
-Acceptance rule: **only Filter reduces displayed at-risk tokens.**
+Hard Shield on Cursor merges `.cursorignore` managed section + session blocklist; optional **Close tab on hard Shield** and **install Cursor hooks** (opt-in).
 
-## Auto-filter (opt-in, **per workspace**)
+## Auto-shield lockfiles (opt-in, workspace-only)
 
-Setting: `tokenforge.autoFilterHighRisk` (default **false**).
+Setting: `tokenforge.autoFilterHighRisk` (default **false**). Workspace scope only — user/global values ignored.
 
-**Scope:** workspace / folder only. A User (global) setting is **ignored** so
-enabling auto-filter in one repo cannot turn it on everywhere. Toggle always
-writes the workspace `.vscode/settings.json` value.
+Toggle from Open tabs settings row, toolbar zap/check, status bar tint, or command **Auto-shield lockfiles**.
 
-**Turn it on from:**
-
-- TokenForge **At-risk tabs** list — top row **Auto-filter high-risk** (shows
-  `On · lockfile / generated` or `Off`; click to toggle)
-- Sidebar toolbar — zap when off, check when on (title becomes
-  **At-risk tabs · Auto** while enabled; banner message appears under the title)
-- Status bar — appends `· auto` and a warning tint while enabled
-- Risk pulse — “Auto-filter ON” banner
-- Command Palette → **TokenForge: Toggle Auto-filter High-Risk**
-- Settings → search `tokenforge.autoFilterHighRisk`
-
-When enabled, pending **lockfile** and **generated** tabs are Filtered automatically.
-Keep/Restore remain durable overrides. This never closes editors or writes vendor
-ignore files — it only updates the Detect estimate and `last-scan.json`.
+When enabled, pending lockfile/generated tabs Shield automatically. Allow/Unshield remain user overrides.
 
 ## Export / Prove handoff
 
-- Path: `.tokenforge/last-scan.json` (workspace folder)
-- Contract: Token Risk ([`schemas/risk-event.schema.json`](./schemas/risk-event.schema.json),
-  `$id`: `https://tokenforge.dev/schema/risk-event/v5`)
-- `source: "extension"`; validated with `isTokenRiskReport`
-- **Auto-export** debounces on session changes; skips rewrite when findings/totals
-  are unchanged (timestamp-only churn does not touch disk)
-- On write, ensures the workspace `.gitignore` contains `.tokenforge/`
-- **Reveal last-scan.json** opens/reveals the file for demos or dashboard load
-
-Settings written into the report: `tokenforge.team`, `tokenforge.repo`,
-`tokenforge.provider` (scoring ignores provider).
+- `.tokenforge/last-scan.json` — Token Risk contract ([`schemas/risk-event.schema.json`](../schemas/risk-event.schema.json), `$id`: `https://tokenforge.dev/schema/risk-event/v5`)
+- `.tokenforge/session-stats.json` — session ledger export (under More)
+- Auto-export debounces; skips timestamp-only churn
 
 ## Demo tip
 
-Open `fixtures/hybrid-eval-app/package-lock.json` and
-`fixtures/hybrid-eval-app/test-results/junit.xml` — they flag immediately. Filter the
-lockfile and watch Risk pulse unlock before/after/saved. Full stage script:
-[`PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md) (or legacy
-≤5 min [`DEMO_RUNBOOK.md`](../runbooks/DEMO_RUNBOOK.md) on `noisy-app`).
+Open `fixtures/hybrid-eval-app/package-lock.json` — flags immediately. Hard Shield the lockfile and watch Overview session saved KPI. See [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
