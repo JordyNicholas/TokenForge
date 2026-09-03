@@ -471,3 +471,58 @@ Fix copy per shape.
 
 All three stay in `HIGH_RISK_FILE_CLASSES` (same Fix posture as `generated`).
 Golden totals: `fixtures/expected/output-shape-app-totals.json`. Story: #171.
+
+## B17 — every binary asset was judged by the bar meant for text
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/classify/classify.ts`,
+`domain/constants.ts` (`MEDIA_EXTENSIONS`, `HIGH_RISK_FILE_CLASSES`).
+
+**Previous behavior:** `classifyFiletype` had no class for images, fonts, or
+audio/video, so `.png` / `.svg` / `.woff2` / `.ttf` fell through to `unknown`
+(weight 0.3) and could only be flagged by clearing `OVERSIZED_BYTES`. Size is
+the wrong question for a file with no text in it: a 1 KB tracking pixel and a
+2 MB hero render are equally unreadable to an agent.
+
+**Demonstrated by:** a real heuristic scan of the `tabler` repo — **314 of 315
+findings came back `reason: "oversized"`**, and these trees produced nothing at
+all:
+
+| Path | Files | Why it was invisible |
+| --- | --- | --- |
+| `core/img/flags/**` | 260 | SVG, 0.5–12 KB (only `sa.svg` at 103 KB crossed) |
+| `core/img/payments/**` | 338 | SVG, 814 KB total, largest 36 KB |
+| `core/fonts/**` | 40 | `.ttf` 69–72 KB, `.woff2` 27–58 KB (only the 2 variable faces crossed) |
+| `shared/static/avatars/**` | 148 | JPG, all under 100 KB |
+| `shared/static/brands/**` | 73 | SVG, largest 36 KB |
+| `docs/assets/img/**` | 44 | PNG 23–82 KB |
+
+`docs/images/**` *was* excluded — but only because its ten cover JPGs each
+happen to exceed 100 KB. The 23–82 KB PNG icons one directory over produced
+nothing. Same content, opposite verdict, decided by a coincidence of size.
+
+**Risk:** the false-negative counterpart to B14, and larger. The generated
+policy pack told an agent to skip a handful of stray fonts while leaving ~900
+asset files unmentioned, so `apply` looked precise and was not.
+
+**Fix:** a `media` file class assigned by extension, in
+`HIGH_RISK_FILE_CLASSES` so it flags on shape with no size bar to clear —
+the same posture as `lockfile`. `reason` stays `high_risk_filetype`, already
+in the v5 enum, so the contract is unchanged. `CLASS_WEIGHT.media = 0.9` keeps
+the continuous score in agreement with `reasons` (the B3 complaint).
+
+`.svg` is included deliberately. It is XML, so an extension-and-size reading
+calls it text — but icon sets are the bulk of what this class exists to catch,
+and a hand-authored inline SVG *component* lives under source as `.tsx`/`.jsx`,
+not as a bare `.svg`. Archives (`.zip`, `.tar`, `.7z`, `.rar`) went to
+`BUILD_ARTIFACT_EXTENSIONS` instead: packaged output, not something rendered.
+
+Output-shape classes still win: `dist/logo.png` stays `build_artifact` so it
+keeps the copy that explains *why* it is waste.
+
+**Demonstrated by:** `fixtures/over-collapse-app/assets/icons/*.svg` (~200 bytes
+each — a directory that produced no finding at all before) and
+`src/util/spinner.svg` (a small asset beside kept source, which must be named
+rather than collapsed). Golden totals:
+`fixtures/expected/over-collapse-app-totals.json`. Story: #300.

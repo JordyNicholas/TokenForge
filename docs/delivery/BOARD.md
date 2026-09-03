@@ -329,6 +329,8 @@ Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). M
 | #291 | Instruction-stack verdict, no counts | `risk-core` | **Done** |
 | #289 | `over-collapse-app` control + fallback golden | Tests | **Done** |
 | #290 | Design doc + BOARD F14 index | Docs | **Done** |
+| #300 | `media` file class — assets flagged by shape, not size | `risk-core` | **Done** |
+| #301 | Asset-tree density signal | `risk-core` / CLI | **To-Do** |
 
 ### F7 — Hybrid Fix: heuristic-routed LLM policy synthesis (#225)
 
