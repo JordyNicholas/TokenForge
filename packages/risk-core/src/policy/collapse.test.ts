@@ -104,4 +104,47 @@ describe("collapseExclusionPaths", () => {
       collapseExclusionPaths(["dist/bundle.js", "package-lock.json"]),
     ).toEqual(["dist/bundle.js", "package-lock.json"]);
   });
+
+  describe("keepDirs guard", () => {
+    const assets = [
+      "docs/content/a.mdx",
+      "docs/content/b.mdx",
+      "docs/content/c.mdx",
+    ];
+
+    it("collapses a directory the caller says nothing about", () => {
+      expect(collapseExclusionPaths(assets)).toEqual(["docs/content/**"]);
+    });
+
+    it("refuses a directory that also holds kept content", () => {
+      // A RULEBOOK or openapi.yaml beside these was never a finding, so
+      // collapse cannot see it — the caller that walked the tree must say so.
+      expect(
+        collapseExclusionPaths(assets, {
+          keepDirs: new Set(["docs", "docs/content"]),
+        }),
+      ).toEqual(["docs/content/a.mdx", "docs/content/b.mdx", "docs/content/c.mdx"]);
+    });
+
+    it("still collapses a sibling the caller did not flag", () => {
+      expect(
+        collapseExclusionPaths([...assets, "docs/images/x.jpg", "docs/images/y.jpg", "docs/images/z.jpg"], {
+          keepDirs: new Set(["docs", "docs/content"]),
+        }),
+      ).toEqual([
+        "docs/content/a.mdx",
+        "docs/content/b.mdx",
+        "docs/content/c.mdx",
+        "docs/images/**",
+      ]);
+    });
+
+    it("overrides the hinted fast path", () => {
+      expect(
+        collapseExclusionPaths(["dist/a.js", "dist/b.js"], {
+          keepDirs: new Set(["dist"]),
+        }),
+      ).toEqual(["dist/a.js", "dist/b.js"]);
+    });
+  });
 });

@@ -7,7 +7,7 @@ import type {
 import { classifyFiletype } from "../classify/classify";
 import { resolveSuggestion } from "../advise/suggest";
 import { activePathSet, isActivePath } from "../policy/active";
-import { collapseExclusionPaths } from "../policy/collapse";
+import { collapseExclusionPaths, type CollapseOptions } from "../policy/collapse";
 import { isInstructionStackOverBudget } from "../instruction/budget";
 
 export type SynthesizeLeanInstructionsOptions = {
@@ -17,6 +17,8 @@ export type SynthesizeLeanInstructionsOptions = {
   maxBytes?: number;
   /** When true, do not truncate hygiene/advisory summaries at 120 chars. */
   completeSummaries?: boolean;
+  /** Directories a "do not load" glob must never widen to — see {@link CollapseOptions}. */
+  keepDirs?: ReadonlySet<string>;
 };
 
 const HYGIENE_KINDS = new Set(["trim_instructions", "dedupe_rules"]);
@@ -52,6 +54,7 @@ function truncateSummary(summary: string, max = MAX_HYGIENE_SUMMARY_CHARS): stri
 function excludedPathsForInstructions(
   findings: readonly TokenRiskFinding[],
   active: ReadonlySet<string>,
+  collapse: CollapseOptions = {},
 ): string[] {
   const ordered = [...findings]
     .filter(
@@ -63,7 +66,7 @@ function excludedPathsForInstructions(
         b.estTokens - a.estTokens || a.path.localeCompare(b.path),
     );
   const paths = ordered.map((finding) => finding.path);
-  return collapseExclusionPaths(paths).slice(0, MAX_EXCLUDE_BULLETS);
+  return collapseExclusionPaths(paths, collapse).slice(0, MAX_EXCLUDE_BULLETS);
 }
 
 type HygieneBullet = {
@@ -246,9 +249,9 @@ export function synthesizeLeanInstructions(
   // A "do not load" bullet naming the file its author has open is the exact
   // false positive #137 exists to prevent.
   const active = activePathSet(report);
-  let excludeLines = excludedPathsForInstructions(report.findings, active).map(
-    (path) => `- \`${path}\``,
-  );
+  let excludeLines = excludedPathsForInstructions(report.findings, active, {
+    keepDirs: options.keepDirs,
+  }).map((path) => `- \`${path}\``);
   let hygiene = hygieneBullets(report.findings, summaryMaxChars);
   let advisory = advisoryBullets(report.findings, summaryMaxChars);
   let themes = whyThemes(report);

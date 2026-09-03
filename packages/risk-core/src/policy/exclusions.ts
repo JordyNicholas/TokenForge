@@ -6,7 +6,7 @@ import type {
 import { resolveSuggestion } from "../advise/suggest";
 import { classifyFiletype } from "../classify/classify";
 import { activePathSet, isActivePath } from "./active";
-import { collapseExclusionPaths } from "./collapse";
+import { collapseExclusionPaths, type CollapseOptions } from "./collapse";
 import { isLlmExcludeSafe } from "./safety";
 
 export type DiscoverOpportunityCategory = "policy_gap" | "session_kept";
@@ -28,6 +28,7 @@ function normalizePath(path: string): string {
  */
 export function proposedExclusionPaths(
   report: Pick<TokenRiskReport, "findings" | "activePaths">,
+  options: CollapseOptions = {},
 ): string[] {
   const active = activePathSet(report);
   const paths = report.findings
@@ -36,7 +37,7 @@ export function proposedExclusionPaths(
         finding.action === "excluded" && !isActivePath(active, finding.path),
     )
     .map((finding) => finding.path);
-  return collapseExclusionPaths(paths);
+  return collapseExclusionPaths(paths, options);
 }
 
 const ADVISORY_IGNORE_REASONS = new Set<FindingReason>([
@@ -65,9 +66,10 @@ function isSafeIgnoreCandidate(finding: TokenRiskFinding): boolean {
  */
 export function proposedIgnorePaths(
   report: Pick<TokenRiskReport, "findings" | "activePaths">,
+  options: CollapseOptions = {},
 ): string[] {
   const active = activePathSet(report);
-  const fromExclusions = proposedExclusionPaths(report);
+  const fromExclusions = proposedExclusionPaths(report, options);
   const seen = new Set(fromExclusions);
   const extra: string[] = [];
 
@@ -85,7 +87,7 @@ export function proposedIgnorePaths(
     extra.push(finding.path);
   }
 
-  return collapseExclusionPaths([...fromExclusions, ...extra]);
+  return collapseExclusionPaths([...fromExclusions, ...extra], options);
 }
 
 /** True when `filePath` matches an applied exclusion entry (`dist/**` or exact). */

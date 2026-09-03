@@ -26,6 +26,19 @@ const MIN_COLLAPSE_FILES = 3;
  */
 const MIN_COLLAPSE_DEPTH = 2;
 
+export type CollapseOptions = {
+  /**
+   * Directories that also hold scored paths outside the excluded set — source,
+   * config, or protected. A glob is never widened to one of these.
+   *
+   * Collapse only ever sees the paths that were excluded, so it cannot notice
+   * an `openapi.yaml` or a `core/js/tabler.js` sitting beside them; the caller
+   * that walked the tree has to say so. Callers that cannot attest pass nothing
+   * and keep the depth/count floors as their only guard.
+   */
+  keepDirs?: ReadonlySet<string>;
+};
+
 function normalizePath(path: string): string {
   return path.replaceAll("\\", "/").replace(/\/+$/, "");
 }
@@ -75,8 +88,15 @@ function ancestorsOf(dir: string): string[] {
  * Known throwaway directory names (`dist`, `client`, `generated`, …) keep the
  * old fast path: they are tried first, shallowest-first, and are exempt from the
  * depth and count floors — a generated tree is safe to name wholesale.
+ *
+ * `options.keepDirs` closes the gap those rules cannot see: a directory that
+ * also holds a kept source, config, or protected path is never globbed, however
+ * deep it sits or how many excluded files it covers.
  */
-export function collapseExclusionPaths(paths: readonly string[]): string[] {
+export function collapseExclusionPaths(
+  paths: readonly string[],
+  options: CollapseOptions = {},
+): string[] {
   const files = [
     ...new Set(paths.map(normalizePath).filter((path) => path.length > 0)),
   ].sort((a, b) => a.localeCompare(b));
@@ -121,7 +141,7 @@ export function collapseExclusionPaths(paths: readonly string[]): string[] {
   const globs: string[] = [];
 
   for (const [dir, covered] of candidates) {
-    if (blocked.has(dir)) {
+    if (blocked.has(dir) || options.keepDirs?.has(dir)) {
       continue;
     }
     const preferred = isCollapsePreferred(dir);
