@@ -20,6 +20,13 @@ export type PolicyFile = {
 export type PolicyRenderContext = {
   managedInstructionBodies?: ReadonlyMap<string, string>;
   policyMaxBytes?: number;
+  /**
+   * Directories that also hold kept source/config/protected paths. Exclusion
+   * globs are never widened to one of these — see `collapseExclusionPaths`.
+   * Absent when the caller could not walk the tree; the kernel then falls back
+   * to its depth and count floors.
+   */
+  keepDirs?: ReadonlySet<string>;
 };
 
 export type ProviderAdapter = {

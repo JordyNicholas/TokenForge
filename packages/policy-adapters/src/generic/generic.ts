@@ -20,13 +20,16 @@ export const genericAdapter: ProviderAdapter = {
             GENERIC_INSTRUCTIONS_PATH,
           ),
           maxBytes: context?.policyMaxBytes,
+          keepDirs: context?.keepDirs,
         },
       ),
       {
         path: GENERIC_EXCLUSIONS_PATH,
-        contents: renderExclusionYaml(report, [
-          "# Generic exclusion pack (not a vendor billing/API file).",
-        ]),
+        contents: renderExclusionYaml(
+          report,
+          ["# Generic exclusion pack (not a vendor billing/API file)."],
+          { keepDirs: context?.keepDirs },
+        ),
       },
     ];
   },

@@ -45,6 +45,7 @@ export async function synthesizeManagedInstructionBody(options: {
   report: TokenRiskReport;
   title: string;
   applyOptions: ApplyOptions;
+  keepDirs?: ReadonlySet<string>;
 }): Promise<PolicySynthesisResult> {
   const config = await readTokenForgeConfig(options.root);
   const applyMode =
@@ -66,6 +67,7 @@ export async function synthesizeManagedInstructionBody(options: {
     maxBytes,
     config,
     instructionContents,
+    keepDirs: options.keepDirs,
     onProgress: options.applyOptions.onProgress,
   };
 

@@ -27,14 +27,19 @@ export const claudeAdapter: ProviderAdapter = {
             CLAUDE_INSTRUCTIONS_PATH,
           ),
           maxBytes: context?.policyMaxBytes,
+          keepDirs: context?.keepDirs,
         },
       ),
       {
         path: CLAUDE_EXCLUSIONS_PATH,
-        contents: renderExclusionYaml(report, [
-          "# Claude exclusion *candidates* for repo owners.",
-          "# TokenForge writes local policy files only — it does not call Anthropic org APIs.",
-        ]),
+        contents: renderExclusionYaml(
+          report,
+          [
+            "# Claude exclusion *candidates* for repo owners.",
+            "# TokenForge writes local policy files only — it does not call Anthropic org APIs.",
+          ],
+          { keepDirs: context?.keepDirs },
+        ),
       },
     ];
   },

@@ -6,6 +6,8 @@ export type PolicySynthesisInput = {
   maxBytes?: number;
   config?: TokenForgeConfig;
   instructionContents: ReadonlyMap<string, string>;
+  /** Directories an exclusion glob must not widen to; see `collapseExclusionPaths`. */
+  keepDirs?: ReadonlySet<string>;
   model: string;
   backend?: string;
   timeoutMs?: number;
