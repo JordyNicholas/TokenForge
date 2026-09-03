@@ -1,6 +1,5 @@
 import { ConfigurationTarget, workspace } from "vscode";
-import { applyAutoFilter } from "./autoFilter";
-import type { RiskSession } from "../session/riskSession";
+import { applyAutoShield, type AutoShieldSession } from "./autoFilter";
 
 const SETTING_KEY = "autoFilterHighRisk";
 const SETTING_SECTION = "tokenforge";
@@ -23,8 +22,31 @@ export function isAutoFilterEnabled(): boolean {
   return false;
 }
 
-export function runAutoFilter(session: RiskSession): number {
-  return applyAutoFilter(session, isAutoFilterEnabled());
+let inFlight: Promise<void> | null = null;
+let rerunRequested = false;
+
+/**
+ * Reactive auto-shield with single-flight coalescing. Shield is async and
+ * writes provider files, and each Shield fires `onDidChange` (which re-triggers
+ * this), so overlapping runs would otherwise double-apply a tab before its
+ * decision flips to Shielded. Runs are serialized and bursts are collapsed into
+ * one trailing re-run.
+ */
+export function runAutoShield(session: AutoShieldSession): void {
+  if (inFlight) {
+    rerunRequested = true;
+    return;
+  }
+  inFlight = applyAutoShield(session, isAutoFilterEnabled())
+    .then(() => undefined)
+    .catch(() => undefined)
+    .finally(() => {
+      inFlight = null;
+      if (rerunRequested) {
+        rerunRequested = false;
+        runAutoShield(session);
+      }
+    });
 }
 
 /** Persist auto-filter for the current workspace folder only. */
