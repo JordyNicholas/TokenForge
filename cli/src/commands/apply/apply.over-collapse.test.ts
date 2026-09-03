@@ -87,6 +87,35 @@ describe("apply on over-collapse-app", () => {
     expect(patterns).not.toContain("docs/**");
   });
 
+  it("covers assets that clear no size bar (#300)", async () => {
+    const result = await applyPolicy({
+      root: overCollapseAppRoot,
+      provider: "copilot",
+      dryRun: true,
+    });
+    const instructions = result.files.find((file) =>
+      file.path.endsWith("copilot-instructions.md"),
+    )!;
+    const patterns = excludedPatterns(instructions.contents);
+
+    // ~200 bytes each: a size-only heuristic produced nothing for this
+    // directory, so the glob did not exist before the media class.
+    expect(patterns).toContain("assets/icons/**");
+    // One small asset beside kept source — named, never widened to the dir.
+    expect(patterns).toContain("src/util/spinner.svg");
+    expect(patterns).not.toContain("src/util/**");
+
+    const icons = result.report.findings.filter((finding) =>
+      finding.path.startsWith("assets/icons/"),
+    );
+    expect(icons).toHaveLength(3);
+    for (const icon of icons) {
+      expect(icon.reason).toBe("high_risk_filetype");
+      expect(icon.action).toBe("excluded");
+      expect(icon.bytes).toBeLessThan(1_000);
+    }
+  });
+
   it("points Prefer at the real source root", async () => {
     const result = await applyPolicy({
       root: overCollapseAppRoot,

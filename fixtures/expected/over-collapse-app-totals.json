@@ -4,9 +4,9 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/over-collapse-app",
   "totals": {
-    "beforeTokens": 266755,
-    "afterTokens": 515,
-    "savedTokens": 266240
+    "beforeTokens": 267113,
+    "afterTokens": 658,
+    "savedTokens": 266455
   },
   "savedPercent": 99.8
 }
