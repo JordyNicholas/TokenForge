@@ -30,6 +30,9 @@ out/
 !fixtures/output-shape-app/logs/**
 .tokenforge/
 dashboard/public/last-scan.json
+dashboard/cypress/videos/
+dashboard/cypress/screenshots/
+dashboard/cypress/downloads/
 coverage/
 !fixtures/output-shape-app/coverage/
 !fixtures/output-shape-app/coverage/**

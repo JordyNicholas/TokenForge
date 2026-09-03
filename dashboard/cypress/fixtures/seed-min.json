@@ -1,0 +1,61 @@
+{
+  "businessUnit": "Retail Banking (test seed)",
+  "architectures": {
+    "payments-platform": "microservices",
+    "checkout": "serverless"
+  },
+  "usage": {
+    "source": "demo",
+    "providerLabel": "test fixture",
+    "period": "2026-08",
+    "teams": [
+      { "team": "payments-platform", "creditsUsed": 12400, "estimatedUsd": 1860 },
+      { "team": "checkout", "creditsUsed": 8200, "estimatedUsd": 1230 }
+    ],
+    "totals": { "creditsUsed": 20600, "estimatedUsd": 3090 }
+  },
+  "reports": [
+    {
+      "source": "cli",
+      "timestamp": "2026-08-17T18:00:00.000Z",
+      "repo": "fixtures/noisy-app",
+      "team": "payments-platform",
+      "provider": "generic",
+      "findings": [
+        {
+          "path": "package-lock.json",
+          "reason": "high_risk_filetype",
+          "bytes": 800000,
+          "estTokens": 200000,
+          "action": "excluded"
+        }
+      ],
+      "totals": {
+        "beforeTokens": 400000,
+        "afterTokens": 200000,
+        "savedTokens": 200000
+      }
+    },
+    {
+      "source": "cli",
+      "timestamp": "2026-08-17T18:00:00.000Z",
+      "repo": "checkout-web",
+      "team": "checkout",
+      "provider": "generic",
+      "findings": [
+        {
+          "path": "apps/checkout/package-lock.json",
+          "reason": "high_risk_filetype",
+          "bytes": 720000,
+          "estTokens": 180000,
+          "action": "excluded"
+        }
+      ],
+      "totals": {
+        "beforeTokens": 900000,
+        "afterTokens": 720000,
+        "savedTokens": 180000
+      }
+    }
+  ]
+}
