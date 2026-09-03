@@ -24,6 +24,8 @@ function classPhrase(fileClass: FiletypeRiskClass): string {
       return "CI or pipeline log";
     case "build_artifact":
       return "build artifact";
+    case "media":
+      return "binary asset";
     case "config":
       return "config file";
     case "source":
@@ -55,6 +57,9 @@ function heuristicExplanation(
       }
       if (fileClass === "build_artifact") {
         return "Compiled bundles and binary build output rarely help an agent and inflate token usage.";
+      }
+      if (fileClass === "media") {
+        return "Images, fonts, and other rendered assets carry no text an agent can reason about, so they are waste at any size — a folder of small icons costs as much as one large render.";
       }
       return `This ${classPhrase(fileClass)} is in a high-risk filetype class for agent context waste.`;
     case "oversized":

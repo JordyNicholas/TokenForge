@@ -24,12 +24,23 @@ export const OVERSIZED_BYTES = 100_000;
  */
 export const AUXILIARY_OVERSIZED_BYTES = 25_000;
 
+/**
+ * Classes that flag on shape alone, with no size bar to clear.
+ *
+ * `media` belongs here for the same reason `lockfile` does, not because assets
+ * are large: a 1 KB tracking pixel and a 2 MB hero render are equally unreadable
+ * to an agent. Judging them by {@link OVERSIZED_BYTES} is what let 260 flag SVGs,
+ * 148 avatar JPEGs, and 44 doc images through a real `tabler` scan — every one of
+ * them under the bar, so 314 of 315 findings came back `oversized` and whole asset
+ * trees produced nothing. See `HEURISTICS_AUDIT.md` B3.
+ */
 export const HIGH_RISK_FILE_CLASSES: ReadonlySet<FiletypeRiskClass> = new Set([
   "lockfile",
   "generated",
   "test_output",
   "ci_log",
   "build_artifact",
+  "media",
 ]);
 
 /** Contribution of filetype class to `scoreRisk` (0–1). */
@@ -39,6 +50,7 @@ export const CLASS_WEIGHT: Record<FiletypeRiskClass, number> = {
   test_output: 0.88,
   ci_log: 0.85,
   build_artifact: 0.9,
+  media: 0.9,
   config: 0.5,
   unknown: 0.3,
   source: 0.15,
@@ -234,7 +246,11 @@ export const GENERATED_TREE_DIR_NAMES: ReadonlySet<string> = new Set([
   ".generated",
 ]);
 
-/** Binary / archive extensions treated as build artifacts by shape. */
+/**
+ * Binary / archive extensions treated as build artifacts by shape.
+ * Archives live here rather than with {@link MEDIA_EXTENSIONS}: a `.zip` checked
+ * into a repo is packaged output, not something anyone renders.
+ */
 export const BUILD_ARTIFACT_EXTENSIONS: ReadonlySet<string> = new Set([
   ".jar",
   ".war",
@@ -243,6 +259,57 @@ export const BUILD_ARTIFACT_EXTENSIONS: ReadonlySet<string> = new Set([
   ".aab",
   ".tgz",
   ".wasm",
+  ".zip",
+  ".tar",
+  ".7z",
+  ".rar",
+]);
+
+/**
+ * Rendered assets: images, fonts, audio/video, and design binaries.
+ *
+ * `.svg` is here deliberately. It is XML, so a size-and-extension reading calls
+ * it text — but an icon set is an asset an agent should never read, and icon
+ * sets are the bulk of what this class exists to catch. A hand-authored inline
+ * SVG *component* lives under source as `.tsx`/`.jsx`, not as a bare `.svg`.
+ */
+export const MEDIA_EXTENSIONS: ReadonlySet<string> = new Set([
+  // images
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".avif",
+  ".bmp",
+  ".tif",
+  ".tiff",
+  ".ico",
+  ".icns",
+  ".svg",
+  // fonts
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
+  // audio / video
+  ".mp4",
+  ".webm",
+  ".mov",
+  ".avi",
+  ".mkv",
+  ".mp3",
+  ".wav",
+  ".ogg",
+  ".flac",
+  // rendered / design binaries
+  ".pdf",
+  ".psd",
+  ".ai",
+  ".sketch",
+  ".fig",
+  ".xcf",
 ]);
 
 /** Basenames for CI / pipeline log files (extension must be `.log`). */
