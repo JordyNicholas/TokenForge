@@ -16,7 +16,7 @@
 | Full hybrid-eval presentation (extension + heuristic + hybrid) | [`runbooks/PRESENTATION_HYBRID_EVAL.md`](./runbooks/PRESENTATION_HYBRID_EVAL.md) |
 | FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) |
 | Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
-| Extension (Context Guard) | [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
+| Extension (Context Guard) | [`design/EXTENSION_PRODUCT.md`](./design/EXTENSION_PRODUCT.md) → [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
 | Hybrid scan / LLM backends | [`design/COMPLEMENTARY_HYBRID_SCAN.md`](./design/COMPLEMENTARY_HYBRID_SCAN.md) → [`design/HYBRID_SCAN_DESIGN.md`](./design/HYBRID_SCAN_DESIGN.md) → [`adapters/LLM_ENRICHER_SETUP.md`](./adapters/LLM_ENRICHER_SETUP.md) |
 | Hybrid Fix / LLM policy apply | [`design/HYBRID_FIX_DESIGN.md`](./design/HYBRID_FIX_DESIGN.md) |
 | Heuristic Fix / deterministic policy text | [`design/HEURISTIC_FIX_DESIGN.md`](./design/HEURISTIC_FIX_DESIGN.md) |
@@ -41,6 +41,7 @@ Architecture, contracts narrative, audits, phased plans.
 | Doc | Purpose |
 | --- | --- |
 | [SOLUTION_DESIGN.md](./design/SOLUTION_DESIGN.md) | Stack, ports & adapters, monorepo layout, JSON contract |
+| [EXTENSION_PRODUCT.md](./design/EXTENSION_PRODUCT.md) | Context Guard product & UX (dual views, Shield, Lane A/B) |
 | [COMPLEMENTARY_HYBRID_SCAN.md](./design/COMPLEMENTARY_HYBRID_SCAN.md) | F6 — AI-first complementary heuristic + LLM layers, safety invariants |
 | [HYBRID_FIX_DESIGN.md](./design/HYBRID_FIX_DESIGN.md) | F7 — heuristic-routed hybrid apply + policy synthesis |
 | [HEURISTIC_FIX_DESIGN.md](./design/HEURISTIC_FIX_DESIGN.md) | F14 — the deterministic synthesizer: exclusion blast radius, synthesized policy text |
@@ -59,7 +60,7 @@ Architecture, contracts narrative, audits, phased plans.
 
 | Doc | Purpose |
 | --- | --- |
-| [EXTENSION_CONTEXT_GUARD.md](./adapters/EXTENSION_CONTEXT_GUARD.md) | VS Code Detect: tabs, Keep/Filter, exports |
+| [EXTENSION_CONTEXT_GUARD.md](./adapters/EXTENSION_CONTEXT_GUARD.md) | VS Code Detect: dual views, Shield, Lane A/B, exports |
 | [LLM_ENRICHER_SETUP.md](./adapters/LLM_ENRICHER_SETUP.md) | `--mode hybrid` backend setup (Ollama, Anthropic, CLIs) |
 | [AGENT_MCP_SETUP.md](./adapters/AGENT_MCP_SETUP.md) | `tokenforge mcp` for Cursor / Claude Code agents |
 

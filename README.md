@@ -21,7 +21,7 @@ TokenForge helps teams cut “token bleed” in developer workflows: detect high
 | Pitch FAQ (vs Auto Memory) | [`docs/product/PITCH_FAQ.md`](docs/product/PITCH_FAQ.md) |
 | Demo runbook (≤5 min script) | [`docs/runbooks/DEMO_RUNBOOK.md`](docs/runbooks/DEMO_RUNBOOK.md) |
 | One-team pilot (estimate vs imported bill) | [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) |
-| Context Guard (extension) | [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) |
+| Context Guard (extension) | [`docs/design/EXTENSION_PRODUCT.md`](docs/design/EXTENSION_PRODUCT.md) · [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) |
 | Pitch deck | [`docs/pitch/TokenForge-Pitch.pptx`](docs/pitch/TokenForge-Pitch.pptx) |
 | PR ↔ board workflow | [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) |
 | Collaborator guide | [`AGENTS.md`](AGENTS.md) |
@@ -162,8 +162,8 @@ npm run tokenforge:extension
 
 Builds `extension/dist/extension.js` (bundles `@tokenforge/risk-core` for the
 extension host). Open the repo root in VS Code or Cursor, run **Run Extension**
-(F5), then open the **TokenForge** activity bar: at-risk panel, Risk pulse,
-Keep/Filter, and auto-exported `.tokenforge/last-scan.json`.
+(F5), then open the **TokenForge** activity bar: **Overview** + **Open tabs**,
+Shield/Allow, and auto-exported `.tokenforge/last-scan.json`.
 
 ```bash
 npm run tokenforge:extension:watch
