@@ -8,10 +8,15 @@ import type { TokenRiskFinding } from "../domain/types";
  */
 export type WasteKind = "binary" | "dump" | "output" | "prose";
 
+/**
+ * Short noun phrases for the intro sentence. Kept free of "and" so
+ * {@link joinLabels} can combine them without stuttering; section headings
+ * spell the same buckets out at length.
+ */
 export const WASTE_KIND_LABEL: Record<WasteKind, string> = {
   binary: "binary assets",
-  dump: "lockfiles and data dumps",
-  output: "build and CI output",
+  dump: "data dumps",
+  output: "build output",
   prose: "oversized text",
 };
 

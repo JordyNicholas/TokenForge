@@ -16,6 +16,20 @@ function utf8Bytes(text: string): number {
   return new TextEncoder().encode(text).length;
 }
 
+function exclude(
+  path: string,
+  estTokens: number,
+): TokenRiskReport["findings"][number] {
+  return {
+    path,
+    reason: "oversized",
+    bytes: estTokens * 4,
+    estTokens,
+    action: "excluded",
+    source: "heuristic",
+  };
+}
+
 const heuristicReport: TokenRiskReport = {
   source: "cli",
   timestamp: "2026-08-17T18:00:00.000Z",
@@ -261,5 +275,57 @@ describe("synthesizeLeanInstructions", () => {
     const md = synthesizeLeanInstructions(fat, { maxBytes: 400 });
     expect(utf8Bytes(md)).toBeLessThanOrEqual(400);
     expect(md).toContain("# TokenForge instructions");
+  });
+});
+
+describe("synthesizeLeanInstructions — do-not-load buckets", () => {
+  const bucketReport = (): TokenRiskReport => ({
+    source: "cli",
+    timestamp: "2026-01-01T00:00:00.000Z",
+    repo: "demo",
+    team: "local",
+    provider: "copilot",
+    findings: [
+      exclude("shared/static/a.jpg", 900),
+      exclude("shared/static/b.jpg", 900),
+      exclude("shared/static/c.jpg", 900),
+      exclude("pnpm-lock.yaml", 400),
+      exclude("dist/bundle.js", 300),
+      exclude("docs/guide.mdx", 200),
+    ],
+    totals: { beforeTokens: 4000, afterTokens: 400, savedTokens: 3600 },
+  });
+
+  it("groups each glob under the bucket its findings belong to", () => {
+    const text = synthesizeLeanInstructions(bucketReport());
+    expect(text).toContain("## Do not load — binary assets");
+    expect(text).toContain("- `shared/static/**`");
+    expect(text).toContain("## Do not load — lockfiles and data dumps");
+    expect(text).toContain("- `pnpm-lock.yaml`");
+    expect(text).toContain("## Do not load — build and CI output");
+    expect(text).toContain("- `dist/bundle.js`");
+    expect(text).toContain("## Read a section on demand — do not paste whole");
+    expect(text).toContain("- `docs/guide.mdx`");
+  });
+
+  it("tells the agent how to reach one excluded file", () => {
+    expect(synthesizeLeanInstructions(bucketReport())).toContain(
+      "open that single file",
+    );
+  });
+
+  it("emits no token counts anywhere in the rendered file", () => {
+    const text = synthesizeLeanInstructions(bucketReport());
+    const body = text.slice(text.indexOf("## Do not load"));
+    expect(body).not.toMatch(/\d{3,}/);
+  });
+
+  it("omits every bucket when nothing is excluded", () => {
+    const text = synthesizeLeanInstructions({
+      ...bucketReport(),
+      findings: [],
+    });
+    expect(text).not.toContain("## Do not load");
+    expect(text).not.toContain("open that single file");
   });
 });
