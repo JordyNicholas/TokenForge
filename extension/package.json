@@ -521,8 +521,8 @@
         },
         "tokenforge.llmTimeout": {
           "type": "number",
-          "default": 120,
-          "description": "Per-batch enricher timeout in seconds."
+          "default": 600,
+          "description": "Per-batch enricher timeout in seconds. Default 600 survives a small local Ollama model on CPU; raise toward 900+ for larger models (e.g. qwen2.5-coder:7b) on CPU-only hosts."
         },
         "tokenforge.allowExternalLlm": {
           "type": "boolean",

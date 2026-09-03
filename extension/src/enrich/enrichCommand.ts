@@ -8,6 +8,7 @@ import { resolveWorkspaceRoot, writeLastScan } from "../export/writeLastScan";
 import type { RiskSession } from "../session/riskSession";
 import { collectInstructionCandidates } from "./collectCandidates";
 import { recordEnrichRun, safeParseLlmSpec } from "./enrichStatus";
+import { isOllamaReachable, resolveOllamaEndpoint } from "./ollamaHealth";
 import { runInstructionEnrichment } from "./runInstructionEnrichment";
 import { isExternalBackend, readLlmSettings } from "./settings";
 
@@ -75,6 +76,27 @@ export async function enrichInstructionPathsCommand(
       "No instruction paths found (AGENTS.md, CLAUDE.md, copilot-instructions, .cursor/rules, …).",
     );
     return;
+  }
+
+  // Preflight local Ollama so an offline server produces an honest warning and
+  // keeps the heuristic path, instead of a full-timeout "Analyze rules failed".
+  if (spec.backend === "ollama") {
+    const endpoint = resolveOllamaEndpoint(settings.endpoint);
+    if (!(await isOllamaReachable(endpoint))) {
+      recordEnrichRun({
+        at: Date.now(),
+        ok: false,
+        findingCount: 0,
+        candidateCount: candidates.length,
+        backend: spec.backend,
+        model: spec.model,
+        error: `cannot reach Ollama at ${endpoint}`,
+      });
+      void window.showWarningMessage(
+        `TokenForge: cannot reach Ollama at ${endpoint}. Start it (ollama serve) or set tokenforge.llmEndpoint. Detect stays heuristic.`,
+      );
+      return;
+    }
   }
 
   await window.withProgress(

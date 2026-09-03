@@ -11,7 +11,10 @@ import { copySmartExcerpt } from "./ai/smartExcerpt";
 import { buildTaskContextPack } from "./ai/taskContextPack";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
-import { toggleLlmEnrichment } from "./enrich/settings";
+import {
+  enableLlmEnrichmentWithLocalDefault,
+  setLlmEnrichmentEnabled,
+} from "./enrich/settings";
 import { startAutoExport } from "./export/autoExport";
 import { assertValidLastScan, buildLastScanReport } from "./export/buildLastScan";
 import { revealLastScan } from "./export/revealLastScan";
@@ -418,11 +421,20 @@ function startContextGuard(context: ExtensionContext): void {
         );
         return;
       }
-      const enabled = await toggleLlmEnrichment();
+      const currentlyOn =
+        workspace.getConfiguration("tokenforge").get<boolean>("llmEnrichment") === true;
+      if (currentlyOn) {
+        await setLlmEnrichmentEnabled(false);
+        void window.showInformationMessage(
+          "TokenForge AI enrichment OFF — Detect stays heuristic; Analyze rules is disabled.",
+        );
+        return;
+      }
+      const { seededModel } = await enableLlmEnrichmentWithLocalDefault();
       void window.showInformationMessage(
-        enabled
-          ? "TokenForge AI enrichment ON — Analyze rules will use your configured model. Detect stays heuristic."
-          : "TokenForge AI enrichment OFF — Detect stays heuristic; Analyze rules is disabled.",
+        seededModel
+          ? `TokenForge AI enrichment ON — using local ${seededModel} (Ollama). Detect stays heuristic.`
+          : "TokenForge AI enrichment ON — Analyze rules will use your configured model. Detect stays heuristic.",
       );
     },
   );
