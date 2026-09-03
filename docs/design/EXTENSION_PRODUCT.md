@@ -161,7 +161,7 @@ Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activeP
 ## Brand
 
 Palette (dashboard theme): teal `#006A64` / `#4FDBD0`, accent `#9A6700` / `#F5C44C`.  
-Icon: shield + funnel (`extension/media/tokenforge.svg`, `tokenforge-icon.png`).
+Icon: shield + funnel (`extension/media/tokenforge.svg` for the activity bar, `tokenforge-icons.woff` for `$(tokenforge-shield)` in the status bar, `tokenforge-icon.png` for Marketplace).
 
 ---
 

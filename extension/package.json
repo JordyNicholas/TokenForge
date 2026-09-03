@@ -40,7 +40,7 @@
       "tokenforge-shield": {
         "description": "TokenForge shield",
         "default": {
-          "fontPath": "media/tokenforge.svg",
+          "fontPath": "media/tokenforge-icons.woff",
           "fontCharacter": "\\E900"
         }
       }
