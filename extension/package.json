@@ -37,10 +37,10 @@
   ],
   "contributes": {
     "icons": {
-      "tokenforge": {
+      "tokenforge-shield": {
         "description": "TokenForge shield",
         "default": {
-          "fontPath": "media/tokenforge.svg",
+          "fontPath": "media/tokenforge-icons.woff",
           "fontCharacter": "\\E900"
         }
       }
@@ -78,9 +78,9 @@
           {
             "id": "tokenforge.step.overview",
             "title": "Open Overview",
-            "description": "See live **context cost**, session savings, and quick Shield actions in the Overview panel.",
+            "description": "See live **context cost**, session savings, and quick Shield actions in the Overview panel.\n[Open Overview](command:tokenforge.focusOverview)",
             "media": {
-              "markdown": "Open the TokenForge activity bar and select **Overview** to review context cost KPIs and top bleeders."
+              "markdown": "media/walkthrough/overview.md"
             },
             "completionEvents": [
               "onView:tokenforge.riskPulse"
@@ -89,9 +89,9 @@
           {
             "id": "tokenforge.step.openTabs",
             "title": "Review open tabs",
-            "description": "Use **Open tabs** to Allow or Shield noisy files. Shield applies provider-native levers where available.",
+            "description": "Use **Open tabs** to Allow or Shield noisy files. Shield applies provider-native levers where available.\n[Open tabs](command:tokenforge.focusRiskPanel)",
             "media": {
-              "markdown": "Open **Open tabs**, pick a **Needs review** row, and run **Shield** or **Allow**. Recommendations only — TokenForge does not intercept any agent pipeline."
+              "markdown": "media/walkthrough/open-tabs.md"
             },
             "completionEvents": [
               "onCommand:tokenforge.shieldTab"
@@ -100,9 +100,9 @@
           {
             "id": "tokenforge.step.autoShield",
             "title": "Auto-shield lockfiles",
-            "description": "Enable **Auto-shield lockfiles** to Shield pending lockfile and generated tabs automatically.",
+            "description": "Enable **Auto-shield lockfiles** to Shield pending lockfile and generated tabs automatically.\n[Enable Auto-shield](command:tokenforge.enableAutoFilterHighRisk)",
             "media": {
-              "markdown": "Toggle **Auto-shield lockfiles** from the Open tabs toolbar or settings row. Restore with **Unshield** any time."
+              "markdown": "media/walkthrough/auto-shield.md"
             },
             "completionEvents": [
               "onCommand:tokenforge.enableAutoFilterHighRisk"
@@ -232,9 +232,9 @@
       },
       {
         "command": "tokenforge.moreActions",
-        "title": "More actions…",
+        "title": "All TokenForge actions…",
         "category": "TokenForge",
-        "icon": "$(ellipsis)"
+        "icon": "$(list-flat)"
       },
       {
         "command": "tokenforge.toggleDurableFilterDecisions",
@@ -271,6 +271,12 @@
         "title": "Analyze rules",
         "category": "TokenForge",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "tokenforge.toggleLlmEnrichment",
+        "title": "Toggle AI enrichment",
+        "category": "TokenForge",
+        "icon": "$(sparkle)"
       }
     ],
     "menus": {
@@ -294,11 +300,6 @@
           "command": "tokenforge.shieldAllPending",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
           "group": "navigation@2"
-        },
-        {
-          "command": "tokenforge.moreActions",
-          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "navigation@3"
         },
         {
           "command": "tokenforge.refreshRiskPanel",
@@ -515,8 +516,8 @@
         },
         "tokenforge.llmTimeout": {
           "type": "number",
-          "default": 120,
-          "description": "Per-batch enricher timeout in seconds."
+          "default": 600,
+          "description": "Per-batch enricher timeout in seconds. Default 600 survives a small local Ollama model on CPU; raise toward 900+ for larger models (e.g. qwen2.5-coder:7b) on CPU-only hosts."
         },
         "tokenforge.allowExternalLlm": {
           "type": "boolean",

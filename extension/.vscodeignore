@@ -7,3 +7,5 @@ tsconfig.json
 esbuild.config.mjs
 node_modules/**
 *.vsix
+fantasticon.config.cjs
+media/icon-glyphs/**

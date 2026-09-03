@@ -6,6 +6,12 @@ import {
   type Disposable,
   type StatusBarItem,
 } from "vscode";
+import {
+  describeEnrichmentStatus,
+  getLastEnrichRun,
+  onEnrichStatusChange,
+} from "../enrich/enrichStatus";
+import { readLlmSettings } from "../enrich/settings";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import type { ShieldSession } from "../session/shieldSession";
 import { formatTokenCount } from "./formatTokens";
@@ -25,7 +31,8 @@ export function createStatusBar(session: ShieldSession): Disposable {
     const auto = isAutoFilterEnabled();
     const autoSuffix = auto ? " · auto-shield" : "";
     const prepareHint = highContext ? " · prepare session" : "";
-    item.text = `$(tokenforge) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
+    const enrichment = describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun());
+    item.text = `$(tokenforge-shield) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
     item.command = highContext ? "tokenforge.prepareAgentSession" : "tokenforge.focusOverview";
     item.tooltip = [
       auto
@@ -36,6 +43,7 @@ export function createStatusBar(session: ShieldSession): Disposable {
       sessionSaved > 0
         ? `Session saved (estimate hygiene): ${formatTokenCount(sessionSaved)} tokens.`
         : undefined,
+      `${enrichment.headline}.`,
       highContext ? "High context cost — click to Prepare agent session." : "Click for Overview.",
     ]
       .filter(Boolean)
@@ -48,8 +56,13 @@ export function createStatusBar(session: ShieldSession): Disposable {
 
   refresh();
   const subscription = session.onDidChange(refresh);
+  const enrichSub = onEnrichStatusChange(refresh);
   const configSub = workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+    if (
+      event.affectsConfiguration("tokenforge.autoFilterHighRisk") ||
+      event.affectsConfiguration("tokenforge.llmEnrichment") ||
+      event.affectsConfiguration("tokenforge.llm")
+    ) {
       refresh();
     }
   });
@@ -57,6 +70,7 @@ export function createStatusBar(session: ShieldSession): Disposable {
   return {
     dispose: () => {
       subscription.dispose();
+      enrichSub.dispose();
       configSub.dispose();
       item.dispose();
     },

@@ -1,5 +1,4 @@
 import { ProgressLocation, window } from "vscode";
-import { parseLlmSpec } from "@tokenforge/enrichers";
 import {
   confirmExternalLlmSend,
   logLocalPreflight,
@@ -8,6 +7,8 @@ import { revealLastScan } from "../export/revealLastScan";
 import { resolveWorkspaceRoot, writeLastScan } from "../export/writeLastScan";
 import type { RiskSession } from "../session/riskSession";
 import { collectInstructionCandidates } from "./collectCandidates";
+import { recordEnrichRun, safeParseLlmSpec } from "./enrichStatus";
+import { isOllamaReachable, resolveOllamaEndpoint } from "./ollamaHealth";
 import { runInstructionEnrichment } from "./runInstructionEnrichment";
 import { isExternalBackend, readLlmSettings } from "./settings";
 
@@ -31,7 +32,13 @@ export async function enrichInstructionPathsCommand(
     return;
   }
 
-  const spec = parseLlmSpec(settings.llm);
+  const spec = safeParseLlmSpec(settings.llm);
+  if (spec.backend === "noop") {
+    void window.showInformationMessage(
+      "TokenForge AI enrichment is on, but no model is set. Set tokenforge.llm (e.g. ollama:qwen2.5-coder:3b) to Analyze rules.",
+    );
+    return;
+  }
   const root = resolveWorkspaceRoot();
   const tabs = session.listAll();
   const candidates = await collectInstructionCandidates(root, tabs);
@@ -49,6 +56,7 @@ export async function enrichInstructionPathsCommand(
       paths: preflightPaths,
       totalBytes: preflightBytes,
       backend: spec.backend,
+      model: spec.model,
     });
     if (!ok) {
       return;
@@ -59,6 +67,7 @@ export async function enrichInstructionPathsCommand(
       paths: preflightPaths,
       totalBytes: preflightBytes,
       backend: spec.backend,
+      model: spec.model,
     });
   }
 
@@ -69,6 +78,27 @@ export async function enrichInstructionPathsCommand(
     return;
   }
 
+  // Preflight local Ollama so an offline server produces an honest warning and
+  // keeps the heuristic path, instead of a full-timeout "Analyze rules failed".
+  if (spec.backend === "ollama") {
+    const endpoint = resolveOllamaEndpoint(settings.endpoint);
+    if (!(await isOllamaReachable(endpoint))) {
+      recordEnrichRun({
+        at: Date.now(),
+        ok: false,
+        findingCount: 0,
+        candidateCount: candidates.length,
+        backend: spec.backend,
+        model: spec.model,
+        error: `cannot reach Ollama at ${endpoint}`,
+      });
+      void window.showWarningMessage(
+        `TokenForge: cannot reach Ollama at ${endpoint}. Start it (ollama serve) or set tokenforge.llmEndpoint. Detect stays heuristic.`,
+      );
+      return;
+    }
+  }
+
   await window.withProgress(
     {
       location: ProgressLocation.Notification,
@@ -76,15 +106,30 @@ export async function enrichInstructionPathsCommand(
       cancellable: false,
     },
     async (progress) => {
+      const modelLabel = spec.backend === "noop" ? spec.backend : `${spec.backend}:${spec.model}`;
       progress.report({
-        message: `${candidates.length} candidate(s) via ${spec.backend}`,
+        message: `${candidates.length} instruction file(s) via ${modelLabel}`,
       });
-      const enrichment = await runInstructionEnrichment({
-        root,
-        candidates,
-        externalDataConsent: externalConsent,
-        onProgress: (message) => progress.report({ message }),
-      });
+      let enrichment: Awaited<ReturnType<typeof runInstructionEnrichment>>;
+      try {
+        enrichment = await runInstructionEnrichment({
+          root,
+          candidates,
+          externalDataConsent: externalConsent,
+          onProgress: (message) => progress.report({ message }),
+        });
+      } catch (error) {
+        recordEnrichRun({
+          at: Date.now(),
+          ok: false,
+          findingCount: 0,
+          candidateCount: candidates.length,
+          backend: spec.backend,
+          model: spec.model,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      }
 
       const llmCandidateTokens = candidates.reduce(
         (sum, item) => sum + item.estTokens,
@@ -94,6 +139,15 @@ export async function enrichInstructionPathsCommand(
         llmFindings: enrichment.findings,
         llmMeta: enrichment.meta,
         llmCandidateTokens,
+      });
+
+      recordEnrichRun({
+        at: Date.now(),
+        ok: true,
+        findingCount: enrichment.findings.length,
+        candidateCount: candidates.length,
+        backend: spec.backend,
+        model: spec.model,
       });
 
       const choice = await window.showInformationMessage(

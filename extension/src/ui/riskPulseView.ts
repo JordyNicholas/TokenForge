@@ -10,13 +10,21 @@ import {
 } from "vscode";
 import { adviseContextDrift } from "../ai/driftAdvisor";
 import { buildSessionSummary } from "../ai/sessionSummary";
-import { buildTaskContextPack } from "../ai/taskContextPack";
+import { peekTaskContextPack } from "../ai/taskContextPack";
 import { discoverRecentChanges, type DiscoverCandidate } from "../discover/discoverService";
 import { collectInstructionCandidates } from "../enrich/collectCandidates";
-import { resolveWorkspaceRoot } from "../export/writeLastScan";
+import {
+  describeEnrichmentStatus,
+  getLastEnrichRun,
+  onEnrichStatusChange,
+  type EnrichmentStatusView,
+} from "../enrich/enrichStatus";
+import { readLlmSettings } from "../enrich/settings";
+import { assertValidLastScan, buildLastScanReport } from "../export/buildLastScan";
+import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
-import { detectInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
+import { peekInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
@@ -36,12 +44,19 @@ type OverviewModel = {
   leversFootnote?: string;
   prePromptBanner: boolean;
   rulesOverThreshold: boolean;
+  enrichment: EnrichmentStatusView;
+  cardsLoading: boolean;
 };
 
 class RiskPulseProvider implements WebviewViewProvider {
   private view?: WebviewView;
   private readonly disposables: Array<{ dispose(): void }> = [];
   private rulesCost = 0;
+  private discoverItems: readonly DiscoverCandidate[] = [];
+  private overlapHints: readonly OverlapHint[] = [];
+  private renderGen = 0;
+  private slowTimer: ReturnType<typeof setTimeout> | undefined;
+  private workspaceCardsReady = false;
 
   constructor(
     private readonly session: ShieldSession,
@@ -52,9 +67,17 @@ class RiskPulseProvider implements WebviewViewProvider {
         void this.render();
       }),
       workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+        if (
+          event.affectsConfiguration("tokenforge.autoFilterHighRisk") ||
+          event.affectsConfiguration("tokenforge.llmEnrichment") ||
+          event.affectsConfiguration("tokenforge.llm") ||
+          event.affectsConfiguration("tokenforge.llmEndpoint")
+        ) {
           void this.render();
         }
+      }),
+      onEnrichStatusChange(() => {
+        void this.render();
       }),
     );
   }
@@ -74,85 +97,52 @@ class RiskPulseProvider implements WebviewViewProvider {
   }
 
   dispose(): void {
+    if (this.slowTimer) {
+      clearTimeout(this.slowTimer);
+    }
     for (const disposable of this.disposables) {
       disposable.dispose();
     }
   }
 
-  private async buildModel(): Promise<OverviewModel> {
+  /** KPIs from the live session — never waits on disk walks or LLM. */
+  private buildFastModel(cardsLoading: boolean): OverviewModel {
     const pulse = this.session.pulse();
     const sessionSaved = this.session.sessionAvoidedTokens();
-    let rulesCost = this.rulesCost;
-    try {
-      const root = resolveWorkspaceRoot();
-      rulesCost = await estimateRulesBudget(root, this.session.listAll());
-      this.rulesCost = rulesCost;
-    } catch {
-      /* no folder workspace */
-    }
-
-    let discoverItems: readonly DiscoverCandidate[] = [];
-    try {
-      const root = resolveWorkspaceRoot();
-      const hours = workspace.getConfiguration("tokenforge").get<number>("discoverIntervalHours", 24);
-      const editorPath = window.activeTextEditor
-        ? workspace.asRelativePath(window.activeTextEditor.document.uri, false).replaceAll("\\", "/")
-        : undefined;
-      discoverItems = await discoverRecentChanges(root, {
-        sinceMs: hours * 60 * 60 * 1000,
-        editorPath,
-      });
-    } catch {
-      /* ignore */
-    }
-
-    const drift = adviseContextDrift(this.session);
-    const taskPack = buildTaskContextPack(this.session);
-    const summary = buildSessionSummary(this.session);
     const threshold = workspace.getConfiguration("tokenforge").get<number>("rulesBudgetThreshold", 8_000);
     const prePromptEnabled = workspace.getConfiguration("tokenforge").get<boolean>("prePromptGate", false);
-    const prePromptBanner =
-      prePromptEnabled && pulse.displayAtRiskTokens >= threshold && pulse.pendingCount > 0;
-
-    let overlapHints: OverlapHint[] = [];
-    try {
-      const root = resolveWorkspaceRoot();
-      const instrPaths = await collectInstructionCandidates(root, this.session.listAll());
-      overlapHints = detectInstructionOverlap(
-        this.session.listAll(),
-        instrPaths.map((c) => c.path),
-      );
-    } catch {
-      /* ignore */
-    }
-
+    const drift = adviseContextDrift(this.session);
+    const taskPack = peekTaskContextPack(this.session);
+    const summary = buildSessionSummary(this.session);
     const levers = this.session.leversAppliedSummary();
-    const leversFootnote =
-      levers.length > 0
-        ? `${levers.length} Shield lever(s) applied (${levers.map((l) => l.effectiveness).join(", ")}).`
-        : undefined;
-
     return {
       pulse,
       sessionSaved,
-      rulesCost,
+      rulesCost: this.rulesCost,
       autoShieldOn: isAutoFilterEnabled(),
-      driftSummary: drift?.summary,
-      discoverItems,
+      driftSummary: drift
+        ? [drift.summary, ...drift.suggestions].join(" ")
+        : undefined,
+      discoverItems: this.discoverItems,
       taskPackPaths: taskPack.paths,
       sessionNarrative: summary.narrative,
-      overlapHints,
-      leversFootnote,
-      prePromptBanner,
-      rulesOverThreshold: isRulesBudgetOverThreshold(rulesCost, threshold),
+      overlapHints: this.overlapHints,
+      leversFootnote:
+        levers.length > 0
+          ? `${levers.length} Shield lever(s) applied (${levers.map((l) => l.effectiveness).join(", ")}).`
+          : undefined,
+      prePromptBanner:
+        prePromptEnabled && pulse.displayAtRiskTokens >= threshold && pulse.pendingCount > 0,
+      rulesOverThreshold: isRulesBudgetOverThreshold(this.rulesCost, threshold),
+      enrichment: describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun()),
+      cardsLoading,
     };
   }
 
-  private async render(): Promise<void> {
+  private paint(model: OverviewModel): void {
     if (!this.view) {
       return;
     }
-    const model = await this.buildModel();
     const cssUri = this.view.webview.asWebviewUri(
       Uri.joinPath(this.extensionUri, "media", "tokenforge.css"),
     );
@@ -167,6 +157,81 @@ class RiskPulseProvider implements WebviewViewProvider {
         : model.autoShieldOn
           ? { value: 1, tooltip: "Auto-shield is on" }
           : undefined;
+  }
+
+  private async fillWorkspaceCards(gen: number): Promise<void> {
+    try {
+      const root = resolveWorkspaceRoot();
+      const hours = workspace.getConfiguration("tokenforge").get<number>("discoverIntervalHours", 24);
+      const editorPath = window.activeTextEditor
+        ? workspace.asRelativePath(window.activeTextEditor.document.uri, false).replaceAll("\\", "/")
+        : undefined;
+      const providerValue = workspace.getConfiguration("tokenforge").get<string>("provider");
+      const provider =
+        providerValue === "copilot" ||
+        providerValue === "cursor" ||
+        providerValue === "claude" ||
+        providerValue === "generic"
+          ? providerValue
+          : "generic";
+      const report = assertValidLastScan(
+        buildLastScanReport({
+          tabs: this.session.listAll(),
+          decisionFor: (uri) => this.session.decision(uri),
+          repo: repoLabel(root),
+          team: teamLabel(),
+          provider,
+        }),
+      );
+      const [rulesCost, discoverItems, instrPaths] = await Promise.all([
+        estimateRulesBudget(root, this.session.listAll()),
+        discoverRecentChanges(root, {
+          sinceMs: hours * 60 * 60 * 1000,
+          editorPath,
+          report,
+          provider,
+          writeReport: false,
+          fileWalk: false,
+          enrichmentEnabled: false,
+        }),
+        collectInstructionCandidates(root, this.session.listAll()),
+      ]);
+      if (gen !== this.renderGen) {
+        return;
+      }
+      this.rulesCost = rulesCost;
+      this.discoverItems = discoverItems;
+      this.overlapHints = peekInstructionOverlap(
+        this.session.listAll(),
+        instrPaths.map((c) => c.path),
+      );
+    } catch {
+      /* no folder / ignore */
+    }
+    this.workspaceCardsReady = true;
+  }
+
+  private async render(): Promise<void> {
+    if (!this.view) {
+      return;
+    }
+    this.renderGen += 1;
+    const gen = this.renderGen;
+    this.paint(this.buildFastModel(!this.workspaceCardsReady));
+    if (this.slowTimer) {
+      clearTimeout(this.slowTimer);
+    }
+    await new Promise<void>((resolve) => {
+      this.slowTimer = setTimeout(() => resolve(), 50);
+    });
+    if (gen !== this.renderGen) {
+      return;
+    }
+    await this.fillWorkspaceCards(gen);
+    if (gen !== this.renderGen) {
+      return;
+    }
+    this.paint(this.buildFastModel(false));
   }
 }
 
@@ -192,15 +257,16 @@ function renderOverviewHtml(
   cssUri: Uri,
   model: OverviewModel,
 ): string {
-  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold } =
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading } =
     model;
   const csp = webview.cspSource;
+  const nonce = makeNonce();
   const contextCost = formatTokenCount(pulse.displayAtRiskTokens);
   const sessionKpi = formatTokenCount(sessionSaved);
   const rulesKpi = formatTokenCount(rulesCost);
 
   const emptyState =
-    pulse.segments.length === 0 && rulesCost === 0
+    !cardsLoading && pulse.segments.length === 0 && rulesCost === 0
       ? `<div class="tf-placeholder">No costly context detected. TokenForge watches tabs and rules while you work.</div>`
       : "";
 
@@ -239,7 +305,11 @@ function renderOverviewHtml(
           .slice(0, 5)
           .map((c) => `<li>${escapeHtml(c.path)}${c.note ? ` — ${escapeHtml(c.note)}` : ""}</li>`)
           .join("")}</ul>`
-      : `<div class="tf-placeholder">Run discover to rank recently changed workspace files.</div>`;
+      : `<div class="tf-placeholder">${
+          cardsLoading
+            ? "Loading workspace cards…"
+            : "Run discover for missed policy gaps, session-kept tabs, and recent changes."
+        }</div>`;
 
   const overlapBlock =
     overlapHints.length > 0
@@ -247,7 +317,9 @@ function renderOverviewHtml(
           .slice(0, 4)
           .map((h) => `<li>${escapeHtml(h.path)} ↔ ${escapeHtml(h.overlapsWith)}</li>`)
           .join("")}</ul>`
-      : `<div class="tf-placeholder">Analyze rules to detect redundant instruction overlap.</div>`;
+      : `<div class="tf-placeholder">${
+          cardsLoading ? "Loading workspace cards…" : "Analyze rules to detect redundant instruction overlap."
+        }</div>`;
 
   const summaryBlock = `<p class="tf-summary">${escapeHtml(sessionNarrative)}</p>`;
   const leversBlock = leversFootnote
@@ -266,6 +338,19 @@ function renderOverviewHtml(
     ? `<div class="tf-placeholder" style="border-style:solid;background:var(--tf-brand-warning-bg)">Auto-shield ON · lockfile / generated</div>`
     : "";
 
+  const enrichmentActions = enrichment.on
+    ? `<button class="tf-btn tf-btn-ai" data-cmd="tokenforge.enrichInstructions">Analyze rules</button>
+    <button class="tf-btn" data-cmd="tokenforge.toggleLlmEnrichment">Turn AI off</button>`
+    : `<button class="tf-btn tf-btn-ai" data-cmd="tokenforge.toggleLlmEnrichment">Enable AI enrichment</button>`;
+  const enrichmentDetail = enrichment.detail
+    ? `<p class="tf-honesty">${escapeHtml(enrichment.detail)}</p>`
+    : "";
+  const enrichmentBlock = `<div class="tf-ai-status" data-ai-on="${enrichment.on}">
+    <p class="tf-ai-headline"><strong>${escapeHtml(enrichment.headline)}</strong></p>
+    ${enrichmentDetail}
+    <div class="tf-actions">${enrichmentActions}</div>
+  </div>`;
+
   const reductionNote = hasTokenReduction(pulse)
     ? `<p class="tf-honesty">${formatTokenCount(pulse.totals.savedTokens)} shielded from open-tab estimate (${formatTokenCount(pulse.totals.beforeTokens)} → ${formatTokenCount(pulse.totals.afterTokens)}).</p>`
     : "";
@@ -274,13 +359,17 @@ function renderOverviewHtml(
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp}; script-src ${csp};" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp} 'unsafe-inline'; script-src 'nonce-${nonce}';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="${cssUri}" />
   <style>
     body { margin: 0; padding: 12px; font-family: var(--tf-font-family); font-size: var(--tf-font-size); color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
     ul { margin: 0; padding-left: 18px; font-size: 11px; }
     li { margin-bottom: 4px; word-break: break-all; }
+    .tf-ai-status { border: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.35)); border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+    .tf-ai-status[data-ai-on="true"] { border-left: 3px solid var(--tf-brand, #14b8a6); }
+    .tf-ai-headline { margin: 0 0 4px; }
+    .tf-btn-ai { font-weight: 600; }
   </style>
 </head>
 <body>
@@ -294,11 +383,12 @@ function renderOverviewHtml(
     <div class="tf-kpi"><span class="tf-kpi-label">Rules cost</span><span class="tf-kpi-value">${rulesKpi}</span></div>
   </div>
   ${reductionNote}
+  <div class="tf-section">AI enrichment</div>
+  ${enrichmentBlock}
   <div class="tf-actions">
     <button class="tf-btn" data-cmd="tokenforge.shieldAllPending">Shield all pending</button>
     <button class="tf-btn" data-cmd="tokenforge.cleanSession">Clean session</button>
     <button class="tf-btn" data-cmd="tokenforge.prepareAgentSession">Prepare session</button>
-    <button class="tf-btn" data-cmd="tokenforge.enrichInstructions">Analyze rules</button>
     <button class="tf-btn" data-cmd="tokenforge.runDiscover">Run discover</button>
     <button class="tf-btn" data-cmd="tokenforge.compactRulesPreview">Compact rules</button>
     <button class="tf-btn" data-cmd="tokenforge.applyTaskContextPack">Apply task pack</button>
@@ -318,13 +408,14 @@ function renderOverviewHtml(
   ${discoverBlock}
   <div class="tf-section">Task context pack</div>
   ${taskPackBlock}
-  <script>
+  <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    for (const btn of document.querySelectorAll('[data-cmd]')) {
-      btn.addEventListener('click', () => {
-        vscode.postMessage({ type: 'action', command: btn.getAttribute('data-cmd') });
-      });
-    }
+    document.addEventListener('click', (event) => {
+      const el = event.target && event.target.closest ? event.target.closest('[data-cmd]') : null;
+      if (el) {
+        vscode.postMessage({ type: 'action', command: el.getAttribute('data-cmd') });
+      }
+    });
   </script>
 </body>
 </html>`;
@@ -343,6 +434,15 @@ function shieldLabel(decision: string): string {
 function basename(path: string): string {
   const parts = path.split(/[/\\]/);
   return parts[parts.length - 1] || path;
+}
+
+function makeNonce(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let nonce = "";
+  for (let i = 0; i < 32; i += 1) {
+    nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return nonce;
 }
 
 function escapeHtml(value: string): string {

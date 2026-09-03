@@ -6,11 +6,14 @@ import {
   type ExtensionContext,
 } from "vscode";
 import { applyTaskContextPack } from "./ai/applyTaskPack";
-import { runPrePromptGate } from "./ai/prePromptGate";
+import { runPrepareAgentSession } from "./ai/prepareSession";
 import { copySmartExcerpt } from "./ai/smartExcerpt";
-import { buildTaskContextPack } from "./ai/taskContextPack";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
+import {
+  enableLlmEnrichmentWithLocalDefault,
+  setLlmEnrichmentEnabled,
+} from "./enrich/settings";
 import { startAutoExport } from "./export/autoExport";
 import { assertValidLastScan, buildLastScanReport } from "./export/buildLastScan";
 import { revealLastScan } from "./export/revealLastScan";
@@ -195,14 +198,14 @@ function startContextGuard(context: ExtensionContext): void {
   const prepareAgentSession = commands.registerCommand(
     "tokenforge.prepareAgentSession",
     async () => {
-      const ok = await runPrePromptGate(session);
-      if (!ok) {
-        return;
+      try {
+        const result = await runPrepareAgentSession(session);
+        if (result.applied) {
+          await exportAfterShield(session);
+        }
+      } catch (error) {
+        void window.showErrorMessage(formatError("Prepare session failed", error));
       }
-      const pack = buildTaskContextPack(session);
-      void window.showInformationMessage(
-        `Task pack: ${pack.paths.length} path(s), ~${pack.estTokens} tokens. ${pack.note}`,
-      );
     },
   );
 
@@ -212,16 +215,32 @@ function startContextGuard(context: ExtensionContext): void {
       const hours = workspace
         .getConfiguration("tokenforge")
         .get<number>("discoverIntervalHours", 24);
+      const editorPath = window.activeTextEditor
+        ? workspace.asRelativePath(window.activeTextEditor.document.uri, false).replaceAll("\\", "/")
+        : undefined;
+      const report = assertValidLastScan(
+        buildLastScanReport({
+          tabs: session.listAll(),
+          decisionFor: (uri) => session.decision(uri),
+          repo: repoLabel(root),
+          team: teamLabel(),
+          provider: providerIdFromSettings(),
+        }),
+      );
       const candidates = await discoverRecentChanges(root, {
         sinceMs: hours * 60 * 60 * 1000,
+        editorPath,
+        report,
+        provider: providerIdFromSettings(),
+        writeReport: true,
       });
       if (candidates.length === 0) {
-        void window.showInformationMessage("Discover found no recent changes.");
+        void window.showInformationMessage("Discover found no missed savings or recent changes.");
         return;
       }
       const top = candidates
         .slice(0, 5)
-        .map((c) => c.path)
+        .map((c) => `${c.path}${c.kind ? ` [${c.kind}]` : ""}`)
         .join(", ");
       void window.showInformationMessage(`Discover: ${top}`);
     } catch (error) {
@@ -372,7 +391,8 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Reveal last-scan.json" },
       { label: "Reveal session-stats.json" },
       { label: "Reset choices" },
-      { label: "Analyze rules" },
+      { label: "Analyze rules", description: "AI: enrich instruction files" },
+      { label: "Toggle AI enrichment", description: "Turn Lane A LLM on/off" },
       { label: "Clean session" },
       { label: "Prepare agent session" },
       { label: "Run discover" },
@@ -381,7 +401,9 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Apply task pack" },
       { label: "Focus Open tabs" },
     ];
-    const picked = await window.showQuickPick(items, { title: "TokenForge actions" });
+    const picked = await window.showQuickPick(items, {
+      title: "All TokenForge actions",
+    });
     if (!picked) {
       return;
     }
@@ -392,6 +414,7 @@ function startContextGuard(context: ExtensionContext): void {
       "Reveal session-stats.json": "tokenforge.revealSessionStats",
       "Reset choices": "tokenforge.clearFilters",
       "Analyze rules": "tokenforge.enrichInstructions",
+      "Toggle AI enrichment": "tokenforge.toggleLlmEnrichment",
       "Clean session": "tokenforge.cleanSession",
       "Prepare agent session": "tokenforge.prepareAgentSession",
       "Run discover": "tokenforge.runDiscover",
@@ -405,6 +428,33 @@ function startContextGuard(context: ExtensionContext): void {
       await commands.executeCommand(cmd);
     }
   });
+
+  const toggleLlmEnrich = commands.registerCommand(
+    "tokenforge.toggleLlmEnrichment",
+    async () => {
+      if (!workspace.workspaceFolders?.length) {
+        void window.showWarningMessage(
+          "Open a folder to toggle TokenForge AI enrichment (workspace-scoped).",
+        );
+        return;
+      }
+      const currentlyOn =
+        workspace.getConfiguration("tokenforge").get<boolean>("llmEnrichment") === true;
+      if (currentlyOn) {
+        await setLlmEnrichmentEnabled(false);
+        void window.showInformationMessage(
+          "TokenForge AI enrichment OFF — Detect stays heuristic; Analyze rules is disabled.",
+        );
+        return;
+      }
+      const { seededModel } = await enableLlmEnrichmentWithLocalDefault();
+      void window.showInformationMessage(
+        seededModel
+          ? `TokenForge AI enrichment ON — using local ${seededModel} (Ollama). Detect stays heuristic.`
+          : "TokenForge AI enrichment ON — Analyze rules will use your configured model. Detect stays heuristic.",
+      );
+    },
+  );
 
   const enrichInstructions = commands.registerCommand(
     "tokenforge.enrichInstructions",
@@ -510,6 +560,7 @@ function startContextGuard(context: ExtensionContext): void {
     focusOverview,
     moreActions,
     enrichInstructions,
+    toggleLlmEnrich,
   );
 }
 

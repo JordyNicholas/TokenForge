@@ -31,17 +31,17 @@ Phase 2. Former catch-all #7 was split:
 | F5 RTK-inspired native product patterns | #177 | Future | **To-Do** (open; #176 **Done**) |
 | F6 AI-first complementary hybrid Detect | #199 | Future | **Epics Finished** (#189 shipped with #224) |
 | F7 Hybrid Fix: heuristic-routed LLM policy synthesis | #225 | Future | **Epics Finished** |
-| F8 Extension rebuild Wave A: Foundation | #237 | Future | **To-Do** (open) |
-| F9 Extension rebuild Wave B: Real Shield | #238 | Future | **To-Do** (open) |
-| F10 Extension rebuild Wave C: Session AI | #239 | Future | **To-Do** (open) |
-| F11 Extension rebuild Wave D: Instructions & Fix in IDE | #240 | Future | **To-Do** (open) |
-| F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **To-Do** (open) |
-| F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **To-Do** (open) |
+| F8 Extension rebuild Wave A: Foundation | #237 | Future | **Epics Finished** |
+| F9 Extension rebuild Wave B: Real Shield | #238 | Future | **Epics Finished** |
+| F10 Extension rebuild Wave C: Session AI | #239 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
+| F11 Extension rebuild Wave D: Instructions & Fix in IDE | #240 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
+| F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
+| F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **Epics Finished** (#279 screenshots and #276 LLM summary remain follow-on) |
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
-| F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **To-Do** (open) |
+| F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 | F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **To-Do** (open) |
 
-**Extension rebuild (F8–F13):** one epic per wave; implement **in order F8 → F13**, one wave per delivery occasion. Plan: extension rebuild plan in `.cursor/plans/`. Product doc target: `docs/design/EXTENSION_PRODUCT.md` (#249 skeleton, #280 complete). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
+**Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
 F1.1 continues F1 #60 (closed) rather than reopening it — same rule applied to
 #136 below. It adds a `claude-code` enricher that drives the Claude Code CLI
@@ -356,110 +356,110 @@ Presentation: `npm run tokenforge:presentation-full` (see [`PRESENTATION_HYBRID_
 
 ### F8 — Extension rebuild Wave A: Foundation (#237)
 
-Integrated rebuild **wave 1** — packages, ShieldSession, brand, dual-view UX shell. **Start here.**
+Integrated rebuild **wave 1** — packages, ShieldSession, brand, dual-view UX shell. **Epic closed** on GitHub. Child issues below: **Done** = behavior on `main` (rebuild + later PRs); some GitHub children were never closed individually.
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #243 | packages/context-adapters — ProviderContextAdapter port | Core | To-Do |
-| #244 | packages/policy-adapters — extract CLI Fix adapters | Core / CLI | To-Do |
-| #245 | ShieldSession engine + provider auto-detect | Extension | To-Do |
-| #246 | brand identity — icon, CSS, marketplace metadata | Extension | To-Do |
-| #247 | Overview + Open tabs UX shell | Extension | To-Do |
-| #248 | commands, menus, and status bar regroup | Extension | To-Do |
-| #249 | EXTENSION_PRODUCT.md + BOARD F8 index | Docs | To-Do |
+| #243 | packages/context-adapters — ProviderContextAdapter port | Core | **Done** |
+| #244 | packages/policy-adapters — extract CLI Fix adapters | Core / CLI | **Done** |
+| #245 | ShieldSession engine + provider auto-detect | Extension | **Done** |
+| #246 | brand identity — icon, CSS, marketplace metadata | Extension | **Done** |
+| #247 | Overview + Open tabs UX shell | Extension | **Done** |
+| #248 | commands, menus, and status bar regroup | Extension | **Done** |
+| #249 | EXTENSION_PRODUCT.md + BOARD F8 index | Docs | **Done** — completed by #280 |
 
 Build order: **#243 → #244 ∥ #245 (after #243) → #246 → #247 → #248 → #249**
 
 ### F9 — Extension rebuild Wave B: Real Shield (#238)
 
-Real provider-native Shield (Cursor first). **Depends on F8.**
+Real provider-native Shield (Cursor first). **Epic closed.**
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #250 | CursorContextAdapter — cursorignore merge + blocklist | context-adapters | To-Do |
-| #251 | Hard/Soft shield modes + ShieldSession wiring | Extension | To-Do |
-| #252 | close tab on Hard shield + Shield all + Clean session | Extension | To-Do |
-| #253 | Cursor hooks installer (opt-in) | Extension | To-Do |
-| #254 | effectiveness badges + Overview footnote | Extension | To-Do |
-| #255 | Copilot partial adapter | context-adapters | To-Do |
-| #256 | Tests: Real Shield integration | Tests | To-Do |
+| #250 | CursorContextAdapter — cursorignore merge + blocklist | context-adapters | **Done** |
+| #251 | Hard/Soft shield modes + ShieldSession wiring | Extension | **Done** |
+| #252 | close tab on Hard shield + Shield all + Clean session | Extension | **Done** |
+| #253 | Cursor hooks installer (opt-in) | Extension | **Done** |
+| #254 | effectiveness badges + Overview footnote | Extension | **Done** |
+| #255 | Copilot partial adapter | context-adapters | **Done** |
+| #256 | Tests: Real Shield integration | Tests | **Done** |
 
 Build order: **#250 → #251 → #252 ∥ #253 → #254 → #255 → #256**
 
 ### F10 — Extension rebuild Wave C: Session AI (#239)
 
-Pre-prompt gate, task context pack, drift advisor. **Depends on F9.**
+Pre-prompt gate, task context pack, drift advisor. **Epic closed.**
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #257 | configurable idle thresholds + proactive nudges | Extension | To-Do |
-| #258 | context drift advisor (heuristics) | Extension | To-Do |
-| #260 | pre-prompt gate command + Overview banner | Extension | To-Do |
-| #262 | task context pack (LLM + Apply pack) | Extension | To-Do |
-| #263 | Session AI Overview cards + status bar | Extension | To-Do |
-| #265 | Tests: Session AI flows | Tests | To-Do |
+| #257 | configurable idle thresholds + proactive nudges | Extension | **Done** |
+| #258 | context drift advisor (heuristics) | Extension | **Done** |
+| #260 | pre-prompt gate command + Overview banner | Extension | **Done** |
+| #262 | task context pack (LLM + Apply pack) | Extension | **Done** |
+| #263 | Session AI Overview cards + status bar | Extension | **Done** |
+| #265 | Tests: Session AI flows | Tests | **Done** |
 
 Build order: **#257 → #258 → #260 → #262 → #263 → #265**
 
 ### F11 — Extension rebuild Wave D: Instructions & Fix in IDE (#240)
 
-Live rules budget, compact rules Apply in IDE. **Depends on F8 #244; recommend after F9.**
+Live rules budget, compact rules Apply in IDE. **Epic closed.**
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #259 | instruction watch + live rules budget meter | Extension | To-Do |
-| #261 | continuous analyze on save (debounced) | Extension | To-Do |
-| #264 | overlap radar Overview card | Extension | To-Do |
-| #266 | compact rules dry-run webview + Apply | Extension | To-Do |
-| #267 | Analyze rules UX + Overview Rules KPI | Extension | To-Do |
-| #268 | Tests: Instructions & Fix in extension | Tests | To-Do |
+| #259 | instruction watch + live rules budget meter | Extension | **Done** |
+| #261 | continuous analyze on save (debounced) | Extension | **Done** |
+| #264 | overlap radar Overview card | Extension | **Done** |
+| #266 | compact rules dry-run webview + Apply | Extension | **Done** |
+| #267 | Analyze rules UX + Overview Rules KPI | Extension | **Done** |
+| #268 | Tests: Instructions & Fix in extension | Tests | **Done** |
 
 Build order: **#259 → #261 → #264 → #266 → #267 → #268**
 
 ### F12 — Extension rebuild Wave E: Discover & advisory (#241)
 
-Discover, MCP audit, smart excerpt. **Depends on F11.**
+Discover, MCP audit, smart excerpt. **Epic closed.**
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #269 | Discover service (delta + heuristic rank) | Extension | To-Do |
-| #270 | Discover LLM rank + Overview card | Extension | To-Do |
-| #271 | MCP config audit | Extension | To-Do |
-| #272 | smart excerpt command | Extension | To-Do |
-| #273 | post-turn path logging hook (opt-in) | Extension | To-Do |
-| #274 | monorepo scope hints in Discover | Extension | To-Do |
-| #275 | Tests: Discover & advisory | Tests | To-Do |
+| #269 | Discover service (delta + heuristic rank) | Extension | **Done** |
+| #270 | Discover LLM rank + Overview card | Extension | **Done** |
+| #271 | MCP config audit | Extension | **Done** |
+| #272 | smart excerpt command | Extension | **Done** |
+| #273 | post-turn path logging hook (opt-in) | Extension | **Partial** — hook ships with installer; `postTurnLogging` is not a separate gate |
+| #274 | monorepo scope hints in Discover | Extension | **Done** |
+| #275 | Tests: Discover & advisory | Tests | **Done** |
 
 Build order: **#269 → #270 → #271 → #272 → #273 → #274 → #275**
 
 ### F13 — Extension rebuild Wave F: Prove, docs & ship (#242)
 
-Walkthrough, marketplace, product docs. **Depends on F8–F12.**
+Walkthrough, marketplace, product docs. **Epic closed.** Follow-on: #276 LLM session narrative, #279 screenshot pack.
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #276 | AI-narrated session summary (optional LLM) | Extension | To-Do |
-| #277 | external-send transparency coach | Extension | To-Do |
-| #278 | walkthrough + first-run onboarding | Extension | To-Do |
-| #279 | README + marketplace screenshots | Extension | To-Do |
-| #280 | EXTENSION_PRODUCT complete + CONTEXT_GUARD refresh | Docs | To-Do |
-| #281 | vsce package CI + marketplace publish prep | DevEx | To-Do |
+| #276 | AI-narrated session summary (optional LLM) | Extension | To-Do — Overview uses heuristic KPI sentences |
+| #277 | external-send transparency coach | Extension | **Done** |
+| #278 | walkthrough + first-run onboarding | Extension | **Done** |
+| #279 | README + marketplace screenshots | Extension | To-Do — icon ships; screenshot gallery does not |
+| #280 | EXTENSION_PRODUCT complete + CONTEXT_GUARD refresh | Docs | **Done** — this map |
+| #281 | vsce package CI + marketplace publish prep | DevEx | **Done** — `package:vsix` on CI |
 
 Build order: **#277 → #276 → #278 → #279 → #280 → #281**
 
-**Epic execution order:** F8 → F9 → F10 → F11 → F12 → F13 (one epic per delivery occasion).
+**Epic execution order:** F8 → F9 → F10 → F11 → F12 → F13 (shipped as one rebuild + F15 AI-First). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md).
 
 ### F15 — Extension AI-First: first-class local LLM judgment (#306)
 
-E2E of the rebuilt Context Guard ([`E2E_EXTENSION_AI_TEST.md`](../testing/E2E_EXTENSION_AI_TEST.md)) showed **Lane B** (Shield → agent context) is real after [#305](https://github.com/JordyNicholas/TokenForge/pull/305), while **Lane A** (Extension → LLM) is still a single buried Analyze-rules call. Tab scoring stays heuristic. Sub-issues of #306.
+E2E of the rebuilt Context Guard ([`E2E_EXTENSION_AI_TEST.md`](../testing/E2E_EXTENSION_AI_TEST.md)) showed **Lane B** (Shield → agent context) is real after [#305](https://github.com/JordyNicholas/TokenForge/pull/305). **Lane A** is opt-in local LLM judgment (Analyze rules, task pack, overlap, Discover rank) after #307–#311. Tab scoring stays heuristic. Sub-issues of #306.
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #307 | first-class Analyze rules UX (un-bury Lane A) | Extension | To-Do |
-| #308 | sane local LLM default + cache so AI-on works | Extension | To-Do |
-| #309 | task-aware context pack (LLM ranks open tabs) | Extension | To-Do |
-| #310 | LLM overlap radar across instruction files | Extension | To-Do |
-| #311 | Cloud AGENTS.md recipe + E2E/BOARD F15 index | Docs | To-Do |
+| #307 | first-class Analyze rules UX (un-bury Lane A) | Extension | **Done** — PR #312 |
+| #308 | sane local LLM default + cache so AI-on works | Extension | **Done** — PR #313 |
+| #309 | task-aware context pack (LLM ranks open tabs) | Extension | **Done** |
+| #310 | LLM overlap radar across instruction files | Extension | **Done** |
+| #311 | Cloud AGENTS.md recipe + E2E/BOARD F15 index | Docs | **Done** — this map |
 
 Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank stays F12 #270.
 
@@ -505,8 +505,8 @@ Phase 2:
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
-8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (open); **execute F8 → F9 → F10 → F11 → F12 → F13** one wave at a time
-9. **F15** (#306) — **Extension AI-First** (open); after F8–F13 surfaces exist. Build: #307 → #308 → #309 ∥ #310 → #311
+8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
+9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **F16** (#314) — **Dashboard Cypress tests** (open); independent of the extension epics. Build: #315
 11. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 

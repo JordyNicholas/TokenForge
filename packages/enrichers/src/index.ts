@@ -96,6 +96,8 @@ export type {
   LlmVerdict,
   ParsedLlmSpec,
 } from "./types";
+export { completeJson } from "./judge/completeJson";
+export type { CompleteJsonInput } from "./judge/completeJson";
 export {
   buildPolicySynthesisPrompt,
   parsePolicyMarkdownPayload,

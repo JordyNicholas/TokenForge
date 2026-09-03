@@ -10,10 +10,11 @@ Read first (full index: [`docs/README.md`](docs/README.md)):
 1. [`docs/product/CONCEPT_BRIEF.md`](docs/product/CONCEPT_BRIEF.md) — locked product narrative (not Auto Memory)
 2. [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md) — stack + MVP design
 3. [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
-4. [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
-5. [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) — epic/story map; F2 Prove attractiveness waves
-6. [`docs/design/USAGE_RECONCILIATION_PLAN.md`](docs/design/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
-7. [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
+4. [`docs/design/EXTENSION_PRODUCT.md`](docs/design/EXTENSION_PRODUCT.md) — extension product & dual-view UX
+5. [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
+6. [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) — epic/story map; F2 Prove attractiveness waves
+7. [`docs/design/USAGE_RECONCILIATION_PLAN.md`](docs/design/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
+8. [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
 
 ## Delivery rules
 
@@ -54,3 +55,19 @@ Full write-up: [`docs/design/SOLUTION_DESIGN.md`](docs/design/SOLUTION_DESIGN.md
 - Pitch Chat/Agent / metered AI-credit workflows, not unlimited completions metering.
 - “30%” is scenario-based via the dashboard calculator.
 - Default scan is heuristic (no AI). Optional hybrid enrichment uses local or external LLMs on a bounded candidate set — Codex hybrid stages a sanitized repo copy for a read-only audit instead of excerpt batching. See [`docs/design/HYBRID_SCAN_DESIGN.md`](docs/design/HYBRID_SCAN_DESIGN.md).
+
+## Cursor Cloud / extension host
+
+Cloud Agents and local Extension Development Hosts share the same rebuild gotcha. Manual E2E: [`docs/testing/E2E_EXTENSION_AI_TEST.md`](docs/testing/E2E_EXTENSION_AI_TEST.md).
+
+- **Install:** `npm ci` (see `.cursor/environment.json`). Dashboard: `npm run dev -w @tokenforge/dashboard -- --host` on `:5173`.
+- **Build the extension:** `npm run tokenforge:extension`.
+- **Launch:** F5 → "Run Extension", **or** headless:
+
+  ```bash
+  code --extensionDevelopmentPath=/workspace/extension --disable-extensions --disable-workspace-trust /workspace
+  ```
+
+  The **Extension Development Host** is a second window. Headless `code --extensionDevelopmentPath` is the same binary path without the IDE GUI — do not assume a Cloud VM has a clickable F5.
+- **Full quit/relaunch after every rebuild.** `Developer: Reload Window` does **not** reload a rebuilt extension host. Quit the host (and the headless `code` process) and start it again.
+- **Ollama preflight (Lane A):** `curl -s http://127.0.0.1:11434/api/tags` must list the tag. Default when the user enables enrichment is `ollama:qwen2.5-coder:3b`. Ollama down → honest warning, heuristic Detect still works. CPU-only hosts: use `:3b` / `:1.5b` and `tokenforge.llmTimeout` 900+.

@@ -4,6 +4,7 @@ export type LlmPreflight = {
   paths: readonly string[];
   totalBytes: number;
   backend: string;
+  model?: string;
 };
 
 /** Preflight consent before sending data to an external LLM backend. */
@@ -34,8 +35,11 @@ export async function confirmExternalLlmSend(
 
 /** Always show local preflight (noop / ollama) in output for transparency. */
 export function logLocalPreflight(preflight: LlmPreflight): void {
+  const backendLabel = preflight.model
+    ? `${preflight.backend}:${preflight.model}`
+    : preflight.backend;
   void window.setStatusBarMessage(
-    `TokenForge analyze: ${preflight.paths.length} path(s), ~${preflight.totalBytes} bytes (${preflight.backend})`,
+    `TokenForge analyze: ${preflight.paths.length} path(s), ~${preflight.totalBytes} bytes (${backendLabel})`,
     4000,
   );
 }
