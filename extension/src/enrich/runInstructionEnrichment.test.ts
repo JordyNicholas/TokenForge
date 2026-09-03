@@ -24,6 +24,26 @@ vi.mock("@tokenforge/enrichers", async () => {
   return { ...actual, getEnricher: () => ({ id: "claude-code", enrich }) };
 });
 
+// Keep the cache logic real but off-disk so the test does not touch the FS.
+vi.mock("./enrichCache", async () => {
+  const actual = await vi.importActual<typeof import("./enrichCache")>("./enrichCache");
+  return {
+    ...actual,
+    loadEnrichCache: async () => actual.emptyCache("claude-code", "default"),
+    saveEnrichCache: async () => {},
+  };
+});
+
+const CANDIDATE = {
+  path: "AGENTS.md",
+  bytes: 10,
+  estTokens: 3,
+  fileClass: "source" as const,
+  score: 0,
+  atRisk: false,
+  reasons: [],
+};
+
 /** Settings the extension reads, keyed the way readLlmSettings looks them up. */
 function configure(overrides: Record<string, unknown> = {}) {
   const values: Record<string, unknown> = {
@@ -39,7 +59,7 @@ async function run(options: Record<string, unknown> = {}) {
   const { runInstructionEnrichment } = await import("./runInstructionEnrichment");
   return runInstructionEnrichment({
     root: process.cwd(),
-    candidates: [],
+    candidates: [CANDIDATE],
     ...options,
   } as Parameters<typeof runInstructionEnrichment>[0]);
 }
