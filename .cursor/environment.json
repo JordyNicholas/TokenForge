@@ -1,0 +1,17 @@
+{
+  "name": "TokenForge",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dashboard",
+      "command": "npm run dev -w @tokenforge/dashboard -- --host",
+      "description": "TokenForge ROI dashboard (Vite dev server on port 5173)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "dashboard",
+      "port": 5173
+    }
+  ]
+}
