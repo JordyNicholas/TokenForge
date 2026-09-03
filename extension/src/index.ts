@@ -48,6 +48,7 @@ import { startIdleNudges } from "./tabs/idleNudges";
 import { startInactivityTimer } from "./tabs/inactivityTimer";
 import { TabRegistry } from "./tabs/registry";
 import { trackTabs } from "./tabs/trackTabs";
+import { trackCustomEditorTabs } from "./tabs/customEditorTabs";
 import {
   createRiskPanel,
   RISK_PANEL_VIEW_ID,
@@ -100,6 +101,7 @@ function startContextGuard(context: ExtensionContext): void {
       }
     },
   });
+  trackCustomEditorTabs(registry, context);
   startInactivityTimer(registry, context);
   startIdleNudges(registry, context);
   startContinuousAnalyze(session, context);
