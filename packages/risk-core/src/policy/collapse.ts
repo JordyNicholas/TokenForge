@@ -13,23 +13,68 @@ const COLLAPSE_DIR_HINTS = new Set([
   ".next",
 ]);
 
+/**
+ * Excluded files a directory needs before a glob beats listing the files.
+ * Only applies to directories not named in {@link COLLAPSE_DIR_HINTS}.
+ */
+const MIN_COLLAPSE_FILES = 3;
+
+/**
+ * Shallowest directory an unhinted glob may speak for. A repo-root directory
+ * (`core`, `docs`, `shared`, `src`) is load-bearing by convention, so a handful
+ * of stray assets inside it must never turn into `core/**`.
+ */
+const MIN_COLLAPSE_DEPTH = 2;
+
 function normalizePath(path: string): string {
   return path.replaceAll("\\", "/").replace(/\/+$/, "");
 }
 
+function segmentsOf(path: string): string[] {
+  return path.split("/").filter(Boolean);
+}
+
 function basename(path: string): string {
-  const segments = path.split("/").filter(Boolean);
+  const segments = segmentsOf(path);
   return segments[segments.length - 1] ?? path;
+}
+
+function depthOf(dir: string): number {
+  return segmentsOf(dir).length;
 }
 
 function isCollapsePreferred(dir: string): boolean {
   return COLLAPSE_DIR_HINTS.has(basename(dir));
 }
 
+/** Every proper ancestor directory of `dir`, nearest first. */
+function ancestorsOf(dir: string): string[] {
+  const segments = segmentsOf(dir);
+  const ancestors: string[] = [];
+  for (let index = segments.length - 1; index > 0; index -= 1) {
+    ancestors.push(segments.slice(0, index).join("/"));
+  }
+  return ancestors;
+}
+
 /**
  * Collapse many excluded file paths into directory globs when safe.
- * Prefers known generated-tree directory names (e.g. `client/**`) so policy
- * packs stay short; leaves unrelated single files intact.
+ *
+ * A glob must never exclude more than the findings justify. Two rules keep the
+ * blast radius honest:
+ *
+ * - **Deepest cluster wins.** Candidates are tried deepest-first, so the
+ *   tightest directory that covers a cluster speaks for it. Sorting by covered
+ *   count instead (the previous behaviour) picked the shallowest heavy
+ *   directory, so ~230 assets under `shared/static/**` collapsed all the way up
+ *   to `shared/**` and swallowed the source beside them.
+ * - **Once a subtree collapses, its ancestors are out.** Otherwise a parent
+ *   would mop up whatever the deeper globs left behind and re-widen to the very
+ *   directory the depth rule just refused.
+ *
+ * Known throwaway directory names (`dist`, `client`, `generated`, …) keep the
+ * old fast path: they are tried first, shallowest-first, and are exempt from the
+ * depth and count floors — a generated tree is safe to name wholesale.
  */
 export function collapseExclusionPaths(paths: readonly string[]): string[] {
   const files = [
@@ -42,7 +87,7 @@ export function collapseExclusionPaths(paths: readonly string[]): string[] {
 
   const cover = new Map<string, string[]>();
   for (const file of files) {
-    const segments = file.split("/").filter(Boolean);
+    const segments = segmentsOf(file);
     for (let index = 1; index < segments.length; index += 1) {
       const dir = segments.slice(0, index).join("/");
       const list = cover.get(dir) ?? [];
@@ -51,33 +96,48 @@ export function collapseExclusionPaths(paths: readonly string[]): string[] {
     }
   }
 
-  const candidates = [...cover.entries()]
-    .filter(([, covered]) => covered.length >= 2)
-    .sort((a, b) => {
-      const pref = Number(isCollapsePreferred(b[0])) - Number(isCollapsePreferred(a[0]));
-      if (pref !== 0) {
-        return pref;
-      }
-      if (b[1].length !== a[1].length) {
-        return b[1].length - a[1].length;
-      }
-      return a[0].length - b[0].length || a[0].localeCompare(b[0]);
-    });
+  const candidates = [...cover.entries()].sort((a, b) => {
+    const preferredA = isCollapsePreferred(a[0]);
+    const preferredB = isCollapsePreferred(b[0]);
+    if (preferredA !== preferredB) {
+      return preferredA ? -1 : 1;
+    }
+    // Hinted trees read best as one glob, so the outermost one wins; everything
+    // else is tried deepest-first so the narrowest glob claims its cluster.
+    const depth = preferredA
+      ? depthOf(a[0]) - depthOf(b[0])
+      : depthOf(b[0]) - depthOf(a[0]);
+    if (depth !== 0) {
+      return depth;
+    }
+    if (b[1].length !== a[1].length) {
+      return b[1].length - a[1].length;
+    }
+    return a[0].localeCompare(b[0]);
+  });
 
   const consumed = new Set<string>();
+  const blocked = new Set<string>();
   const globs: string[] = [];
 
   for (const [dir, covered] of candidates) {
-    const pending = covered.filter((file) => !consumed.has(file));
-    if (pending.length < 2) {
+    if (blocked.has(dir)) {
       continue;
     }
-    if (!isCollapsePreferred(dir) && pending.length < 3) {
+    const preferred = isCollapsePreferred(dir);
+    const pending = covered.filter((file) => !consumed.has(file));
+    if (pending.length < (preferred ? 2 : MIN_COLLAPSE_FILES)) {
+      continue;
+    }
+    if (!preferred && depthOf(dir) < MIN_COLLAPSE_DEPTH) {
       continue;
     }
     globs.push(`${dir}/**`);
     for (const file of pending) {
       consumed.add(file);
+    }
+    for (const ancestor of ancestorsOf(dir)) {
+      blocked.add(ancestor);
     }
   }
 
