@@ -115,6 +115,31 @@ describe("buildLastScanReport", () => {
       expect(report.activePaths).toBeUndefined();
       expect(isTokenRiskReport(report)).toBe(true);
     });
+
+    it("excludes .tokenforge artifacts from activePaths", () => {
+      const registry = new TabRegistry();
+      const now = Date.now();
+      registry.upsert(
+        "file:///scan",
+        { path: ".tokenforge/last-scan.json", bytes: 120, focus: true },
+        now,
+      );
+      registry.upsert(
+        "file:///src",
+        { path: "src/app.ts", bytes: 400, focus: true },
+        now,
+      );
+
+      const report = buildLastScanReport({
+        tabs: registry.list(now),
+        decisionFor: () => "pending",
+        repo: "TokenForge",
+        team: "payments-platform",
+        provider: "generic",
+      });
+
+      expect(report.activePaths).toEqual(["src/app.ts"]);
+    });
   });
 
   it("exports kept for pending and kept decisions", () => {

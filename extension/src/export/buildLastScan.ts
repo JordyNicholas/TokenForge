@@ -31,20 +31,22 @@ export type BuildLastScanInput = {
  * - `filtered` → action filtered (counts as saved in totals).
  * - `kept` / `pending` → action kept (still in afterTokens).
  * - When `llmFindings` are present, emit hybrid `layers` + `scan` metadata.
- * - Every open tab is listed in `activePaths`, so a CLI run pointed at this
- *   file will not propose excluding a file the developer has open (#137).
+ * - Every open tab is listed in `activePaths` (except `.tokenforge/` artifacts),
+ *   so a CLI run pointed at this file will not propose excluding a file the
+ *   developer has open (#137). Idle tabs are included on purpose.
  */
-/**
- * Every open tab, at risk or not — this is the session signal the CLI cannot
- * derive for itself (#137).
- *
- * Idle tabs are included on purpose. Being idle is what makes a tab a
- * candidate for the reversible in-editor Keep/Filter hint; it is not grounds
- * for writing "never load this" into a durable, repo-wide policy file. The
- * developer still has the file open.
- */
+export function isTokenforgeArtifactPath(path: string): boolean {
+  const normalized = path.replaceAll("\\", "/");
+  return normalized === ".tokenforge" || normalized.startsWith(".tokenforge/");
+}
+
+/** Open-tab paths for CLI active-session (#137); skip TokenForge export files. */
 function openPaths(tabs: readonly TrackedTab[]): string[] {
-  const paths = new Set(tabs.map((tab) => tab.path.replaceAll("\\", "/")));
+  const paths = new Set(
+    tabs
+      .map((tab) => tab.path.replaceAll("\\", "/"))
+      .filter((path) => !isTokenforgeArtifactPath(path)),
+  );
   return [...paths].sort((a, b) => a.localeCompare(b));
 }
 
@@ -54,6 +56,9 @@ export function buildLastScanReport(input: BuildLastScanInput): TokenRiskReport 
   const heuristicFindings: TokenRiskFinding[] = [];
 
   for (const tab of input.tabs) {
+    if (isTokenforgeArtifactPath(tab.path)) {
+      continue;
+    }
     if (!tab.assessment.atRisk) {
       continue;
     }

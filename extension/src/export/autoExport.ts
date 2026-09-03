@@ -8,6 +8,8 @@ const DEFAULT_DEBOUNCE_MS = 800;
 /**
  * Keep `.tokenforge/last-scan.json` in sync with live Detect state.
  * Debounced so rapid tab/score churn does not spam the filesystem.
+ * Heuristic open-tab findings refresh; prior Analyze rules hybrid layers are
+ * preserved by writeLastScan when no new enrichment payload is supplied.
  */
 export function startAutoExport(
   session: RiskSession,

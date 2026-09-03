@@ -1,13 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ProviderId, ScanLlmMetadata, TokenRiskFinding, TokenRiskReport } from "@tokenforge/risk-core";
+import { isTokenRiskReport, type ProviderId, type TokenRiskReport } from "@tokenforge/risk-core";
 import { workspace } from "vscode";
 import type { RiskSession } from "../session/riskSession";
 import { assertValidLastScan, buildLastScanReport } from "./buildLastScan";
 import { ensureTokenforgeGitignored } from "./gitignore";
+import { hybridFromExistingReport, type WriteLastScanHybrid } from "./hybridPreserve";
 import { lastScanFingerprint } from "./lastScanFingerprint";
 
 export { lastScanFingerprint } from "./lastScanFingerprint";
+export type { WriteLastScanHybrid } from "./hybridPreserve";
 
 export const LAST_SCAN_DIR = ".tokenforge";
 export const LAST_SCAN_FILE = "last-scan.json";
@@ -19,12 +21,6 @@ export type ExportLastScanResult = {
   afterTokens: number;
   /** False when the on-disk report already matched (timestamp ignored). */
   wrote: boolean;
-};
-
-export type WriteLastScanHybrid = {
-  llmFindings: readonly TokenRiskFinding[];
-  llmMeta: ScanLlmMetadata;
-  llmCandidateTokens: number;
 };
 
 function workspaceRoot(): string {
@@ -62,11 +58,11 @@ function providerId(): ProviderId {
   return "generic";
 }
 
-async function readExistingFingerprint(reportPath: string): Promise<string | undefined> {
+async function readExistingReport(reportPath: string): Promise<TokenRiskReport | undefined> {
   try {
     const raw = await readFile(reportPath, "utf8");
-    const parsed = JSON.parse(raw) as TokenRiskReport;
-    return lastScanFingerprint(parsed);
+    const parsed = JSON.parse(raw) as unknown;
+    return isTokenRiskReport(parsed) ? parsed : undefined;
   } catch {
     return undefined;
   }
@@ -78,6 +74,14 @@ export async function writeLastScan(
   hybrid?: WriteLastScanHybrid,
 ): Promise<ExportLastScanResult> {
   const root = workspaceRoot();
+  const dir = join(root, LAST_SCAN_DIR);
+  await mkdir(dir, { recursive: true });
+  const reportPath = join(dir, LAST_SCAN_FILE);
+
+  // Auto-export / Shield export omit hybrid; keep prior Analyze rules layers.
+  const existing = await readExistingReport(reportPath);
+  const effectiveHybrid = hybrid ?? (existing ? hybridFromExistingReport(existing) : undefined);
+
   const report = assertValidLastScan(
     buildLastScanReport({
       tabs: session.listAll(nowMs),
@@ -86,19 +90,16 @@ export async function writeLastScan(
       team: teamLabel(),
       provider: providerId(),
       timestamp: new Date(nowMs).toISOString(),
-      llmFindings: hybrid?.llmFindings,
-      llmMeta: hybrid?.llmMeta,
-      llmCandidateTokens: hybrid?.llmCandidateTokens,
+      llmFindings: effectiveHybrid?.llmFindings,
+      llmMeta: effectiveHybrid?.llmMeta,
+      llmCandidateTokens: effectiveHybrid?.llmCandidateTokens,
     }),
   );
 
   await ensureTokenforgeGitignored(root);
 
-  const dir = join(root, LAST_SCAN_DIR);
-  await mkdir(dir, { recursive: true });
-  const reportPath = join(dir, LAST_SCAN_FILE);
   const nextFingerprint = lastScanFingerprint(report);
-  const previousFingerprint = await readExistingFingerprint(reportPath);
+  const previousFingerprint = existing ? lastScanFingerprint(existing) : undefined;
 
   if (previousFingerprint === nextFingerprint && !hybrid) {
     return {
