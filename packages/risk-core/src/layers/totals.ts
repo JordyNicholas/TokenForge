@@ -7,6 +7,7 @@ import type {
   TokenRiskTotals,
 } from "../domain/types";
 import { mergeFindings } from "../merge/merge";
+import { ASSET_DIR_GLOB_SUFFIX, isAssetDirectoryGlob } from "../policy/density";
 
 export type BuildScanLayersResult = ScanLayers & { hybridDelta?: HybridDelta };
 
@@ -47,17 +48,34 @@ export function tallyCombinedTotals(
   assessments: readonly RiskAssessment[],
   findings: readonly TokenRiskFinding[],
 ): TokenRiskTotals {
-  const excludedPaths = new Set(
-    findings
-      .filter((finding) => finding.action === "excluded" || finding.action === "filtered")
-      .map((finding) => finding.path),
-  );
+  const excludedPaths = new Set<string>();
+  // A folded asset directory speaks for a subtree, so it matches no assessment
+  // by name. Counting it by equality alone would bank the finding while still
+  // charging every file it covers to `afterTokens`.
+  const excludedPrefixes: string[] = [];
+
+  for (const finding of findings) {
+    if (finding.action !== "excluded" && finding.action !== "filtered") {
+      continue;
+    }
+    if (isAssetDirectoryGlob(finding.path)) {
+      excludedPrefixes.push(
+        finding.path.slice(0, -ASSET_DIR_GLOB_SUFFIX.length + 1),
+      );
+      continue;
+    }
+    excludedPaths.add(finding.path);
+  }
+
+  const isExcluded = (path: string): boolean =>
+    excludedPaths.has(path) ||
+    excludedPrefixes.some((prefix) => path.startsWith(prefix));
 
   let beforeTokens = 0;
   let afterTokens = 0;
   for (const assessment of assessments) {
     beforeTokens += assessment.estTokens;
-    if (!excludedPaths.has(assessment.path)) {
+    if (!isExcluded(assessment.path)) {
       afterTokens += assessment.estTokens;
     }
   }
