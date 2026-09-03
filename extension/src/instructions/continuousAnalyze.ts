@@ -5,12 +5,35 @@ import { enrichInstructionPathsCommand } from "../enrich/enrichCommand";
 
 let debounceHandle: ReturnType<typeof setTimeout> | undefined;
 let lastSavedPath: string | undefined;
+let enrichInFlight = false;
+let pendingAfterFlight = false;
 
 /** Debounced Analyze rules on save when tokenforge.continuousAnalyze is enabled. */
 export function startContinuousAnalyze(
   session: ShieldSession,
   context: ExtensionContext,
 ): void {
+  const run = (): void => {
+    if (enrichInFlight) {
+      pendingAfterFlight = true;
+      return;
+    }
+    enrichInFlight = true;
+    pendingAfterFlight = false;
+    const triggerPath = lastSavedPath;
+    void enrichInstructionPathsCommand(session, { triggerPath })
+      .catch(() => {
+        /* command surfaces its own errors */
+      })
+      .finally(() => {
+        enrichInFlight = false;
+        if (pendingAfterFlight) {
+          pendingAfterFlight = false;
+          run();
+        }
+      });
+  };
+
   const sub = workspace.onDidSaveTextDocument((doc) => {
     if (!workspace.getConfiguration("tokenforge").get<boolean>("continuousAnalyze", false)) {
       return;
@@ -27,9 +50,7 @@ export function startContinuousAnalyze(
     if (debounceHandle) {
       clearTimeout(debounceHandle);
     }
-    debounceHandle = setTimeout(() => {
-      void enrichInstructionPathsCommand(session, { triggerPath: lastSavedPath });
-    }, 2_000);
+    debounceHandle = setTimeout(run, 2_000);
   });
 
   context.subscriptions.push(sub, {

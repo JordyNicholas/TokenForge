@@ -657,8 +657,16 @@ function maybeShowWelcome(context: ExtensionContext): void {
   if (context.globalState.get<boolean>(key)) {
     return;
   }
-  void context.globalState.update(key, true);
-  void commands.executeCommand("workbench.action.openWalkthrough", "tokenforge.welcome");
+  // VS Code expects publisher.extensionId#walkthroughId
+  const walkthroughId = "tokenforge.tokenforge-context-guard#tokenforge.welcome";
+  void commands
+    .executeCommand("workbench.action.openWalkthrough", walkthroughId)
+    .then(
+      () => context.globalState.update(key, true),
+      () => {
+        /* leave welcomeShown unset so a later activate can retry */
+      },
+    );
 }
 
 export function deactivate(): void {}
