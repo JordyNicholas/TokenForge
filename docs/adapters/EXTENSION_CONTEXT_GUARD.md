@@ -38,7 +38,7 @@ After a rebuild, **fully quit and relaunch** the Extension Development Host. `De
 | Status bar | `context · shielded · saved` (click → Overview, or Prepare session when cost is high) |
 | **Open tabs** tree | Settings row, then Needs review / Allowed / Shielded (+ approaching idle) |
 | **Overview** webview | KPIs, enrichment status, quick actions, discover / drift / task-pack / overlap, honesty strip |
-| Toolbar | Auto-shield, Shield all pending, More (export, analyze, discover, …) |
+| Toolbar | Auto-shield, Shield all pending; remaining commands sit in the view overflow (`…`). Command Palette: **All TokenForge actions…**. The TokenForge container `…` is VS Code’s view-container menu. |
 
 ---
 

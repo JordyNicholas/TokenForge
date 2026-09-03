@@ -401,7 +401,9 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Apply task pack" },
       { label: "Focus Open tabs" },
     ];
-    const picked = await window.showQuickPick(items, { title: "TokenForge actions" });
+    const picked = await window.showQuickPick(items, {
+      title: "All TokenForge actions",
+    });
     if (!picked) {
       return;
     }

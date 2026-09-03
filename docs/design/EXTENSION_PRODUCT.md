@@ -30,6 +30,8 @@ Activity bar container: TokenForge shield icon. Both views require `tokenforge.w
 
 Status bar: `context · shielded · saved`. Click focuses Overview, or **Prepare session** when context cost is high.
 
+View title: Auto-shield and Shield all pending stay as icons. Extra commands use VS Code’s overflow (`…`). **All TokenForge actions…** is Command Palette only (list icon) so it is not a second ellipsis on the same row. The TokenForge sidebar `…` is the container menu.
+
 ---
 
 ## Terminology (user-visible)

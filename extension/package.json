@@ -232,9 +232,9 @@
       },
       {
         "command": "tokenforge.moreActions",
-        "title": "More actions…",
+        "title": "All TokenForge actions…",
         "category": "TokenForge",
-        "icon": "$(ellipsis)"
+        "icon": "$(list-flat)"
       },
       {
         "command": "tokenforge.toggleDurableFilterDecisions",
@@ -300,11 +300,6 @@
           "command": "tokenforge.shieldAllPending",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
           "group": "navigation@2"
-        },
-        {
-          "command": "tokenforge.moreActions",
-          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "navigation@3"
         },
         {
           "command": "tokenforge.refreshRiskPanel",
