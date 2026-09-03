@@ -24,7 +24,7 @@ import { assertValidLastScan, buildLastScanReport } from "../export/buildLastSca
 import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
-import { peekInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
+import { peekInstructionOverlap, resolveInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
@@ -183,7 +183,7 @@ class RiskPulseProvider implements WebviewViewProvider {
           provider,
         }),
       );
-      const [discoverItems, instrPaths] = await Promise.all([
+      const [discoverResult, instrPaths] = await Promise.all([
         discoverRecentChanges(root, {
           sinceMs: hours * 60 * 60 * 1000,
           editorPath,
@@ -199,11 +199,30 @@ class RiskPulseProvider implements WebviewViewProvider {
         return;
       }
       this.rulesCost = instrPaths.reduce((sum, assessment) => sum + assessment.estTokens, 0);
-      this.discoverItems = discoverItems;
-      this.overlapHints = peekInstructionOverlap(
-        this.session.listAll(),
-        instrPaths.map((c) => c.path),
-      );
+      this.discoverItems = discoverResult.candidates;
+      const instructionPaths = instrPaths.map((c) => c.path);
+      this.overlapHints = peekInstructionOverlap(this.session.listAll(), instructionPaths);
+      // Lane A overlap is async — refresh the card when the model returns.
+      void resolveInstructionOverlap({
+        root,
+        tabs: this.session.listAll(),
+        instructionPaths,
+      }).then((hints) => {
+        if (gen !== this.renderGen) {
+          return;
+        }
+        const same =
+          hints.length === this.overlapHints.length &&
+          hints.every(
+            (hint, i) =>
+              hint.path === this.overlapHints[i]?.path &&
+              hint.overlapsWith === this.overlapHints[i]?.overlapsWith,
+          );
+        if (!same) {
+          this.overlapHints = hints;
+          this.paint(this.buildFastModel(false));
+        }
+      });
     } catch {
       /* no folder / ignore */
     }
