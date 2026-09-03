@@ -39,6 +39,7 @@ Phase 2. Former catch-all #7 was split:
 | F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **To-Do** (open) |
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **To-Do** (open) |
+| F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **To-Do** (open) |
 
 **Extension rebuild (F8–F13):** one epic per wave; implement **in order F8 → F13**, one wave per delivery occasion. Plan: extension rebuild plan in `.cursor/plans/`. Product doc target: `docs/design/EXTENSION_PRODUCT.md` (#249 skeleton, #280 complete). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -462,6 +463,18 @@ E2E of the rebuilt Context Guard ([`E2E_EXTENSION_AI_TEST.md`](../testing/E2E_EX
 
 Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank stays F12 #270.
 
+### F16 — Dashboard UI tests: Cypress E2E + component (#314)
+
+`dashboard/` (`@tokenforge/dashboard`, React 19 + Vite 7 + MUI v9) has no browser-level tests — Vitest only covers `dashboard/src/domain/*.test.ts`. Screen flows (demo-seed boot, KPI render, nav between Overview / Variance / Heatmap / Findings / Assumptions, the combined/heuristic/llm board toggle, team scoping) are verified only by the manual runbooks in `docs/testing/`. F16 introduces **Cypress** in the `dashboard/` workspace: **E2E** (drives the Vite-served SPA) and **component testing** (`cy.mount`, reuses `dashboard/vite.config.ts`).
+
+Cypress lives inside `dashboard/` (adapter-local; ports-and-adapters unchanged) and is **not** wired into the root `npm test` — that stays the deterministic CI gate. No CI job in this epic; a `ci.yml` Cypress job is a later, separately-scoped story.
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #315 | scaffold Cypress (E2E + component) in the dashboard workspace with first specs | Dashboard | To-Do |
+
+Single-story epic. Pinned to `cypress@15` because `cypress@16`'s vite-dev-server requires Vite 8; revisit on the Vite 8 bump. Out of scope: Cypress in CI, testing the `extension/` webview, bulk `data-testid`, visual-regression diffing.
+
 ### Further improvement candidates (not yet filed as issues)
 
 Board-map only until the team promotes them to an epic/stories. Do not treat as
@@ -494,6 +507,7 @@ Phase 2:
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (open); **execute F8 → F9 → F10 → F11 → F12 → F13** one wave at a time
 9. **F15** (#306) — **Extension AI-First** (open); after F8–F13 surfaces exist. Build: #307 → #308 → #309 ∥ #310 → #311
-10. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+10. **F16** (#314) — **Dashboard Cypress tests** (open); independent of the extension epics. Build: #315
+11. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
