@@ -10,8 +10,11 @@ import {
   WASTE_KIND_LABEL,
   dominantWasteKinds,
   joinLabels,
+  wasteKindFor,
+  type WasteKind,
 } from "./kinds";
 import { activePathSet, isActivePath } from "../policy/active";
+import { isPathCoveredByExclusion } from "../policy/exclusions";
 import { collapseExclusionPaths, type CollapseOptions } from "../policy/collapse";
 import { isInstructionStackOverBudget } from "../instruction/budget";
 
@@ -59,11 +62,23 @@ function truncateSummary(summary: string, max = MAX_HYGIENE_SUMMARY_CHARS): stri
   return `${trimmed.slice(0, max - 1).trimEnd()}…`;
 }
 
-function excludedPathsForInstructions(
+type ExcludeEntry = {
+  glob: string;
+  kind: WasteKind;
+};
+
+/**
+ * Excluded globs tagged with the kind of waste they hold.
+ *
+ * A collapsed glob has no extension of its own, so it is tagged from the
+ * findings it covers — heaviest kind wins. The weights decide the tag and then
+ * stay here; the rendered file names a bucket, never a count.
+ */
+function excludedEntriesForInstructions(
   findings: readonly TokenRiskFinding[],
   active: ReadonlySet<string>,
   collapse: CollapseOptions = {},
-): string[] {
+): ExcludeEntry[] {
   const ordered = [...findings]
     .filter(
       (finding) =>
@@ -73,8 +88,55 @@ function excludedPathsForInstructions(
       (a, b) =>
         b.estTokens - a.estTokens || a.path.localeCompare(b.path),
     );
-  const paths = ordered.map((finding) => finding.path);
-  return collapseExclusionPaths(paths, collapse).slice(0, MAX_EXCLUDE_BULLETS);
+  const globs = collapseExclusionPaths(
+    ordered.map((finding) => finding.path),
+    collapse,
+  ).slice(0, MAX_EXCLUDE_BULLETS);
+
+  return globs.map((glob) => {
+    const weight = new Map<WasteKind, number>();
+    for (const finding of ordered) {
+      if (!isPathCoveredByExclusion(finding.path, [glob])) {
+        continue;
+      }
+      const kind = wasteKindFor(finding.path);
+      weight.set(kind, (weight.get(kind) ?? 0) + finding.estTokens);
+    }
+    const kind =
+      [...weight.entries()].sort(
+        (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+      )[0]?.[0] ?? wasteKindFor(glob);
+    return { glob, kind };
+  });
+}
+
+/** Heading each bucket renders under, in the order they appear. */
+const EXCLUDE_SECTIONS: ReadonlyArray<{ kind: WasteKind; heading: string }> = [
+  { kind: "binary", heading: "## Do not load — binary assets" },
+  { kind: "dump", heading: "## Do not load — lockfiles and data dumps" },
+  { kind: "output", heading: "## Do not load — build and CI output" },
+  {
+    kind: "prose",
+    heading: "## Read a section on demand — do not paste whole",
+  },
+];
+
+function excludeSections(entries: readonly ExcludeEntry[]): string[] {
+  const sections: string[] = [];
+  for (const { kind, heading } of EXCLUDE_SECTIONS) {
+    const lines = entries
+      .filter((entry) => entry.kind === kind)
+      .map((entry) => `- \`${entry.glob}\``);
+    if (lines.length > 0) {
+      sections.push([heading, ...lines].join("\n"));
+    }
+  }
+  if (sections.length > 0) {
+    sections.push(
+      "If a task truly needs one of these, open that single file — do not pull the\ndirectory into context.",
+    );
+  }
+  return sections;
 }
 
 type HygieneBullet = {
@@ -295,9 +357,9 @@ export function synthesizeLeanInstructions(
   // A "do not load" bullet naming the file its author has open is the exact
   // false positive #137 exists to prevent.
   const active = activePathSet(report);
-  let excludeLines = excludedPathsForInstructions(report.findings, active, {
+  let excludeEntries = excludedEntriesForInstructions(report.findings, active, {
     keepDirs: options.keepDirs,
-  }).map((path) => `- \`${path}\``);
+  });
   let hygiene = hygieneBullets(report.findings, summaryMaxChars);
   let advisory = advisoryBullets(report.findings, summaryMaxChars);
   let themes = whyThemes(report);
@@ -308,9 +370,7 @@ export function synthesizeLeanInstructions(
   const build = (): string => {
     const sections: string[] = [header];
 
-    if (excludeLines.length > 0) {
-      sections.push(["## Do not load", ...excludeLines].join("\n"));
-    }
+    sections.push(...excludeSections(excludeEntries));
 
     if (hygiene.length > 0) {
       sections.push(
@@ -362,8 +422,8 @@ export function synthesizeLeanInstructions(
       hygiene = hygiene.slice(0, -1);
     } else if (includeStack) {
       includeStack = false;
-    } else if (excludeLines.length > 0) {
-      excludeLines = excludeLines.slice(0, -1);
+    } else if (excludeEntries.length > 0) {
+      excludeEntries = excludeEntries.slice(0, -1);
     } else if (advisory.length > 0) {
       advisory = advisory.slice(0, -1);
     } else {
