@@ -223,4 +223,30 @@ describe("heuristicFindingAction", () => {
     expect(assessment.reasons).toContain("inactive_tab");
     expect(heuristicFindingAction(assessment, "oversized")).toBe("excluded");
   });
+
+  it("flags a tiny asset — media clears no size bar", () => {
+    // The whole point of the class: 259 of `tabler`'s 260 flag SVGs sit far
+    // under OVERSIZED_BYTES, and before this they produced nothing at all.
+    const result = scoreRisk({
+      path: "shared/static/brands/dropbox.svg",
+      bytes: 375,
+      inactiveMs: 0,
+    });
+
+    expect(result.fileClass).toBe("media");
+    expect(result.atRisk).toBe(true);
+    expect(result.reasons).toEqual(["high_risk_filetype"]);
+    expect(primaryReason(result.reasons)).toBe("high_risk_filetype");
+    expect(heuristicFindingAction(result, "high_risk_filetype")).toBe("excluded");
+  });
+
+  it("scores a small asset well above a same-size unknown text file", () => {
+    const asset = scoreRisk({ path: "docs/assets/favicon.ico", bytes: 4_000, inactiveMs: 0 });
+    const prose = scoreRisk({ path: "docs/NOTES.md", bytes: 4_000, inactiveMs: 0 });
+
+    // B3: the continuous score has to agree with `reasons`, or the two halves
+    // of the heuristic disagree about the same file.
+    expect(asset.score).toBeGreaterThan(prose.score);
+    expect(prose.atRisk).toBe(false);
+  });
 });

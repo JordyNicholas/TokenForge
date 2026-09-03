@@ -102,6 +102,19 @@ agent only needs to know whether to never load something or to read part of it:
 A collapsed glob has no extension of its own, so it is tagged from the findings
 it covers, heaviest kind winning.
 
+`binary` is the `media` file class (#300), not a second extension list — so the
+bucket holds exactly what the scan flagged as an asset, and `dist/logo.png`
+still reads as build output because its class says so.
+
+### Assets are waste at any size
+
+The synthesizer can only name what the scan flagged, so the pack was silent
+about ~900 asset files in a real `tabler` scan: `classifyFiletype` had no media
+class and every image, icon, and font had to clear `OVERSIZED_BYTES` to be seen.
+`media` flags on shape instead, which is what makes `assets/icons/**` — three
+files of 200 bytes — expressible at all. Audit item
+[B17](./HEURISTICS_AUDIT.md).
+
 ## Tests that hold the line
 
 | Test | Holds |
@@ -130,3 +143,5 @@ it covers, heaviest kind winning.
 | #291 | Instruction-stack verdict, no counts |
 | #289 | `over-collapse-app` control + fallback golden |
 | #290 | This document + BOARD F14 index |
+| #300 | `media` file class — assets flagged by shape, not size |
+| #301 | Asset-tree density signal |

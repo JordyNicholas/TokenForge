@@ -77,6 +77,14 @@ export function templateSuggestion(finding: TokenRiskFinding): FindingSuggestion
     };
   }
 
+  if (fileClass === "media") {
+    return {
+      kind: "exclude_from_context",
+      summary:
+        "Exclude this asset from agent context (ignore pack / content exclusion). Exclude the directory it lives in rather than the single file — asset trees are cheap individually and expensive together.",
+    };
+  }
+
   if (
     fileClass === "test_output" ||
     fileClass === "ci_log" ||

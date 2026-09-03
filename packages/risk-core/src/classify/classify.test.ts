@@ -69,4 +69,31 @@ describe("classifyFiletype", () => {
   it("accepts Windows separators", () => {
     expect(classifyFiletype("dist\\out.js")).toBe("build_artifact");
   });
+
+  it("classifies rendered assets as media, whatever their size would be", () => {
+    expect(classifyFiletype("shared/static/avatars/001.jpg")).toBe("media");
+    expect(classifyFiletype("docs/assets/img/icons/package-astro.png")).toBe("media");
+    expect(classifyFiletype("docs/assets/favicon.ico")).toBe("media");
+    expect(classifyFiletype("core/fonts/geist-sans/Geist-Regular.woff2")).toBe("media");
+    expect(classifyFiletype("core/fonts/geist-mono/GeistMono-Bold.ttf")).toBe("media");
+    expect(classifyFiletype("marketing/promo.mp4")).toBe("media");
+    expect(classifyFiletype("design/brand.fig")).toBe("media");
+    expect(classifyFiletype("docs/whitepaper.pdf")).toBe("media");
+  });
+
+  it("classifies .svg as media, not config or unknown", () => {
+    // The icon sets this class exists to catch are SVG: 260 flags in `core/img`,
+    // 338 payment marks, 73 brand logos — every one of them under any size bar.
+    expect(classifyFiletype("core/img/flags/sa.svg")).toBe("media");
+    expect(classifyFiletype("shared/static/brands/netflix.svg")).toBe("media");
+  });
+
+  it("keeps output-shape and artifact classes ahead of media", () => {
+    // A `.png` under `dist/` is build output first — that is the more useful
+    // thing to tell an agent, and the copy differs per class.
+    expect(classifyFiletype("dist/logo.png")).toBe("build_artifact");
+    expect(classifyFiletype("coverage/badge.svg")).toBe("test_output");
+    expect(classifyFiletype("node_modules/pkg/icon.png")).toBe("generated");
+    expect(classifyFiletype("release/bundle.zip")).toBe("build_artifact");
+  });
 });

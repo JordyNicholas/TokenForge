@@ -79,6 +79,12 @@ export type FiletypeRiskClass =
   | "ci_log"
   /** Compiled bundles, binary artifacts, and build output dirs. */
   | "build_artifact"
+  /**
+   * Rendered assets — images, fonts, audio/video, design binaries. Never worth
+   * reading as text at any size, which is why this class flags by shape rather
+   * than by byte count (see `HIGH_RISK_FILE_CLASSES`).
+   */
+  | "media"
   | "config"
   | "source"
   | "unknown";

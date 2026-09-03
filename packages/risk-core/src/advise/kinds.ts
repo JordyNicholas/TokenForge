@@ -20,28 +20,6 @@ export const WASTE_KIND_LABEL: Record<WasteKind, string> = {
   prose: "oversized text",
 };
 
-const BINARY_EXTENSIONS = new Set([
-  ".avif",
-  ".bmp",
-  ".eot",
-  ".gif",
-  ".ico",
-  ".jpeg",
-  ".jpg",
-  ".mp3",
-  ".mp4",
-  ".otf",
-  ".pdf",
-  ".png",
-  ".svg",
-  ".ttf",
-  ".webm",
-  ".webp",
-  ".woff",
-  ".woff2",
-  ".zip",
-]);
-
 const DUMP_EXTENSIONS = new Set([
   ".csv",
   ".json",
@@ -62,10 +40,13 @@ function extensionOf(path: string): string {
 /** Bucket a path for policy text. */
 export function wasteKindFor(path: string): WasteKind {
   const extension = extensionOf(path);
-  if (BINARY_EXTENSIONS.has(extension)) {
+  const fileClass = classifyFiletype(path);
+  // `media` owns the binary bucket now, so the extension list lives in one
+  // place. A `.png` under `dist/` still reads as build output, which is the
+  // more useful thing to tell the agent about it.
+  if (fileClass === "media") {
     return "binary";
   }
-  const fileClass = classifyFiletype(path);
   if (
     fileClass === "build_artifact" ||
     fileClass === "generated" ||

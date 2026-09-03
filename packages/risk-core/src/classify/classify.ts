@@ -4,6 +4,7 @@ import {
   CI_LOG_BASENAMES,
   CI_LOG_DIR_NAMES,
   GENERATED_TREE_DIR_NAMES,
+  MEDIA_EXTENSIONS,
   TEST_OUTPUT_DIR_NAMES,
 } from "../domain/constants";
 import type { FiletypeRiskClass } from "../domain/types";
@@ -139,7 +140,8 @@ export function isCiLogPath(filePath: string): boolean {
 
 /**
  * Classify a path for Token Risk. Order: output-shape dirs → CI logs →
- * Prisma client → lockfile → suffixes → source → config → unknown.
+ * Prisma client → lockfile → suffixes → artifacts → media → source → config
+ * → unknown.
  */
 export function classifyFiletype(filePath: string): FiletypeRiskClass {
   const segments = pathSegments(filePath);
@@ -174,6 +176,12 @@ export function classifyFiletype(filePath: string): FiletypeRiskClass {
   const ext = extensionOf(name);
   if (BUILD_ARTIFACT_EXTENSIONS.has(ext)) {
     return "build_artifact";
+  }
+  // After the output-shape dirs and artifact extensions, so `dist/logo.png`
+  // stays `build_artifact` and keeps that copy; before source, because `.svg`
+  // must not fall through to the config/unknown tail.
+  if (MEDIA_EXTENSIONS.has(ext)) {
+    return "media";
   }
   if (SOURCE_EXTENSIONS.has(ext)) {
     return "source";
