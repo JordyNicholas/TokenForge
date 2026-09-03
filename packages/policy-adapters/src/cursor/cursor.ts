@@ -24,21 +24,30 @@ export const cursorAdapter: ProviderAdapter = {
             CURSOR_INSTRUCTIONS_PATH,
           ),
           maxBytes: context?.policyMaxBytes,
+          keepDirs: context?.keepDirs,
         },
       ),
       {
         path: CURSOR_EXCLUSIONS_PATH,
-        contents: renderExclusionYaml(report, [
-          "# Cursor exclusion *candidates* for repo owners.",
-          "# TokenForge writes local policy files only — it does not call Cursor APIs.",
-        ]),
+        contents: renderExclusionYaml(
+          report,
+          [
+            "# Cursor exclusion *candidates* for repo owners.",
+            "# TokenForge writes local policy files only — it does not call Cursor APIs.",
+          ],
+          { keepDirs: context?.keepDirs },
+        ),
       },
       {
         path: CURSOR_IGNORE_CANDIDATES_PATH,
-        contents: renderIgnoreCandidates(report, [
-          "# Cursor .cursorignore *candidates* — human review required.",
-          "# TokenForge writes local policy files only — it does not call Cursor APIs.",
-        ]),
+        contents: renderIgnoreCandidates(
+          report,
+          [
+            "# Cursor .cursorignore *candidates* — human review required.",
+            "# TokenForge writes local policy files only — it does not call Cursor APIs.",
+          ],
+          { keepDirs: context?.keepDirs },
+        ),
       },
     ];
   },

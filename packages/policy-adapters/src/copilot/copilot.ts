@@ -20,15 +20,20 @@ export const copilotAdapter: ProviderAdapter = {
             COPILOT_INSTRUCTIONS_PATH,
           ),
           maxBytes: context?.policyMaxBytes,
+          keepDirs: context?.keepDirs,
         },
       ),
       {
         path: COPILOT_EXCLUSIONS_PATH,
-        contents: renderExclusionYaml(report, [
-          "# Copilot content-exclusion *candidates* for org/repo owners.",
-          "# TokenForge does not call GitHub's org API. Paste or adapt these paths",
-          "# into Copilot content exclusions if you want them enforced server-side.",
-        ]),
+        contents: renderExclusionYaml(
+          report,
+          [
+            "# Copilot content-exclusion *candidates* for org/repo owners.",
+            "# TokenForge does not call GitHub's org API. Paste or adapt these paths",
+            "# into Copilot content exclusions if you want them enforced server-side.",
+          ],
+          { keepDirs: context?.keepDirs },
+        ),
       },
     ];
   },

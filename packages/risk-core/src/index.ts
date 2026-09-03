@@ -111,7 +111,7 @@ export {
   synthesizeLeanInstructions,
   type SynthesizeLeanInstructionsOptions,
 } from "./advise/instructions";
-export { collapseExclusionPaths } from "./policy/collapse";
+export { collapseExclusionPaths, type CollapseOptions } from "./policy/collapse";
 export {
   discoverMissedOpportunities,
   isPathCoveredByExclusion,

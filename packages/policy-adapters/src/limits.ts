@@ -3,6 +3,7 @@ import {
   proposedExclusionPaths,
   proposedIgnorePaths,
   synthesizeLeanInstructions,
+  type CollapseOptions,
   type ProviderId,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
@@ -58,8 +59,11 @@ export function exclusionPathForProvider(provider: ProviderId): string {
 export function renderExclusionYaml(
   report: TokenRiskReport,
   headerLines: readonly string[],
+  options: CollapseOptions = {},
 ): string {
-  const lines = proposedExclusionPaths(report).map((path) => `  - ${path}`);
+  const lines = proposedExclusionPaths(report, options).map(
+    (path) => `  - ${path}`,
+  );
 
   return `${headerLines.join("\n")}
 provider: ${report.provider}
@@ -72,8 +76,9 @@ ${lines.join("\n") || "  []"}
 export function renderIgnoreCandidates(
   report: TokenRiskReport,
   headerLines: readonly string[],
+  options: CollapseOptions = {},
 ): string {
-  const patterns = proposedIgnorePaths(report);
+  const patterns = proposedIgnorePaths(report, options);
   return [
     ...headerLines,
     "# Merge these into .cursorignore manually after review.",
@@ -93,6 +98,7 @@ export function renderInstructionsFile(
   options: {
     managedBody?: string;
     maxBytes?: number;
+    keepDirs?: ReadonlySet<string>;
   } = {},
 ): PolicyFile {
   const maxBytes = options.maxBytes ?? MAX_INSTRUCTION_BYTES;
@@ -102,6 +108,7 @@ export function renderInstructionsFile(
       title,
       maxBytes,
       completeSummaries: true,
+      keepDirs: options.keepDirs,
     });
   return assertLeanInstruction(
     {
