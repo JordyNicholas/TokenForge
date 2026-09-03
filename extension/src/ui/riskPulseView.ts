@@ -23,7 +23,8 @@ import {
   type EnrichmentStatusView,
 } from "../enrich/enrichStatus";
 import { readLlmSettings } from "../enrich/settings";
-import { resolveWorkspaceRoot } from "../export/writeLastScan";
+import { assertValidLastScan, buildLastScanReport } from "../export/buildLastScan";
+import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
 import {
@@ -121,9 +122,28 @@ class RiskPulseProvider implements WebviewViewProvider {
       const editorPath = window.activeTextEditor
         ? workspace.asRelativePath(window.activeTextEditor.document.uri, false).replaceAll("\\", "/")
         : undefined;
+      const providerValue = workspace.getConfiguration("tokenforge").get<string>("provider");
+      const provider =
+        providerValue === "copilot" ||
+        providerValue === "cursor" ||
+        providerValue === "claude" ||
+        providerValue === "generic"
+          ? providerValue
+          : "generic";
+      const report = assertValidLastScan(
+        buildLastScanReport({
+          tabs: this.session.listAll(),
+          decisionFor: (uri) => this.session.decision(uri),
+          repo: repoLabel(root),
+          team: teamLabel(),
+          provider,
+        }),
+      );
       discoverItems = await discoverRecentChanges(root, {
         sinceMs: hours * 60 * 60 * 1000,
         editorPath,
+        report,
+        provider,
       });
     } catch {
       /* ignore */
@@ -182,7 +202,9 @@ class RiskPulseProvider implements WebviewViewProvider {
       sessionSaved,
       rulesCost,
       autoShieldOn: isAutoFilterEnabled(),
-      driftSummary: drift?.summary,
+      driftSummary: drift
+        ? [drift.summary, ...drift.suggestions].join(" ")
+        : undefined,
       discoverItems,
       taskPackPaths: taskPack.paths,
       sessionNarrative: summary.narrative,
@@ -286,7 +308,7 @@ function renderOverviewHtml(
           .slice(0, 5)
           .map((c) => `<li>${escapeHtml(c.path)}${c.note ? ` — ${escapeHtml(c.note)}` : ""}</li>`)
           .join("")}</ul>`
-      : `<div class="tf-placeholder">Run discover to rank recently changed workspace files.</div>`;
+      : `<div class="tf-placeholder">Run discover for missed policy gaps, session-kept tabs, and recent changes.</div>`;
 
   const overlapBlock =
     overlapHints.length > 0
