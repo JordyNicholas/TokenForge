@@ -2,7 +2,7 @@
 
 **Status:** Locked — F7 (#225)  
 **Scope:** Fix must reduce instruction bleed, not only exclusion lists and reminders.  
-**Companion:** [`COMPLEMENTARY_HYBRID_SCAN.md`](./COMPLEMENTARY_HYBRID_SCAN.md) · [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md)
+**Companion:** [`COMPLEMENTARY_HYBRID_SCAN.md`](./COMPLEMENTARY_HYBRID_SCAN.md) · [`HYBRID_SCAN_DESIGN.md`](./HYBRID_SCAN_DESIGN.md) · [`HEURISTIC_FIX_DESIGN.md`](./HEURISTIC_FIX_DESIGN.md)
 
 ## Product rule
 
@@ -45,7 +45,9 @@ Configurable — not a fixed 2048-byte stub cap:
 | `.tokenforge/config.json` → `apply.policyMaxBytes` | |
 | Mode default | heuristic 4 KiB, hybrid 8 KiB |
 
-LLM output that exceeds budget falls back to heuristic synthesis.
+LLM output that exceeds budget falls back to heuristic synthesis — so the
+deterministic pack's quality bounds the hybrid path's worst case. That path is
+specified in [`HEURISTIC_FIX_DESIGN.md`](./HEURISTIC_FIX_DESIGN.md) (F14).
 
 ## CLI
 

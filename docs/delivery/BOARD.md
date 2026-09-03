@@ -37,6 +37,7 @@ Phase 2. Former catch-all #7 was split:
 | F11 Extension rebuild Wave D: Instructions & Fix in IDE | #240 | Future | **To-Do** (open) |
 | F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **To-Do** (open) |
 | F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **To-Do** (open) |
+| F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
 
 **Extension rebuild (F8–F13):** one epic per wave; implement **in order F8 → F13**, one wave per delivery occasion. Plan: extension rebuild plan in `.cursor/plans/`. Product doc target: `docs/design/EXTENSION_PRODUCT.md` (#249 skeleton, #280 complete). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -313,6 +314,21 @@ Build order when prioritized: **#175** (`init`) and **#170** (discover) for fast
 Build order: **#200 → #201 → #202 → #203 → #204 → #205 → #206 → #207 → #208 → #209 → #210 → #211 → #189**
 
 Automated complementarity: `cli/src/commands/scan/scan.hybrid.test.ts` (#209). Manual provider matrix: [`E2E_COMPLEMENTARY_HYBRID_TEST.md`](../testing/E2E_COMPLEMENTARY_HYBRID_TEST.md).
+
+### F14 — Heuristic Fix: robust deterministic policy synthesis (#283)
+
+**The path most packs come out of.** `synthesizeLeanInstructions` + `collapseExclusionPaths` run by default, in CI, as the hybrid over-budget fallback, and inside `@tokenforge/policy-adapters`. Design: [`HEURISTIC_FIX_DESIGN.md`](../design/HEURISTIC_FIX_DESIGN.md).
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #284 | Collapse to the deepest common directory | `risk-core` | **Done** |
+| #285 | `keepDirs` guard against kept content | `risk-core` | **Done** |
+| #286 | Apply attests kept directories | CLI | **Done** |
+| #287 | Synthesized intro + Prefer roots | `risk-core` / CLI | **Done** |
+| #288 | Do-not-load buckets by waste kind | `risk-core` | **Done** |
+| #291 | Instruction-stack verdict, no counts | `risk-core` | **Done** |
+| #289 | `over-collapse-app` control + fallback golden | Tests | **Done** |
+| #290 | Design doc + BOARD F14 index | Docs | **Done** |
 
 ### F7 — Hybrid Fix: heuristic-routed LLM policy synthesis (#225)
 
