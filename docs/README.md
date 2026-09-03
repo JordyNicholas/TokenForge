@@ -79,6 +79,7 @@ Non-deterministic LLM paths stay manual; heuristic paths are covered by `npm tes
 | Doc | Purpose |
 | --- | --- |
 | [E2E_HYBRID_SCAN_TEST.md](./testing/E2E_HYBRID_SCAN_TEST.md) | Hybrid scan end-to-end |
+| [E2E_EXTENSION_AI_TEST.md](./testing/E2E_EXTENSION_AI_TEST.md) | Context Guard extension + Ollama Lane A/B |
 | [E2E_ACTIVE_SESSION_TEST.md](./testing/E2E_ACTIVE_SESSION_TEST.md) | Active paths / session signal |
 | [E2E_CLAUDE_CODE_ENRICH_TEST.md](./testing/E2E_CLAUDE_CODE_ENRICH_TEST.md) | Claude Code enricher backend |
 
