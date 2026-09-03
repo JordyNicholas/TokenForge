@@ -195,8 +195,27 @@ export const NECESSARY_GENERATED_SEGMENTS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Files a directory needs before the asset fold speaks for it instead of its
+ * members. A fold trades per-file detail for one line, so it has to be
+ * covering enough files to be worth it.
+ */
+export const MIN_DENSITY_FILES = 8;
+
+/**
+ * Share of a directory's direct children that must be `media` before it folds.
+ * Only `media` counts, so a folded directory can always report
+ * `high_risk_filetype` truthfully — see `policy/density.ts`.
+ */
+export const DENSITY_MIN_MEDIA_RATIO = 0.9;
+
+/**
  * Directories whose contents are auxiliary bulk data (test fixtures, mocks,
  * recorded payloads). Individually small, collectively expensive.
+ *
+ * The name list is the limitation the asset fold removes for media: this rule
+ * only fires on directories someone thought to enumerate, which is why
+ * `assets`, `static`, and `img` never benefited from it (`HEURISTICS_AUDIT.md`
+ * B14 / B17).
  */
 export const AUXILIARY_DATA_DIR_NAMES: ReadonlySet<string> = new Set([
   "fixtures",
