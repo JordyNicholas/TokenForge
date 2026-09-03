@@ -4,6 +4,7 @@ import {
   logLocalPreflight,
 } from "../ai/transparencyCoach";
 import { revealLastScan } from "../export/revealLastScan";
+import { setEnrichExportBusy } from "../export/enrichExportGate";
 import { resolveWorkspaceRoot, writeLastScan } from "../export/writeLastScan";
 import type { RiskSession } from "../session/riskSession";
 import { collectInstructionCandidates } from "./collectCandidates";
@@ -16,6 +17,8 @@ export type EnrichCommandOptions = {
   triggerPath?: string;
 };
 
+let enrichCommandInFlight = false;
+
 /**
  * Opt-in command: enrich instruction paths and merge into last-scan.json.
  * Does not change live Keep/Filter scoring (heuristic-first).
@@ -23,6 +26,24 @@ export type EnrichCommandOptions = {
 export async function enrichInstructionPathsCommand(
   session: RiskSession,
   options: EnrichCommandOptions = {},
+): Promise<void> {
+  if (enrichCommandInFlight) {
+    void window.showInformationMessage(
+      "TokenForge: Analyze rules is already running — wait for it to finish.",
+    );
+    return;
+  }
+  enrichCommandInFlight = true;
+  try {
+    await enrichInstructionPathsCommandInner(session, options);
+  } finally {
+    enrichCommandInFlight = false;
+  }
+}
+
+async function enrichInstructionPathsCommandInner(
+  session: RiskSession,
+  options: EnrichCommandOptions,
 ): Promise<void> {
   const settings = readLlmSettings();
   if (!settings.enrichmentEnabled) {
@@ -101,60 +122,65 @@ export async function enrichInstructionPathsCommand(
 
   let result: Awaited<ReturnType<typeof writeLastScan>> | undefined;
   let findingCount = 0;
-  await window.withProgress(
-    {
-      location: ProgressLocation.Notification,
-      title: "TokenForge: enriching instruction paths",
-      cancellable: false,
-    },
-    async (progress) => {
-      const modelLabel = spec.backend === "noop" ? spec.backend : `${spec.backend}:${spec.model}`;
-      progress.report({
-        message: `${candidates.length} instruction file(s) via ${modelLabel}`,
-      });
-      let enrichment: Awaited<ReturnType<typeof runInstructionEnrichment>>;
-      try {
-        enrichment = await runInstructionEnrichment({
-          root,
-          candidates,
-          externalDataConsent: externalConsent,
-          onProgress: (message) => progress.report({ message }),
+  setEnrichExportBusy(true);
+  try {
+    await window.withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: "TokenForge: enriching instruction paths",
+        cancellable: false,
+      },
+      async (progress) => {
+        const modelLabel = spec.backend === "noop" ? spec.backend : `${spec.backend}:${spec.model}`;
+        progress.report({
+          message: `${candidates.length} instruction file(s) via ${modelLabel}`,
         });
-      } catch (error) {
+        let enrichment: Awaited<ReturnType<typeof runInstructionEnrichment>>;
+        try {
+          enrichment = await runInstructionEnrichment({
+            root,
+            candidates,
+            externalDataConsent: externalConsent,
+            onProgress: (message) => progress.report({ message }),
+          });
+        } catch (error) {
+          recordEnrichRun({
+            at: Date.now(),
+            ok: false,
+            findingCount: 0,
+            candidateCount: candidates.length,
+            backend: spec.backend,
+            model: spec.model,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
+        }
+
+        const llmCandidateTokens = candidates.reduce(
+          (sum, item) => sum + item.estTokens,
+          0,
+        );
+        progress.report({ message: "Writing last-scan.json…" });
+        result = await writeLastScan(session, Date.now(), {
+          llmFindings: enrichment.findings,
+          llmMeta: enrichment.meta,
+          llmCandidateTokens,
+        });
+        findingCount = enrichment.findings.length;
+
         recordEnrichRun({
           at: Date.now(),
-          ok: false,
-          findingCount: 0,
+          ok: true,
+          findingCount,
           candidateCount: candidates.length,
           backend: spec.backend,
           model: spec.model,
-          error: error instanceof Error ? error.message : String(error),
         });
-        throw error;
-      }
-
-      const llmCandidateTokens = candidates.reduce(
-        (sum, item) => sum + item.estTokens,
-        0,
-      );
-      progress.report({ message: "Writing last-scan.json…" });
-      result = await writeLastScan(session, Date.now(), {
-        llmFindings: enrichment.findings,
-        llmMeta: enrichment.meta,
-        llmCandidateTokens,
-      });
-      findingCount = enrichment.findings.length;
-
-      recordEnrichRun({
-        at: Date.now(),
-        ok: true,
-        findingCount,
-        candidateCount: candidates.length,
-        backend: spec.backend,
-        model: spec.model,
-      });
-    },
-  );
+      },
+    );
+  } finally {
+    setEnrichExportBusy(false);
+  }
 
   if (!result) {
     return;

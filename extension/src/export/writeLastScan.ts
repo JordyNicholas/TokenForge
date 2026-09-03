@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { isTokenRiskReport, type ProviderId, type TokenRiskReport } from "@tokenforge/risk-core";
 import { workspace } from "vscode";
 import type { RiskSession } from "../session/riskSession";
+import { createAsyncQueue } from "./asyncQueue";
 import { assertValidLastScan, buildLastScanReport } from "./buildLastScan";
 import { ensureTokenforgeGitignored } from "./gitignore";
 import { hybridFromExistingReport, type WriteLastScanHybrid } from "./hybridPreserve";
@@ -13,6 +14,8 @@ export type { WriteLastScanHybrid } from "./hybridPreserve";
 
 export const LAST_SCAN_DIR = ".tokenforge";
 export const LAST_SCAN_FILE = "last-scan.json";
+
+const enqueueLastScanWrite = createAsyncQueue();
 
 export type ExportLastScanResult = {
   reportPath: string;
@@ -68,9 +71,9 @@ async function readExistingReport(reportPath: string): Promise<TokenRiskReport |
   }
 }
 
-export async function writeLastScan(
+async function writeLastScanUnlocked(
   session: RiskSession,
-  nowMs: number = Date.now(),
+  nowMs: number,
   hybrid?: WriteLastScanHybrid,
 ): Promise<ExportLastScanResult> {
   const root = workspaceRoot();
@@ -78,7 +81,8 @@ export async function writeLastScan(
   await mkdir(dir, { recursive: true });
   const reportPath = join(dir, LAST_SCAN_FILE);
 
-  // Auto-export / Shield export omit hybrid; keep prior Analyze rules layers.
+  // Re-read immediately before write so a queued auto-export still sees hybrid
+  // layers that Analyze rules just finished writing.
   const existing = await readExistingReport(reportPath);
   const effectiveHybrid = hybrid ?? (existing ? hybridFromExistingReport(existing) : undefined);
 
@@ -120,6 +124,14 @@ export async function writeLastScan(
     afterTokens: report.totals.afterTokens,
     wrote: true,
   };
+}
+
+export async function writeLastScan(
+  session: RiskSession,
+  nowMs: number = Date.now(),
+  hybrid?: WriteLastScanHybrid,
+): Promise<ExportLastScanResult> {
+  return enqueueLastScanWrite(() => writeLastScanUnlocked(session, nowMs, hybrid));
 }
 
 export function resolveWorkspaceRoot(): string {

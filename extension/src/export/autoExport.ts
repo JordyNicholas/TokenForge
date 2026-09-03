@@ -1,5 +1,6 @@
 import type { ExtensionContext } from "vscode";
 import type { RiskSession } from "../session/riskSession";
+import { isEnrichExportBusy } from "./enrichExportGate";
 import { writeLastScan } from "./writeLastScan";
 import { writeSessionStats } from "./writeSessionStats";
 
@@ -24,6 +25,11 @@ export function startAutoExport(
     }
     timer = setTimeout(() => {
       timer = undefined;
+      if (isEnrichExportBusy()) {
+        // Enrichment is writing last-scan; retry after it finishes.
+        schedule();
+        return;
+      }
       void Promise.all([writeLastScan(session), writeSessionStats(session)]).catch(() => {
         /* ignore missing workspace during activate; manual export still surfaces errors */
       });
