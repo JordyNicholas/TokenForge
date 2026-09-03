@@ -37,7 +37,7 @@
   ],
   "contributes": {
     "icons": {
-      "tokenforge": {
+      "tokenforge-shield": {
         "description": "TokenForge shield",
         "default": {
           "fontPath": "media/tokenforge.svg",

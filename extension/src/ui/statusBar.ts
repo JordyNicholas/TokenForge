@@ -32,7 +32,7 @@ export function createStatusBar(session: ShieldSession): Disposable {
     const autoSuffix = auto ? " · auto-shield" : "";
     const prepareHint = highContext ? " · prepare session" : "";
     const enrichment = describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun());
-    item.text = `$(tokenforge) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
+    item.text = `$(tokenforge-shield) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
     item.command = highContext ? "tokenforge.prepareAgentSession" : "tokenforge.focusOverview";
     item.tooltip = [
       auto
