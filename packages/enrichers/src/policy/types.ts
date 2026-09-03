@@ -8,6 +8,8 @@ export type PolicySynthesisInput = {
   instructionContents: ReadonlyMap<string, string>;
   /** Directories an exclusion glob must not widen to; see `collapseExclusionPaths`. */
   keepDirs?: ReadonlySet<string>;
+  /** Top-level source directories for the Prefer section. */
+  sourceRoots?: readonly string[];
   model: string;
   backend?: string;
   timeoutMs?: number;

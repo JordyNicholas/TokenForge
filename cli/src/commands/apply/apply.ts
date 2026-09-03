@@ -11,7 +11,7 @@ import { RuntimeError } from "../../app/errors";
 import { readActivePathsFile } from "../../io/active-paths-file";
 import { writeProveChangeMarker } from "../../io/change-marker-file";
 import { bootstrapRepo } from "../../io/repo-bootstrap";
-import { collectKeepDirs } from "../../io/keep-dirs";
+import { collectKeptContent } from "../../io/keep-dirs";
 import { scanReportPath } from "../../io/paths";
 import {
   tryReadScanReport,
@@ -215,13 +215,14 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   // Walked here rather than read off the report: `findings` are at-risk paths
   // only, so nothing in the contract says which directories still hold source
   // the agent needs. Without it a glob can cover more than the findings justify.
-  const keepDirs = await collectKeepDirs(root, report);
+  const { keepDirs, sourceRoots } = await collectKeptContent(root, report);
   const synthesis = await synthesizeManagedInstructionBody({
     root,
     report,
     title: instructionTitleForProvider(provider),
     applyOptions: options,
     keepDirs,
+    sourceRoots,
   });
   const renderContext: PolicyRenderContext = {
     managedInstructionBodies: new Map([[instructionPath, synthesis.markdown]]),

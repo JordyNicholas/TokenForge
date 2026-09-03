@@ -27,6 +27,7 @@ export function synthesizePolicyHeuristic(
     maxBytes,
     completeSummaries: true,
     keepDirs: input.keepDirs,
+    sourceRoots: input.sourceRoots,
   });
   return {
     markdown,

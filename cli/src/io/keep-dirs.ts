@@ -10,6 +10,16 @@ import { shouldSkipWalkDirectory } from "./paths";
 /** Classes a policy glob must not hide from the agent that needs them. */
 const KEPT_CLASSES = new Set(["source", "config"]);
 
+/** Most Prefer roots worth naming before the line stops being readable. */
+const MAX_SOURCE_ROOTS = 4;
+
+export type KeptContent = {
+  /** Directories holding kept content; a glob is never widened to one. */
+  keepDirs: Set<string>;
+  /** Top-level directories holding living source, busiest first. */
+  sourceRoots: string[];
+};
+
 function toPosix(path: string): string {
   return path.replaceAll("\\", "/");
 }
@@ -36,10 +46,10 @@ function ancestorDirs(path: string): string[] {
  * Cheap by construction: `readdir` with `withFileTypes`, no `stat` and no file
  * reads — classification is by path shape alone.
  */
-export async function collectKeepDirs(
+export async function collectKeptContent(
   root: string,
   report: Pick<TokenRiskReport, "findings">,
-): Promise<Set<string>> {
+): Promise<KeptContent> {
   const rootResolved = resolve(root);
   const excluded = new Set(
     report.findings
@@ -47,6 +57,9 @@ export async function collectKeepDirs(
       .map((finding) => toPosix(finding.path)),
   );
   const keepDirs = new Set<string>();
+  // Only `source` counts toward Prefer: a repo-root `docs/` holds kept content
+  // (so no glob may claim it) without being where anyone should read code.
+  const sourceWeight = new Map<string, number>();
 
   async function walk(dir: string): Promise<void> {
     let entries;
@@ -78,18 +91,29 @@ export async function collectKeepDirs(
       if (excluded.has(path)) {
         continue;
       }
+      const fileClass = classifyFiletype(path);
       const kept =
-        KEPT_CLASSES.has(classifyFiletype(path)) ||
-        protectionFor(path) !== undefined;
+        KEPT_CLASSES.has(fileClass) || protectionFor(path) !== undefined;
       if (!kept) {
         continue;
       }
-      for (const ancestor of ancestorDirs(path)) {
+      const ancestors = ancestorDirs(path);
+      for (const ancestor of ancestors) {
         keepDirs.add(ancestor);
+      }
+      const root = ancestors[0];
+      if (fileClass === "source" && root !== undefined) {
+        sourceWeight.set(root, (sourceWeight.get(root) ?? 0) + 1);
       }
     }
   }
 
   await walk(rootResolved);
-  return keepDirs;
+
+  const sourceRoots = [...sourceWeight.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, MAX_SOURCE_ROOTS)
+    .map(([dir]) => dir);
+
+  return { keepDirs, sourceRoots };
 }
