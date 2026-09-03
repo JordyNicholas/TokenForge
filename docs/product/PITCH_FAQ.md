@@ -73,8 +73,16 @@ Guide: [`prove-monthly.md`](../runbooks/prove-monthly.md). Sound bite:
   developers can see what TokenForge produced; agents treat them as non-content).
 
 Exclusion candidate YAML stays on TokenForge-named paths and may fully replace.
-Dry-run / apply output lists `create`, `merge`, or `replace` per path. The lean
-section is still synthesized from the scan (“do not load” / prefer lists).
+Dry-run / apply output lists `create`, `merge`, or `replace` per path.
+
+The lean section is **synthesized from that repo's scan, not a template**: the
+opening line names the waste kinds actually found, “do not load” entries are
+grouped by kind (binary assets, lockfiles and data dumps, build output, and
+large text worth reading a section of), and Prefer names the repo's real source
+roots. Exclusion globs never widen to a directory still holding source, config,
+or an API contract. No token counts are written into the file — the numbers stay
+in `scan-report.json`. See
+[`HEURISTIC_FIX_DESIGN.md`](../design/HEURISTIC_FIX_DESIGN.md).
 
 ## Estimate vs actual billed usage?
 
