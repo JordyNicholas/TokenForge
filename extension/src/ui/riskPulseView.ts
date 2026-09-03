@@ -23,7 +23,7 @@ import { readLlmSettings } from "../enrich/settings";
 import { assertValidLastScan, buildLastScanReport } from "../export/buildLastScan";
 import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
-import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
+import { isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
 import { peekInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
@@ -183,8 +183,7 @@ class RiskPulseProvider implements WebviewViewProvider {
           provider,
         }),
       );
-      const [rulesCost, discoverItems, instrPaths] = await Promise.all([
-        estimateRulesBudget(root, this.session.listAll()),
+      const [discoverItems, instrPaths] = await Promise.all([
         discoverRecentChanges(root, {
           sinceMs: hours * 60 * 60 * 1000,
           editorPath,
@@ -199,7 +198,7 @@ class RiskPulseProvider implements WebviewViewProvider {
       if (gen !== this.renderGen) {
         return;
       }
-      this.rulesCost = rulesCost;
+      this.rulesCost = instrPaths.reduce((sum, assessment) => sum + assessment.estTokens, 0);
       this.discoverItems = discoverItems;
       this.overlapHints = peekInstructionOverlap(
         this.session.listAll(),
@@ -222,7 +221,7 @@ class RiskPulseProvider implements WebviewViewProvider {
       clearTimeout(this.slowTimer);
     }
     await new Promise<void>((resolve) => {
-      this.slowTimer = setTimeout(() => resolve(), 50);
+      this.slowTimer = setTimeout(() => resolve(), 400);
     });
     if (gen !== this.renderGen) {
       return;
