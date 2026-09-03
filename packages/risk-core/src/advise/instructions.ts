@@ -6,6 +6,11 @@ import type {
 } from "../domain/types";
 import { classifyFiletype } from "../classify/classify";
 import { resolveSuggestion } from "../advise/suggest";
+import {
+  WASTE_KIND_LABEL,
+  dominantWasteKinds,
+  joinLabels,
+} from "./kinds";
 import { activePathSet, isActivePath } from "../policy/active";
 import { collapseExclusionPaths, type CollapseOptions } from "../policy/collapse";
 import { isInstructionStackOverBudget } from "../instruction/budget";
@@ -19,12 +24,15 @@ export type SynthesizeLeanInstructionsOptions = {
   completeSummaries?: boolean;
   /** Directories a "do not load" glob must never widen to — see {@link CollapseOptions}. */
   keepDirs?: ReadonlySet<string>;
+  /** Top-level directories holding living source, for the Prefer section. */
+  sourceRoots?: readonly string[];
 };
 
 const HYGIENE_KINDS = new Set(["trim_instructions", "dedupe_rules"]);
 const MAX_HYGIENE_SUMMARY_CHARS = 120;
 const COMPLETE_HYGIENE_SUMMARY_CHARS = 480;
 const MAX_WHY_THEMES = 3;
+const MAX_PREFER_ROOTS = 4;
 const MAX_EXCLUDE_BULLETS = 24;
 const MAX_HYGIENE_BULLETS = 8;
 const MAX_ADVISORY_BULLETS = 6;
@@ -166,6 +174,51 @@ function advisoryBullets(
     .slice(0, MAX_ADVISORY_BULLETS);
 }
 
+/**
+ * Opening lines, named from what this scan actually found.
+ *
+ * The template this replaces recited "lockfiles, generated trees, and oversized
+ * dumps" everywhere. On a repo whose bleed is images and two data dumps that
+ * names three categories the scan never flagged, and teaches the agent nothing
+ * about where the weight really is.
+ */
+function introLines(report: TokenRiskReport): string[] {
+  const kinds = dominantWasteKinds(report.findings);
+  if (kinds.length === 0) {
+    return [
+      "Keep Chat/Agent context small. Prefer living source over generated and",
+      "oversized files. Do not paste those into the prompt.",
+    ];
+  }
+  const labels = joinLabels(kinds.map((kind) => WASTE_KIND_LABEL[kind]));
+  return [
+    `Keep Chat/Agent context small. In this repo the weight is ${labels}.`,
+    "Do not paste those files into the prompt.",
+  ];
+}
+
+/**
+ * Prefer roots the caller attested to, or the generic line when it could not.
+ * Naming `src/` on a repo that has no `src/` is worse than saying nothing.
+ */
+function preferLines(sourceRoots: readonly string[] | undefined): string[] {
+  const roots = (sourceRoots ?? []).filter((root) => root.length > 0);
+  if (roots.length === 0) {
+    return [
+      "- Living application source over generated or vendored trees",
+      "- Short, living config — not legacy XML/JSON dumps",
+    ];
+  }
+  const named = roots
+    .slice(0, MAX_PREFER_ROOTS)
+    .map((root) => `\`${root}/\``)
+    .join(", ");
+  return [
+    `- Living source under ${named}`,
+    "- Short, living config — not the dumps listed above",
+  ];
+}
+
 function whyThemes(report: TokenRiskReport): string[] {
   const themes = report.scan?.llm?.analysisOverview?.themes ?? [];
   return themes
@@ -230,17 +283,10 @@ export function synthesizeLeanInstructions(
     ? COMPLETE_HYGIENE_SUMMARY_CHARS
     : MAX_HYGIENE_SUMMARY_CHARS;
 
-  const header = [
-    `# ${title}`,
-    "",
-    "Keep Chat/Agent context small. Prefer source over lockfiles, generated trees,",
-    "and oversized dumps. Do not paste those files into the prompt.",
-  ].join("\n");
-
+  const header = [`# ${title}`, "", ...introLines(report)].join("\n");
   const prefer = [
     "## Prefer",
-    "- Current source under `src/` (or living application source)",
-    "- Short, living config — not legacy XML/JSON dumps",
+    ...preferLines(options.sourceRoots),
     "",
     "This file is intentionally short. Do not append logs, lockfile excerpts, or",
     "vendor billing notes.",

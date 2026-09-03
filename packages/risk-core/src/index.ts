@@ -94,6 +94,12 @@ export {
 } from "./layers/resolve";
 export { explainFinding } from "./advise/explain";
 export {
+  WASTE_KIND_LABEL,
+  dominantWasteKinds,
+  wasteKindFor,
+  type WasteKind,
+} from "./advise/kinds";
+export {
   isLlmAnalysisOverview,
   parseLlmAnalysisOverview,
 } from "./advise/overview";

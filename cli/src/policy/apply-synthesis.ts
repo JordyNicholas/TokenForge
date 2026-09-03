@@ -46,6 +46,7 @@ export async function synthesizeManagedInstructionBody(options: {
   title: string;
   applyOptions: ApplyOptions;
   keepDirs?: ReadonlySet<string>;
+  sourceRoots?: readonly string[];
 }): Promise<PolicySynthesisResult> {
   const config = await readTokenForgeConfig(options.root);
   const applyMode =
@@ -68,6 +69,7 @@ export async function synthesizeManagedInstructionBody(options: {
     config,
     instructionContents,
     keepDirs: options.keepDirs,
+    sourceRoots: options.sourceRoots,
     onProgress: options.applyOptions.onProgress,
   };
 
