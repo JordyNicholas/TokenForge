@@ -61,12 +61,13 @@ TokenForge does **not** intercept private vendor agent pipelines. It uses exclus
 
 | Feature | Setting / command | Notes |
 | --- | --- | --- |
-| Analyze rules | `tokenforge.llmEnrichment`, **Analyze rules** | Bounded candidates; transparency coach before external send |
-| Pre-prompt gate | `tokenforge.prePromptGate` | Warn when context cost exceeds threshold |
-| Task context pack | **Prepare agent session**, **Apply task pack** | Heuristic focus list; estimate only |
-| Discover | **Run discover** | Delta + MCP audit + monorepo hints |
+| Analyze rules | `tokenforge.llmEnrichment`, **Analyze rules** | Bounded instruction files; cache; transparency coach before external send |
+| Pre-prompt gate | `tokenforge.prePromptGate` | Proceed / Review tabs / Shield pending / Skip when context cost is high |
+| Task context pack | **Prepare session**, **Apply task pack** | Confirm Apply and/or copy a paste-safe list; focused tab never Shielded; LLM rank when enrichment on |
+| Discover | **Run discover** | Missed policy gaps + session-kept + recent files + MCP + monorepo; optional LLM rank; `.tokenforge/discover-latest.json` |
 | Compact rules | **Compact rules preview** | Apply via `@tokenforge/policy-adapters` managed sections |
-| Smart excerpt | **Copy smart excerpt** | Selection → clipboard for chat paste |
+| Smart excerpt | **Copy smart excerpt** | Selection → clipboard for chat paste (no model) |
+| Drift advisor | Overview card | Pending/idle/lockfile heuristics; no chat read |
 
 ---
 

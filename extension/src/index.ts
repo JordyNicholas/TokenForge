@@ -6,9 +6,8 @@ import {
   type ExtensionContext,
 } from "vscode";
 import { applyTaskContextPack } from "./ai/applyTaskPack";
-import { runPrePromptGate } from "./ai/prePromptGate";
+import { runPrepareAgentSession } from "./ai/prepareSession";
 import { copySmartExcerpt } from "./ai/smartExcerpt";
-import { buildTaskContextPack } from "./ai/taskContextPack";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
 import {
@@ -199,30 +198,14 @@ function startContextGuard(context: ExtensionContext): void {
   const prepareAgentSession = commands.registerCommand(
     "tokenforge.prepareAgentSession",
     async () => {
-      const ok = await runPrePromptGate(session);
-      if (!ok) {
-        return;
-      }
-      let taskPrompt: string | undefined;
-      const enrichmentOn =
-        workspace.getConfiguration("tokenforge").get<boolean>("llmEnrichment") === true;
-      if (enrichmentOn) {
-        const typed = await window.showInputBox({
-          title: "Task context pack",
-          prompt:
-            "Optional: what are you working on? Leave empty to infer from the focused tab.",
-          placeHolder: "e.g. fix login timeout",
-          ignoreFocusOut: true,
-        });
-        if (typed === undefined) {
-          return;
+      try {
+        const result = await runPrepareAgentSession(session);
+        if (result.applied) {
+          await exportAfterShield(session);
         }
-        taskPrompt = typed.trim() || undefined;
+      } catch (error) {
+        void window.showErrorMessage(formatError("Prepare session failed", error));
       }
-      const pack = await buildTaskContextPack(session, { taskPrompt });
-      void window.showInformationMessage(
-        `Task pack (${pack.source}): ${pack.paths.length} path(s), ~${pack.estTokens} tokens. ${pack.note}`,
-      );
     },
   );
 
@@ -232,16 +215,32 @@ function startContextGuard(context: ExtensionContext): void {
       const hours = workspace
         .getConfiguration("tokenforge")
         .get<number>("discoverIntervalHours", 24);
+      const editorPath = window.activeTextEditor
+        ? workspace.asRelativePath(window.activeTextEditor.document.uri, false).replaceAll("\\", "/")
+        : undefined;
+      const report = assertValidLastScan(
+        buildLastScanReport({
+          tabs: session.listAll(),
+          decisionFor: (uri) => session.decision(uri),
+          repo: repoLabel(root),
+          team: teamLabel(),
+          provider: providerIdFromSettings(),
+        }),
+      );
       const candidates = await discoverRecentChanges(root, {
         sinceMs: hours * 60 * 60 * 1000,
+        editorPath,
+        report,
+        provider: providerIdFromSettings(),
+        writeReport: true,
       });
       if (candidates.length === 0) {
-        void window.showInformationMessage("Discover found no recent changes.");
+        void window.showInformationMessage("Discover found no missed savings or recent changes.");
         return;
       }
       const top = candidates
         .slice(0, 5)
-        .map((c) => c.path)
+        .map((c) => `${c.path}${c.kind ? ` [${c.kind}]` : ""}`)
         .join(", ");
       void window.showInformationMessage(`Discover: ${top}`);
     } catch (error) {
