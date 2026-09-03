@@ -203,9 +203,25 @@ function startContextGuard(context: ExtensionContext): void {
       if (!ok) {
         return;
       }
-      const pack = buildTaskContextPack(session);
+      let taskPrompt: string | undefined;
+      const enrichmentOn =
+        workspace.getConfiguration("tokenforge").get<boolean>("llmEnrichment") === true;
+      if (enrichmentOn) {
+        const typed = await window.showInputBox({
+          title: "Task context pack",
+          prompt:
+            "Optional: what are you working on? Leave empty to infer from the focused tab.",
+          placeHolder: "e.g. fix login timeout",
+          ignoreFocusOut: true,
+        });
+        if (typed === undefined) {
+          return;
+        }
+        taskPrompt = typed.trim() || undefined;
+      }
+      const pack = await buildTaskContextPack(session, { taskPrompt });
       void window.showInformationMessage(
-        `Task pack: ${pack.paths.length} path(s), ~${pack.estTokens} tokens. ${pack.note}`,
+        `Task pack (${pack.source}): ${pack.paths.length} path(s), ~${pack.estTokens} tokens. ${pack.note}`,
       );
     },
   );

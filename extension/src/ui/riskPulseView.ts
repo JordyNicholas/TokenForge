@@ -10,7 +10,10 @@ import {
 } from "vscode";
 import { adviseContextDrift } from "../ai/driftAdvisor";
 import { buildSessionSummary } from "../ai/sessionSummary";
-import { buildTaskContextPack } from "../ai/taskContextPack";
+import {
+  buildTaskContextPack,
+  peekTaskContextPack,
+} from "../ai/taskContextPack";
 import { discoverRecentChanges, type DiscoverCandidate } from "../discover/discoverService";
 import { collectInstructionCandidates } from "../enrich/collectCandidates";
 import {
@@ -123,7 +126,15 @@ class RiskPulseProvider implements WebviewViewProvider {
     }
 
     const drift = adviseContextDrift(this.session);
-    const taskPack = buildTaskContextPack(this.session);
+    const taskPack = peekTaskContextPack(this.session);
+    void buildTaskContextPack(this.session).then((resolved) => {
+      if (
+        resolved.source === "llm" &&
+        resolved.paths.join("\0") !== taskPack.paths.join("\0")
+      ) {
+        void this.render();
+      }
+    });
     const summary = buildSessionSummary(this.session);
     const threshold = workspace.getConfiguration("tokenforge").get<number>("rulesBudgetThreshold", 8_000);
     const prePromptEnabled = workspace.getConfiguration("tokenforge").get<boolean>("prePromptGate", false);
