@@ -212,6 +212,7 @@ function renderOverviewHtml(
   const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment } =
     model;
   const csp = webview.cspSource;
+  const nonce = makeNonce();
   const contextCost = formatTokenCount(pulse.displayAtRiskTokens);
   const sessionKpi = formatTokenCount(sessionSaved);
   const rulesKpi = formatTokenCount(rulesCost);
@@ -304,7 +305,7 @@ function renderOverviewHtml(
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp}; script-src ${csp};" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${csp} 'unsafe-inline'; script-src 'nonce-${nonce}';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="${cssUri}" />
   <style>
@@ -353,13 +354,14 @@ function renderOverviewHtml(
   ${discoverBlock}
   <div class="tf-section">Task context pack</div>
   ${taskPackBlock}
-  <script>
+  <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    for (const btn of document.querySelectorAll('[data-cmd]')) {
-      btn.addEventListener('click', () => {
-        vscode.postMessage({ type: 'action', command: btn.getAttribute('data-cmd') });
-      });
-    }
+    document.addEventListener('click', (event) => {
+      const el = event.target && event.target.closest ? event.target.closest('[data-cmd]') : null;
+      if (el) {
+        vscode.postMessage({ type: 'action', command: el.getAttribute('data-cmd') });
+      }
+    });
   </script>
 </body>
 </html>`;
@@ -378,6 +380,15 @@ function shieldLabel(decision: string): string {
 function basename(path: string): string {
   const parts = path.split(/[/\\]/);
   return parts[parts.length - 1] || path;
+}
+
+function makeNonce(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let nonce = "";
+  for (let i = 0; i < 32; i += 1) {
+    nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return nonce;
 }
 
 function escapeHtml(value: string): string {
