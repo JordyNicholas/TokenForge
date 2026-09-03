@@ -37,7 +37,7 @@ After a rebuild, **fully quit and relaunch** the Extension Development Host. `De
 | --- | --- |
 | Status bar | `context · shielded · saved` (click → Overview, or Prepare session when cost is high) |
 | **Open tabs** tree | Settings row, then Needs review / Allowed / Shielded (+ approaching idle) |
-| **Overview** webview | KPIs, enrichment status, quick actions, discover / drift / task-pack / overlap, honesty strip |
+| **Overview** webview | KPIs first (session-backed); workspace cards fill in the background |
 | Toolbar | Auto-shield, Shield all pending; remaining commands sit in the view overflow (`…`). Command Palette: **All TokenForge actions…**. The TokenForge container `…` is VS Code’s view-container menu. |
 
 ---
@@ -94,7 +94,7 @@ With enrichment **off** or Ollama down: heuristic path; Detect still works.
 
 **Prepare session** — pre-prompt gate (Proceed / Review tabs / Shield pending / Skip) → optional task prompt → Apply and/or copy pack. Focused editor is never Shielded. Clipboard pack is estimate-only.
 
-**Run discover** — `policy_gap` and `session_kept` vs applied exclusion YAML (same idea as CLI `tokenforge discover`), plus recent files, MCP config audit, monorepo package from the active editor. Persists `.tokenforge/discover-latest.json` on the command (not on every Overview refresh).
+**Run discover** — `policy_gap` and `session_kept` vs applied exclusion YAML (same idea as CLI `tokenforge discover`), plus recent files, MCP config audit, monorepo package from the active editor. Persists `.tokenforge/discover-latest.json` on the command (not on every Overview refresh). Overview does not wait on that walk or on Lane A LLM before painting KPIs.
 
 ---
 

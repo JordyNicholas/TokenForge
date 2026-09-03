@@ -10,10 +10,7 @@ import {
 } from "vscode";
 import { adviseContextDrift } from "../ai/driftAdvisor";
 import { buildSessionSummary } from "../ai/sessionSummary";
-import {
-  buildTaskContextPack,
-  peekTaskContextPack,
-} from "../ai/taskContextPack";
+import { peekTaskContextPack } from "../ai/taskContextPack";
 import { discoverRecentChanges, type DiscoverCandidate } from "../discover/discoverService";
 import { collectInstructionCandidates } from "../enrich/collectCandidates";
 import {
@@ -27,11 +24,7 @@ import { assertValidLastScan, buildLastScanReport } from "../export/buildLastSca
 import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
-import {
-  peekInstructionOverlap,
-  resolveInstructionOverlap,
-  type OverlapHint,
-} from "../instructions/overlapRadar";
+import { peekInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
@@ -52,12 +45,18 @@ type OverviewModel = {
   prePromptBanner: boolean;
   rulesOverThreshold: boolean;
   enrichment: EnrichmentStatusView;
+  cardsLoading: boolean;
 };
 
 class RiskPulseProvider implements WebviewViewProvider {
   private view?: WebviewView;
   private readonly disposables: Array<{ dispose(): void }> = [];
   private rulesCost = 0;
+  private discoverItems: readonly DiscoverCandidate[] = [];
+  private overlapHints: readonly OverlapHint[] = [];
+  private renderGen = 0;
+  private slowTimer: ReturnType<typeof setTimeout> | undefined;
+  private workspaceCardsReady = false;
 
   constructor(
     private readonly session: ShieldSession,
@@ -98,24 +97,69 @@ class RiskPulseProvider implements WebviewViewProvider {
   }
 
   dispose(): void {
+    if (this.slowTimer) {
+      clearTimeout(this.slowTimer);
+    }
     for (const disposable of this.disposables) {
       disposable.dispose();
     }
   }
 
-  private async buildModel(): Promise<OverviewModel> {
+  /** KPIs from the live session — never waits on disk walks or LLM. */
+  private buildFastModel(cardsLoading: boolean): OverviewModel {
     const pulse = this.session.pulse();
     const sessionSaved = this.session.sessionAvoidedTokens();
-    let rulesCost = this.rulesCost;
-    try {
-      const root = resolveWorkspaceRoot();
-      rulesCost = await estimateRulesBudget(root, this.session.listAll());
-      this.rulesCost = rulesCost;
-    } catch {
-      /* no folder workspace */
-    }
+    const threshold = workspace.getConfiguration("tokenforge").get<number>("rulesBudgetThreshold", 8_000);
+    const prePromptEnabled = workspace.getConfiguration("tokenforge").get<boolean>("prePromptGate", false);
+    const drift = adviseContextDrift(this.session);
+    const taskPack = peekTaskContextPack(this.session);
+    const summary = buildSessionSummary(this.session);
+    const levers = this.session.leversAppliedSummary();
+    return {
+      pulse,
+      sessionSaved,
+      rulesCost: this.rulesCost,
+      autoShieldOn: isAutoFilterEnabled(),
+      driftSummary: drift
+        ? [drift.summary, ...drift.suggestions].join(" ")
+        : undefined,
+      discoverItems: this.discoverItems,
+      taskPackPaths: taskPack.paths,
+      sessionNarrative: summary.narrative,
+      overlapHints: this.overlapHints,
+      leversFootnote:
+        levers.length > 0
+          ? `${levers.length} Shield lever(s) applied (${levers.map((l) => l.effectiveness).join(", ")}).`
+          : undefined,
+      prePromptBanner:
+        prePromptEnabled && pulse.displayAtRiskTokens >= threshold && pulse.pendingCount > 0,
+      rulesOverThreshold: isRulesBudgetOverThreshold(this.rulesCost, threshold),
+      enrichment: describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun()),
+      cardsLoading,
+    };
+  }
 
-    let discoverItems: readonly DiscoverCandidate[] = [];
+  private paint(model: OverviewModel): void {
+    if (!this.view) {
+      return;
+    }
+    const cssUri = this.view.webview.asWebviewUri(
+      Uri.joinPath(this.extensionUri, "media", "tokenforge.css"),
+    );
+    this.view.webview.html = renderOverviewHtml(this.view.webview, cssUri, model);
+    this.view.description = model.autoShieldOn ? "Auto-shield on" : undefined;
+    this.view.badge =
+      model.pulse.totals.savedTokens > 0
+        ? {
+            value: Math.min(model.pulse.filteredCount, 99),
+            tooltip: `${formatTokenCount(model.pulse.totals.savedTokens)} shielded`,
+          }
+        : model.autoShieldOn
+          ? { value: 1, tooltip: "Auto-shield is on" }
+          : undefined;
+  }
+
+  private async fillWorkspaceCards(gen: number): Promise<void> {
     try {
       const root = resolveWorkspaceRoot();
       const hours = workspace.getConfiguration("tokenforge").get<number>("discoverIntervalHours", 24);
@@ -139,102 +183,55 @@ class RiskPulseProvider implements WebviewViewProvider {
           provider,
         }),
       );
-      discoverItems = await discoverRecentChanges(root, {
-        sinceMs: hours * 60 * 60 * 1000,
-        editorPath,
-        report,
-        provider,
-      });
-    } catch {
-      /* ignore */
-    }
-
-    const drift = adviseContextDrift(this.session);
-    const taskPack = peekTaskContextPack(this.session);
-    void buildTaskContextPack(this.session).then((resolved) => {
-      if (
-        resolved.source === "llm" &&
-        resolved.paths.join("\0") !== taskPack.paths.join("\0")
-      ) {
-        void this.render();
+      const [rulesCost, discoverItems, instrPaths] = await Promise.all([
+        estimateRulesBudget(root, this.session.listAll()),
+        discoverRecentChanges(root, {
+          sinceMs: hours * 60 * 60 * 1000,
+          editorPath,
+          report,
+          provider,
+          writeReport: false,
+          fileWalk: false,
+          enrichmentEnabled: false,
+        }),
+        collectInstructionCandidates(root, this.session.listAll()),
+      ]);
+      if (gen !== this.renderGen) {
+        return;
       }
-    });
-    const summary = buildSessionSummary(this.session);
-    const threshold = workspace.getConfiguration("tokenforge").get<number>("rulesBudgetThreshold", 8_000);
-    const prePromptEnabled = workspace.getConfiguration("tokenforge").get<boolean>("prePromptGate", false);
-    const prePromptBanner =
-      prePromptEnabled && pulse.displayAtRiskTokens >= threshold && pulse.pendingCount > 0;
-
-    let overlapHints: OverlapHint[] = [];
-    try {
-      const root = resolveWorkspaceRoot();
-      const instrPaths = await collectInstructionCandidates(root, this.session.listAll());
-      const paths = instrPaths.map((c) => c.path);
-      overlapHints = peekInstructionOverlap(this.session.listAll(), paths);
-      void resolveInstructionOverlap({
-        root,
-        tabs: this.session.listAll(),
-        instructionPaths: paths,
-      }).then((resolved) => {
-        const same =
-          resolved.length === overlapHints.length &&
-          resolved.every(
-            (hint, i) =>
-              hint.path === overlapHints[i]?.path &&
-              hint.overlapsWith === overlapHints[i]?.overlapsWith,
-          );
-        if (!same) {
-          void this.render();
-        }
-      });
+      this.rulesCost = rulesCost;
+      this.discoverItems = discoverItems;
+      this.overlapHints = peekInstructionOverlap(
+        this.session.listAll(),
+        instrPaths.map((c) => c.path),
+      );
     } catch {
-      /* ignore */
+      /* no folder / ignore */
     }
-
-    const levers = this.session.leversAppliedSummary();
-    const leversFootnote =
-      levers.length > 0
-        ? `${levers.length} Shield lever(s) applied (${levers.map((l) => l.effectiveness).join(", ")}).`
-        : undefined;
-
-    return {
-      pulse,
-      sessionSaved,
-      rulesCost,
-      autoShieldOn: isAutoFilterEnabled(),
-      driftSummary: drift
-        ? [drift.summary, ...drift.suggestions].join(" ")
-        : undefined,
-      discoverItems,
-      taskPackPaths: taskPack.paths,
-      sessionNarrative: summary.narrative,
-      overlapHints,
-      leversFootnote,
-      prePromptBanner,
-      rulesOverThreshold: isRulesBudgetOverThreshold(rulesCost, threshold),
-      enrichment: describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun()),
-    };
+    this.workspaceCardsReady = true;
   }
 
   private async render(): Promise<void> {
     if (!this.view) {
       return;
     }
-    const model = await this.buildModel();
-    const cssUri = this.view.webview.asWebviewUri(
-      Uri.joinPath(this.extensionUri, "media", "tokenforge.css"),
-    );
-    this.view.webview.html = renderOverviewHtml(this.view.webview, cssUri, model);
-    this.view.description = model.autoShieldOn ? "Auto-shield on" : undefined;
-    this.view.badge =
-      model.pulse.totals.savedTokens > 0
-        ? {
-            value: Math.min(model.pulse.filteredCount, 99),
-            tooltip: `${formatTokenCount(model.pulse.totals.savedTokens)} shielded`,
-          }
-        : model.autoShieldOn
-          ? { value: 1, tooltip: "Auto-shield is on" }
-          : undefined;
+    this.renderGen += 1;
+    const gen = this.renderGen;
+    this.paint(this.buildFastModel(!this.workspaceCardsReady));
+    if (this.slowTimer) {
+      clearTimeout(this.slowTimer);
+    }
+    await new Promise<void>((resolve) => {
+      this.slowTimer = setTimeout(() => resolve(), 50);
+    });
+    if (gen !== this.renderGen) {
+      return;
+    }
+    await this.fillWorkspaceCards(gen);
+    if (gen !== this.renderGen) {
+      return;
+    }
+    this.paint(this.buildFastModel(false));
   }
 }
 
@@ -260,7 +257,7 @@ function renderOverviewHtml(
   cssUri: Uri,
   model: OverviewModel,
 ): string {
-  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment } =
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading } =
     model;
   const csp = webview.cspSource;
   const nonce = makeNonce();
@@ -269,7 +266,7 @@ function renderOverviewHtml(
   const rulesKpi = formatTokenCount(rulesCost);
 
   const emptyState =
-    pulse.segments.length === 0 && rulesCost === 0
+    !cardsLoading && pulse.segments.length === 0 && rulesCost === 0
       ? `<div class="tf-placeholder">No costly context detected. TokenForge watches tabs and rules while you work.</div>`
       : "";
 
@@ -308,7 +305,11 @@ function renderOverviewHtml(
           .slice(0, 5)
           .map((c) => `<li>${escapeHtml(c.path)}${c.note ? ` — ${escapeHtml(c.note)}` : ""}</li>`)
           .join("")}</ul>`
-      : `<div class="tf-placeholder">Run discover for missed policy gaps, session-kept tabs, and recent changes.</div>`;
+      : `<div class="tf-placeholder">${
+          cardsLoading
+            ? "Loading workspace cards…"
+            : "Run discover for missed policy gaps, session-kept tabs, and recent changes."
+        }</div>`;
 
   const overlapBlock =
     overlapHints.length > 0
@@ -316,7 +317,9 @@ function renderOverviewHtml(
           .slice(0, 4)
           .map((h) => `<li>${escapeHtml(h.path)} ↔ ${escapeHtml(h.overlapsWith)}</li>`)
           .join("")}</ul>`
-      : `<div class="tf-placeholder">Analyze rules to detect redundant instruction overlap.</div>`;
+      : `<div class="tf-placeholder">${
+          cardsLoading ? "Loading workspace cards…" : "Analyze rules to detect redundant instruction overlap."
+        }</div>`;
 
   const summaryBlock = `<p class="tf-summary">${escapeHtml(sessionNarrative)}</p>`;
   const leversBlock = leversFootnote

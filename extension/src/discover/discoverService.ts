@@ -35,6 +35,8 @@ export type DiscoverWorkspaceOptions = {
   editorPath?: string;
   report?: TokenRiskReport;
   provider?: ProviderId;
+  /** When false, skip the full-tree mtime walk (Overview paint). Command still walks. */
+  fileWalk?: boolean;
   writeReport?: boolean;
   enrichmentEnabled?: boolean;
   judge?: JsonJudgeFn;
@@ -277,7 +279,9 @@ export async function discoverRecentChanges(
     collected.push(...missed);
   }
 
-  collected.push(...(await walkRecentFiles(root, cutoff, sinceMs)));
+  if (options.fileWalk !== false) {
+    collected.push(...(await walkRecentFiles(root, cutoff, sinceMs)));
+  }
 
   const mcpFindings: McpAuditFinding[] = await auditMcpConfigs(root);
   for (const finding of mcpFindings) {

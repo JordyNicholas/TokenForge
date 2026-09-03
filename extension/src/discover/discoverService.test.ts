@@ -78,6 +78,32 @@ describe("discoverRecentChanges", () => {
     );
   });
 
+  it("skips the mtime walk when fileWalk is false", async () => {
+    const root = await makeRoot("nowalk");
+    await writeFile(join(root, "hot.ts"), "export const n = 1;\n");
+    const candidates = await discoverRecentChanges(root, {
+      report: report([
+        {
+          path: "package-lock.json",
+          reason: "high_risk_filetype",
+          bytes: 4_000,
+          estTokens: 8_000,
+          action: "excluded",
+          source: "heuristic",
+        },
+      ]),
+      provider: "copilot",
+      sinceMs: 86_400_000,
+      writeReport: false,
+      fileWalk: false,
+      enrichmentEnabled: false,
+    });
+    expect(candidates.some((c) => c.kind === "policy_gap" && c.path === "package-lock.json")).toBe(
+      true,
+    );
+    expect(candidates.every((c) => c.path !== "hot.ts")).toBe(true);
+  });
+
   it("ranks session_kept above a stub LLM when enrichment is on", async () => {
     const root = await makeRoot("llm");
     const candidates = await discoverRecentChanges(root, {

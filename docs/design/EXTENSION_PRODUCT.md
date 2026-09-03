@@ -23,7 +23,7 @@ Marketplace name: **TokenForge — AI Context Guard**.
 
 | View | ID | Role |
 | --- | --- | --- |
-| **Overview** | `tokenforge.riskPulse` | Hero KPIs (context cost, session saved, rules cost), AI enrichment status, quick actions, task pack / discover / drift / overlap cards, honesty strip |
+| **Overview** | `tokenforge.riskPulse` | Hero KPIs paint immediately from the live session; rules / discover / overlap cards fill without blocking on a repo walk or LLM |
 | **Open tabs** | `tokenforge.riskPanel` | Operational Shield surface — settings row first, then **Needs review** / **Allowed** / **Shielded** / approaching idle |
 
 Activity bar container: TokenForge shield icon. Both views require `tokenforge.workspaceEligible` (folder workspace).
@@ -118,7 +118,7 @@ Shared `scoreRisk` / `assessTab`. A tab is at-risk when any of:
 
 **Apply task pack** — same apply rule without the confirmation UI.
 
-**Run discover** — CLI-aligned missed savings (`policy_gap`, `session_kept`) from current session / last-scan vs applied exclusion YAML, plus recent files, MCP audit, monorepo hint from the active editor. **Run discover** writes `.tokenforge/discover-latest.json`. Overview card does not persist.
+**Run discover** — CLI-aligned missed savings (`policy_gap`, `session_kept`) from current session / last-scan vs applied exclusion YAML, plus recent files, MCP audit, monorepo hint from the active editor. **Run discover** writes `.tokenforge/discover-latest.json`. Overview paints KPIs immediately; its discover card skips the full-tree mtime walk and LLM rank (those run on the command). Overview does not persist.
 
 ---
 
