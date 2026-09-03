@@ -93,6 +93,13 @@ export const outputShapeAppExpectedTotalsPath = resolve(
   "fixtures/expected/output-shape-app-totals.json",
 );
 
+/** Asset-tree density (#301): directories that hold nothing but media. */
+export const assetDumpAppRoot = resolve(repoRoot, "fixtures/asset-dump-app");
+export const assetDumpAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/asset-dump-app-totals.json",
+);
+
 /** Hybrid eval: LLM-style instruction sprawl for scan/apply demos. */
 export const hybridEvalAppRoot = resolve(repoRoot, "fixtures/hybrid-eval-app");
 export const hybridEvalAppExpectedTotalsPath = resolve(

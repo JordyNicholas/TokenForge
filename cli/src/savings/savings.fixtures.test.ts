@@ -17,6 +17,8 @@ import {
   monorepoConfigAppExpectedTotalsPath,
   monorepoConfigAppRoot,
   outputShapeAppExpectedTotalsPath,
+  assetDumpAppExpectedTotalsPath,
+  assetDumpAppRoot,
   outputShapeAppRoot,
   overCollapseAppExpectedTotalsPath,
   overCollapseAppRoot,
@@ -59,6 +61,7 @@ describe.each([
     activeSessionAppExpectedTotalsPath,
   ],
   ["output-shape-app", outputShapeAppRoot, outputShapeAppExpectedTotalsPath],
+  ["asset-dump-app", assetDumpAppRoot, assetDumpAppExpectedTotalsPath],
   [
     "over-collapse-app",
     overCollapseAppRoot,

@@ -119,6 +119,14 @@ export {
 } from "./advise/instructions";
 export { collapseExclusionPaths, type CollapseOptions } from "./policy/collapse";
 export {
+  ASSET_DIR_GLOB_SUFFIX,
+  foldAssetDirectories,
+  isAssetDirectoryGlob,
+  type AssetDirectoryFold,
+  type DensityInput,
+  type DensityOptions,
+} from "./policy/density";
+export {
   discoverMissedOpportunities,
   isPathCoveredByExclusion,
   missedOpportunityTokens,

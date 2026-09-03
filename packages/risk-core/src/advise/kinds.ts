@@ -1,4 +1,5 @@
 import { classifyFiletype, fileName } from "../classify/classify";
+import { isAssetDirectoryGlob } from "../policy/density";
 import type { TokenRiskFinding } from "../domain/types";
 
 /**
@@ -39,6 +40,11 @@ function extensionOf(path: string): string {
 
 /** Bucket a path for policy text. */
 export function wasteKindFor(path: string): WasteKind {
+  // A folded asset directory has no extension to read, but its trigger is a
+  // media supermajority — so the shape already answers the question.
+  if (isAssetDirectoryGlob(path)) {
+    return "binary";
+  }
   const extension = extensionOf(path);
   const fileClass = classifyFiletype(path);
   // `media` owns the binary bucket now, so the extension list lives in one

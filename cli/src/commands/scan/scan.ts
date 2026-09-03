@@ -7,6 +7,7 @@ import {
   buildScanLayers,
   computeInstructionBudget,
   enrichmentTierForBackend,
+  foldAssetDirectories,
   heuristicFindingAction,
   isActivePath,
   isInstructionPath,
@@ -322,10 +323,31 @@ export async function scanRepo(options: ScanOptions): Promise<ScanResult> {
     : undefined;
   const active = activePathSet({ activePaths });
 
-  const pathHeuristicFindings = assessments.flatMap((assessment) => {
-    const finding = toFinding(assessment, active);
-    return finding ? [finding] : [];
-  });
+  // Directories that hold nothing but assets speak for themselves; without this
+  // the media class turns a repo like `tabler` into ~900 findings whose only
+  // interesting property is the directory they share.
+  const folds = foldAssetDirectories(assessments, { keepPaths: active });
+  const foldedPaths = new Set(folds.flatMap((fold) => fold.paths));
+
+  const pathHeuristicFindings = [
+    ...assessments.flatMap((assessment) => {
+      if (foldedPaths.has(assessment.path)) {
+        return [];
+      }
+      const finding = toFinding(assessment, active);
+      return finding ? [finding] : [];
+    }),
+    ...folds.map(
+      (fold): TokenRiskFinding => ({
+        path: fold.glob,
+        reason: "high_risk_filetype",
+        bytes: fold.bytes,
+        estTokens: fold.estTokens,
+        action: "excluded",
+        source: "heuristic",
+      }),
+    ),
+  ];
 
   const instructionContents = await loadInstructionContents(root, assessments);
   const instructionBudget = computeInstructionBudget(assessments);
