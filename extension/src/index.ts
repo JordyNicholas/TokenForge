@@ -1,5 +1,6 @@
 import {
   commands,
+  ProgressLocation,
   QuickPickItem,
   workspace,
   window,
@@ -181,7 +182,12 @@ function startContextGuard(context: ExtensionContext): void {
         return;
       }
       void window.showInformationMessage(`Shielded ${count} pending tab(s).`);
-      await exportAfterShield(session);
+      const exported = await exportAfterShield(session);
+      if (!exported) {
+        void window.showWarningMessage(
+          "Shield applied, but exporting last-scan.json / session-stats failed.",
+        );
+      }
     },
   );
 
@@ -227,13 +233,24 @@ function startContextGuard(context: ExtensionContext): void {
           provider: providerIdFromSettings(),
         }),
       );
-      const candidates = await discoverRecentChanges(root, {
-        sinceMs: hours * 60 * 60 * 1000,
-        editorPath,
-        report,
-        provider: providerIdFromSettings(),
-        writeReport: true,
-      });
+      const { candidates, ranking } = await window.withProgress(
+        {
+          location: ProgressLocation.Notification,
+          title: "TokenForge: Run discover",
+          cancellable: false,
+        },
+        async (progress) => {
+          progress.report({ message: "Scanning missed savings and recent changes…" });
+          return discoverRecentChanges(root, {
+            sinceMs: hours * 60 * 60 * 1000,
+            editorPath,
+            report,
+            provider: providerIdFromSettings(),
+            writeReport: true,
+            onProgress: (message) => progress.report({ message }),
+          });
+        },
+      );
       if (candidates.length === 0) {
         void window.showInformationMessage("Discover found no missed savings or recent changes.");
         return;
@@ -242,7 +259,13 @@ function startContextGuard(context: ExtensionContext): void {
         .slice(0, 5)
         .map((c) => `${c.path}${c.kind ? ` [${c.kind}]` : ""}`)
         .join(", ");
-      void window.showInformationMessage(`Discover: ${top}`);
+      const rankNote =
+        ranking === "heuristic"
+          ? " Ranked heuristically (LLM unavailable)."
+          : ranking === "llm"
+            ? " Ranked with AI enrichment."
+            : "";
+      void window.showInformationMessage(`Discover: ${top}.${rankNote}`);
     } catch (error) {
       void window.showErrorMessage(formatError("Discover failed", error));
     }
@@ -306,10 +329,10 @@ function startContextGuard(context: ExtensionContext): void {
   const exportScan = commands.registerCommand("tokenforge.exportLastScan", async () => {
     try {
       const result = await writeLastScan(session);
-      const choice = await window.showInformationMessage(
-        `Exported ${result.reportPath} (${result.savedTokens} tokens saved)`,
-        "Reveal",
-      );
+      const summary = result.wrote
+        ? `Exported ${result.reportPath} (${result.savedTokens} tokens saved)`
+        : `last-scan.json already up to date (${result.savedTokens} tokens saved)`;
+      const choice = await window.showInformationMessage(summary, "Reveal");
       if (choice === "Reveal") {
         await revealLastScan(result.reportPath);
       }
@@ -472,10 +495,10 @@ function startContextGuard(context: ExtensionContext): void {
     async () => {
       try {
         const result = await writeSessionStats(session);
-        const choice = await window.showInformationMessage(
-          `Exported ${result.reportPath} (${result.sessionAvoidedTokens} session tokens avoided)`,
-          "Reveal",
-        );
+        const summary = result.wrote
+          ? `Exported ${result.reportPath} (${result.sessionAvoidedTokens} session tokens avoided)`
+          : `session-stats.json already up to date (${result.sessionAvoidedTokens} session tokens avoided)`;
+        const choice = await window.showInformationMessage(summary, "Reveal");
         if (choice === "Reveal") {
           await revealSessionStats(result.reportPath);
         }
@@ -582,7 +605,7 @@ async function performShield(
       writeSessionStats(session),
     ]);
     const choice = await window.showInformationMessage(
-      `Shielded ${pathLabel ?? "tab"} — ${exportResult.savedTokens} tokens saved`,
+      `Shielded ${pathLabel ?? "tab"} — session estimate ${exportResult.savedTokens} tokens saved`,
       "Reveal last-scan.json",
     );
     if (choice === "Reveal last-scan.json") {
@@ -593,11 +616,12 @@ async function performShield(
   }
 }
 
-async function exportAfterShield(session: ShieldSession): Promise<void> {
+async function exportAfterShield(session: ShieldSession): Promise<boolean> {
   try {
     await Promise.all([writeLastScan(session), writeSessionStats(session)]);
+    return true;
   } catch {
-    /* best effort */
+    return false;
   }
 }
 

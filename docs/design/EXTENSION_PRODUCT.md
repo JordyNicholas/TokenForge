@@ -118,7 +118,7 @@ Shared `scoreRisk` / `assessTab`. A tab is at-risk when any of:
 
 **Apply task pack** — same apply rule without the confirmation UI.
 
-**Run discover** — CLI-aligned missed savings (`policy_gap`, `session_kept`) from current session / last-scan vs applied exclusion YAML, plus recent files, MCP audit, monorepo hint from the active editor. **Run discover** writes `.tokenforge/discover-latest.json`. Overview paints KPIs immediately; its discover card skips the full-tree mtime walk and LLM rank (those run on the command). Overview does not persist.
+**Run discover** — CLI-aligned missed savings (`policy_gap`, `session_kept`) from current session / last-scan vs applied exclusion YAML, plus recent files, MCP audit, monorepo hint from the active editor. **Run discover** writes `.tokenforge/discover-latest.json` and shows a progress notification. Overview paints KPIs immediately; its discover card skips the full-tree mtime walk and LLM rank (those run on the command). Overview does not persist. When enrichment is on, Overview kicks the overlap radar in the background after heuristic peek.
 
 ---
 

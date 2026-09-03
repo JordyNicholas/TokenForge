@@ -40,6 +40,7 @@ export type DiscoverWorkspaceOptions = {
   writeReport?: boolean;
   enrichmentEnabled?: boolean;
   judge?: JsonJudgeFn;
+  onProgress?: (message: string) => void;
 };
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".tokenforge"]);
@@ -256,10 +257,17 @@ async function persistDiscover(
 }
 
 /** Delta + missed Fix opportunities + MCP/monorepo; optional LLM rank (#269/#270/#274). */
+export type DiscoverRanking = "llm" | "heuristic" | "skipped";
+
+export type DiscoverResult = {
+  candidates: DiscoverCandidate[];
+  ranking: DiscoverRanking;
+};
+
 export async function discoverRecentChanges(
   root: string,
   options: DiscoverWorkspaceOptions = {},
-): Promise<DiscoverCandidate[]> {
+): Promise<DiscoverResult> {
   const maxResults = options.maxResults ?? 12;
   const sinceMs = options.sinceMs ?? 24 * 60 * 60 * 1000;
   const provider = options.provider ?? options.report?.provider ?? "generic";
@@ -280,6 +288,7 @@ export async function discoverRecentChanges(
   }
 
   if (options.fileWalk !== false) {
+    options.onProgress?.("Walking recent workspace files…");
     collected.push(...(await walkRecentFiles(root, cutoff, sinceMs)));
   }
 
@@ -308,10 +317,12 @@ export async function discoverRecentChanges(
   }
 
   let merged = mergeUnique(collected).sort((a, b) => b.score - a.score);
+  let ranking: DiscoverRanking = "skipped";
 
   const enrichmentEnabled =
     options.enrichmentEnabled ?? readLlmSettings().enrichmentEnabled;
   if (enrichmentEnabled && merged.length > 1) {
+    options.onProgress?.("Ranking with AI enrichment…");
     const slice = merged.slice(0, MAX_RANK);
     const allowed = new Set(slice.map((item) => item.path));
     const judge = options.judge ?? defaultJudge;
@@ -324,9 +335,12 @@ export async function discoverRecentChanges(
           ...ranked.map((path) => byPath.get(path)!),
           ...merged.filter((item) => !ranked.includes(item.path)),
         ];
+        ranking = "llm";
+      } else {
+        ranking = "heuristic";
       }
     } catch {
-      /* keep heuristic order */
+      ranking = "heuristic";
     }
   }
 
@@ -334,5 +348,5 @@ export async function discoverRecentChanges(
   if (options.writeReport === true) {
     await persistDiscover(root, result, missedTokens);
   }
-  return result;
+  return { candidates: result, ranking };
 }

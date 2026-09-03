@@ -57,7 +57,7 @@ describe("parseExclusionYaml", () => {
 describe("discoverRecentChanges", () => {
   it("surfaces policy gaps from a scan report when exclusions are empty", async () => {
     const root = await makeRoot("gap");
-    const candidates = await discoverRecentChanges(root, {
+    const { candidates } = await discoverRecentChanges(root, {
       report: report([
         {
           path: "package-lock.json",
@@ -81,7 +81,7 @@ describe("discoverRecentChanges", () => {
   it("skips the mtime walk when fileWalk is false", async () => {
     const root = await makeRoot("nowalk");
     await writeFile(join(root, "hot.ts"), "export const n = 1;\n");
-    const candidates = await discoverRecentChanges(root, {
+    const { candidates } = await discoverRecentChanges(root, {
       report: report([
         {
           path: "package-lock.json",
@@ -106,7 +106,7 @@ describe("discoverRecentChanges", () => {
 
   it("ranks session_kept above a stub LLM when enrichment is on", async () => {
     const root = await makeRoot("llm");
-    const candidates = await discoverRecentChanges(root, {
+    const { candidates, ranking } = await discoverRecentChanges(root, {
       report: report([
         {
           path: "src/app.ts",
@@ -132,6 +132,39 @@ describe("discoverRecentChanges", () => {
       judge: async () => ({ rankedPaths: ["src/app.ts", "package-lock.json"] }),
     });
     expect(candidates[0]?.path).toBe("src/app.ts");
+    expect(ranking).toBe("llm");
+  });
+
+  it("falls back to heuristic ranking when the judge fails", async () => {
+    const root = await makeRoot("llm-fail");
+    const { ranking } = await discoverRecentChanges(root, {
+      report: report([
+        {
+          path: "src/app.ts",
+          reason: "inactive_tab",
+          bytes: 400,
+          estTokens: 100,
+          action: "kept",
+          source: "heuristic",
+        },
+        {
+          path: "package-lock.json",
+          reason: "high_risk_filetype",
+          bytes: 4_000,
+          estTokens: 8_000,
+          action: "excluded",
+          source: "heuristic",
+        },
+      ]),
+      provider: "copilot",
+      sinceMs: 1,
+      writeReport: false,
+      enrichmentEnabled: true,
+      judge: async () => {
+        throw new Error("ollama down");
+      },
+    });
+    expect(ranking).toBe("heuristic");
   });
 });
 
