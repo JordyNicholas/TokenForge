@@ -84,14 +84,15 @@ export async function runPrepareAgentSession(
     void window.showInformationMessage("Copied task pack to the clipboard.");
   }
 
+  let appliedCount = 0;
   if (shouldApply) {
-    const count = await applyTaskContextPack(session, pack);
+    appliedCount = await applyTaskContextPack(session, pack);
     void window.showInformationMessage(
-      count === 0
+      appliedCount === 0
         ? "No pending tabs to adjust for this pack."
-        : `Applied task pack to ${count} tab(s). ${pack.note}`,
+        : `Applied task pack to ${appliedCount} tab(s). ${pack.note}`,
     );
   }
 
-  return { applied: shouldApply, copied: shouldCopy };
+  return { applied: shouldApply && appliedCount > 0, copied: shouldCopy };
 }
