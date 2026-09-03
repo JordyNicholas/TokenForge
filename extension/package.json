@@ -271,6 +271,12 @@
         "title": "Analyze rules",
         "category": "TokenForge",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "tokenforge.toggleLlmEnrichment",
+        "title": "Toggle AI enrichment",
+        "category": "TokenForge",
+        "icon": "$(sparkle)"
       }
     ],
     "menus": {
