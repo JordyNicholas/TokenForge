@@ -18,6 +18,8 @@ import {
   monorepoConfigAppRoot,
   outputShapeAppExpectedTotalsPath,
   outputShapeAppRoot,
+  overCollapseAppExpectedTotalsPath,
+  overCollapseAppRoot,
   semanticDuplicatesAppExpectedTotalsPath,
   semanticDuplicatesAppRoot,
 } from "../test/helpers";
@@ -57,6 +59,11 @@ describe.each([
     activeSessionAppExpectedTotalsPath,
   ],
   ["output-shape-app", outputShapeAppRoot, outputShapeAppExpectedTotalsPath],
+  [
+    "over-collapse-app",
+    overCollapseAppRoot,
+    overCollapseAppExpectedTotalsPath,
+  ],
   ["hybrid-eval-app", hybridEvalAppRoot, hybridEvalAppExpectedTotalsPath],
 ])("%s golden totals", (_name, root, expectedTotalsPath) => {
   it("matches fixtures/expected/*-totals.json (±0.1pp)", async () => {

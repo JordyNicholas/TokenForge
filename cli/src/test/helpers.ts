@@ -82,6 +82,11 @@ export const activeSessionLastScanPath = resolve(
 );
 
 /** Output-shape file classes (#171): test/CI logs and build artifacts. */
+export const overCollapseAppRoot = resolve(repoRoot, "fixtures/over-collapse-app");
+export const overCollapseAppExpectedTotalsPath = resolve(
+  repoRoot,
+  "fixtures/expected/over-collapse-app-totals.json",
+);
 export const outputShapeAppRoot = resolve(repoRoot, "fixtures/output-shape-app");
 export const outputShapeAppExpectedTotalsPath = resolve(
   repoRoot,
