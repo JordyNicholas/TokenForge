@@ -220,7 +220,7 @@ describe("synthesizeLeanInstructions", () => {
     );
   });
 
-  it("includes instruction stack budget even when under the recommended max", () => {
+  it("gives an under-budget verdict without printing counts", () => {
     const md = synthesizeLeanInstructions({
       ...heuristicReport,
       instructionBudget: {
@@ -230,9 +230,68 @@ describe("synthesizeLeanInstructions", () => {
       },
     });
     expect(md).toContain("## Instruction stack");
-    expect(md).toContain("900");
-    expect(md).toContain("1,200");
-    expect(md).not.toContain("Trim or dedupe rules files");
+    expect(md).toContain("within budget");
+    const stack = md.slice(md.indexOf("## Instruction stack"));
+    expect(stack).not.toContain("900");
+    expect(stack).not.toContain("1200");
+    expect(stack).not.toContain("1,200");
+    expect(stack).not.toContain("est. tokens");
+  });
+
+  it("names the heaviest rules files when the stack is over budget", () => {
+    const md = synthesizeLeanInstructions({
+      ...heuristicReport,
+      instructionBudget: {
+        alwaysOnTokens: 5000,
+        recommendedMax: 4096,
+        overBudget: true,
+        files: [
+          { path: ".agents/rules/docs.mdc", estTokens: 885 },
+          { path: ".agents/rules/main.mdc", estTokens: 2023 },
+        ],
+      },
+    });
+    const stack = md.slice(md.indexOf("## Instruction stack"));
+    expect(stack).toContain("over budget");
+    // Heaviest first, regardless of the order the report listed them in.
+    expect(stack).toContain(
+      "trim `.agents/rules/main.mdc` and `.agents/rules/docs.mdc` first",
+    );
+    expect(stack).not.toMatch(/\d{3,}/);
+  });
+
+  it("flags instruction files belonging to another provider", () => {
+    const md = synthesizeLeanInstructions({
+      ...heuristicReport,
+      provider: "copilot",
+      instructionBudget: {
+        alwaysOnTokens: 900,
+        recommendedMax: 1200,
+        overBudget: false,
+        files: [
+          { path: ".cursor/rules/app.mdc", estTokens: 500 },
+          { path: "CLAUDE.md", estTokens: 400 },
+        ],
+      },
+    });
+    expect(md).toContain("also carries `claude` and `cursor` instruction files");
+  });
+
+  it("stays quiet when every instruction file matches the apply provider", () => {
+    const md = synthesizeLeanInstructions({
+      ...heuristicReport,
+      provider: "copilot",
+      instructionBudget: {
+        alwaysOnTokens: 900,
+        recommendedMax: 1200,
+        overBudget: false,
+        files: [
+          { path: ".github/copilot-instructions.md", estTokens: 500 },
+          { path: "AGENTS.md", estTokens: 400 },
+        ],
+      },
+    });
+    expect(md).not.toContain("also carries");
   });
 
   it("never writes a 'do not load' bullet for a path the developer has open", () => {

@@ -1,6 +1,7 @@
 import { MAX_LEAN_INSTRUCTION_BYTES } from "../domain/constants";
 import type {
   FiletypeRiskClass,
+  ProviderId,
   TokenRiskFinding,
   TokenRiskReport,
 } from "../domain/types";
@@ -36,6 +37,7 @@ const MAX_HYGIENE_SUMMARY_CHARS = 120;
 const COMPLETE_HYGIENE_SUMMARY_CHARS = 480;
 const MAX_WHY_THEMES = 3;
 const MAX_PREFER_ROOTS = 4;
+const MAX_STACK_TRIM_HINTS = 2;
 const MAX_EXCLUDE_BULLETS = 24;
 const MAX_HYGIENE_BULLETS = 8;
 const MAX_ADVISORY_BULLETS = 6;
@@ -310,21 +312,77 @@ function compactOutputSection(): string {
   ].join("\n");
 }
 
+/**
+ * Verdict on the always-on instruction stack — no numbers.
+ *
+ * This rendered `~N,NNN est. tokens (recommended ≤ N,NNN)` into the file the
+ * agent reads every turn. A count there goes stale the moment anyone edits a
+ * rules file, carries no action on its own, and (via `toLocaleString`) even
+ * changed shape with the machine's locale. The name of the file to trim is the
+ * part worth keeping, so `estTokens` now only ranks the candidates.
+ */
 function instructionStackSection(report: TokenRiskReport): string | undefined {
   const budget = report.instructionBudget;
   if (!budget) {
     return undefined;
   }
-  const lines = [
-    "## Instruction stack",
-    `- Always-on instruction files total ~${budget.alwaysOnTokens.toLocaleString()} est. tokens (recommended ≤ ${budget.recommendedMax.toLocaleString()}).`,
-  ];
-  if (isInstructionStackOverBudget(budget)) {
-    lines.push(
-      "- Trim or dedupe rules files — heuristic stack budget, not a repo edit.",
-    );
+  if (!isInstructionStackOverBudget(budget)) {
+    return [
+      "## Instruction stack",
+      "- Always-on instruction files are within budget — no trimming needed.",
+    ].join("\n");
   }
-  return lines.join("\n");
+
+  const heaviest = [...budget.files]
+    .sort((a, b) => b.estTokens - a.estTokens || a.path.localeCompare(b.path))
+    .slice(0, MAX_STACK_TRIM_HINTS)
+    .map((file) => `\`${file.path}\``);
+
+  return [
+    "## Instruction stack",
+    heaviest.length > 0
+      ? `- Always-on instruction files are over budget — trim ${joinLabels(heaviest)} first.`
+      : "- Always-on instruction files are over budget — trim or dedupe the rules files.",
+    "- Heuristic stack budget, not a repo edit: TokenForge does not rewrite these files.",
+  ].join("\n");
+}
+
+/** Which provider's convention an always-on instruction path follows. */
+function providerShapeOf(path: string): ProviderId | undefined {
+  const lower = path.replaceAll("\\", "/").toLowerCase();
+  if (lower.startsWith(".cursor/") || lower.endsWith(".mdc")) {
+    return "cursor";
+  }
+  if (lower.endsWith("copilot-instructions.md")) {
+    return "copilot";
+  }
+  if (lower.endsWith("claude.md")) {
+    return "claude";
+  }
+  return undefined;
+}
+
+/**
+ * Note the other vendors' instruction files this repo already carries.
+ *
+ * `apply` writes one provider's pack per run, but the budget it just measured
+ * spans every always-on file in the tree. A repo shaped for Cursor that gets a
+ * Copilot pack would otherwise look policed while the heavier stack sits
+ * untouched.
+ */
+function providerShapeHint(report: TokenRiskReport): string | undefined {
+  const others = new Set<ProviderId>();
+  for (const file of report.instructionBudget?.files ?? []) {
+    const shape = providerShapeOf(file.path);
+    if (shape !== undefined && shape !== report.provider) {
+      others.add(shape);
+    }
+  }
+  if (others.size === 0) {
+    return undefined;
+  }
+  const named = joinLabels([...others].sort().map((id) => `\`${id}\``));
+  return `- This repo also carries ${named} instruction files — run apply for those providers too.`;
 }
 
 function joinSections(sections: string[]): string {
@@ -384,7 +442,9 @@ export function synthesizeLeanInstructions(
     }
 
     if (includeStack && stackSection) {
-      sections.push(stackSection);
+      const hint = providerShapeHint(report);
+      sections.push(hint ? `${stackSection}
+${hint}` : stackSection);
     }
 
     if (advisory.length > 0) {
