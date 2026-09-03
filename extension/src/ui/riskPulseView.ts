@@ -26,7 +26,11 @@ import { readLlmSettings } from "../enrich/settings";
 import { resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
-import { detectInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
+import {
+  peekInstructionOverlap,
+  resolveInstructionOverlap,
+  type OverlapHint,
+} from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
@@ -145,10 +149,24 @@ class RiskPulseProvider implements WebviewViewProvider {
     try {
       const root = resolveWorkspaceRoot();
       const instrPaths = await collectInstructionCandidates(root, this.session.listAll());
-      overlapHints = detectInstructionOverlap(
-        this.session.listAll(),
-        instrPaths.map((c) => c.path),
-      );
+      const paths = instrPaths.map((c) => c.path);
+      overlapHints = peekInstructionOverlap(this.session.listAll(), paths);
+      void resolveInstructionOverlap({
+        root,
+        tabs: this.session.listAll(),
+        instructionPaths: paths,
+      }).then((resolved) => {
+        const same =
+          resolved.length === overlapHints.length &&
+          resolved.every(
+            (hint, i) =>
+              hint.path === overlapHints[i]?.path &&
+              hint.overlapsWith === overlapHints[i]?.overlapsWith,
+          );
+        if (!same) {
+          void this.render();
+        }
+      });
     } catch {
       /* ignore */
     }
