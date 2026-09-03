@@ -11,6 +11,7 @@ import { copySmartExcerpt } from "./ai/smartExcerpt";
 import { buildTaskContextPack } from "./ai/taskContextPack";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
+import { toggleLlmEnrichment } from "./enrich/settings";
 import { startAutoExport } from "./export/autoExport";
 import { assertValidLastScan, buildLastScanReport } from "./export/buildLastScan";
 import { revealLastScan } from "./export/revealLastScan";
@@ -372,7 +373,8 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Reveal last-scan.json" },
       { label: "Reveal session-stats.json" },
       { label: "Reset choices" },
-      { label: "Analyze rules" },
+      { label: "Analyze rules", description: "AI: enrich instruction files" },
+      { label: "Toggle AI enrichment", description: "Turn Lane A LLM on/off" },
       { label: "Clean session" },
       { label: "Prepare agent session" },
       { label: "Run discover" },
@@ -392,6 +394,7 @@ function startContextGuard(context: ExtensionContext): void {
       "Reveal session-stats.json": "tokenforge.revealSessionStats",
       "Reset choices": "tokenforge.clearFilters",
       "Analyze rules": "tokenforge.enrichInstructions",
+      "Toggle AI enrichment": "tokenforge.toggleLlmEnrichment",
       "Clean session": "tokenforge.cleanSession",
       "Prepare agent session": "tokenforge.prepareAgentSession",
       "Run discover": "tokenforge.runDiscover",
@@ -405,6 +408,24 @@ function startContextGuard(context: ExtensionContext): void {
       await commands.executeCommand(cmd);
     }
   });
+
+  const toggleLlmEnrich = commands.registerCommand(
+    "tokenforge.toggleLlmEnrichment",
+    async () => {
+      if (!workspace.workspaceFolders?.length) {
+        void window.showWarningMessage(
+          "Open a folder to toggle TokenForge AI enrichment (workspace-scoped).",
+        );
+        return;
+      }
+      const enabled = await toggleLlmEnrichment();
+      void window.showInformationMessage(
+        enabled
+          ? "TokenForge AI enrichment ON — Analyze rules will use your configured model. Detect stays heuristic."
+          : "TokenForge AI enrichment OFF — Detect stays heuristic; Analyze rules is disabled.",
+      );
+    },
+  );
 
   const enrichInstructions = commands.registerCommand(
     "tokenforge.enrichInstructions",
@@ -510,6 +531,7 @@ function startContextGuard(context: ExtensionContext): void {
     focusOverview,
     moreActions,
     enrichInstructions,
+    toggleLlmEnrich,
   );
 }
 

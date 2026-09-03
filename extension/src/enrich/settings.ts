@@ -1,5 +1,5 @@
 import type { LlmBackendId } from "@tokenforge/risk-core";
-import { workspace } from "vscode";
+import { ConfigurationTarget, workspace } from "vscode";
 
 export type ExtensionLlmSettings = {
   /** When false, enrichment command refuses to run (heuristic-first default). */
@@ -45,4 +45,22 @@ const LOCAL_BACKENDS: ReadonlySet<LlmBackendId> = new Set<LlmBackendId>([
 
 export function isExternalBackend(backend: LlmBackendId): boolean {
   return !LOCAL_BACKENDS.has(backend);
+}
+
+/** Persist LLM enrichment on/off for the current workspace (resource-scoped). */
+export async function setLlmEnrichmentEnabled(enabled: boolean): Promise<boolean> {
+  if (!workspace.workspaceFolders?.length) {
+    return false;
+  }
+  await workspace
+    .getConfiguration("tokenforge")
+    .update("llmEnrichment", enabled, ConfigurationTarget.Workspace);
+  return enabled;
+}
+
+/** Flip the workspace enrichment setting and return the new value. */
+export async function toggleLlmEnrichment(): Promise<boolean> {
+  const next = workspace.getConfiguration("tokenforge").get<boolean>("llmEnrichment") !== true;
+  await setLlmEnrichmentEnabled(next);
+  return next;
 }

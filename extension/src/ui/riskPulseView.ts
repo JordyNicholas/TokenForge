@@ -13,6 +13,13 @@ import { buildSessionSummary } from "../ai/sessionSummary";
 import { buildTaskContextPack } from "../ai/taskContextPack";
 import { discoverRecentChanges, type DiscoverCandidate } from "../discover/discoverService";
 import { collectInstructionCandidates } from "../enrich/collectCandidates";
+import {
+  describeEnrichmentStatus,
+  getLastEnrichRun,
+  onEnrichStatusChange,
+  type EnrichmentStatusView,
+} from "../enrich/enrichStatus";
+import { readLlmSettings } from "../enrich/settings";
 import { resolveWorkspaceRoot } from "../export/writeLastScan";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import { estimateRulesBudget, isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
@@ -36,6 +43,7 @@ type OverviewModel = {
   leversFootnote?: string;
   prePromptBanner: boolean;
   rulesOverThreshold: boolean;
+  enrichment: EnrichmentStatusView;
 };
 
 class RiskPulseProvider implements WebviewViewProvider {
@@ -52,9 +60,17 @@ class RiskPulseProvider implements WebviewViewProvider {
         void this.render();
       }),
       workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("tokenforge.autoFilterHighRisk")) {
+        if (
+          event.affectsConfiguration("tokenforge.autoFilterHighRisk") ||
+          event.affectsConfiguration("tokenforge.llmEnrichment") ||
+          event.affectsConfiguration("tokenforge.llm") ||
+          event.affectsConfiguration("tokenforge.llmEndpoint")
+        ) {
           void this.render();
         }
+      }),
+      onEnrichStatusChange(() => {
+        void this.render();
       }),
     );
   }
@@ -145,6 +161,7 @@ class RiskPulseProvider implements WebviewViewProvider {
       leversFootnote,
       prePromptBanner,
       rulesOverThreshold: isRulesBudgetOverThreshold(rulesCost, threshold),
+      enrichment: describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun()),
     };
   }
 
@@ -192,7 +209,7 @@ function renderOverviewHtml(
   cssUri: Uri,
   model: OverviewModel,
 ): string {
-  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold } =
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment } =
     model;
   const csp = webview.cspSource;
   const contextCost = formatTokenCount(pulse.displayAtRiskTokens);
@@ -266,6 +283,19 @@ function renderOverviewHtml(
     ? `<div class="tf-placeholder" style="border-style:solid;background:var(--tf-brand-warning-bg)">Auto-shield ON · lockfile / generated</div>`
     : "";
 
+  const enrichmentActions = enrichment.on
+    ? `<button class="tf-btn tf-btn-ai" data-cmd="tokenforge.enrichInstructions">Analyze rules</button>
+    <button class="tf-btn" data-cmd="tokenforge.toggleLlmEnrichment">Turn AI off</button>`
+    : `<button class="tf-btn tf-btn-ai" data-cmd="tokenforge.toggleLlmEnrichment">Enable AI enrichment</button>`;
+  const enrichmentDetail = enrichment.detail
+    ? `<p class="tf-honesty">${escapeHtml(enrichment.detail)}</p>`
+    : "";
+  const enrichmentBlock = `<div class="tf-ai-status" data-ai-on="${enrichment.on}">
+    <p class="tf-ai-headline"><strong>${escapeHtml(enrichment.headline)}</strong></p>
+    ${enrichmentDetail}
+    <div class="tf-actions">${enrichmentActions}</div>
+  </div>`;
+
   const reductionNote = hasTokenReduction(pulse)
     ? `<p class="tf-honesty">${formatTokenCount(pulse.totals.savedTokens)} shielded from open-tab estimate (${formatTokenCount(pulse.totals.beforeTokens)} → ${formatTokenCount(pulse.totals.afterTokens)}).</p>`
     : "";
@@ -281,6 +311,10 @@ function renderOverviewHtml(
     body { margin: 0; padding: 12px; font-family: var(--tf-font-family); font-size: var(--tf-font-size); color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
     ul { margin: 0; padding-left: 18px; font-size: 11px; }
     li { margin-bottom: 4px; word-break: break-all; }
+    .tf-ai-status { border: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.35)); border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+    .tf-ai-status[data-ai-on="true"] { border-left: 3px solid var(--tf-brand, #14b8a6); }
+    .tf-ai-headline { margin: 0 0 4px; }
+    .tf-btn-ai { font-weight: 600; }
   </style>
 </head>
 <body>
@@ -294,11 +328,12 @@ function renderOverviewHtml(
     <div class="tf-kpi"><span class="tf-kpi-label">Rules cost</span><span class="tf-kpi-value">${rulesKpi}</span></div>
   </div>
   ${reductionNote}
+  <div class="tf-section">AI enrichment</div>
+  ${enrichmentBlock}
   <div class="tf-actions">
     <button class="tf-btn" data-cmd="tokenforge.shieldAllPending">Shield all pending</button>
     <button class="tf-btn" data-cmd="tokenforge.cleanSession">Clean session</button>
     <button class="tf-btn" data-cmd="tokenforge.prepareAgentSession">Prepare session</button>
-    <button class="tf-btn" data-cmd="tokenforge.enrichInstructions">Analyze rules</button>
     <button class="tf-btn" data-cmd="tokenforge.runDiscover">Run discover</button>
     <button class="tf-btn" data-cmd="tokenforge.compactRulesPreview">Compact rules</button>
     <button class="tf-btn" data-cmd="tokenforge.applyTaskContextPack">Apply task pack</button>
