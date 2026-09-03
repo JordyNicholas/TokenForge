@@ -38,7 +38,7 @@ Phase 2. Former catch-all #7 was split:
 | F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **To-Do** (open) |
 | F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **To-Do** (open) |
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
-| F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **To-Do** (open) |
+| F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 
 **Extension rebuild (F8–F13):** one epic per wave; implement **in order F8 → F13**, one wave per delivery occasion. Plan: extension rebuild plan in `.cursor/plans/`. Product doc target: `docs/design/EXTENSION_PRODUCT.md` (#249 skeleton, #280 complete). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -454,11 +454,11 @@ E2E of the rebuilt Context Guard ([`E2E_EXTENSION_AI_TEST.md`](../testing/E2E_EX
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #307 | first-class Analyze rules UX (un-bury Lane A) | Extension | To-Do |
-| #308 | sane local LLM default + cache so AI-on works | Extension | To-Do |
-| #309 | task-aware context pack (LLM ranks open tabs) | Extension | To-Do |
-| #310 | LLM overlap radar across instruction files | Extension | To-Do |
-| #311 | Cloud AGENTS.md recipe + E2E/BOARD F15 index | Docs | To-Do |
+| #307 | first-class Analyze rules UX (un-bury Lane A) | Extension | **Done** — PR #312 |
+| #308 | sane local LLM default + cache so AI-on works | Extension | **Done** — PR #313 |
+| #309 | task-aware context pack (LLM ranks open tabs) | Extension | **Done** |
+| #310 | LLM overlap radar across instruction files | Extension | **Done** |
+| #311 | Cloud AGENTS.md recipe + E2E/BOARD F15 index | Docs | **Done** — this map |
 
 Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank stays F12 #270.
 
@@ -493,7 +493,7 @@ Phase 2:
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (open); **execute F8 → F9 → F10 → F11 → F12 → F13** one wave at a time
-9. **F15** (#306) — **Extension AI-First** (open); after F8–F13 surfaces exist. Build: #307 → #308 → #309 ∥ #310 → #311
+9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
