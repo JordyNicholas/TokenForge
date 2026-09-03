@@ -9,6 +9,7 @@ import {
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 import type { TabDecision } from "../filter/types";
+import { isTokenforgeArtifactPath } from "../paths/tokenforgeArtifacts";
 import type { TrackedTab } from "../tabs/types";
 
 export type BuildLastScanInput = {
@@ -35,11 +36,6 @@ export type BuildLastScanInput = {
  *   so a CLI run pointed at this file will not propose excluding a file the
  *   developer has open (#137). Idle tabs are included on purpose.
  */
-export function isTokenforgeArtifactPath(path: string): boolean {
-  const normalized = path.replaceAll("\\", "/");
-  return normalized === ".tokenforge" || normalized.startsWith(".tokenforge/");
-}
-
 /** Open-tab paths for CLI active-session (#137); skip TokenForge export files. */
 function openPaths(tabs: readonly TrackedTab[]): string[] {
   const paths = new Set(
@@ -51,14 +47,12 @@ function openPaths(tabs: readonly TrackedTab[]): string[] {
 }
 
 export function buildLastScanReport(input: BuildLastScanInput): TokenRiskReport {
-  const assessments = input.tabs.map((tab) => tab.assessment);
+  const sessionTabs = input.tabs.filter((tab) => !isTokenforgeArtifactPath(tab.path));
+  const assessments = sessionTabs.map((tab) => tab.assessment);
   const activePaths = openPaths(input.tabs);
   const heuristicFindings: TokenRiskFinding[] = [];
 
-  for (const tab of input.tabs) {
-    if (isTokenforgeArtifactPath(tab.path)) {
-      continue;
-    }
+  for (const tab of sessionTabs) {
     if (!tab.assessment.atRisk) {
       continue;
     }

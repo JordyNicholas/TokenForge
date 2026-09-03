@@ -50,4 +50,23 @@ describe("buildRiskPulseModel", () => {
     expect(model.totals.beforeTokens).toBe(model.totals.afterTokens);
     expect(hasTokenReduction(model)).toBe(false);
   });
+
+  it("ignores .tokenforge artifacts in pulse totals", () => {
+    const registry = new TabRegistry();
+    const now = Date.now();
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      now,
+    );
+    registry.upsert(
+      "file:///scan",
+      { path: ".tokenforge/last-scan.json", bytes: 200_000, focus: true },
+      now,
+    );
+
+    const model = buildRiskPulseModel(registry.list(now), () => "pending");
+    expect(model.totals.beforeTokens).toBe(estimateTokens(4_000));
+    expect(model.segments.every((s) => s.path !== ".tokenforge/last-scan.json")).toBe(true);
+  });
 });

@@ -7,6 +7,7 @@ import {
   window,
   workspace,
 } from "vscode";
+import { isTokenforgeArtifactPath } from "../paths/tokenforgeArtifacts";
 import type { InputSnapshot } from "./registry";
 import { TabRegistry } from "./registry";
 
@@ -32,6 +33,13 @@ export function collectCustomEditorFileUris(): Map<string, Uri> {
 function customEditorFileUri(tab: Tab): Uri | undefined {
   const input = tab.input;
   if (input instanceof TabInputCustom && input.uri.scheme === "file") {
+    const rel =
+      workspace.asRelativePath(input.uri, false) ??
+      input.uri.fsPath.split(/[/\\]/).pop() ??
+      "untitled";
+    if (isTokenforgeArtifactPath(rel)) {
+      return undefined;
+    }
     return input.uri;
   }
   return undefined;

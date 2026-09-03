@@ -6,6 +6,7 @@ import {
   type TokenRiskTotals,
 } from "@tokenforge/risk-core";
 import type { TabDecision } from "../filter/types";
+import { isTokenforgeArtifactPath } from "../paths/tokenforgeArtifacts";
 import type { TrackedTab } from "../tabs/types";
 
 export type RiskPulseSegment = {
@@ -40,7 +41,8 @@ export function buildRiskPulseModel(
   tabs: readonly TrackedTab[],
   decisionFor: (uri: string) => TabDecision,
 ): RiskPulseModel {
-  const assessments = tabs.map((tab) => tab.assessment);
+  const sessionTabs = tabs.filter((tab) => !isTokenforgeArtifactPath(tab.path));
+  const assessments = sessionTabs.map((tab) => tab.assessment);
   const findings: TokenRiskFinding[] = [];
   const segments: RiskPulseSegment[] = [];
   let pendingCount = 0;
@@ -48,7 +50,7 @@ export function buildRiskPulseModel(
   let filteredCount = 0;
   let displayAtRiskTokens = 0;
 
-  for (const tab of tabs) {
+  for (const tab of sessionTabs) {
     if (!tab.assessment.atRisk) {
       continue;
     }

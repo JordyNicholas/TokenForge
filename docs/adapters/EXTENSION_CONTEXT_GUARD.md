@@ -109,6 +109,7 @@ With enrichment **off** or Ollama down: heuristic path; Detect still works.
 - `.tokenforge/last-scan.json` — Token Risk contract ([`schemas/risk-event.schema.json`](../schemas/risk-event.schema.json), `$id`: `https://tokenforge.dev/schema/risk-event/v5`); open tabs in `activePaths` (`.tokenforge/` artifacts excluded)
 - `.tokenforge/session-stats.json` — session ledger
 - Auto-export debounces; skips timestamp-only churn; **preserves hybrid LLM layers** from Analyze rules when refreshing open-tab heuristics
+- Opening `.tokenforge/*` does not track those files as Open tabs / Context cost
 
 CLI: `scan --active-paths-file path/to/last-scan.json` treats those paths as kept.
 

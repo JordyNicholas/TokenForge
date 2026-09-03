@@ -1,5 +1,6 @@
 import { InputSnapshot, TabRegistry } from "./registry";
 import { ExtensionContext, TextDocument, TextEditor, Uri, window, workspace } from "vscode";
+import { isTokenforgeArtifactPath } from "../paths/tokenforgeArtifacts";
 import { tabBytes } from "./tabBytes";
 
 export type TrackTabsOptions = {
@@ -79,5 +80,7 @@ function tabPath(uri: Uri): string {
 function isTrackable(document: TextDocument): boolean {
   if (document.uri.scheme !== "file") return false;
   if (document.fileName.endsWith(".git") && document.fileName !== ".git") return false;
+  const rel = tabPath(document.uri);
+  if (isTokenforgeArtifactPath(rel)) return false;
   return true;
 }
