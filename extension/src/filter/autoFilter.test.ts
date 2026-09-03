@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TabRegistry } from "../tabs/registry";
-import { RiskSession } from "../session/riskSession";
-import { applyAutoFilter, isAutoFilterCandidate } from "./autoFilter";
+import {
+  applyAutoShield,
+  isAutoFilterCandidate,
+  type AutoShieldSession,
+} from "./autoFilter";
+import type { TabDecision } from "./types";
 
 describe("isAutoFilterCandidate", () => {
   it("matches lockfile and generated classes only", () => {
@@ -41,10 +45,31 @@ describe("isAutoFilterCandidate", () => {
   });
 });
 
-describe("applyAutoFilter", () => {
-  it("filters pending high-risk tabs only when enabled", () => {
+/** Fake session that records Shield calls and flips the decision like the real one. */
+function fakeSession(registry: TabRegistry): {
+  session: AutoShieldSession;
+  shield: ReturnType<typeof vi.fn>;
+  setDecision: (uri: string, decision: TabDecision) => void;
+} {
+  const decisions = new Map<string, TabDecision>();
+  const shield = vi.fn(async (uri: string) => {
+    decisions.set(uri, "filtered");
+    return undefined;
+  });
+  return {
+    shield,
+    setDecision: (uri, decision) => decisions.set(uri, decision),
+    session: {
+      listAll: () => registry.list(),
+      decision: (uri) => decisions.get(uri) ?? "pending",
+      shield,
+    },
+  };
+}
+
+describe("applyAutoShield", () => {
+  it("shields pending high-risk tabs with real levers only when enabled", async () => {
     const registry = new TabRegistry();
-    const session = new RiskSession(registry);
     const now = Date.now();
     registry.upsert(
       "file:///lock",
@@ -57,15 +82,36 @@ describe("applyAutoFilter", () => {
       now,
     );
 
-    expect(applyAutoFilter(session, false)).toBe(0);
-    expect(session.decision("file:///lock")).toBe("pending");
+    const { session, shield } = fakeSession(registry);
 
-    expect(applyAutoFilter(session, true)).toBe(1);
+    // Disabled → no Shield levers applied.
+    expect(await applyAutoShield(session, false)).toBe(0);
+    expect(shield).not.toHaveBeenCalled();
+
+    // Enabled → the lockfile is Shielded (real lever), source is left alone.
+    expect(await applyAutoShield(session, true)).toBe(1);
+    expect(shield).toHaveBeenCalledWith("file:///lock", { mode: "hard" });
+    expect(shield).toHaveBeenCalledTimes(1);
     expect(session.decision("file:///lock")).toBe("filtered");
     expect(session.decision("file:///src")).toBe("pending");
 
-    session.keep("file:///lock");
-    expect(applyAutoFilter(session, true)).toBe(0);
+    // Idempotent — an already-Shielded tab is not re-applied.
+    expect(await applyAutoShield(session, true)).toBe(0);
+    expect(shield).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Allowed tabs untouched so Allow stays a durable override", async () => {
+    const registry = new TabRegistry();
+    registry.upsert(
+      "file:///lock",
+      { path: "package-lock.json", bytes: 4_000, focus: true },
+      Date.now(),
+    );
+    const { session, shield, setDecision } = fakeSession(registry);
+    setDecision("file:///lock", "kept");
+
+    expect(await applyAutoShield(session, true)).toBe(0);
+    expect(shield).not.toHaveBeenCalled();
     expect(session.decision("file:///lock")).toBe("kept");
   });
 });

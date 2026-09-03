@@ -24,7 +24,7 @@ import {
 import { writeSessionStats } from "./export/writeSessionStats";
 import type { ProviderId } from "@tokenforge/risk-core";
 import {
-  runAutoFilter,
+  runAutoShield,
   toggleAutoFilterHighRisk,
   isAutoFilterEnabled,
   setAutoFilterHighRisk,
@@ -107,7 +107,7 @@ function startContextGuard(context: ExtensionContext): void {
   void maybeInstallCursorHooks();
 
   const syncAutoFilter = (): void => {
-    runAutoFilter(session);
+    runAutoShield(session);
   };
   const rehydrate = (): void => {
     rehydrateDurableDecisions(session, registry, durable);
@@ -320,7 +320,7 @@ function startContextGuard(context: ExtensionContext): void {
     "tokenforge.toggleAutoFilterHighRisk",
     async () => {
       const enabled = await toggleAutoFilterHighRisk();
-      runAutoFilter(session);
+      runAutoShield(session);
       void window.showInformationMessage(
         enabled
           ? "Auto-shield on — pending lockfile/generated tabs Shield automatically (this workspace only)."
@@ -334,7 +334,7 @@ function startContextGuard(context: ExtensionContext): void {
     async () => {
       if (!isAutoFilterEnabled()) {
         await setAutoFilterHighRisk(true);
-        runAutoFilter(session);
+        runAutoShield(session);
         void window.showInformationMessage(
           "Auto-shield on — pending lockfile/generated tabs Shield automatically (this workspace only).",
         );
@@ -347,7 +347,7 @@ function startContextGuard(context: ExtensionContext): void {
     async () => {
       if (isAutoFilterEnabled()) {
         await setAutoFilterHighRisk(false);
-        runAutoFilter(session);
+        runAutoShield(session);
         void window.showInformationMessage(
           "Auto-shield off — high-risk tabs stay Needs review until you Shield.",
         );
