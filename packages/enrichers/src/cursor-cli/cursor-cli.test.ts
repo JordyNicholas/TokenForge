@@ -104,16 +104,36 @@ describe("resolveCursorCliCommand", () => {
 });
 
 describe("cursorCliEnricher", () => {
-  it("never passes --force or --yolo", () => {
-    const invocation = cursorCliArgs(undefined, "/tmp/workspace", "analyze these files");
+  // The safety flags must hold on every platform; the prompt *channel* differs
+  // and is covered by the two stdin tests at the bottom of this file.
+  it.each(["linux", "win32"] as const)(
+    "never passes --force or --yolo (%s)",
+    (platform) => {
+      const invocation = cursorCliArgs(
+        undefined,
+        "/tmp/workspace",
+        "analyze these files",
+        platform,
+      );
 
-    expect(invocation.args).not.toContain("--force");
-    expect(invocation.args).not.toContain("--yolo");
-    expect(invocation.args).toContain("--mode");
-    expect(invocation.args).toContain("ask");
-    expect(invocation.args).toContain("--trust");
-    expect(invocation.args).toContain("--workspace");
-    expect(invocation.args).toContain("/tmp/workspace");
+      expect(invocation.args).not.toContain("--force");
+      expect(invocation.args).not.toContain("--yolo");
+      expect(invocation.args).toContain("--mode");
+      expect(invocation.args).toContain("ask");
+      expect(invocation.args).toContain("--trust");
+      expect(invocation.args).toContain("--workspace");
+      expect(invocation.args).toContain("/tmp/workspace");
+    },
+  );
+
+  it("puts a short prompt in argv off Windows", () => {
+    const invocation = cursorCliArgs(
+      undefined,
+      "/tmp/workspace",
+      "analyze these files",
+      "linux",
+    );
+
     expect(invocation.args.at(-1)).toBe("analyze these files");
     expect(invocation.input).toBeUndefined();
   });
@@ -139,9 +159,12 @@ describe("cursorCliEnricher", () => {
       );
       expect(args).not.toContain("--model");
       expect(options.cwd).not.toBe("/repo");
-      expect(options.input).toBeUndefined();
-      expect(args.at(-1)).toContain("### AGENTS.md");
-      expect(args.at(-1)).toContain("prefer tabs");
+      // Whichever channel this platform uses — argv off Windows, stdin on it.
+      // Which one is picked is asserted by the stdin tests below; here the
+      // point is only that the bounded prompt reached the CLI.
+      const prompt = options.input ?? args.at(-1) ?? "";
+      expect(prompt).toContain("### AGENTS.md");
+      expect(prompt).toContain("prefer tabs");
 
       return envelope(
         JSON.stringify({

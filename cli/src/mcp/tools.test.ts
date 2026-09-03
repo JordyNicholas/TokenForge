@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   TOKENFORGE_APPLY_TOOL,
@@ -22,6 +23,18 @@ const sampleReport = {
   },
   findings: [{ path: "big.md" }],
 };
+
+/**
+ * What `resolvedRoot` will produce for `input` on the machine running the test.
+ *
+ * The tools normalise every root through `path.resolve`, which is
+ * platform-dependent: `resolve("/repo")` is `/repo` on POSIX and `C:\repo` on
+ * Windows. Asserting the POSIX literal pinned the suite to one OS (#196); the
+ * behaviour worth asserting is that the root is normalised at all.
+ */
+function expectedRoot(input: string): string {
+  return resolve(input);
+}
 
 function deps(overrides: Partial<McpToolDeps> = {}): McpToolDeps {
   return {
@@ -57,7 +70,7 @@ describe("handleTokenforgeScan", () => {
     const payload = await handleTokenforgeScan({ root: "/repo", mode: "hybrid" }, mock);
 
     expect(mock.scanRepo).toHaveBeenCalledWith(
-      expect.objectContaining({ root: "/repo", mode: "hybrid" }),
+      expect.objectContaining({ root: expectedRoot("/repo"), mode: "hybrid" }),
     );
     expect(mock.writeScanReport).toHaveBeenCalledWith(
       "/repo/.tokenforge/scan-report.json",
@@ -77,7 +90,7 @@ describe("handleTokenforgeScan", () => {
     await handleTokenforgeScan({}, mock);
 
     expect(mock.scanRepo).toHaveBeenCalledWith(
-      expect.objectContaining({ root: "/cwd" }),
+      expect.objectContaining({ root: expectedRoot("/cwd") }),
     );
   });
 });
@@ -93,7 +106,7 @@ describe("handleTokenforgeApply", () => {
 
     expect(mock.applyPolicy).toHaveBeenCalledWith(
       expect.objectContaining({
-        root: "/repo",
+        root: expectedRoot("/repo"),
         provider: "copilot",
         dryRun: true,
       }),
