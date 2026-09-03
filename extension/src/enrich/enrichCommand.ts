@@ -99,6 +99,8 @@ export async function enrichInstructionPathsCommand(
     }
   }
 
+  let result: Awaited<ReturnType<typeof writeLastScan>> | undefined;
+  let findingCount = 0;
   await window.withProgress(
     {
       location: ProgressLocation.Notification,
@@ -135,28 +137,36 @@ export async function enrichInstructionPathsCommand(
         (sum, item) => sum + item.estTokens,
         0,
       );
-      const result = await writeLastScan(session, Date.now(), {
+      progress.report({ message: "Writing last-scan.json…" });
+      result = await writeLastScan(session, Date.now(), {
         llmFindings: enrichment.findings,
         llmMeta: enrichment.meta,
         llmCandidateTokens,
       });
+      findingCount = enrichment.findings.length;
 
       recordEnrichRun({
         at: Date.now(),
         ok: true,
-        findingCount: enrichment.findings.length,
+        findingCount,
         candidateCount: candidates.length,
         backend: spec.backend,
         model: spec.model,
       });
-
-      const choice = await window.showInformationMessage(
-        `Enriched ${candidates.length} path(s) → ${enrichment.findings.length} LLM finding(s). Wrote ${result.reportPath}`,
-        "Reveal last-scan.json",
-      );
-      if (choice === "Reveal last-scan.json") {
-        await revealLastScan(result.reportPath);
-      }
     },
   );
+
+  if (!result) {
+    return;
+  }
+
+  // Keep the reveal prompt outside withProgress so the notification spinner
+  // stops when the enricher finishes (awaiting UI inside keeps it "running").
+  const choice = await window.showInformationMessage(
+    `Enriched ${candidates.length} path(s) → ${findingCount} LLM finding(s). Wrote ${result.reportPath}`,
+    "Reveal last-scan.json",
+  );
+  if (choice === "Reveal last-scan.json") {
+    await revealLastScan(result.reportPath);
+  }
 }
