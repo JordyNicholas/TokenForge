@@ -14,15 +14,14 @@ Related: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md) 
 
 The extension touches AI in **two distinct ways**; a real E2E proves both.
 
-- **Lane A — Extension → LLM.** Exactly one command calls a model:
-  **Analyze rules** (`tokenforge.enrichInstructions`), optionally auto-fired by
-  `tokenforge.continuousAnalyze`. This is where Ollama `qwen2.5-coder` is used.
-  Everything else (scoring, Shield, Overview, discover, task pack,
-  compact-apply) is **heuristic — no model call**.
-- **Lane B — Shield → the AI agent's context.** The product claim is that
-  Shield actually keeps files out of an agent's context via provider levers
-  (`.cursorignore` / `.cursorindexingignore`) and **Cursor hooks** (read-deny).
-  Proving those artifacts are written and enforced is the other half.
+- **Lane A — Extension → LLM.** Opt-in (`tokenforge.llmEnrichment`). Calls a
+  model for **Analyze rules** (and `continuousAnalyze`), **task-pack ranking**
+  (Prepare / Apply pack), **instruction overlap**, and **Discover rank**. Live
+  tab scoring stays heuristic.
+- **Lane B — Shield → the AI agent's context.** Shield keeps files out of an
+  agent's context via provider levers (`.cursorignore` / `.cursorindexingignore`)
+  and **Cursor hooks** (read-deny). Proving those artifacts are written and
+  enforced is the other half.
 
 The plan sweeps every command/view/setting and marks which lane each step proves.
 
@@ -32,8 +31,8 @@ The plan sweeps every command/view/setting and marks which lane each step proves
   Ollama endpoint is `http://127.0.0.1:11434` (`/api/chat` for generation,
   `/api/tags` for preflight).
 - On a **CPU-only** host, `qwen2.5-coder:7b` runs slowly. The extension default
-  `tokenforge.llmTimeout` is **120 s/batch**, which is too low there — set
-  `900`+. Keep the candidate set small (use `fixtures/instructions-app`), or use
+  `tokenforge.llmTimeout` is **600 s/batch**; use `900`+ for 7B on CPU. Keep the
+  candidate set small (use `fixtures/instructions-app`), or use
   `qwen2.5-coder:3b` / `:1.5b` (same code path) for speed.
 - `ollama` is treated as **local**, so `tokenforge.allowExternalLlm` is NOT
   required (no consent modal — a status-bar preflight instead).
@@ -186,14 +185,23 @@ found" → the open folder has no instruction files.
 
 ---
 
-## Part 5 — Session / agent-prep (heuristic)
+## Part 5 — Session / agent-prep
 
-- **Prepare agent session** → pre-prompt gate + task-pack summary.
-- **Apply task pack** → Allows the top at-risk paths, soft-shields the rest.
-- **Run discover** → ranks recent changes + **MCP audit** (add a dummy
-  `.cursor/mcp.json` to see it flagged) + monorepo hint.
-- **Copy smart excerpt** → select code, run it, paste elsewhere → clipboard has a
-  `path:line` header + ≤ 2 KB excerpt.
+- **Prepare agent session** — If `prePromptGate` is on and context cost is over
+  the rules budget: **Proceed** / **Review tabs** / **Shield pending** (dismiss
+  = Skip). Then optional task prompt (when enrichment is on), then confirm
+  **Apply pack** / **Copy pack** / both / **Review Open tabs**. Apply Allows the
+  pack and soft-Shields other pending tabs; the **focused tab is never
+  Shielded**. Copy puts an estimate-only path list on the clipboard (not injected
+  into any agent). With enrichment on, pack order is an LLM rank of tab metadata.
+- **Apply task pack** — Same apply rule without the Prepare confirmation UI.
+- **Run discover** — Missed savings vs last-scan / current session (`policy_gap`,
+  `session_kept`) plus recent files, MCP audit, and monorepo package hint from
+  the active editor. Writes `.tokenforge/discover-latest.json`. With enrichment
+  on, a bounded LLM may re-rank that shortlist. Add a dummy `.cursor/mcp.json` to
+  see MCP findings.
+- **Copy smart excerpt** — select code, run it, paste elsewhere → clipboard has a
+  `path:line` header + ≤ 2 KB excerpt (heuristic; no model).
 
 ---
 
@@ -245,9 +253,10 @@ rm -f .cursorignore fixtures/instructions-app/.cursorignore
 
 - **Lane A** (Extension→LLM): Part 4 + Part 6.3 parity.
 - **Lane B** (Shield→agent context): Part 2 + Part 3.
-- **Heuristic surface**: Parts 1, 5, 7 + both views throughout.
+- **Heuristic surface**: Parts 1, 7 + scoring/Shield views throughout.
+- **Session / Discover**: Part 5 (heuristic fallback; Lane A when enrichment on).
 - **Prove / interop**: Part 6.
 
-Two honesty notes to keep in mind: only **Analyze rules** hits Ollama (live tab
-scoring does not "use AI"), and `postTurnLogging` is not separately gated (the
-post-turn hook runs whenever hooks are installed).
+Two honesty notes to keep in mind: live tab scoring does not "use AI", Lane A is
+opt-in, and `postTurnLogging` is not separately gated (the post-turn hook runs
+whenever hooks are installed).

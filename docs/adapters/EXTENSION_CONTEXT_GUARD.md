@@ -33,6 +33,8 @@ Open the repo root → **Run Extension** (F5) → Extension Development Host →
 | **Open tabs** tree | Settings row, then Needs review / Allowed / Shielded (+ Approaching idle) |
 | **Overview** webview | Hero KPIs, quick actions, discover/drift/task-pack cards, honesty strip |
 | Toolbar | Auto-shield toggle, Shield all pending, More (export, analyze, discover, …) |
+| **Prepare session** | Gate + optional task prompt + Apply and/or copy pack (focused tab never Shielded) |
+| **Run discover** | Missed Fix opportunities vs applied policy, session-kept tabs, recent files, MCP, monorepo hint |
 
 ## Scoring rules
 

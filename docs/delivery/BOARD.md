@@ -392,9 +392,9 @@ Pre-prompt gate, task context pack, drift advisor. **Depends on F9.**
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
 | #257 | configurable idle thresholds + proactive nudges | Extension | To-Do |
-| #258 | context drift advisor (heuristics) | Extension | To-Do |
-| #260 | pre-prompt gate command + Overview banner | Extension | To-Do |
-| #262 | task context pack (LLM + Apply pack) | Extension | To-Do |
+| #258 | context drift advisor (heuristics) | Extension | **Done** |
+| #260 | pre-prompt gate command + Overview banner | Extension | **Done** |
+| #262 | task context pack (LLM + Apply pack) | Extension | **Done** |
 | #263 | Session AI Overview cards + status bar | Extension | To-Do |
 | #265 | Tests: Session AI flows | Tests | To-Do |
 
@@ -421,12 +421,12 @@ Discover, MCP audit, smart excerpt. **Depends on F11.**
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #269 | Discover service (delta + heuristic rank) | Extension | To-Do |
-| #270 | Discover LLM rank + Overview card | Extension | To-Do |
+| #269 | Discover service (delta + heuristic rank) | Extension | **Done** |
+| #270 | Discover LLM rank + Overview card | Extension | **Done** |
 | #271 | MCP config audit | Extension | To-Do |
 | #272 | smart excerpt command | Extension | To-Do |
 | #273 | post-turn path logging hook (opt-in) | Extension | To-Do |
-| #274 | monorepo scope hints in Discover | Extension | To-Do |
+| #274 | monorepo scope hints in Discover | Extension | **Done** |
 | #275 | Tests: Discover & advisory | Tests | To-Do |
 
 Build order: **#269 → #270 → #271 → #272 → #273 → #274 → #275**
