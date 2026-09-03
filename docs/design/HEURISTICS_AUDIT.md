@@ -526,3 +526,42 @@ each — a directory that produced no finding at all before) and
 `src/util/spinner.svg` (a small asset beside kept source, which must be named
 rather than collapsed). Golden totals:
 `fixtures/expected/over-collapse-app-totals.json`. Story: #300.
+
+## B18 — a folder of assets was 900 findings, not one
+
+**Status:** Fixed.
+
+**Where:** `packages/risk-core/src/policy/density.ts`,
+`layers/totals.ts`, `cli/src/commands/scan/scan.ts`.
+
+**Previous behavior:** B17 made every asset visible, one finding each. Correct
+and unusable: a `tabler` scan goes from 315 findings to roughly 900, and the
+only interesting property of ~880 of them is the directory they share.
+
+**Demonstrated by:** `fixtures/asset-dump-app` — 40 files, of which 34 are
+assets in three directories.
+
+**Risk:** not correctness this time but legibility, and a report nobody reads is
+a report nobody acts on. `collapseExclusionPaths` does rebuild tight globs from
+those leaves, so the *pack* was already right; the JSON contract was the thing
+carrying 900 rows.
+
+**Fix:** `foldAssetDirectories` emits one finding per directory that has at
+least `MIN_DENSITY_FILES` direct children, of which at least
+`DENSITY_MIN_MEDIA_RATIO` are `media`, and that has **no** source, config,
+protected, or session-kept path anywhere beneath it. The media supermajority is
+what lets the fold keep `high_risk_filetype` as a true reason; the recursive
+veto is the safety argument. Candidates are taken shallowest-first, so a pure
+asset root is one glob rather than one per level.
+
+This is B14's aggregate move without B14's hard-coded name list — `assets`,
+`static`, and `img` never appeared on it, which is why they never benefited.
+
+The folded finding's `path` is `dir/**`. No contract field is added; the suffix
+is what tells consumers the row is a subtree, and `isPathCoveredByExclusion`,
+`collapseExclusionPaths`, and `wasteKindFor` all read it correctly already.
+`tallyCombinedTotals` did not: it matched finding paths to assessments by
+equality, so a fold banked the finding while still charging every file it
+covered to `afterTokens`. It now resolves a `/**` path as a prefix.
+
+Golden totals: `fixtures/expected/asset-dump-app-totals.json`. Story: #301.

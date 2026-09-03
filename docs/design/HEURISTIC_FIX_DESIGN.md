@@ -104,7 +104,9 @@ it covers, heaviest kind winning.
 
 `binary` is the `media` file class (#300), not a second extension list — so the
 bucket holds exactly what the scan flagged as an asset, and `dist/logo.png`
-still reads as build output because its class says so.
+still reads as build output because its class says so. A folded asset directory (#301)
+has no extension to read, so it is tagged from its own shape — the fold only
+fires on a media supermajority, so the answer is already settled.
 
 ### Assets are waste at any size
 
@@ -114,6 +116,40 @@ class and every image, icon, and font had to clear `OVERSIZED_BYTES` to be seen.
 `media` flags on shape instead, which is what makes `assets/icons/**` — three
 files of 200 bytes — expressible at all. Audit item
 [B17](./HEURISTICS_AUDIT.md).
+
+## Folding asset directories
+
+Flagging every asset is correct and very loud: with the media class a real
+`tabler` scan produces ~900 findings whose only interesting property is the
+directory they share. `collapseExclusionPaths` can rebuild the globs from those
+leaves, but it works from the excluded set alone and has to infer; the scan
+walked the tree and can simply say so.
+
+`foldAssetDirectories` emits one finding per directory that satisfies all three:
+
+| Rule | Why |
+| --- | --- |
+| ≥ `MIN_DENSITY_FILES` (8) files directly in it | A fold trades per-file detail for one line, so it has to cover enough to be worth it. |
+| ≥ `DENSITY_MIN_MEDIA_RATIO` (0.9) of those are `media` | Only `media` counts toward the numerator, so the finding can report `high_risk_filetype` honestly. Ten small `unknown` blobs have no true reason and stay per-file. |
+| Nothing below it is `source` / `config` / protected / kept | The safety argument, and **recursive** rather than per-level: a directory of icons beside a `scripts/build.ts` two levels down must not fold, because the glob would reach that file. |
+
+Candidates are taken **shallowest-first**, so a pure asset root yields one glob
+rather than one per subdirectory. That is deliberately wider than collapse will
+go on its own — collapse refuses repo-root globs precisely because it cannot see
+what else is in there, and rule 3 is the attestation it lacks.
+
+### The path carries the shape
+
+A folded finding's `path` is `dir/**`. The Token Risk contract types `path` as a
+plain string and gains no field, and the suffix makes every downstream consumer
+read it correctly without being told: `isPathCoveredByExclusion` already treats
+`/**` as a subtree, collapse passes it through untouched, and `wasteKindFor`
+reads it as binary.
+
+`tallyCombinedTotals` is the one place that needed the rule spelled out. It
+matched finding paths to assessment paths by equality, so a fold banked the
+finding while still charging every file it covered to `afterTokens`; it now
+resolves a `/**` path as a prefix.
 
 ## Tests that hold the line
 
