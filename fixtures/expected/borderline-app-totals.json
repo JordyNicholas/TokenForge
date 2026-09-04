@@ -4,11 +4,11 @@
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/borderline-app",
   "totals": {
-    "beforeTokens": 62247,
-    "afterTokens": 30924,
+    "beforeTokens": 62186,
+    "afterTokens": 30863,
     "savedTokens": 31323
   },
-  "savedPercent": 50.3,
+  "savedPercent": 50.4,
   "findings": [
     {
       "path": "config/locales.json",
