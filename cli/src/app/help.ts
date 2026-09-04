@@ -20,6 +20,7 @@ Commands:
   init [path]         First-time repo setup (scan + apply; use --skip-apply for scan only)
   discover [path]     Find missed savings vs on-disk exclusions
   pilot [path]        Org pilot pack: scan → apply → Prove-ready
+  drift [path]        Check managed policy section still present (local CI)
   org-pack <seed>     Aggregate a multi-team seed into .tokenforge/org-policy/
   org-apply [path]    Stage / push org content exclusions (requires --org)
   usage-pull          Fetch billed usage into UsageMetrics JSON
@@ -131,6 +132,22 @@ const COMMAND_HELP: Record<string, string> = {
                                   Passed through to scan
 `,
 
+  drift: `tokenforge drift [path] [options]
+
+  Local CI check: ensure the provider instruction file still contains a
+  non-empty <!-- tokenforge:begin/end --> managed section (not reverted).
+
+  Options:
+    --provider copilot            Adapter whose instruction path to check
+                                  (copilot | cursor | claude | gemini | generic)
+    --json                        Print status JSON
+
+  Exit codes: 0 section OK · 2 missing file / missing or empty section
+
+  Example (CI):
+    npm run tokenforge -- drift . --provider claude
+`,
+
   hybrid: `Hybrid scan — optional LLM enrichment on bounded candidate excerpts
 
   Use with: tokenforge scan … --mode hybrid --llm <spec> --allow-external
@@ -170,7 +187,7 @@ export function printHelp(io: HelpIo, topic?: string): void {
 
   if (normalized && normalized !== "help") {
     io.stderr.write(
-      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, hybrid, mcp\n`,
+      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, drift, hybrid, mcp\n`,
     );
   }
 }

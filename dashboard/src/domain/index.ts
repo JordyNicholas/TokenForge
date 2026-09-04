@@ -158,3 +158,7 @@ export {
   formatCoverageLabel,
   type RepoCoverageMetrics,
 } from "./adoptionMetrics";
+export {
+  parseSessionStatsFile,
+  parseSessionStatsJson,
+} from "./parseSessionStats";

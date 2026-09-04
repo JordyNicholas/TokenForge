@@ -31,7 +31,13 @@ export function createStatusBar(session: ShieldSession): Disposable {
     const auto = isAutoFilterEnabled();
     const autoSuffix = auto ? " · auto-shield" : "";
     const prepareHint = highContext ? " · prepare session" : "";
-    const enrichment = describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun());
+    const enrichment = describeEnrichmentStatus(
+      {
+        ...readLlmSettings(),
+        provider: workspace.getConfiguration("tokenforge").get<string>("provider") ?? "generic",
+      },
+      getLastEnrichRun(),
+    );
     item.text = `$(tokenforge-shield) ${formatTokenCount(contextCost)} context · ${shieldedCount} shielded · ${formatTokenCount(sessionSaved)} saved${autoSuffix}${prepareHint}`;
     item.command = highContext ? "tokenforge.prepareAgentSession" : "tokenforge.focusOverview";
     item.tooltip = [

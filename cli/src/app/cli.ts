@@ -5,6 +5,7 @@ import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { runDiscover } from "../commands/discover/discover";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { runPilotPack } from "../commands/pilot/pilot";
+import { checkPolicyDrift } from "../commands/drift/drift";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { runMcpServer } from "../mcp/runMcpServer";
 import { proveChangeLatestPath } from "../io/paths";
@@ -242,6 +243,19 @@ export async function runCli(
         }
       }
       return savingsExitCode(pilot.report.totals);
+    }
+
+    if (command === "drift") {
+      const drift = await checkPolicyDrift({
+        root,
+        provider: values.provider,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(drift, null, 2)}\n`);
+      } else {
+        io.stdout.write(`${drift.message}\n`);
+      }
+      return drift.status === "ok" ? 0 : 2;
     }
 
     if (command === "usage-pull") {

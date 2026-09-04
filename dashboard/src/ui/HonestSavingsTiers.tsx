@@ -32,6 +32,7 @@ export function HonestSavingsTiers({
     compareBaselineUsage,
     compareAfterUsage,
     compareAssumptionsFreeze,
+    sessionStats,
   } = useDashboard();
 
   const baselineUsage = compareBaselineUsage ?? usage ?? null;
@@ -56,6 +57,7 @@ export function HonestSavingsTiers({
     compare,
     usage: baselineUsage,
     teamId,
+    sessionAvoidedTokens: sessionStats?.sessionAvoidedTokens ?? null,
   });
 
   return (

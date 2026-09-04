@@ -55,6 +55,12 @@ npm run tokenforge:pilot -- fixtures/noisy-app --dry-run
 Opens Overview with `?afterUsage=/sample-usage-after.csv` so variance KPIs appear.
 Import a real baseline bill when you have one. Remote org push is separate (`org-apply` / #99).
 
+After apply, optionally gate PRs with a local drift check (managed section still present):
+
+```bash
+npm run tokenforge -- drift fixtures/noisy-app --provider claude
+```
+
 ## Fast path (sanitized fixture, ~3 min)
 
 Use when you only need to **show variance**, not a live apply.

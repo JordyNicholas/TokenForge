@@ -64,10 +64,23 @@ export type TierDisplayValue = {
   available: boolean;
 };
 
-export function tierValueLiveHygiene(): TierDisplayValue {
+export function tierValueLiveHygiene(
+  sessionAvoidedTokens?: number | null,
+): TierDisplayValue {
+  if (
+    typeof sessionAvoidedTokens === "number" &&
+    Number.isFinite(sessionAvoidedTokens) &&
+    sessionAvoidedTokens >= 0
+  ) {
+    return {
+      value: formatTokens(sessionAvoidedTokens),
+      hint: "Extension session Filter/Shield estimate · not agent interception",
+      available: true,
+    };
+  }
   return {
     value: TIER_UNAVAILABLE,
-    hint: "Context Guard extension · Filter tabs",
+    hint: "Load .tokenforge/session-stats.json from Source",
     available: false,
   };
 }
@@ -130,7 +143,9 @@ export function tierValueImportedBill(input: {
     if (slice) {
       return {
         value: formatUsd(slice.estimatedUsd),
-        hint: `${input.usage.period} · ${input.usage.providerLabel} · ${input.usage.source}`,
+        hint: `${input.usage.period} · ${input.usage.providerLabel} · ${
+          input.usage.source === "sync" ? "CLI-synced file" : input.usage.source
+        }`,
         available: true,
       };
     }
@@ -151,6 +166,7 @@ export function buildSavingsTierValues(input: {
   compare: UsagePeriodCompare | null;
   usage: UsageMetrics | null | undefined;
   teamId: string | null;
+  sessionAvoidedTokens?: number | null;
 }): Record<SavingsTierId, TierDisplayValue> {
   const projection =
     input.hasScan && input.totals
@@ -158,7 +174,7 @@ export function buildSavingsTierValues(input: {
       : null;
 
   return {
-    "live-hygiene": tierValueLiveHygiene(),
+    "live-hygiene": tierValueLiveHygiene(input.sessionAvoidedTokens),
     "scan-delta": tierValueScanDelta(input.totals, input.hasScan),
     "projected-usd": tierValueProjectedUsd(projection, input.hasScan),
     "imported-bill": tierValueImportedBill({

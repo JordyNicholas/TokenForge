@@ -40,7 +40,8 @@ Phase 2. Former catch-all #7 was split:
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 | F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **To-Do** (open) |
-| F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **To-Do** (children #321–#324 shipped on branch; close epic when merged) |
+| F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **Epics Finished** (#321–#324; PR #325) |
+| F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **In Progress** |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -499,7 +500,7 @@ committed scope.
 | One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE | **Filed** — F11 #266 |
 | Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs | Open |
 | Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence | Open |
-| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | Open |
+| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | **Shipped** — `tokenforge drift` (F18 #326) |
 | Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs | Open |
 | Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths | **Filed** — F10 #257, F9 #254 |
 | Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) | Open |
@@ -522,7 +523,8 @@ Phase 2:
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **F16** (#314) — **Dashboard Cypress tests** (open); independent of the extension epics. Build: #315
-11. **F17** (#320) — **Multi-vendor AI Fix parity** (open); shared synthesizer + Gemini Fix target + extension Compact parity. Build: #321 → #322 → #323 → #324
-12. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+11. **F17** (#320) — **Multi-vendor AI Fix parity** (**Epics Finished** via PR #325)
+12. **F18** (#326) — **Prove pilot + dashboard visibility** (local-first session ingest, Overview hero, `tokenforge drift`)
+13. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
