@@ -137,7 +137,7 @@ Dry-run + apply managed `tokenforge:begin/end` sections through `@tokenforge/pol
 | Rules cost | Instruction-file budget watch |
 | Shield effectiveness | Adapter audit trail |
 
-Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activePaths` = open tabs excluding `.tokenforge/` artifacts), `.tokenforge/session-stats.json`. Auto-export debounces and **keeps Analyze rules LLM layers** while refreshing tab heuristics. Dashboard loads session-stats via Source or `?session=` boot (**Live hygiene** tier).
+Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activePaths` = open tabs excluding `.tokenforge/` artifacts), `.tokenforge/session-stats.json`. **Export to inbox** copies last-scan + session-stats to `{tokenforge.inboxPath}/{team}/{repo}/.tokenforge/` for EM prove-pack rollups ([`EM_TEAM_PROVE.md`](../runbooks/EM_TEAM_PROVE.md)). Auto-export debounces and **keeps Analyze rules LLM layers** while refreshing tab heuristics. Dashboard loads session-stats via Source or `?session=` boot (**Live hygiene** tier); org prove-pack via **Load Prove package** or `?pack=` boot.
 
 **Savings tiers:** session estimate / rules policy / not billing — same honesty as the dashboard.
 
@@ -153,6 +153,7 @@ Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activeP
 | `.tokenforge/session-shield.json` | Hard Shield blocklist |
 | `.tokenforge/enrich-cache.json` | Analyze rules cache |
 | `.tokenforge/discover-latest.json` | Last **Run discover** |
+| `tokenforge.inboxPath` (setting) | EM inbox root for **Export to inbox** |
 | `.cursorignore` / indexing ignore | Managed Shield section (Cursor) |
 | `.cursor/hooks.json` + hook scripts | Opt-in read-deny / post-turn log |
 
@@ -188,4 +189,5 @@ Wave epics F8–F13 (#237–#242) are **closed** on GitHub (rebuild landed as on
 | `postTurnLogging` setting | **Shipped** — post-turn hook installs only when setting + `installCursorHooks` are on (#273) |
 | Marketplace screenshots | Icon ships; gallery checklist + alt text in `extension/README.md` (#279) |
 | Daily Fix/Prove health strip | **Shipped** — Overview chips: Scan / Session / Drift / Promote (F24-C) |
+| Export to inbox + prove-pack load | **Shipped** — EM inbox drop; dashboard `?pack=` / Source prove package (F25) |
 | Session stats on dashboard | Extension writes JSON; dashboard loads via Source or `?session=` boot |

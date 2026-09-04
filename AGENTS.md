@@ -12,11 +12,12 @@ Read first (full index: [`docs/README.md`](docs/README.md)):
 3. [`docs/adapters/EXTENSION_CONTEXT_GUARD.md`](docs/adapters/EXTENSION_CONTEXT_GUARD.md) — VS Code Detect UX (Context Guard)
 4. [`docs/design/EXTENSION_PRODUCT.md`](docs/design/EXTENSION_PRODUCT.md) — extension product & dual-view UX
 5. [`docs/delivery/PROJECT_PR_WORKFLOW.md`](docs/delivery/PROJECT_PR_WORKFLOW.md) — Issues ↔ PRs ↔ board
-6. [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) — epic/story map; F2 Prove attractiveness waves; F24 adoption
+6. [`docs/delivery/BOARD.md`](docs/delivery/BOARD.md) — epic/story map; F2 Prove attractiveness waves; F24 adoption; F25 EM Prove
 7. [`docs/design/USAGE_RECONCILIATION_PLAN.md`](docs/design/USAGE_RECONCILIATION_PLAN.md) — estimate vs actual usage (Wave A→C)
 8. [`docs/runbooks/PILOT_RUNBOOK.md`](docs/runbooks/PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
 9. [`docs/runbooks/STANDARD_PILOT_KIT.md`](docs/runbooks/STANDARD_PILOT_KIT.md) — Director control-cohort pilot
 10. [`docs/delivery/F24_REAL_WORLD_ADOPTION.md`](docs/delivery/F24_REAL_WORLD_ADOPTION.md) — real-world adoption & evidence
+11. [`docs/runbooks/EM_TEAM_PROVE.md`](docs/runbooks/EM_TEAM_PROVE.md) — EM multi-person inbox / prove-pack Prove loop
 
 ## Delivery rules
 

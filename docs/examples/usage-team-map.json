@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "map": {
+    "Payments Platform": "payments-platform",
+    "payments platform": "payments-platform",
+    "Checkout Team": "checkout",
+    "Platform Services": "platform-services",
+    "Data Engineering": "data-eng"
+  }
+}

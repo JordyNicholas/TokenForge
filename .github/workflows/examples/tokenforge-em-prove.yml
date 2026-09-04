@@ -1,0 +1,49 @@
+# Example: EM multi-person Prove cadence (F25 — not enabled in root CI by default).
+# Copy to .github/workflows/tokenforge-em-prove.yml or adapt for your org inbox.
+#
+# See docs/runbooks/EM_TEAM_PROVE.md and docs/runbooks/MONTHLY_CADENCE.md.
+
+name: tokenforge-em-prove (example)
+
+on:
+  schedule:
+    # Friday 17:00 UTC — after typical weekly inbox drop.
+    - cron: "0 17 * * 5"
+  workflow_dispatch:
+
+jobs:
+  em-prove:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Inbox validate (roster coverage)
+        continue-on-error: true
+        run: |
+          npm run tokenforge -- inbox-validate fixtures/em-inbox \
+            --roster fixtures/em-inbox/tokenforge-roster.json
+
+      - name: Prove pack rollup
+        run: |
+          npm run tokenforge -- prove-pack fixtures/em-inbox \
+            --team "Retail Banking" \
+            --roster fixtures/em-inbox/tokenforge-roster.json \
+            --out fixtures/em-inbox/org-prove-pack.json
+
+      - name: Policy drift (Fix-on fixture repo)
+        run: npm run tokenforge -- drift fixtures/noisy-app --provider generic
+
+      - name: Upload prove pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tokenforge-em-prove-pack
+          path: fixtures/em-inbox/org-prove-pack.json
+          if-no-files-found: error

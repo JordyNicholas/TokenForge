@@ -10,6 +10,7 @@ This is a **manual reconciliation** demo. It is **not** live vendor billing sync
 
 Hackathon ≤5-min script (noisy tabs → CLI → ~30% scenario): [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).  
 Director standard pilot (control team + 2 periods + freeze + prove-report): [`STANDARD_PILOT_KIT.md`](./STANDARD_PILOT_KIT.md).  
+EM multi-team Prove (Friday inbox, prove-pack, usage team map): [`EM_TEAM_PROVE.md`](./EM_TEAM_PROVE.md).  
 Plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).
 
 Platform monthly operator checklist (usage-sync + scan + drift + org-seed):
