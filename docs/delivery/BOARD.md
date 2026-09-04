@@ -40,6 +40,7 @@ Phase 2. Former catch-all #7 was split:
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 | F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **To-Do** (open) |
+| F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **To-Do** (children #321–#324 shipped on branch; close epic when merged) |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -354,6 +355,19 @@ Build order: **#226 → #227 → #228 → #229 → #230 → #231 → #232 → #2
 
 Presentation: `npm run tokenforge:presentation-full` (see [`PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md)); hybrid act uses `cursor-cli:composer-2.5`.
 
+### F17 — Multi-vendor AI Fix parity (CLI ↔ Extension) (#320)
+
+CLI and Extension share one policy synthesis path: rewrite from findings **and** bootstrap lean packs for **copilot | cursor | claude | gemini | generic**, with hybrid LLM backends (not only `cursor-cli`).
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #321 | Shared `synthesizeManagedPolicy` + multi-backend hybrid Fix runners | `enrichers` / CLI | **Done** |
+| #322 | Gemini Fix `ProviderId` + detection + policy-adapter | `risk-core` / `policy-adapters` | **Done** |
+| #323 | Extension Compact rules uses shared synthesis | Extension | **Done** |
+| #324 | Docs + BOARD + E2E refresh | Docs | **Done** |
+
+Build order: **#321 → #322 → #323 → #324**
+
 ### F8 — Extension rebuild Wave A: Foundation (#237)
 
 Integrated rebuild **wave 1** — packages, ShieldSession, brand, dual-view UX shell. **Epic closed** on GitHub. Child issues below: **Done** = behavior on `main` (rebuild + later PRs); some GitHub children were never closed individually.
@@ -508,6 +522,7 @@ Phase 2:
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **F16** (#314) — **Dashboard Cypress tests** (open); independent of the extension epics. Build: #315
-11. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+11. **F17** (#320) — **Multi-vendor AI Fix parity** (open); shared synthesizer + Gemini Fix target + extension Compact parity. Build: #321 → #322 → #323 → #324
+12. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).

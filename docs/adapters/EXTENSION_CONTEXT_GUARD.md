@@ -100,7 +100,7 @@ With enrichment **off** or Ollama down: heuristic path; Detect still works.
 
 ## Compact rules
 
-`tokenforge.compactRulesPreview` — dry-run then apply managed policy sections. Preserves user text outside `tokenforge:begin/end`.
+`tokenforge.compactRulesPreview` — dry-run then apply managed policy sections via shared `synthesizeManagedPolicy` (CLI parity). Heuristic by default; hybrid when LLM enrichment is on (external backends require consent). Preserves user text outside `tokenforge:begin/end`. Provider from `tokenforge.provider` (`copilot` | `cursor` | `claude` | `gemini` | `generic`).
 
 ---
 
