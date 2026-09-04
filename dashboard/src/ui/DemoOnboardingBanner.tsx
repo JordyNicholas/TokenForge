@@ -31,10 +31,19 @@ export function DemoOnboardingBanner() {
         You&apos;re viewing{" "}
         <strong>{seed?.businessUnit ?? "a sample business unit"}</strong>. Load your CLI
         report (<code>.tokenforge/scan-report.json</code>) or extension export (
-        <code>.tokenforge/last-scan.json</code>) from the source menu, or open with{" "}
-        <code>?src=/last-scan.json</code>.
+        <code>.tokenforge/last-scan.json</code>) from the source menu. Estimated avoided
+        context ≠ invoice delta — import baseline + after usage, then open Variance.
+        Guided pilot: <code>npm run tokenforge:pilot -- path/to/repo</code>.
       </Typography>
       <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+        <Button
+          size="small"
+          component={RouterLink}
+          to={`/board/${boardLayer}/variance`}
+          variant="contained"
+        >
+          Open Variance
+        </Button>
         <Button
           size="small"
           component={RouterLink}

@@ -2,6 +2,7 @@ import CompareArrowsOutlined from "@mui/icons-material/CompareArrowsOutlined";
 import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
+import ShieldOutlined from "@mui/icons-material/ShieldOutlined";
 import TimelineOutlined from "@mui/icons-material/TimelineOutlined";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -49,6 +50,9 @@ export function SourceBar() {
     loadChangeMarkersFromFile,
     loadDemoChangeMarkers,
     clearChangeMarkers,
+    sessionStatsLabel,
+    loadSessionStatsFromFile,
+    clearSessionStats,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -60,6 +64,7 @@ export function SourceBar() {
   const usageRef = useRef<HTMLInputElement>(null);
   const afterUsageRef = useRef<HTMLInputElement>(null);
   const markersRef = useRef<HTMLInputElement>(null);
+  const sessionStatsRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -137,6 +142,18 @@ export function SourceBar() {
             variant="outlined"
             label={`markers ${shortSource(changeMarkersLabel)}`}
             onDelete={clearChangeMarkers}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
+      {sessionStatsLabel ? (
+        <Tooltip title={`Session hygiene: ${sessionStatsLabel}`}>
+          <Chip
+            size="small"
+            color="secondary"
+            variant="outlined"
+            label={`session ${shortSource(sessionStatsLabel)}`}
+            onDelete={clearSessionStats}
             sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
           />
         </Tooltip>
@@ -319,6 +336,34 @@ export function SourceBar() {
             Clear Fix change markers
           </MenuItem>
         ) : null}
+        <Divider />
+        <MenuItem disabled>
+          <Typography variant="overline">Extension hygiene</Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            sessionStatsRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <ShieldOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load session-stats.json…"
+            secondary="Context Guard Filter/Shield estimate → Live hygiene tier"
+          />
+        </MenuItem>
+        {sessionStatsLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearSessionStats();
+            }}
+          >
+            Clear session-stats
+          </MenuItem>
+        ) : null}
       </Menu>
       <input
         ref={fileRef}
@@ -387,6 +432,21 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadChangeMarkersFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={sessionStatsRef}
+        type="file"
+        hidden
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadSessionStatsFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }

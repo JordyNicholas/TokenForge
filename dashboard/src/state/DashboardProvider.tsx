@@ -17,6 +17,7 @@ import {
   isDemoSourceLabel,
   parseChangeMarkersFile,
   parseChangeMarkersJson,
+  parseSessionStatsFile,
   parseUsageFile,
   parseUsageText,
   projectSavings,
@@ -30,7 +31,7 @@ import {
   type Projection,
   type UsageMetrics,
 } from "../domain";
-import type { ProveChangeMarker } from "@tokenforge/risk-core";
+import type { ProveChangeMarker, SessionStatsReport } from "@tokenforge/risk-core";
 import { useSeedLoader } from "./useSeedLoader";
 
 const REDACT_STORAGE_KEY = "tokenforge-redact-paths";
@@ -94,6 +95,11 @@ export type DashboardState = {
   loadChangeMarkersFromFile: (file: File) => Promise<void>;
   loadDemoChangeMarkers: () => Promise<void>;
   clearChangeMarkers: () => void;
+  /** Extension session-stats.json for Live hygiene (#157 / F19). */
+  sessionStats: SessionStatsReport | null;
+  sessionStatsLabel: string | null;
+  loadSessionStatsFromFile: (file: File) => Promise<void>;
+  clearSessionStats: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -138,6 +144,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [usagePeriodsAutoCorrected, setUsagePeriodsAutoCorrected] = useState(false);
   const [changeMarkers, setChangeMarkers] = useState<ProveChangeMarker[]>([]);
   const [changeMarkersLabel, setChangeMarkersLabel] = useState<string | null>(null);
+  const [sessionStats, setSessionStats] = useState<SessionStatsReport | null>(null);
+  const [sessionStatsLabel, setSessionStatsLabel] = useState<string | null>(null);
   const baselinePeriodRef = useRef<string | null>(null);
   const afterPeriodRef = useRef<string | null>(null);
   baselinePeriodRef.current = baselinePeriod;
@@ -349,6 +357,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setChangeMarkersLabel(null);
   }, []);
 
+  const loadSessionStatsFromFile = useCallback(async (file: File) => {
+    const report = await parseSessionStatsFile(file);
+    setSessionStats(report);
+    setSessionStatsLabel(file.name);
+  }, []);
+
+  const clearSessionStats = useCallback(() => {
+    setSessionStats(null);
+    setSessionStatsLabel(null);
+  }, []);
+
   // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
   // so `?afterUsage=` can land alongside the demo/boot seed).
   useEffect(() => {
@@ -450,6 +469,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       loadChangeMarkersFromFile,
       loadDemoChangeMarkers,
       clearChangeMarkers,
+      sessionStats,
+      sessionStatsLabel,
+      loadSessionStatsFromFile,
+      clearSessionStats,
     }),
     [
       loaded,
@@ -490,6 +513,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       loadChangeMarkersFromFile,
       loadDemoChangeMarkers,
       clearChangeMarkers,
+      sessionStats,
+      sessionStatsLabel,
+      loadSessionStatsFromFile,
+      clearSessionStats,
     ],
   );
 

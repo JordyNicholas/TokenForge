@@ -37,10 +37,16 @@ describe("savingsTiers", () => {
     expect(SAVINGS_TIERS.map((tier) => tier.order)).toEqual([1, 2, 3, 4]);
   });
 
-  it("live hygiene is extension-only on dashboard", () => {
+  it("live hygiene is unavailable until session-stats are loaded", () => {
     const value = tierValueLiveHygiene();
     expect(value.available).toBe(false);
     expect(value.value).toBe(TIER_UNAVAILABLE);
+  });
+
+  it("live hygiene shows session avoided tokens when provided", () => {
+    const value = tierValueLiveHygiene(1_200);
+    expect(value.available).toBe(true);
+    expect(value.value).toContain("1");
   });
 
   it("scan delta shows tokens when scan is loaded", () => {

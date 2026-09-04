@@ -16,15 +16,22 @@ import { KpiCard, KpiRow } from "./Kpi";
 export function AdoptionMetricsCard({
   reports,
   fixOnTeams,
+  sessionFilteredPercent,
+  sessionFilterEventCount,
 }: {
   reports: readonly TokenRiskReport[];
   fixOnTeams: readonly string[];
+  sessionFilteredPercent?: number | null;
+  sessionFilterEventCount?: number | null;
 }) {
   if (reports.length === 0) {
     return null;
   }
 
   const coverage = computeRepoCoverage(reports, fixOnTeams);
+  const sessionAvailable =
+    typeof sessionFilteredPercent === "number" &&
+    Number.isFinite(sessionFilteredPercent);
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -62,8 +69,16 @@ export function AdoptionMetricsCard({
         />
         <KpiCard
           label="Session Filter (extension)"
-          value={ADOPTION_UNAVAILABLE}
-          hint="Live % filtered + event count in Context Guard"
+          value={
+            sessionAvailable
+              ? formatPercent(sessionFilteredPercent)
+              : ADOPTION_UNAVAILABLE
+          }
+          hint={
+            sessionAvailable
+              ? `${sessionFilterEventCount ?? 0} Filter/Shield event(s) in session-stats`
+              : "Load .tokenforge/session-stats.json from Source"
+          }
         />
         <KpiCard
           label="Board scope"
