@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import {
   ASSUMPTION_PRESETS,
@@ -126,9 +127,12 @@ export function AssumptionsPage() {
         spacing={1}
         sx={{ alignItems: { sm: "center" }, justifyContent: "flex-end" }}
       >
-        <Button variant="contained" onClick={applyPitchScenario} sx={{ flexShrink: 0 }}>
-          Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%)
-        </Button>
+        <Tooltip title="Scenario only — not measured billing savings">
+          <Button variant="contained" onClick={applyPitchScenario} sx={{ flexShrink: 0 }}>
+            Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%) — scenario only
+          </Button>
+        </Tooltip>
+        <GlossaryTip term="Scenario $" termId="scenario-usd" />
       </Stack>
 
       <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>

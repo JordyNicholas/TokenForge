@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "teams": [
+    { "id": "payments" },
+    { "id": "checkout" },
+    { "id": "platform" }
+  ]
+}

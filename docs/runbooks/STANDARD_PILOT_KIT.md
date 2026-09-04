@@ -1,7 +1,7 @@
 # Standard pilot kit — Director Prove evidence
 
 **Audience:** Directors / FinOps running a **credible** TokenForge pilot without a spreadsheet.  
-**Companion:** [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) (step-by-step) · [`F24_REAL_WORLD_ADOPTION.md`](../delivery/F24_REAL_WORLD_ADOPTION.md) · [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
+**Companion:** [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) (step-by-step) · [`EM_TEAM_PROVE.md`](./EM_TEAM_PROVE.md) (multi-team) · [`F24_REAL_WORLD_ADOPTION.md`](../delivery/F24_REAL_WORLD_ADOPTION.md) · [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md)
 
 ---
 

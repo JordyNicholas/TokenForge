@@ -52,6 +52,16 @@ Scenario math on the dashboard assumptions panel (rate, team size, msgs/day, mod
 Demo seed also includes **imported usage** credits/$ — file/demo import plus optional
 live sync via CLI adapters — not a claim that we meter the agent’s private pipeline.
 
+## Multi-team / EM Prove?
+
+For a **6+ person BU**, use the **inbox + prove-pack** path instead of one-repo pilot:
+
+1. `tokenforge inbox-init` → developers **Export to inbox** (extension) or CLI inbox hints.
+2. Friday: `inbox-validate` → `prove-pack` → `stage-dashboard` → dashboard `?pack=`.
+3. Load a **usage team map** when FinOps labels differ from scan team ids.
+
+Runbook: [`EM_TEAM_PROVE.md`](../runbooks/EM_TEAM_PROVE.md). Honesty unchanged: imported bill reconcile, not pipeline metering; cohort control still required for strong calibration.
+
 ## Who runs the monthly scan / bill pull?
 
 **Platform — not individual developers.** Use the turnkey GitHub Action
@@ -120,8 +130,10 @@ billed Δ can be read — strong needs a control cohort. Live sync still needs o
 credentials; import works offline.
 
 Director standard path: [`STANDARD_PILOT_KIT.md`](../runbooks/STANDARD_PILOT_KIT.md) ·
+EM multi-team: [`EM_TEAM_PROVE.md`](../runbooks/EM_TEAM_PROVE.md) ·
 Platform monthly: [`MONTHLY_CADENCE.md`](../runbooks/MONTHLY_CADENCE.md) ·
-Adoption program: [`F24_REAL_WORLD_ADOPTION.md`](../delivery/F24_REAL_WORLD_ADOPTION.md).
+Adoption program: [`F24_REAL_WORLD_ADOPTION.md`](../delivery/F24_REAL_WORLD_ADOPTION.md) ·
+F25 prove-pack: [`F25_EM_MULTI_PERSON_PROVE.md`](../delivery/F25_EM_MULTI_PERSON_PROVE.md).
 
 ## Completions vs Chat/Agent metering?
 

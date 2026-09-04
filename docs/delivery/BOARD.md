@@ -48,6 +48,7 @@ Phase 2. Former catch-all #7 was split:
 | F22 Optional session narrative (#276) | — | Future | **Done** (heuristic + Ollama → session-narrative.md) |
 | F23 Context Shield vendor follow-ons | — | Future | **Done** (Gemini partial + Claude advisory) |
 | F24 Real-world adoption & evidence | — | Future | **Done** — [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md) |
+| F25 EM multi-person Prove & collection | — | Future | **Done** — [`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md) |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -606,6 +607,18 @@ Detail: [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md). Honesty fl
 | C Adoption | Extension daily health, #279 gallery, MONTHLY_CADENCE, session narrative | **Shipped** |
 | D Coverage | Gemini/Claude Shield adapters, postTurnLogging gate, docs sync | **Shipped** |
 
+### F25 — EM multi-person Prove (done)
+
+Detail: [`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md). Runbook: [`EM_TEAM_PROVE.md`](../runbooks/EM_TEAM_PROVE.md).
+
+| Wave | Outcome | Status |
+| --- | --- | --- |
+| A Prove pack | `prove-pack`, dashboard `?pack=`, multi-team session/discover | **Shipped** |
+| B Inbox | `inbox-init`, `inbox-validate`, extension Export to inbox | **Shipped** |
+| C Session handoff | Prove session persist/restore in dashboard | **Shipped** |
+| D Stage dashboard | `stage-dashboard` boot URL | **Shipped** |
+| E Usage map + CI | usage team map, `remap-usage`, EM CI example, docs | **Shipped** |
+
 ## Build order
 
 MVP (done): E0 → E1 → E2 → E3 → E4 → E5.
@@ -627,6 +640,7 @@ Phase 2:
 12. **F18** (#326) — **Prove pilot + dashboard visibility** + **FinOps Waves 1–4** (`pilot --prove`, prove-report, drift hash, promote-shield, cohort trust, session handoff)
 13. **F19–F23** (Wave 5) — **Scale, quality, GTM** (shipped; F23 adapters completed under F24-D)
 14. **F24** — **Real-world adoption & evidence** ([`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md)) — **Done** (A–D)
-15. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+15. **F25** — **EM multi-person Prove** ([`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md)) — **Done** (A–E; Wave C session restore may ship with E)
+16. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
-Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md) · F24: [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md).
+Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md) · F24: [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md) · F25: [`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md).

@@ -250,3 +250,12 @@ export function resolveBootDiscoverUrl(
 ): string | null {
   return resolveBootResourceUrl("discover", search);
 }
+
+/**
+ * Resolve `?pack=` for boot-time org prove-pack JSON (F25 Wave A).
+ */
+export function resolveBootPackUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("pack", search);
+}

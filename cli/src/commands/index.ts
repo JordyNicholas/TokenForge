@@ -19,6 +19,16 @@ export {
   type OrgSeedResult,
 } from "./org-seed/org-seed";
 export {
+  computeProvePackCoverage,
+  rollupProvePack,
+  type ProvePackCoverage,
+  type ProvePackDiscoverEntry,
+  type ProvePackDocument,
+  type ProvePackOptions,
+  type ProvePackResult,
+  type ProvePackSessionEntry,
+} from "./prove-pack/prove-pack";
+export {
   runPilotPack,
   type PilotPackOptions,
   type PilotPackResult,
@@ -36,3 +46,16 @@ export {
   type PromoteShieldResult,
 } from "./promote-shield/promote-shield";
 export { checkPolicyDrift, type PolicyDriftResult, type PolicyDriftStatus } from "./drift/drift";
+export { initInbox, type InboxInitOptions, type InboxInitResult } from "./inbox-init/inbox-init";
+export {
+  validateInbox,
+  type InboxValidateOptions,
+  type InboxValidateResult,
+} from "./inbox-validate/inbox-validate";
+export {
+  stageDashboard,
+  type StageDashboardOptions,
+  type StageDashboardResult,
+} from "./stage-dashboard/stage-dashboard";
+export { remapUsage, type RemapUsageOptions, type RemapUsageResult } from "./remap-usage/remap-usage";
+export { parseRoster, readRosterFromFile, type TokenforgeRoster } from "../io/roster";

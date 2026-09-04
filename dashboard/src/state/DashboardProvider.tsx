@@ -17,16 +17,23 @@ import {
   isDemoSourceLabel,
   parseChangeMarkersFile,
   parseChangeMarkersJson,
+  mergeChangeMarkers,
   parseDiscoverLatestFile,
   parseDiscoverLatestJson,
+  parseProvePackJson,
   parseSessionStatsFile,
   parseUsageFile,
   parseUsageText,
   projectSavings,
+  remapUsageTeams,
+  parseUsageTeamMapFile,
   resolveBootAfterUsageUrl,
   resolveBootMarkersUrl,
   resolveBootSessionUrl,
   resolveBootDiscoverUrl,
+  resolveBootPackUrl,
+  discoverSummaryToLatest,
+  sessionStatsFromEntry,
   listUsagePeriods,
   normalizeUsagePeriodPair,
   upsertUsageSnapshot,
@@ -34,10 +41,18 @@ import {
   withPitchScenario,
   applyAssumptionPreset,
   parseSessionStatsJson,
+  saveProveSession,
+  loadProveSessionSnapshot,
+  hasStoredProveSession,
+  shouldAutoRestoreProveSession,
   type AssumptionPresetId,
   type Assumptions,
   type DashboardSeed,
   type DiscoverLatestSummary,
+  type DiscoverEntry,
+  type ProvePackCoverage,
+  type SessionStatsEntry,
+  type ProvePackDocument,
   type Projection,
   type UsageMetrics,
 } from "../domain";
@@ -120,6 +135,22 @@ export type DashboardState = {
   discoverLatestLabel: string | null;
   loadDiscoverLatestFromFile: (file: File) => Promise<void>;
   clearDiscoverLatest: () => void;
+  /** Multi-team session stats from org prove-pack (#F25). */
+  sessionStatsEntries: SessionStatsEntry[];
+  /** Multi-team discover summaries from org prove-pack (#F25). */
+  discoverEntries: DiscoverEntry[];
+  provePackCoverage: ProvePackCoverage | null;
+  provePackLabel: string | null;
+  loadProvePackFromFile: (file: File) => Promise<void>;
+  clearProvePack: () => void;
+  /** Vendor label → TF team id map for billed usage reconcile (#F25-E). */
+  usageTeamMap: Record<string, string> | null;
+  usageTeamMapLabel: string | null;
+  loadUsageTeamMapFromFile: (file: File) => Promise<void>;
+  clearUsageTeamMap: () => void;
+  /** True when a prior Prove session snapshot exists in localStorage. */
+  hasStoredProveSession: boolean;
+  restoreLastProveSession: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -140,7 +171,16 @@ function readBool(key: string, fallback: boolean): boolean {
 }
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const loaded = useSeedLoader();
+  const [usageTeamMap, setUsageTeamMap] = useState<Record<string, string> | null>(null);
+  const [usageTeamMapLabel, setUsageTeamMapLabel] = useState<string | null>(null);
+  const remapUsageIfMapped = useCallback(
+    (usage: UsageMetrics) =>
+      usageTeamMap && Object.keys(usageTeamMap).length > 0
+        ? remapUsageTeams(usage, usageTeamMap)
+        : usage,
+    [usageTeamMap],
+  );
+  const loaded = useSeedLoader({ remapUsage: remapUsageIfMapped });
   const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
   const assumptionsRef = useRef(assumptions);
   assumptionsRef.current = assumptions;
@@ -169,6 +209,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [sessionStatsLabel, setSessionStatsLabel] = useState<string | null>(null);
   const [discoverLatest, setDiscoverLatest] = useState<DiscoverLatestSummary | null>(null);
   const [discoverLatestLabel, setDiscoverLatestLabel] = useState<string | null>(null);
+  const [sessionStatsEntries, setSessionStatsEntries] = useState<SessionStatsEntry[]>([]);
+  const [discoverEntries, setDiscoverEntries] = useState<DiscoverEntry[]>([]);
+  const [provePackCoverage, setProvePackCoverage] = useState<ProvePackCoverage | null>(null);
+  const [provePackLabel, setProvePackLabel] = useState<string | null>(null);
+  const [lastProvePackJsonText, setLastProvePackJsonText] = useState<string | null>(null);
+  const [storedProveSessionAvailable, setStoredProveSessionAvailable] = useState(() =>
+    hasStoredProveSession(),
+  );
   const baselinePeriodRef = useRef<string | null>(null);
   const afterPeriodRef = useRef<string | null>(null);
   baselinePeriodRef.current = baselinePeriod;
@@ -223,17 +271,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const beginAfterUsageCompare = useCallback(
     (usage: UsageMetrics, label: string) => {
-      setAfterUsage(usage);
+      const remapped = remapUsageIfMapped(usage);
+      setAfterUsage(remapped);
       setAfterUsageLabel(label);
       setAfterUsageError(null);
       setCompareAssumptionsFreeze(cloneAssumptions(assumptionsRef.current));
-      setUsageSnapshots((current) => upsertUsageSnapshot(current, usage));
-      setUsageSnapshotLabels((current) => ({ ...current, [usage.period]: label }));
+      setUsageSnapshots((current) => upsertUsageSnapshot(current, remapped));
+      setUsageSnapshotLabels((current) => ({ ...current, [remapped.period]: label }));
       const baseline =
         baselinePeriodRef.current ?? loaded.seed?.usage?.period ?? null;
-      applyPeriodPair(baseline, usage.period);
+      applyPeriodPair(baseline, remapped.period);
     },
-    [applyPeriodPair, loaded.seed?.usage?.period],
+    [applyPeriodPair, loaded.seed?.usage?.period, remapUsageIfMapped],
   );
 
   const setBaselinePeriod = useCallback(
@@ -369,9 +418,147 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const loadChangeMarkersFromFile = useCallback(async (file: File) => {
     const markers = await parseChangeMarkersFile(file);
-    setChangeMarkers(markers);
+    setChangeMarkers((current) => mergeChangeMarkers(current, markers));
     setChangeMarkersLabel(file.name);
   }, []);
+
+  const applyProvePackState = useCallback(
+    (pack: ProvePackDocument, label: string) => {
+      loaded.applySeedDocument(pack.seed, label);
+      setChangeMarkers(pack.markers);
+      setChangeMarkersLabel(label);
+      setSessionStatsEntries(pack.sessions);
+      setDiscoverEntries(pack.discovers);
+      setProvePackCoverage(pack.coverage ?? null);
+      setProvePackLabel(label);
+
+      if (pack.sessions.length === 1) {
+        const entry = pack.sessions[0]!;
+        setSessionStats(sessionStatsFromEntry(entry));
+        setSessionStatsLabel(entry.label);
+      } else {
+        setSessionStats(null);
+        setSessionStatsLabel(
+          pack.sessions.length > 0 ? `${pack.sessions.length} teams · prove pack` : null,
+        );
+      }
+
+      if (pack.discovers.length === 1) {
+        const entry = pack.discovers[0]!;
+        setDiscoverLatest(discoverSummaryToLatest(entry.summary));
+        setDiscoverLatestLabel(entry.label);
+      } else {
+        setDiscoverLatest(null);
+        setDiscoverLatestLabel(
+          pack.discovers.length > 0 ? `${pack.discovers.length} teams · prove pack` : null,
+        );
+      }
+    },
+    [loaded],
+  );
+
+  const loadProvePackFromFile = useCallback(
+    async (file: File) => {
+      const text = await file.text();
+      applyProvePackState(parseProvePackJson(text), file.name);
+      setLastProvePackJsonText(text);
+    },
+    [applyProvePackState],
+  );
+
+  const clearProvePack = useCallback(() => {
+    setSessionStatsEntries([]);
+    setDiscoverEntries([]);
+    setProvePackCoverage(null);
+    setProvePackLabel(null);
+    setLastProvePackJsonText(null);
+  }, []);
+
+  const loadUsageTeamMapFromFile = useCallback(async (file: File) => {
+    setUsageTeamMap(await parseUsageTeamMapFile(file));
+    setUsageTeamMapLabel(file.name);
+  }, []);
+
+  const clearUsageTeamMap = useCallback(() => {
+    setUsageTeamMap(null);
+    setUsageTeamMapLabel(null);
+  }, []);
+
+  // Re-apply team map when it changes (baseline, after, period snapshots).
+  useEffect(() => {
+    if (!usageTeamMap || Object.keys(usageTeamMap).length === 0) {
+      return;
+    }
+    if (loaded.seed?.usage) {
+      loaded.applySeedDocument(
+        { ...loaded.seed, usage: remapUsageTeams(loaded.seed.usage, usageTeamMap) },
+        loaded.sourceLabel,
+        "keep",
+      );
+    }
+    setAfterUsage((current) => (current ? remapUsageTeams(current, usageTeamMap) : current));
+    setUsageSnapshots((current) => {
+      const next: Record<string, UsageMetrics> = {};
+      for (const [period, usage] of Object.entries(current)) {
+        next[period] = remapUsageTeams(usage, usageTeamMap);
+      }
+      return next;
+    });
+  }, [usageTeamMap, loaded.applySeedDocument, loaded.seed, loaded.sourceLabel]);
+
+  const applyProveSessionSnapshot = useCallback(
+    (snapshot: ReturnType<typeof loadProveSessionSnapshot>) => {
+      if (!snapshot) {
+        return;
+      }
+      if (snapshot.packJsonText) {
+        applyProvePackState(parseProvePackJson(snapshot.packJsonText), snapshot.sourceLabel);
+        setLastProvePackJsonText(snapshot.packJsonText);
+      } else if (snapshot.seed) {
+        loaded.applySeedDocument(snapshot.seed, snapshot.sourceLabel);
+        setChangeMarkers(snapshot.markers);
+        setChangeMarkersLabel(snapshot.changeMarkersLabel);
+        setSessionStatsEntries(snapshot.sessionStatsEntries);
+        setDiscoverEntries(snapshot.discoverEntries);
+        setProvePackCoverage(snapshot.coverage);
+        setProvePackLabel(snapshot.provePackLabel);
+        setLastProvePackJsonText(null);
+
+        if (snapshot.sessionStatsEntries.length === 1) {
+          const entry = snapshot.sessionStatsEntries[0]!;
+          setSessionStats(sessionStatsFromEntry(entry));
+          setSessionStatsLabel(entry.label);
+        } else {
+          setSessionStats(null);
+          setSessionStatsLabel(snapshot.sessionStatsLabel);
+        }
+
+        if (snapshot.discoverEntries.length === 1) {
+          const entry = snapshot.discoverEntries[0]!;
+          setDiscoverLatest(discoverSummaryToLatest(entry.summary));
+          setDiscoverLatestLabel(entry.label);
+        } else {
+          setDiscoverLatest(null);
+          setDiscoverLatestLabel(snapshot.discoverLatestLabel);
+        }
+      }
+
+      if (snapshot.usageSnapshots) {
+        setUsageSnapshots(snapshot.usageSnapshots);
+      }
+      if (snapshot.usageSnapshotLabels) {
+        setUsageSnapshotLabels(snapshot.usageSnapshotLabels);
+      }
+      if (snapshot.baselinePeriod !== undefined || snapshot.afterPeriod !== undefined) {
+        applyPeriodPair(snapshot.baselinePeriod ?? null, snapshot.afterPeriod ?? null);
+      }
+    },
+    [applyProvePackState, applyPeriodPair, loaded],
+  );
+
+  const restoreLastProveSession = useCallback(() => {
+    applyProveSessionSnapshot(loadProveSessionSnapshot());
+  }, [applyProveSessionSnapshot]);
 
   const loadDemoChangeMarkers = useCallback(async () => {
     const response = await fetch("/sample-change-markers.json");
@@ -392,22 +579,32 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const report = await parseSessionStatsFile(file);
     setSessionStats(report);
     setSessionStatsLabel(file.name);
+    setSessionStatsEntries([]);
+    setProvePackLabel(null);
+    setProvePackCoverage(null);
+    setLastProvePackJsonText(null);
   }, []);
 
   const clearSessionStats = useCallback(() => {
     setSessionStats(null);
     setSessionStatsLabel(null);
+    setSessionStatsEntries([]);
   }, []);
 
   const loadDiscoverLatestFromFile = useCallback(async (file: File) => {
     const summary = await parseDiscoverLatestFile(file);
     setDiscoverLatest(summary);
     setDiscoverLatestLabel(file.name);
+    setDiscoverEntries([]);
+    setProvePackLabel(null);
+    setProvePackCoverage(null);
+    setLastProvePackJsonText(null);
   }, []);
 
   const clearDiscoverLatest = useCallback(() => {
     setDiscoverLatest(null);
     setDiscoverLatestLabel(null);
+    setDiscoverEntries([]);
   }, []);
 
   // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
@@ -549,6 +746,33 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Optional `?pack=/org-prove-pack.json` Prove handoff (#F25).
+  useEffect(() => {
+    const bootPack = resolveBootPackUrl();
+    if (!bootPack) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(bootPack);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${bootPack} (${response.status})`);
+        }
+        const text = await response.text();
+        if (!cancelled) {
+          applyProvePackState(parseProvePackJson(text), bootPack);
+          setLastProvePackJsonText(text);
+        }
+      } catch {
+        /* optional */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyProvePackState]);
+
   // Auto period-bind when Fix markers + ≥2 usage snapshots exist.
   useEffect(() => {
     if (changeMarkers.length === 0) {
@@ -568,6 +792,71 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
     setPeriodBindUnbound(bound.unbound);
   }, [changeMarkers, usageSnapshots, applyPeriodPair]);
+
+  const restoreAttempted = useRef(false);
+  useEffect(() => {
+    if (restoreAttempted.current || !loaded.seed) {
+      return;
+    }
+    if (!shouldAutoRestoreProveSession()) {
+      return;
+    }
+    restoreAttempted.current = true;
+    if (hasStoredProveSession()) {
+      restoreLastProveSession();
+    }
+  }, [loaded.seed, restoreLastProveSession]);
+
+  const skipPersistRef = useRef(true);
+  useEffect(() => {
+    if (!loaded.seed) {
+      return;
+    }
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
+      return;
+    }
+    const saved = saveProveSession({
+      sourceLabel: loaded.sourceLabel,
+      packJsonText: lastProvePackJsonText ?? undefined,
+      seed: lastProvePackJsonText ? undefined : loaded.seed,
+      markers: changeMarkers,
+      changeMarkersLabel: changeMarkersLabel,
+      sessionStatsEntries,
+      discoverEntries,
+      coverage: provePackCoverage,
+      provePackLabel,
+      sessionStatsLabel,
+      discoverLatestLabel,
+      usageLabel: loaded.usageLabel,
+      usageSnapshots:
+        Object.keys(usageSnapshots).length > 0 ? usageSnapshots : undefined,
+      usageSnapshotLabels:
+        Object.keys(usageSnapshotLabels).length > 0 ? usageSnapshotLabels : undefined,
+      baselinePeriod,
+      afterPeriod,
+    });
+    if (saved) {
+      setStoredProveSessionAvailable(true);
+    }
+  }, [
+    loaded.seed,
+    loaded.sourceLabel,
+    loaded.usageLabel,
+    lastProvePackJsonText,
+    changeMarkers,
+    changeMarkersLabel,
+    sessionStatsEntries,
+    discoverEntries,
+    provePackCoverage,
+    provePackLabel,
+    sessionStatsLabel,
+    discoverLatestLabel,
+    usageSnapshots,
+    usageSnapshotLabels,
+    baselinePeriod,
+    afterPeriod,
+  ]);
 
   const isDemoSource = isDemoSourceLabel(loaded.sourceLabel);
   const loadError = loaded.loadError ?? afterUsageError;
@@ -623,6 +912,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       discoverLatestLabel,
       loadDiscoverLatestFromFile,
       clearDiscoverLatest,
+      sessionStatsEntries,
+      discoverEntries,
+      provePackCoverage,
+      provePackLabel,
+      loadProvePackFromFile,
+      clearProvePack,
+      usageTeamMap,
+      usageTeamMapLabel,
+      loadUsageTeamMapFromFile,
+      clearUsageTeamMap,
+      hasStoredProveSession: storedProveSessionAvailable,
+      restoreLastProveSession,
     }),
     [
       loaded,
@@ -674,6 +975,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       discoverLatestLabel,
       loadDiscoverLatestFromFile,
       clearDiscoverLatest,
+      sessionStatsEntries,
+      discoverEntries,
+      provePackCoverage,
+      provePackLabel,
+      loadProvePackFromFile,
+      clearProvePack,
+      usageTeamMap,
+      usageTeamMapLabel,
+      loadUsageTeamMapFromFile,
+      clearUsageTeamMap,
+      storedProveSessionAvailable,
+      restoreLastProveSession,
     ],
   );
 

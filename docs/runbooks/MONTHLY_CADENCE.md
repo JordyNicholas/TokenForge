@@ -9,6 +9,7 @@ There is no hosted TokenForge SaaS scheduler. This runbook is the operator check
 Related:
 
 - [`prove-monthly.md`](./prove-monthly.md) — turnkey GitHub Action for `usage-sync`
+- [`EM_TEAM_PROVE.md`](./EM_TEAM_PROVE.md) — Friday inbox drop, prove-pack, usage team map
 - [`PILOT_RUNBOOK.md`](./PILOT_RUNBOOK.md) — one-team baseline → apply → import bill
 - [`STANDARD_PILOT_KIT.md`](./STANDARD_PILOT_KIT.md) — control team + two periods + freeze
 
@@ -44,6 +45,10 @@ See [`prove-monthly.md`](./prove-monthly.md) for period modes, secrets, and smok
 - run: npm run tokenforge -- org-seed .
 - run: npm run tokenforge -- prove-report ${{ vars.TOKENFORGE_SCAN_ROOT || 'fixtures/noisy-app' }}
 ```
+
+**EM multi-person Prove** (weekly inbox — copy from example, not root CI):
+
+See [`.github/workflows/examples/tokenforge-em-prove.yml`](../../.github/workflows/examples/tokenforge-em-prove.yml) and [`EM_TEAM_PROVE.md`](./EM_TEAM_PROVE.md). Steps: `inbox-validate` (continue-on-error OK), `prove-pack`, drift on a Fix-on fixture repo.
 
 Optional after apply in repos under Fix:
 

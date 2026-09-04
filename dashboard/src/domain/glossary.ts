@@ -20,7 +20,11 @@ export type GlossaryTermId =
   | "exclusion-ratio"
   | "calibration"
   | "honor-smoke"
-  | "enforcement";
+  | "enforcement"
+  | "prove-pack"
+  | "inbox"
+  | "roster"
+  | "usage-team-map";
 
 export type GlossaryTerm = {
   id: GlossaryTermId;
@@ -152,6 +156,31 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
     title: "Enforcement tier",
     short: "How reliably a provider honors Shield/ignore: full, partial, or advisory.",
     long: "Cursor Shield is full where ignore files are honored. Copilot and Gemini are partial. Claude and generic instruction packs are advisory unless a host-native ignore merge exists. Candidates are not enforced until promote-shield.",
+  },
+  {
+    id: "prove-pack",
+    title: "Prove pack",
+    short: "Org rollup JSON — seed, Fix markers, session stats, discover summaries for multi-team Prove.",
+    long: "`tokenforge prove-pack` walks an inbox tree and writes `org-prove-pack.json`. The dashboard loads it via Source or `?pack=` to boot Detect + Prove extras for every team in one BU view. Coverage gaps vs roster are honest warnings.",
+  },
+  {
+    id: "inbox",
+    title: "EM inbox",
+    short: "Folder layout `inbox/{team}/{repo}/.tokenforge/` for weekly multi-person Prove drops.",
+    long: "Developers export last-scan and session-stats into the inbox root configured on the extension or via `TOKENFORGE_INBOX`. The EM runs inbox-validate and prove-pack on Fridays. This is local file handoff — not live billing or agent pipeline sync.",
+  },
+  {
+    id: "roster",
+    title: "TokenForge roster",
+    short: "Expected team ids for inbox coverage checks (`tokenforge-roster.json`).",
+    long: "Roster JSON lists TF team ids the EM expects in the inbox. inbox-validate and prove-pack compare present scans/sessions vs roster and flag missing teams. Empty or wrong team labels in exports surface as validation issues.",
+  },
+  {
+    id: "usage-team-map",
+    title: "Usage team map",
+    short: "Vendor FinOps team label → TokenForge team id for bill reconcile.",
+    long: "FinOps CSV/JSON often uses display names that do not match scan team ids. Load a map `{ schemaVersion: 1, map: { … } }` in SourceBar or run `tokenforge remap-usage` so Variance cohort rows align with imported usage.",
+    relatedView: "variance",
   },
 ] as const;
 

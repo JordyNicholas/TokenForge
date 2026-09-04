@@ -15,6 +15,7 @@
 | Running the hackathon demo | [`runbooks/DEMO_RUNBOOK.md`](./runbooks/DEMO_RUNBOOK.md) |
 | Full hybrid-eval presentation (extension + heuristic + hybrid) | [`runbooks/PRESENTATION_HYBRID_EVAL.md`](./runbooks/PRESENTATION_HYBRID_EVAL.md) |
 | FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) · [`runbooks/STANDARD_PILOT_KIT.md`](./runbooks/STANDARD_PILOT_KIT.md) |
+| EM multi-team Prove (inbox / prove-pack) | [`runbooks/EM_TEAM_PROVE.md`](./runbooks/EM_TEAM_PROVE.md) |
 | Platform monthly cadence | [`runbooks/MONTHLY_CADENCE.md`](./runbooks/MONTHLY_CADENCE.md) |
 | Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
 | Extension (Context Guard) | [`design/EXTENSION_PRODUCT.md`](./design/EXTENSION_PRODUCT.md) → [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
@@ -56,6 +57,7 @@ Architecture, contracts narrative, audits, phased plans.
 | --- | --- |
 | [BOARD.md](./delivery/BOARD.md) | Epic/story map ↔ GitHub issues |
 | [F24_REAL_WORLD_ADOPTION.md](./delivery/F24_REAL_WORLD_ADOPTION.md) | Real-world adoption & evidence waves (F24) |
+| [F25_EM_MULTI_PERSON_PROVE.md](./delivery/F25_EM_MULTI_PERSON_PROVE.md) | EM multi-person Prove waves (F25) |
 | [PROJECT_PR_WORKFLOW.md](./delivery/PROJECT_PR_WORKFLOW.md) | Branch naming, `Closes #n`, CI, board automation |
 
 ### [adapters/](./adapters/) — delivery surfaces
@@ -74,6 +76,7 @@ Architecture, contracts narrative, audits, phased plans.
 | [PRESENTATION_HYBRID_EVAL.md](./runbooks/PRESENTATION_HYBRID_EVAL.md) | ~15 min hybrid-eval-app demo (extension → heuristic → hybrid) |
 | [PILOT_RUNBOOK.md](./runbooks/PILOT_RUNBOOK.md) | One-team baseline → apply → import bill |
 | [STANDARD_PILOT_KIT.md](./runbooks/STANDARD_PILOT_KIT.md) | Director standard pilot: control team, 2 periods, freeze, prove-report |
+| [EM_TEAM_PROVE.md](./runbooks/EM_TEAM_PROVE.md) | EM multi-person inbox drop, prove-pack, usage team map |
 | [MONTHLY_CADENCE.md](./runbooks/MONTHLY_CADENCE.md) | Platform monthly: usage-sync, scan, drift, org-seed, prove-report |
 | [prove-monthly.md](./runbooks/prove-monthly.md) | Platform monthly `usage-sync` via GitHub Actions |
 

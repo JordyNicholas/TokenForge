@@ -33,6 +33,7 @@ export function PilotChecklist() {
     compareAfterUsage,
     sessionStats,
     periodBindUnbound,
+    isDemoSource,
   } = useDashboard();
 
   const hasScan = Boolean(seed?.reports?.length);
@@ -107,6 +108,14 @@ export function PilotChecklist() {
       data-testid="pilot-checklist"
     >
       <GlossaryTip term="Prove loop" termId="prove-loop" />
+      {isDemoSource ? (
+        <Chip
+          size="small"
+          color="info"
+          variant="outlined"
+          label="Demo data — not your team"
+        />
+      ) : null}
       {sessionStats ? (
         <Tooltip title="Session hygiene loaded">
           <Chip size="small" label="Session" color="success" variant="outlined" />

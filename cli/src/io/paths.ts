@@ -41,6 +41,7 @@ export const PROVE_HANDOFF_FILE = "prove-handoff.json";
 export const PROVE_REPORT_FILE = "prove-report.md";
 export const HONOR_SMOKE_FILE = "honor-smoke.json";
 export const SESSION_STATS_FILE = "session-stats.json";
+export const PROVE_PACK_FILE = "prove-pack.json";
 export const APPLY_SNAPSHOT_BEFORE_FILE = "scan-before-apply.json";
 export const APPLY_SNAPSHOT_AFTER_FILE = "scan-after-apply.json";
 export const APPLY_SECTION_HASH_FILE = "apply-section-hash.json";
@@ -82,6 +83,11 @@ export function honorSmokePath(root: string): string {
 
 export function sessionStatsPath(root: string): string {
   return join(tokenforgeDir(root), SESSION_STATS_FILE);
+}
+
+/** Optional staged org prove-pack under `.tokenforge/` (default CLI out is walk-root). */
+export function provePackPath(root: string): string {
+  return join(tokenforgeDir(root), PROVE_PACK_FILE);
 }
 
 export function applySnapshotBeforePath(root: string): string {

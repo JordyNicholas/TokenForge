@@ -17,10 +17,11 @@ export type ScanHealth = "ok" | "stale" | "missing";
 export type SessionHealth = "sent" | "unsent";
 export type DriftHealth = "unknown" | "ok" | "dirty";
 export type PromoteHealth = "pending" | "done" | "n/a";
+export type InboxHealth = "pending" | "exported" | "n/a";
 
 export type DailyHealthChip = {
   label: string;
-  status: ScanHealth | SessionHealth | DriftHealth | PromoteHealth;
+  status: ScanHealth | SessionHealth | DriftHealth | PromoteHealth | InboxHealth;
   detail: string;
 };
 
@@ -29,6 +30,13 @@ export type DailyHealthModel = {
   session: DailyHealthChip;
   drift: DailyHealthChip;
   promote: DailyHealthChip;
+  inbox?: DailyHealthChip;
+};
+
+export type DailyHealthContext = {
+  inboxPath?: string;
+  team?: string;
+  repo?: string;
 };
 
 const STALE_MS = 24 * 60 * 60 * 1000;
@@ -122,6 +130,7 @@ export async function buildDailyHealth(
   root: string,
   provider: ProviderId,
   nowMs = Date.now(),
+  context?: DailyHealthContext,
 ): Promise<DailyHealthModel> {
   const lastScanMtime = await fileMtimeMs(root, ".tokenforge/last-scan.json");
   const scanReportMtime = await fileMtimeMs(root, ".tokenforge/scan-report.json");
@@ -277,5 +286,31 @@ export async function buildDailyHealth(
     }
   }
 
-  return { scan, session, drift, promote };
+  let inbox: DailyHealthChip | undefined;
+  const inboxPath = context?.inboxPath?.trim();
+  const team = context?.team?.trim();
+  const repo = context?.repo?.trim();
+  if (inboxPath && team && repo) {
+    const inboxScanPath = join(inboxPath, team, repo, ".tokenforge", "last-scan.json");
+    let inboxScanMtime: number | null = null;
+    try {
+      inboxScanMtime = (await stat(inboxScanPath)).mtimeMs;
+    } catch {
+      inboxScanMtime = null;
+    }
+    inbox =
+      inboxScanMtime !== null
+        ? {
+            label: "Inbox",
+            status: "exported",
+            detail: "Export to inbox for EM — last-scan present",
+          }
+        : {
+            label: "Inbox",
+            status: "pending",
+            detail: "Export to inbox for EM",
+          };
+  }
+
+  return { scan, session, drift, promote, ...(inbox ? { inbox } : {}) };
 }

@@ -117,9 +117,35 @@ export {
 export { buildProveSummaryMarkdown, type ProveSummaryInput } from "./proveSummary";
 export {
   ChangeMarkerLoadError,
+  changeMarkerKey,
+  mergeChangeMarkers,
   parseChangeMarkersFile,
   parseChangeMarkersJson,
 } from "./parseChangeMarkers";
+export {
+  discoverSummaryToLatest,
+  isProvePack,
+  parseProvePackFile,
+  parseProvePackJson,
+  sessionStatsFromEntry,
+  type DiscoverEntry,
+  type ProvePackCoverage,
+  type ProvePackDocument,
+  type ProvePackDiscoverSummary,
+  type SessionStatsEntry,
+} from "./provePack";
+export {
+  PROVE_SESSION_MAX_BYTES,
+  PROVE_SESSION_STORAGE_KEY,
+  buildProveSessionSnapshot,
+  hasStoredProveSession,
+  loadProveSessionSnapshot,
+  proveSessionPayloadBytes,
+  saveProveSession,
+  shouldAutoRestoreProveSession,
+  type ProveSessionPersistInput,
+  type ProveSessionSnapshotV1,
+} from "./proveSessionPersist";
 export {
   buildVarianceBoard,
   defaultAfterPeriod,
@@ -143,6 +169,13 @@ export {
   parseUsageJson,
   parseUsageText,
 } from "./parseUsage";
+export {
+  parseUsageTeamMapFile,
+  parseUsageTeamMapJson,
+  remapUsageTeams,
+  UsageTeamMapLoadError,
+  type UsageTeamMapDocument,
+} from "./usageTeamMap";
 export {
   compactionAdvice,
   routingAdvice,
@@ -198,6 +231,7 @@ export {
   resolveBootMarkersUrl,
   resolveBootSessionUrl,
   resolveBootDiscoverUrl,
+  resolveBootPackUrl,
   type DashboardSeed,
 } from "./seed";
 export {

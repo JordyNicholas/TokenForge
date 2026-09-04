@@ -26,6 +26,11 @@ Commands:
   promote-shield [path]
                       Merge ignore candidates into provider shield files
   org-seed [path]     Roll up scan JSON files under a directory → BU seed
+  prove-pack [path]   Roll up Detect + Prove artifacts → org prove-pack JSON
+  inbox-init [dir]    Scaffold inbox/README.md (+ optional tokenforge-roster.json)
+  inbox-validate [dir] Validate inbox folders vs roster (exit 2 on failure)
+  stage-dashboard [path] Copy prove artifacts → dashboard/public for local boot
+  remap-usage         Rename vendor team labels in UsageMetrics JSON
   org-pack <seed>     Aggregate a multi-team seed into .tokenforge/org-policy/
   org-apply [path]    Stage / push org content exclusions (requires --org)
   usage-pull          Fetch billed usage into UsageMetrics JSON
@@ -142,6 +147,89 @@ const COMMAND_HELP: Record<string, string> = {
 
   Example:
     npm run tokenforge -- org-seed ./team-repos --team "Retail Banking" --out ./bu-seed.json
+`,
+
+  "prove-pack": `tokenforge prove-pack [directory] [options]
+
+  Walk a directory tree for Detect + Prove artifacts and merge them into one
+  org prove-pack JSON (seed, change markers, session stats, discover summaries).
+  Eng-manager / director handoff for dashboard ?pack=.
+
+  Collects under each repo:
+    scan-report.json / last-scan.json
+    prove-change-latest.json
+    session-stats.json
+    discover-latest.json
+
+  Options:
+    --team <name>       Business unit label (default: directory name)
+    --out <path>        Output path (default: <directory>/org-prove-pack.json)
+    --roster <path>     Optional roster JSON for scan/session coverage gaps
+    --json              Print rollup metadata + pack JSON
+
+  Example:
+    npm run tokenforge -- prove-pack ./inbox --team "Retail Banking" --roster ./roster.json
+`,
+
+  "inbox-init": `tokenforge inbox-init [dir] [options]
+
+  Scaffold an EM inbox: inbox/README.md explaining the layout
+  inbox/{team}/{repo}/.tokenforge/ and optional sample tokenforge-roster.json.
+
+  Options:
+    --with-roster       Also write tokenforge-roster.json stub at inbox root
+    --team <name>       Business unit label for roster stub
+    --json              Print { root, readmePath, rosterPath? }
+
+  Example:
+    npm run tokenforge -- inbox-init ./bu-inbox --with-roster --team "Retail Banking"
+`,
+
+  "inbox-validate": `tokenforge inbox-validate [dir] [options]
+
+  Walk inbox folders for scan/session artifacts; compare vs roster when given.
+  Reports missing teams, local/default/empty team labels, and stale mtimes.
+
+  Options:
+    --roster <path>     tokenforge-roster.json for coverage checks
+    --stale-days <n>    Stale threshold in days (default: 7)
+    --json              Print validation result JSON
+
+  Exit codes: 0 OK · 2 validation failures
+
+  Example:
+    npm run tokenforge -- inbox-validate ./bu-inbox --roster ./tokenforge-roster.json
+`,
+
+  "stage-dashboard": `tokenforge stage-dashboard [path] [options]
+
+  Copy org prove-pack / seed / last-scan / markers / session / discover into
+  dashboard/public for local Vite boot.
+
+  Path may be org-prove-pack.json, org-seed.json, or a directory (repo or inbox).
+
+  Options:
+    --public-dir <path> Override dashboard/public (default: <cwd>/dashboard/public)
+    --json              Print { publicDir, copied, bootUrl }
+
+  Example:
+    npm run tokenforge -- stage-dashboard ./org-prove-pack.json
+    npm run tokenforge -- stage-dashboard ./bu-inbox --public-dir ./dashboard/public
+`,
+
+  "remap-usage": `tokenforge remap-usage [options]
+
+  Rename vendor FinOps team labels to TokenForge team ids in a UsageMetrics JSON
+  file using a usage team map ({ schemaVersion: 1, map: { … } }).
+
+  Options:
+    --map <path>        Usage team map JSON (required)
+    --in <path>         Input UsageMetrics JSON (or positional path)
+    --out <path>        Output path (required)
+    --json              Print remap metadata + metrics
+
+  Example:
+    npm run tokenforge -- remap-usage --map ./usage-team-map.json --in ./usage-2026-08.json --out ./usage-remapped.json
 `,
 
   pilot: `tokenforge pilot [path] [options]
@@ -267,7 +355,7 @@ export function printHelp(io: HelpIo, topic?: string): void {
 
   if (normalized && normalized !== "help") {
     io.stderr.write(
-      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, org-seed, prove-report, honor-smoke, drift, promote-shield, hybrid, mcp\n`,
+      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, org-seed, prove-pack, inbox-init, inbox-validate, stage-dashboard, remap-usage, prove-report, honor-smoke, drift, promote-shield, hybrid, mcp\n`,
     );
   }
 }
