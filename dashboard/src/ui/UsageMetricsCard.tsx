@@ -60,7 +60,7 @@ export function UsageMetricsCard({
             usage.source === "demo"
               ? "Demo import"
               : usage.source === "sync"
-                ? "Live sync"
+                ? "CLI-synced file"
                 : "File import"
           }
           color="success"
@@ -69,7 +69,7 @@ export function UsageMetricsCard({
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
         {usage.source === "sync"
-          ? "Billed usage compare from a synced vendor export — not agent pipeline metering."
+          ? "Billed usage compare from a CLI-synced file — not a live FinOps console, and not agent pipeline metering."
           : "Billed usage compare from an imported export — not live Copilot/Cursor/Claude sync, and not metering of any agent pipeline."}
       </Typography>
     </Alert>

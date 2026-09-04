@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { readPreferredScanLayer } from "./domain";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { FindingsPage } from "./pages/FindingsPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
@@ -34,17 +35,19 @@ function BoardRoutes() {
 
 export function App() {
   const { seed } = useDashboard();
+  const preferredLayer = readPreferredScanLayer("combined");
+  const home = `/board/${preferredLayer}`;
   return (
     <AppShell>
       {seed ? (
         <Routes>
-          <Route path="/" element={<Navigate to="/board/combined" replace />} />
+          <Route path="/" element={<Navigate to={home} replace />} />
           <Route path="/board/:layerId/*" element={<BoardRoutes />} />
           <Route
             path="/assumptions"
-            element={<Navigate to="/board/combined/assumptions" replace />}
+            element={<Navigate to={`${home}/assumptions`} replace />}
           />
-          <Route path="*" element={<Navigate to="/board/combined" replace />} />
+          <Route path="*" element={<Navigate to={home} replace />} />
         </Routes>
       ) : (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 6 }}>

@@ -499,12 +499,12 @@ committed scope.
 | --- | --- | --- | --- |
 | One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE | **Filed** — F11 #266 |
 | Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs | Open |
-| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence | Open |
+| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence | **Shipped** — multi JSON SourceBar (F18 follow-up) |
 | Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | **Shipped** — `tokenforge drift` (F18 #326) |
 | Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs | Open |
 | Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths | **Filed** — F10 #257, F9 #254 |
 | Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) | Open |
-| Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing | Open |
+| Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing | **Shipped** — Assumptions page presets |
 
 ## Build order
 

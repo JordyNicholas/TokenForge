@@ -42,6 +42,7 @@ import {
   LLM_BOARD_LOCKED_HINT,
   layerActionableFindingCount,
   seedHasLlmLayer,
+  writePreferredScanLayer,
   type ScanLayerId,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
@@ -250,6 +251,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [seed]);
 
   const selectBoard = (layer: ScanLayerId) => {
+    writePreferredScanLayer(layer);
     navigate(`/board/${layer}${subpath}`);
   };
 

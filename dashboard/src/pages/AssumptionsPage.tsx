@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import {
+  ASSUMPTION_PRESETS,
   PITCH_REALIZED_WASTE_SHARE,
   SCAN_LAYER_LABELS,
   formatPercent,
@@ -101,6 +102,7 @@ export function AssumptionsPage() {
     projection,
     patchAssumptions,
     applyPitchScenario,
+    applyAssumptionPresetId,
     totals,
     boardLayer,
   } = useLayerView();
@@ -115,7 +117,8 @@ export function AssumptionsPage() {
             term="active scan board"
             definition="Totals follow Combined, Heuristic, or LLM — same board as Overview."
           />
-          . The pitch ~30% is this calculator, not a production SLA.
+          . The pitch ~30% is this calculator, not a production SLA. Vendor presets seed knobs
+          only — not live billing rates.
         </>
       }
     >
@@ -137,6 +140,20 @@ export function AssumptionsPage() {
         <Button variant="contained" onClick={applyPitchScenario} sx={{ flexShrink: 0 }}>
           Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%)
         </Button>
+      </Stack>
+
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+        {ASSUMPTION_PRESETS.map((preset) => (
+          <Button
+            key={preset.id}
+            size="small"
+            variant="outlined"
+            onClick={() => applyAssumptionPresetId(preset.id)}
+            title={preset.hint}
+          >
+            {preset.label}
+          </Button>
+        ))}
       </Stack>
 
       <WasteShareSuggestBanner />

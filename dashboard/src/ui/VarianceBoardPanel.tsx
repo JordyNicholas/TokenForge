@@ -17,9 +17,10 @@ import {
   type VarianceBoardRow,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
-import { DataTable } from "./DataTable";
 import { CohortCompareCard } from "./CohortCompareCard";
+import { DataTable } from "./DataTable";
 import { KpiCard, KpiRow } from "./Kpi";
+import { OverviewSection } from "./OverviewSection";
 import { UsagePeriodPicker } from "./UsagePeriodPicker";
 
 function signedUsd(value: number): string {
@@ -108,91 +109,108 @@ export function VarianceBoardPanel({
   const focusBu = teamId ? board.rows.find((row) => row.team === teamId) ?? board.bu : board.bu;
 
   return (
-    <>
-      <UsagePeriodPicker />
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={{ alignItems: { sm: "center" }, justifyContent: "space-between", mb: 1 }}
+    <Stack spacing={2.5}>
+      <OverviewSection
+        title="Period"
+        lead="Baseline vs after side-by-side. Freeze Assumptions so estimate $ does not drift mid-compare."
       >
-        <Typography variant="body2" color="text.secondary">
-          {board.baselinePeriod} → {board.afterPeriod} · {board.providerLabel}. Estimated $
-          uses {board.assumptionsFrozen ? "frozen" : "live"} Assumptions × each team&apos;s
-          baseline scan. Billed usage compare — not agent pipeline metering.
-        </Typography>
-        <Button size="small" variant="outlined" onClick={freezeCompareAssumptions}>
-          {board.assumptionsFrozen ? "Re-freeze Assumptions" : "Freeze Assumptions"}
-        </Button>
-      </Stack>
-      {board.assumptionsFrozen ? (
-        <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: "center" }}>
-          <Chip size="small" color="success" variant="outlined" label="Assumptions frozen" />
-          <Typography variant="caption" color="text.secondary">
-            {summarizeAssumptionsFreeze(compareAssumptionsFreeze!)}
+        <UsagePeriodPicker />
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {board.baselinePeriod} → {board.afterPeriod} · {board.providerLabel}. Estimated $
+            uses {board.assumptionsFrozen ? "frozen" : "live"} Assumptions × each team&apos;s
+            baseline scan. Billed usage compare — not agent pipeline metering.
           </Typography>
+          <Button size="small" variant="outlined" onClick={freezeCompareAssumptions}>
+            {board.assumptionsFrozen ? "Re-freeze Assumptions" : "Freeze Assumptions"}
+          </Button>
         </Stack>
-      ) : null}
-      {board.periodMismatch || board.providerMismatch ? (
-        <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
-          {board.periodMismatch ? "Period labels differ between baseline and after. " : ""}
-          {board.providerMismatch ? "Provider labels differ. " : ""}
-          Prefer matching exports for a clean variance read.
-        </Alert>
-      ) : null}
-      {board.liveAssumptionsDrift ? (
-        <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
-          Live Assumptions changed since this compare was frozen. Re-freeze to adopt current
-          knobs.
-        </Alert>
-      ) : null}
-      <CohortCompareCard board={board} />
-      <KpiRow>
-        <KpiCard
-          label={teamId ? "Team · estimated reduction" : "BU · estimated reduction"}
-          value={formatUsd(focusBu.estimatedReductionUsd)}
-          hint="Scan × assumptions"
-        />
-        <KpiCard
-          label="Actual billed change"
-          value={signedUsd(focusBu.actualBilledChangeUsd)}
-          hint="Baseline $ − after $"
-        />
-        <KpiCard
-          label="Variance"
-          value={signedUsd(focusBu.varianceUsd)}
-          hint="Actual − estimated"
-        />
-        <KpiCard
-          label="Gap"
-          value={focusBu.gapPercentLabel}
-          hint="% of estimated reduction"
-        />
-      </KpiRow>
-      <DataTable>
-        <TableHead>
-          <TableRow>
-            <TableCell>Team</TableCell>
-            <TableCell align="right">Baseline bill</TableCell>
-            <TableCell align="right">After bill</TableCell>
-            <TableCell align="right">Est. reduction</TableCell>
-            <TableCell align="right">Actual Δ</TableCell>
-            <TableCell align="right">Variance</TableCell>
-            <TableCell align="right">Gap %</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {visibleRows.map((row) => (
-            <VarianceRow key={row.team} row={row} highlight={teamId === row.team} />
-          ))}
-          {!teamId ? <VarianceRow row={board.bu} highlight /> : null}
-        </TableBody>
-      </DataTable>
-      {!teamId ? (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-          BU row sums scan estimates across teams; billed usage rows follow imported/synced
-          exports.
-        </Typography>
-      ) : null}
-    </>
+        {board.assumptionsFrozen ? (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Chip size="small" color="success" variant="outlined" label="Assumptions frozen" />
+            <Typography variant="caption" color="text.secondary">
+              {summarizeAssumptionsFreeze(compareAssumptionsFreeze!)}
+            </Typography>
+          </Stack>
+        ) : null}
+        {board.periodMismatch || board.providerMismatch ? (
+          <Alert severity="warning" variant="outlined">
+            {board.periodMismatch ? "Period labels differ between baseline and after. " : ""}
+            {board.providerMismatch ? "Provider labels differ. " : ""}
+            Prefer matching exports for a clean variance read.
+          </Alert>
+        ) : null}
+        {board.liveAssumptionsDrift ? (
+          <Alert severity="warning" variant="outlined">
+            Live Assumptions changed since this compare was frozen. Re-freeze to adopt current
+            knobs.
+          </Alert>
+        ) : null}
+      </OverviewSection>
+
+      <OverviewSection
+        title="Prove KPIs"
+        lead="Estimated reduction, actual billed Δ, and variance stay visible together — not sequential tabs."
+      >
+        <CohortCompareCard board={board} />
+        <KpiRow>
+          <KpiCard
+            label={teamId ? "Team · estimated reduction" : "BU · estimated reduction"}
+            value={formatUsd(focusBu.estimatedReductionUsd)}
+            hint="Scan × assumptions"
+          />
+          <KpiCard
+            label="Actual billed change"
+            value={signedUsd(focusBu.actualBilledChangeUsd)}
+            hint="Baseline $ − after $"
+          />
+          <KpiCard
+            label="Variance"
+            value={signedUsd(focusBu.varianceUsd)}
+            hint="Actual − estimated"
+          />
+          <KpiCard
+            label="Gap"
+            value={focusBu.gapPercentLabel}
+            hint="% of estimated reduction"
+          />
+        </KpiRow>
+      </OverviewSection>
+
+      <OverviewSection
+        title="Teams"
+        lead="Per-team estimate vs billed rows for the selected periods."
+      >
+        <DataTable>
+          <TableHead>
+            <TableRow>
+              <TableCell>Team</TableCell>
+              <TableCell align="right">Baseline bill</TableCell>
+              <TableCell align="right">After bill</TableCell>
+              <TableCell align="right">Est. reduction</TableCell>
+              <TableCell align="right">Actual Δ</TableCell>
+              <TableCell align="right">Variance</TableCell>
+              <TableCell align="right">Gap %</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {visibleRows.map((row) => (
+              <VarianceRow key={row.team} row={row} highlight={teamId === row.team} />
+            ))}
+            {!teamId ? <VarianceRow row={board.bu} highlight /> : null}
+          </TableBody>
+        </DataTable>
+        {!teamId ? (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+            BU row sums scan estimates across teams; billed usage rows follow imported/synced
+            exports.
+          </Typography>
+        ) : null}
+      </OverviewSection>
+    </Stack>
   );
 }
