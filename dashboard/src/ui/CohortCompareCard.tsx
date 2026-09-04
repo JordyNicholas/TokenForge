@@ -57,8 +57,11 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
             variant="outlined"
             label={`Control: ${compare.control.teams.join(", ")}`}
           />
-        ) : null}
+        ) : (
+          <Chip size="small" color="warning" variant="outlined" label="No control cohort" />
+        )}
       </Stack>
+      <Typography variant="body2">{compare.narrative}</Typography>
       <KpiRow>
         <KpiCard
           label="Fix-on · actual billed Δ"
@@ -79,16 +82,18 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
           }
         />
         <KpiCard
+          label="Fix-on vs control"
+          value={
+            compare.relativeBilledDeltaUsd !== null
+              ? signedUsd(compare.relativeBilledDeltaUsd)
+              : "—"
+          }
+          hint="Relative billed Δ (Fix-on − control)"
+        />
+        <KpiCard
           label="Fix-on gap"
           value={compare.fixOn.gapPercentLabel}
           hint="% of Fix-on estimate"
-        />
-        <KpiCard
-          label="Control gap"
-          value={
-            compare.control.teamCount > 0 ? compare.control.gapPercentLabel : "—"
-          }
-          hint="% of control estimate"
         />
       </KpiRow>
       <Typography variant="caption" color="text.secondary">

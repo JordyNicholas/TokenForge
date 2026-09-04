@@ -29,10 +29,50 @@ export type CohortCompare = {
   /** True when at least one Fix-on team is tagged. */
   hasFixOn: boolean;
   honestyNote: string;
+  /**
+   * Fix-on actual billed Δ minus control actual billed Δ (USD).
+   * Positive ⇒ Fix-on cohort saw a larger billed drop than control.
+   * Null when there is no control cohort to compare.
+   */
+  relativeBilledDeltaUsd: number | null;
+  /** One-line interpretive caption; still not a causation claim. */
+  narrative: string;
 };
 
 export const COHORT_HONESTY_NOTE =
   "Fix-on vs control is billed usage compare for teams with vs without a Fix apply marker — not proof that TokenForge caused 100% of any invoice delta.";
+
+function formatSignedUsd(value: number): string {
+  const abs = Math.abs(value);
+  const rounded = abs >= 100 ? abs.toFixed(0) : abs.toFixed(2);
+  return `${value >= 0 ? "+" : "−"}$${rounded}`;
+}
+
+/**
+ * Interpretive caption for Fix-on vs control billed Δ.
+ * Keeps honesty: relative movement ≠ causal proof.
+ */
+export function cohortNarrative(compare: {
+  hasFixOn: boolean;
+  fixOn: Pick<CohortSummary, "teamCount" | "actualBilledChangeUsd">;
+  control: Pick<CohortSummary, "teamCount" | "actualBilledChangeUsd">;
+  relativeBilledDeltaUsd: number | null;
+}): string {
+  if (!compare.hasFixOn) {
+    return "Load Fix change markers to partition Fix-on vs control teams.";
+  }
+  if (compare.control.teamCount === 0) {
+    return "All tagged teams are Fix-on — no control cohort, so relative billed Δ is weak evidence.";
+  }
+  const relative = compare.relativeBilledDeltaUsd ?? 0;
+  if (Math.abs(relative) < 0.005) {
+    return `Fix-on and control billed Δ moved similarly (${formatSignedUsd(compare.fixOn.actualBilledChangeUsd)} vs ${formatSignedUsd(compare.control.actualBilledChangeUsd)}). Relative gap ≈ $0 — still not causation.`;
+  }
+  if (relative > 0) {
+    return `Fix-on billed Δ outpaced control by ${formatSignedUsd(relative)} (${formatSignedUsd(compare.fixOn.actualBilledChangeUsd)} vs ${formatSignedUsd(compare.control.actualBilledChangeUsd)}). Suggestive, not proof TokenForge caused the invoice delta.`;
+  }
+  return `Control billed Δ outpaced Fix-on by ${formatSignedUsd(-relative)} (${formatSignedUsd(compare.control.actualBilledChangeUsd)} vs ${formatSignedUsd(compare.fixOn.actualBilledChangeUsd)}). Do not treat this as anti-proof — check periods, adoption, and waste applicability.`;
+}
 
 /** Teams tagged by apply/org-pack Prove change markers. */
 export function fixOnTeamsFromMarkers(
@@ -137,11 +177,28 @@ export function compareCohorts(
     }
   }
 
+  const fixOn = summarizeCohort("fix", fixRows);
+  const control = summarizeCohort("control", controlRows);
+  const unknown = summarizeCohort("unknown", unknownRows);
+  const hasFixOn = fixRows.length > 0;
+  const relativeBilledDeltaUsd =
+    hasFixOn && controlRows.length > 0
+      ? fixOn.actualBilledChangeUsd - control.actualBilledChangeUsd
+      : null;
+  const draft = {
+    hasFixOn,
+    fixOn,
+    control,
+    relativeBilledDeltaUsd,
+  };
+
   return {
-    fixOn: summarizeCohort("fix", fixRows),
-    control: summarizeCohort("control", controlRows),
-    unknown: summarizeCohort("unknown", unknownRows),
-    hasFixOn: fixRows.length > 0,
+    fixOn,
+    control,
+    unknown,
+    hasFixOn,
     honestyNote: COHORT_HONESTY_NOTE,
+    relativeBilledDeltaUsd,
+    narrative: cohortNarrative(draft),
   };
 }

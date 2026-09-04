@@ -3,6 +3,7 @@ import type { ProveChangeMarker } from "@tokenforge/risk-core";
 import { DEFAULT_ASSUMPTIONS } from "./assumptions";
 import {
   compareCohorts,
+  cohortNarrative,
   fixOnTeamsFromMarkers,
 } from "./cohortCompare";
 import type { UsageMetrics } from "./usage";
@@ -97,6 +98,9 @@ describe("compareCohorts", () => {
     expect(compare.fixOn.actualBilledChangeUsd).toBe(270 + 390);
     expect(compare.control.actualBilledChangeUsd).toBe(15);
     expect(compare.honestyNote).toMatch(/not proof/i);
+    expect(compare.relativeBilledDeltaUsd).toBe(270 + 390 - 15);
+    expect(compare.narrative).toMatch(/outpaced control/i);
+    expect(compare.narrative).toMatch(/not proof|Suggestive/i);
   });
 
   it("marks all teams unknown when no Fix-on list", () => {
@@ -111,5 +115,36 @@ describe("compareCohorts", () => {
     expect(compare.unknown.teamCount).toBe(3);
     expect(compare.fixOn.teamCount).toBe(0);
     expect(compare.control.teamCount).toBe(0);
+    expect(compare.relativeBilledDeltaUsd).toBeNull();
+    expect(compare.narrative).toMatch(/Load Fix change markers/i);
+  });
+
+  it("warns when every team is Fix-on (no control)", () => {
+    const board = buildVarianceBoard({
+      baselineUsage,
+      afterUsage,
+      reports: [...reports],
+      liveAssumptions: DEFAULT_ASSUMPTIONS,
+    });
+    const compare = compareCohorts(board, [
+      "checkout",
+      "payments-platform",
+      "data-eng",
+    ]);
+    expect(compare.control.teamCount).toBe(0);
+    expect(compare.relativeBilledDeltaUsd).toBeNull();
+    expect(compare.narrative).toMatch(/no control cohort/i);
+  });
+});
+
+describe("cohortNarrative", () => {
+  it("explains a weak relative gap", () => {
+    const text = cohortNarrative({
+      hasFixOn: true,
+      fixOn: { teamCount: 1, actualBilledChangeUsd: 10 },
+      control: { teamCount: 1, actualBilledChangeUsd: 10 },
+      relativeBilledDeltaUsd: 0,
+    });
+    expect(text).toMatch(/similarly/i);
   });
 });

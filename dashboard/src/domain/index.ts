@@ -89,6 +89,7 @@ export {
   COHORT_HONESTY_NOTE,
   annotateVarianceRow,
   cohortForTeam,
+  cohortNarrative,
   compareCohorts,
   fixOnTeamsFromMarkers,
   type CohortCompare,

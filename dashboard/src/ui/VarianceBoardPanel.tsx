@@ -10,10 +10,12 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import {
+  annotateVarianceRow,
   buildVarianceBoard,
   formatUsd,
   summarizeAssumptionsFreeze,
   type Assumptions,
+  type CohortId,
   type VarianceBoardRow,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
@@ -27,16 +29,38 @@ function signedUsd(value: number): string {
   return `${value >= 0 ? "+" : "−"}${formatUsd(Math.abs(value))}`;
 }
 
+const COHORT_LABEL: Record<CohortId, string> = {
+  fix: "Fix-on",
+  control: "Control",
+  unknown: "—",
+};
+
 function VarianceRow({
   row,
   highlight,
+  showCohort,
 }: {
-  row: VarianceBoardRow;
+  row: VarianceBoardRow & { cohort?: CohortId };
   highlight?: boolean;
+  showCohort: boolean;
 }) {
   return (
     <TableRow selected={highlight} sx={highlight ? { bgcolor: "action.selected" } : undefined}>
       <TableCell sx={{ fontWeight: highlight ? 600 : 400 }}>{row.team}</TableCell>
+      {showCohort ? (
+        <TableCell>
+          {row.cohort && row.cohort !== "unknown" ? (
+            <Chip
+              size="small"
+              color={row.cohort === "fix" ? "primary" : "default"}
+              variant="outlined"
+              label={COHORT_LABEL[row.cohort]}
+            />
+          ) : (
+            "—"
+          )}
+        </TableCell>
+      ) : null}
       <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
         {row.incomplete ? "—" : formatUsd(row.baselineUsd)}
       </TableCell>
@@ -73,6 +97,7 @@ export function VarianceBoardPanel({
     compareAfterUsage,
     compareAssumptionsFreeze,
     freezeCompareAssumptions,
+    fixOnTeams,
   } = useDashboard();
 
   if (!compareBaselineUsage) {
@@ -107,6 +132,9 @@ export function VarianceBoardPanel({
     : board.rows;
 
   const focusBu = teamId ? board.rows.find((row) => row.team === teamId) ?? board.bu : board.bu;
+  const fixSet = new Set(fixOnTeams);
+  const showCohort = fixOnTeams.length > 0;
+  const annotatedRows = visibleRows.map((row) => annotateVarianceRow(row, fixSet));
 
   return (
     <Stack spacing={2.5}>
@@ -189,6 +217,7 @@ export function VarianceBoardPanel({
           <TableHead>
             <TableRow>
               <TableCell>Team</TableCell>
+              {showCohort ? <TableCell>Cohort</TableCell> : null}
               <TableCell align="right">Baseline bill</TableCell>
               <TableCell align="right">After bill</TableCell>
               <TableCell align="right">Est. reduction</TableCell>
@@ -198,10 +227,17 @@ export function VarianceBoardPanel({
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map((row) => (
-              <VarianceRow key={row.team} row={row} highlight={teamId === row.team} />
+            {annotatedRows.map((row) => (
+              <VarianceRow
+                key={row.team}
+                row={row}
+                highlight={teamId === row.team}
+                showCohort={showCohort}
+              />
             ))}
-            {!teamId ? <VarianceRow row={board.bu} highlight /> : null}
+            {!teamId ? (
+              <VarianceRow row={board.bu} highlight showCohort={showCohort} />
+            ) : null}
           </TableBody>
         </DataTable>
         {!teamId ? (
