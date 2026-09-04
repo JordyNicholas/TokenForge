@@ -103,6 +103,7 @@ export function VarianceBoardPanel({
     compareAssumptionsFreeze,
     freezeCompareAssumptions,
     fixOnTeams,
+    isDemoSource,
   } = useDashboard();
   const [copySnack, setCopySnack] = useState(false);
 
@@ -143,6 +144,21 @@ export function VarianceBoardPanel({
   const annotatedRows = visibleRows.map((row) => annotateVarianceRow(row, fixSet));
 
   async function copyProveSummary(): Promise<void> {
+    const warnParts: string[] = [];
+    if (isDemoSource) {
+      warnParts.push("demo data (not your team)");
+    }
+    if (!compareAssumptionsFreeze) {
+      warnParts.push("Assumptions are not frozen");
+    }
+    if (warnParts.length > 0) {
+      const proceed = window.confirm(
+        `Prove summary uses ${warnParts.join(" and ")}. Copy anyway?`,
+      );
+      if (!proceed) {
+        return;
+      }
+    }
     const markdown = buildProveSummaryMarkdown({
       board,
       fixOnTeams,
