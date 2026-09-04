@@ -22,7 +22,9 @@ import {
 import { readLlmSettings } from "../enrich/settings";
 import { assertValidLastScan, buildLastScanReport } from "../export/buildLastScan";
 import { repoLabel, teamLabel, resolveWorkspaceRoot } from "../export/writeLastScan";
+import { inboxPath } from "../export/exportToInbox";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
+import { providerExpectation } from "../shield/providerExpectations";
 import { isRulesBudgetOverThreshold } from "../instructions/instructionWatch";
 import { peekInstructionOverlap, resolveInstructionOverlap, type OverlapHint } from "../instructions/overlapRadar";
 import type { ShieldSession } from "../session/shieldSession";
@@ -48,6 +50,7 @@ type OverviewModel = {
   enrichment: EnrichmentStatusView;
   cardsLoading: boolean;
   dailyHealth?: DailyHealthModel;
+  providerNote?: string;
 };
 
 class RiskPulseProvider implements WebviewViewProvider {
@@ -74,7 +77,11 @@ class RiskPulseProvider implements WebviewViewProvider {
           event.affectsConfiguration("tokenforge.autoFilterHighRisk") ||
           event.affectsConfiguration("tokenforge.llmEnrichment") ||
           event.affectsConfiguration("tokenforge.llm") ||
-          event.affectsConfiguration("tokenforge.llmEndpoint")
+          event.affectsConfiguration("tokenforge.llmEndpoint") ||
+          event.affectsConfiguration("tokenforge.inboxPath") ||
+          event.affectsConfiguration("tokenforge.team") ||
+          event.affectsConfiguration("tokenforge.repo") ||
+          event.affectsConfiguration("tokenforge.provider")
         ) {
           void this.render();
         }
@@ -118,6 +125,15 @@ class RiskPulseProvider implements WebviewViewProvider {
     const taskPack = peekTaskContextPack(this.session);
     const summary = buildSessionSummary(this.session);
     const levers = this.session.leversAppliedSummary();
+    const providerValue = workspace.getConfiguration("tokenforge").get<string>("provider");
+    const provider =
+      providerValue === "copilot" ||
+      providerValue === "cursor" ||
+      providerValue === "claude" ||
+      providerValue === "gemini" ||
+      providerValue === "generic"
+        ? providerValue
+        : "generic";
     return {
       pulse,
       sessionSaved,
@@ -146,6 +162,7 @@ class RiskPulseProvider implements WebviewViewProvider {
       ),
       cardsLoading,
       dailyHealth: this.dailyHealth,
+      providerNote: providerExpectation(provider),
     };
   }
 
@@ -213,7 +230,11 @@ class RiskPulseProvider implements WebviewViewProvider {
       this.discoverItems = discoverResult.candidates;
       const instructionPaths = instrPaths.map((c) => c.path);
       this.overlapHints = peekInstructionOverlap(this.session.listAll(), instructionPaths);
-      this.dailyHealth = await buildDailyHealth(root, provider);
+      this.dailyHealth = await buildDailyHealth(root, provider, Date.now(), {
+        inboxPath: inboxPath() ?? undefined,
+        team: teamLabel(),
+        repo: repoLabel(root),
+      });
       // Lane A overlap is async — refresh the card when the model returns.
       void resolveInstructionOverlap({
         root,
@@ -287,7 +308,7 @@ function renderOverviewHtml(
   cssUri: Uri,
   model: OverviewModel,
 ): string {
-  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading, dailyHealth } =
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading, dailyHealth, providerNote } =
     model;
   const csp = webview.cspSource;
   const nonce = makeNonce();
@@ -403,7 +424,7 @@ function renderOverviewHtml(
     .tf-checklist { font-size: 11px; color: var(--vscode-descriptionForeground); margin: 0 0 8px; padding-left: 18px; }
     .tf-health { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .tf-chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.35)); background: var(--vscode-editor-background); }
-    .tf-chip[data-status="ok"], .tf-chip[data-status="sent"], .tf-chip[data-status="done"] { border-color: var(--tf-brand, #14b8a6); }
+    .tf-chip[data-status="ok"], .tf-chip[data-status="sent"], .tf-chip[data-status="done"], .tf-chip[data-status="exported"] { border-color: var(--tf-brand, #14b8a6); }
     .tf-chip[data-status="stale"], .tf-chip[data-status="unsent"], .tf-chip[data-status="pending"], .tf-chip[data-status="dirty"] { border-color: var(--tf-brand-warning, #f59e0b); }
     .tf-chip[data-status="missing"], .tf-chip[data-status="unknown"] { opacity: 0.85; }
   </style>
@@ -414,6 +435,7 @@ function renderOverviewHtml(
   ${autoBanner}
   ${rulesBadge}
   ${renderDailyHealthStrip(dailyHealth, cardsLoading)}
+  ${providerNote ? `<p class="tf-honesty">${escapeHtml(providerNote)}</p>` : ""}
   <div class="tf-hero">
     <div class="tf-kpi"><span class="tf-kpi-label">Context cost</span><span class="tf-kpi-value">${contextCost}</span></div>
     <div class="tf-kpi"><span class="tf-kpi-label">Session saved</span><span class="tf-kpi-value">${sessionKpi}</span></div>
@@ -431,6 +453,9 @@ function renderOverviewHtml(
     <button class="tf-btn" data-cmd="tokenforge.compactRulesPreview">Compact rules</button>
     <button class="tf-btn" data-cmd="tokenforge.applyTaskContextPack">Apply task pack</button>
     <button class="tf-btn" data-cmd="tokenforge.sendHygieneToDashboard">Send hygiene to dashboard</button>
+    <button class="tf-btn" data-cmd="tokenforge.exportToInbox">Export to inbox</button>
+    <button class="tf-btn" data-cmd="tokenforge.setTeamLabel">Set team label</button>
+    <button class="tf-btn" data-cmd="tokenforge.openHonorSmoke">Honor smoke checklist</button>
     <button class="tf-btn" data-cmd="tokenforge.focusRiskPanel">Open tabs</button>
   </div>
   <div class="tf-section">Getting started</div>
@@ -477,7 +502,7 @@ function renderDailyHealthStrip(
   if (!model) {
     return "";
   }
-  const chips = [model.scan, model.session, model.drift, model.promote]
+  const chips = [model.scan, model.session, model.drift, model.promote, ...(model.inbox ? [model.inbox] : [])]
     .map(
       (chip) =>
         `<span class="tf-chip" data-status="${escapeHtml(chip.status)}" title="${escapeHtml(chip.detail)}">${escapeHtml(chip.label)}: ${escapeHtml(chip.status)}</span>`,

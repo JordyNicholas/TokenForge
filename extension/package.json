@@ -301,6 +301,24 @@
         "icon": "$(link-external)"
       },
       {
+        "command": "tokenforge.exportToInbox",
+        "title": "Export to inbox",
+        "category": "TokenForge",
+        "icon": "$(inbox)"
+      },
+      {
+        "command": "tokenforge.setTeamLabel",
+        "title": "Set team label",
+        "category": "TokenForge",
+        "icon": "$(tag)"
+      },
+      {
+        "command": "tokenforge.openHonorSmoke",
+        "title": "Honor smoke checklist",
+        "category": "TokenForge",
+        "icon": "$(checklist)"
+      },
+      {
         "command": "tokenforge.enrichInstructions",
         "title": "Analyze rules",
         "category": "TokenForge",
@@ -361,29 +379,44 @@
           "group": "1_overflow@5"
         },
         {
-          "command": "tokenforge.clearFilters",
-          "when": "view == tokenforge.riskPanel",
+          "command": "tokenforge.exportToInbox",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
           "group": "1_overflow@6"
         },
         {
-          "command": "tokenforge.enrichInstructions",
+          "command": "tokenforge.setTeamLabel",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
           "group": "1_overflow@7"
         },
         {
-          "command": "tokenforge.cleanSession",
+          "command": "tokenforge.openHonorSmoke",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
           "group": "1_overflow@8"
         },
         {
+          "command": "tokenforge.clearFilters",
+          "when": "view == tokenforge.riskPanel",
+          "group": "1_overflow@9"
+        },
+        {
+          "command": "tokenforge.enrichInstructions",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "1_overflow@10"
+        },
+        {
+          "command": "tokenforge.cleanSession",
+          "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
+          "group": "1_overflow@11"
+        },
+        {
           "command": "tokenforge.prepareAgentSession",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "1_overflow@9"
+          "group": "1_overflow@12"
         },
         {
           "command": "tokenforge.runDiscover",
           "when": "view == tokenforge.riskPanel || view == tokenforge.riskPulse",
-          "group": "1_overflow@10"
+          "group": "1_overflow@13"
         }
       ],
       "view/item/context": [
@@ -571,6 +604,12 @@
           "default": "http://127.0.0.1:5173/board/combined",
           "scope": "resource",
           "description": "Prove dashboard base URL for Send hygiene to dashboard (?session= handoff)."
+        },
+        "tokenforge.inboxPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "EM inbox root. Export to inbox copies artifacts to {inboxPath}/{team}/{repo}/.tokenforge/."
         }
       }
     }

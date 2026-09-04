@@ -20,6 +20,9 @@ import {
   setLlmEnrichmentEnabled,
 } from "./enrich/settings";
 import { startAutoExport } from "./export/autoExport";
+import { exportToInbox } from "./export/exportToInbox";
+import { openHonorSmoke } from "./export/openHonorSmoke";
+import { setTeamLabel } from "./export/setTeamLabel";
 import { assertValidLastScan, buildLastScanReport } from "./export/buildLastScan";
 import { revealLastScan } from "./export/revealLastScan";
 import { revealSessionStats } from "./export/revealSessionStats";
@@ -431,6 +434,9 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Reveal session-stats.json" },
       { label: "Session narrative", description: "Optional hygiene summary (AI costs tokens)" },
       { label: "Send hygiene to dashboard", description: "Copy Prove URL with ?session=" },
+      { label: "Export to inbox", description: "Copy last-scan + session-stats to EM inbox" },
+      { label: "Set team label", description: "Workspace team id for exports" },
+      { label: "Honor smoke checklist", description: "Cursor Soft/Hard host-honor steps" },
       { label: "Reset choices" },
       { label: "Analyze rules", description: "AI: enrich instruction files" },
       { label: "Toggle AI enrichment", description: "Turn Lane A LLM on/off" },
@@ -455,6 +461,9 @@ function startContextGuard(context: ExtensionContext): void {
       "Reveal session-stats.json": "tokenforge.revealSessionStats",
       "Session narrative": "tokenforge.sessionNarrative",
       "Send hygiene to dashboard": "tokenforge.sendHygieneToDashboard",
+      "Export to inbox": "tokenforge.exportToInbox",
+      "Set team label": "tokenforge.setTeamLabel",
+      "Honor smoke checklist": "tokenforge.openHonorSmoke",
       "Reset choices": "tokenforge.clearFilters",
       "Analyze rules": "tokenforge.enrichInstructions",
       "Toggle AI enrichment": "tokenforge.toggleLlmEnrichment",
@@ -565,6 +574,45 @@ function startContextGuard(context: ExtensionContext): void {
     },
   );
 
+  const exportToInboxCmd = commands.registerCommand("tokenforge.exportToInbox", async () => {
+    try {
+      const result = await exportToInbox(session, async () => {
+        const [lastScan, sessionStats] = await Promise.all([
+          writeLastScan(session),
+          writeSessionStats(session),
+        ]);
+        return {
+          lastScanPath: lastScan.reportPath,
+          sessionStatsPath: sessionStats.reportPath,
+        };
+      });
+      void window.showInformationMessage(
+        `Exported ${result.copied.join(", ")} → ${result.destDir}`,
+      );
+    } catch (error) {
+      void window.showErrorMessage(formatError("Export to inbox failed", error));
+    }
+  });
+
+  const setTeamLabelCmd = commands.registerCommand("tokenforge.setTeamLabel", async () => {
+    try {
+      const team = await setTeamLabel();
+      if (team) {
+        void window.showInformationMessage(`Team label set to "${team}" for this workspace.`);
+      }
+    } catch (error) {
+      void window.showErrorMessage(formatError("Set team label failed", error));
+    }
+  });
+
+  const openHonorSmokeCmd = commands.registerCommand("tokenforge.openHonorSmoke", async () => {
+    try {
+      await openHonorSmoke();
+    } catch (error) {
+      void window.showErrorMessage(formatError("Honor smoke failed", error));
+    }
+  });
+
   const revealSessionStatsCmd = commands.registerCommand(
     "tokenforge.revealSessionStats",
     async () => {
@@ -637,6 +685,9 @@ function startContextGuard(context: ExtensionContext): void {
     exportSessionStats,
     sessionNarrative,
     sendHygieneToDashboard,
+    exportToInboxCmd,
+    setTeamLabelCmd,
+    openHonorSmokeCmd,
     revealSessionStatsCmd,
     focusPanel,
     focusOverview,
