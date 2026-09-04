@@ -39,7 +39,7 @@ Phase 2. Former catch-all #7 was split:
 | F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **Epics Finished** (#279 screenshots and #276 LLM summary remain follow-on) |
 | F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
-| F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **To-Do** (open) |
+| F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **In Progress** (#315 Done; hero click-through on main) |
 | F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **Epics Finished** (#321–#324; PR #325) |
 | F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **In Progress** |
 
@@ -480,13 +480,12 @@ Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank sta
 
 ### F16 — Dashboard UI tests: Cypress E2E + component (#314)
 
-`dashboard/` (`@tokenforge/dashboard`, React 19 + Vite 7 + MUI v9) has no browser-level tests — Vitest only covers `dashboard/src/domain/*.test.ts`. Screen flows (demo-seed boot, KPI render, nav between Overview / Variance / Heatmap / Findings / Assumptions, the combined/heuristic/llm board toggle, team scoping) are verified only by the manual runbooks in `docs/testing/`. F16 introduces **Cypress** in the `dashboard/` workspace: **E2E** (drives the Vite-served SPA) and **component testing** (`cy.mount`, reuses `dashboard/vite.config.ts`).
-
-Cypress lives inside `dashboard/` (adapter-local; ports-and-adapters unchanged) and is **not** wired into the root `npm test` — that stays the deterministic CI gate. No CI job in this epic; a `ci.yml` Cypress job is a later, separately-scoped story.
+`dashboard/` Cypress lives in-workspace (E2E + component). Scaffold and Overview hero click-through specs are on `main`. Cypress is **not** in root `npm test` / CI yet — that stays a separately-scoped story.
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #315 | scaffold Cypress (E2E + component) in the dashboard workspace with first specs | Dashboard | To-Do |
+| #315 | scaffold Cypress (E2E + component) in the dashboard workspace with first specs | Dashboard | **Done** |
+| — | Overview hero click-through (Prove at a glance → Findings / Assumptions / Variance) | Dashboard | **Shipped** (F18 follow-up) |
 
 Single-story epic. Pinned to `cypress@15` because `cypress@16`'s vite-dev-server requires Vite 8; revisit on the Vite 8 bump. Out of scope: Cypress in CI, testing the `extension/` webview, bulk `data-testid`, visual-regression diffing.
 
@@ -522,7 +521,7 @@ Phase 2:
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
-10. **F16** (#314) — **Dashboard Cypress tests** (open); independent of the extension epics. Build: #315
+10. **F16** (#314) — **Dashboard Cypress tests** (#315 Done; hero click-through shipped; CI job still open)
 11. **F17** (#320) — **Multi-vendor AI Fix parity** (**Epics Finished** via PR #325)
 12. **F18** (#326) — **Prove pilot + dashboard visibility** (local-first session ingest, Overview hero, `tokenforge drift`)
 13. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)

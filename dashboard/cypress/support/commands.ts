@@ -4,6 +4,7 @@
 // Until it does, App.tsx renders a "Loading demo seed…" spinner, so every
 // E2E spec must gate on that text disappearing before asserting content.
 Cypress.Commands.add("loadDemoDashboard", (path: string = "/") => {
+  cy.clearLocalStorage();
   cy.visit(path);
   cy.contains("Loading demo seed…").should("not.exist");
 });
