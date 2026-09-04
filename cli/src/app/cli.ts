@@ -7,9 +7,14 @@ import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { runPilotPack } from "../commands/pilot/pilot";
 import { checkPolicyDrift } from "../commands/drift/drift";
 import { rollupOrgSeed } from "../commands/org-seed/org-seed";
+import { rollupProvePack } from "../commands/prove-pack/prove-pack";
 import { promoteShieldCandidates } from "../commands/promote-shield/promote-shield";
 import { writeProveReport } from "../commands/prove-report/prove-report";
 import { writeHonorSmoke } from "../commands/honor-smoke/honor-smoke";
+import { initInbox } from "../commands/inbox-init/inbox-init";
+import { validateInbox } from "../commands/inbox-validate/inbox-validate";
+import { stageDashboard } from "../commands/stage-dashboard/stage-dashboard";
+import { remapUsage } from "../commands/remap-usage/remap-usage";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { runMcpServer } from "../mcp/runMcpServer";
 import {
@@ -27,6 +32,7 @@ import { writeScanReport } from "../io/report-file";
 import { formatDiscoverTable } from "../output/discover-table";
 import { formatScanTable } from "../output/table";
 import { savingsExitCode, totalsPayload } from "../savings/savings";
+import { formatInboxDropHint, resolveInboxRoot } from "../io/inbox-hint";
 import { UsageError, isCliError } from "./errors";
 import { USAGE_HINT, printHelp } from "./help";
 
@@ -34,6 +40,18 @@ export type CliIo = {
   stdout: { write(chunk: string): void };
   stderr: { write(chunk: string): void };
 };
+
+async function maybePrintInboxDropHint(
+  io: CliIo,
+  root: string,
+  team: string,
+  repo: string,
+): Promise<void> {
+  const inboxRoot = await resolveInboxRoot(root);
+  if (inboxRoot) {
+    io.stderr.write(`${formatInboxDropHint(inboxRoot, team, repo)}\n`);
+  }
+}
 
 function printReport(
   io: CliIo,
@@ -91,6 +109,19 @@ function printApply(
   }
 }
 
+function printInboxDropHint(
+  io: CliIo,
+  root: string,
+  team: string,
+  repo: string,
+): void {
+  void resolveInboxRoot(root).then((inboxRoot) => {
+    if (inboxRoot) {
+      io.stderr.write(`${formatInboxDropHint(inboxRoot, team, repo)}\n`);
+    }
+  });
+}
+
 /**
  * Parse argv and run a command. Returns a process exit code.
  */
@@ -112,7 +143,13 @@ export async function runCli(
         period: { type: "string" },
         org: { type: "string" },
         file: { type: "string" },
+        map: { type: "string" },
+        in: { type: "string" },
         out: { type: "string" },
+        roster: { type: "string" },
+        "public-dir": { type: "string" },
+        "stale-days": { type: "string" },
+        "with-roster": { type: "boolean", default: false },
         mode: { type: "string" },
         llm: { type: "string" },
         "llm-endpoint": { type: "string" },
@@ -176,6 +213,7 @@ export async function runCli(
       } else {
         io.stderr.write(`wrote ${result.reportPath}\n`);
       }
+      await maybePrintInboxDropHint(io, root, result.report.team, result.report.repo);
       return savingsExitCode(result.report.totals);
     }
 
@@ -259,6 +297,7 @@ export async function runCli(
           discoverHint,
         },
       );
+      await maybePrintInboxDropHint(io, root, applied.report.team, applied.report.repo);
       return savingsExitCode(applied.report.totals);
     }
 
@@ -466,6 +505,44 @@ export async function runCli(
       return 0;
     }
 
+    if (command === "prove-pack") {
+      const pack = await rollupProvePack({
+        root,
+        businessUnit: values.team,
+        out: values.out,
+        roster: values.roster,
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              businessUnit: pack.businessUnit,
+              reportCount: pack.reportCount,
+              markerCount: pack.markerCount,
+              sessionCount: pack.sessionCount,
+              discoverCount: pack.discoverCount,
+              sourceFiles: pack.sourceFiles,
+              outPath: pack.outPath,
+              pack: pack.pack,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        io.stdout.write(
+          `prove-pack ${pack.businessUnit} · ${pack.reportCount} report(s) · ` +
+            `${pack.markerCount} marker(s) · ${pack.sessionCount} session(s) · ` +
+            `${pack.discoverCount} discover(s)\n`,
+        );
+        io.stdout.write(`wrote ${pack.outPath}\n`);
+        for (const source of pack.sourceFiles) {
+          io.stdout.write(`  ${source}\n`);
+        }
+      }
+      return 0;
+    }
+
     if (command === "org-pack") {
       if (!rootArg) {
         throw new UsageError("org-pack requires a seed JSON path.\n" + USAGE_HINT);
@@ -556,6 +633,95 @@ export async function runCli(
         }
       }
       return savingsExitCode(remote.report.totals);
+    }
+
+    if (command === "inbox-init") {
+      const created = await initInbox({
+        root,
+        withRoster: values["with-roster"],
+        businessUnit: values.team,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(created, null, 2)}\n`);
+      } else {
+        io.stdout.write(`wrote ${created.readmePath}\n`);
+        if (created.rosterPath) {
+          io.stdout.write(`wrote ${created.rosterPath}\n`);
+        }
+      }
+      return 0;
+    }
+
+    if (command === "inbox-validate") {
+      const staleDaysRaw = values["stale-days"];
+      const staleDays =
+        staleDaysRaw !== undefined ? Number.parseInt(String(staleDaysRaw), 10) : undefined;
+      const result = await validateInbox({
+        root,
+        roster: values.roster,
+        staleDays: staleDays !== undefined && Number.isFinite(staleDays) ? staleDays : undefined,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      } else {
+        io.stdout.write(
+          `inbox-validate ${result.ok ? "OK" : "FAIL"} · ${result.entries.length} folder(s)` +
+            `${result.rosterPath ? ` · roster ${result.rosterPath}` : ""}\n`,
+        );
+        for (const entry of result.entries) {
+          io.stdout.write(
+            `  ${entry.relPath} · team=${entry.team} repo=${entry.repo}` +
+              `${entry.hasScan ? " scan" : ""}${entry.hasSession ? " session" : ""}\n`,
+          );
+        }
+        for (const issue of result.issues) {
+          io.stderr.write(`  ${issue.message}\n`);
+        }
+      }
+      return result.ok ? 0 : 2;
+    }
+
+    if (command === "stage-dashboard") {
+      const staged = await stageDashboard({
+        path: root,
+        publicDir: values["public-dir"],
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(staged, null, 2)}\n`);
+      } else {
+        io.stdout.write(`staged ${staged.copied.length} file(s) → ${staged.publicDir}\n`);
+        for (const name of staged.copied) {
+          io.stdout.write(`  ${name}\n`);
+        }
+        io.stdout.write(`boot ${staged.bootUrl}\n`);
+      }
+      return 0;
+    }
+
+    if (command === "remap-usage") {
+      if (!values.map?.trim()) {
+        throw new UsageError("remap-usage requires --map <team-map.json>.\n" + USAGE_HINT);
+      }
+      const inPath = values.in?.trim() ?? values.file?.trim() ?? rootArg;
+      if (!inPath) {
+        throw new UsageError("remap-usage requires --in <usage.json>.\n" + USAGE_HINT);
+      }
+      if (!values.out?.trim()) {
+        throw new UsageError("remap-usage requires --out <path>.\n" + USAGE_HINT);
+      }
+      const result = await remapUsage({
+        mapPath: values.map,
+        inPath,
+        outPath: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      } else {
+        io.stdout.write(
+          `remap-usage ${result.remappedCount}/${result.teamCount} team row(s) · wrote ${result.outPath}\n`,
+        );
+      }
+      return 0;
     }
 
     if (command === "mcp") {
