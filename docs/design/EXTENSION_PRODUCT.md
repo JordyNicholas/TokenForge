@@ -137,7 +137,7 @@ Dry-run + apply managed `tokenforge:begin/end` sections through `@tokenforge/pol
 | Rules cost | Instruction-file budget watch |
 | Shield effectiveness | Adapter audit trail |
 
-Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activePaths` = open tabs excluding `.tokenforge/` artifacts), `.tokenforge/session-stats.json`. Auto-export debounces and **keeps Analyze rules LLM layers** while refreshing tab heuristics. Dashboard does **not** yet consume session-stats (F4).
+Exports (More menu): `.tokenforge/last-scan.json` (Token Risk contract, `activePaths` = open tabs excluding `.tokenforge/` artifacts), `.tokenforge/session-stats.json`. Auto-export debounces and **keeps Analyze rules LLM layers** while refreshing tab heuristics. Dashboard loads session-stats via Source or `?session=` boot (**Live hygiene** tier).
 
 **Savings tiers:** session estimate / rules policy / not billing — same honesty as the dashboard.
 

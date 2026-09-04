@@ -13,6 +13,12 @@ export {
   type OrgPackResult,
 } from "./org-pack/org-pack";
 export {
+  mergeScanDocuments,
+  rollupOrgSeed,
+  type OrgSeedOptions,
+  type OrgSeedResult,
+} from "./org-seed/org-seed";
+export {
   runPilotPack,
   type PilotPackOptions,
   type PilotPackResult,
@@ -24,3 +30,9 @@ export {
 } from "./org-apply/org-apply";
 export { parseProviderId, scanRepo, type ScanOptions, type ScanResult } from "./scan/scan";
 export { runDiscover, type DiscoverOptions, type DiscoverResult } from "./discover/discover";
+export {
+  promoteShieldCandidates,
+  type PromoteShieldOptions,
+  type PromoteShieldResult,
+} from "./promote-shield/promote-shield";
+export { checkPolicyDrift, type PolicyDriftResult, type PolicyDriftStatus } from "./drift/drift";

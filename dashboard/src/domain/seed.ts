@@ -223,3 +223,30 @@ export function resolveBootUsageUrl(
 ): string | null {
   return resolveBootResourceUrl("usage", search);
 }
+
+/**
+ * Resolve `?markers=` for boot-time Fix change markers (Prove handoff).
+ */
+export function resolveBootMarkersUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("markers", search);
+}
+
+/**
+ * Resolve `?session=` for boot-time session-stats.json (Prove handoff).
+ */
+export function resolveBootSessionUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("session", search);
+}
+
+/**
+ * Resolve `?discover=` for boot-time discover-latest.json (Prove handoff).
+ */
+export function resolveBootDiscoverUrl(
+  search: string = typeof window !== "undefined" ? window.location.search : "",
+): string | null {
+  return resolveBootResourceUrl("discover", search);
+}

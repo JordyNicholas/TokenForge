@@ -40,3 +40,24 @@ TokenForge recommends Shield/Allow and applies your host's exclusion APIs when y
 ## License
 
 See repository root LICENSE.
+
+## Marketplace screenshots (#279)
+
+Before publishing to the VS Code Marketplace, capture a **light, honest** gallery (1280×800 or VS Code's recommended sizes):
+
+| # | Scene | What to show |
+| --- | --- | --- |
+| 1 | Overview | KPI band (context cost, session saved, rules cost) + walkthrough complete |
+| 2 | Open tabs | Shield / Allow on a lockfile with effectiveness badge |
+| 3 | Real Shield | `.cursorignore` managed section after Shield (partial tier OK for Copilot) |
+| 4 | Analyze rules | Opt-in LLM enrichment banner — heuristic default visible |
+| 5 | Compact rules | Dry-run webview before Apply |
+| 6 | Prove handoff | Export last-scan + session-stats → dashboard URL |
+
+**Checklist**
+
+- [ ] Icon: `extension/media/tokenforge-icon.png` (ships)
+- [ ] README hero + feature bullets match [`EXTENSION_PRODUCT.md`](../docs/design/EXTENSION_PRODUCT.md)
+- [ ] No claims of intercepting private agent context
+- [ ] Screenshots use a real repo (e.g. `fixtures/noisy-app`), not mocked billing
+- [ ] `vsce package` / CI `package:vsix` green before upload

@@ -6,9 +6,19 @@ import { runDiscover } from "../commands/discover/discover";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
 import { runPilotPack } from "../commands/pilot/pilot";
 import { checkPolicyDrift } from "../commands/drift/drift";
+import { rollupOrgSeed } from "../commands/org-seed/org-seed";
+import { promoteShieldCandidates } from "../commands/promote-shield/promote-shield";
+import { writeProveReport } from "../commands/prove-report/prove-report";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { runMcpServer } from "../mcp/runMcpServer";
-import { proveChangeLatestPath } from "../io/paths";
+import {
+  applySectionHashPath,
+  discoverLatestPath,
+  proveChangeLatestPath,
+  proveHandoffPath,
+} from "../io/paths";
+import { formatEnforcementBadge } from "../output/enforcement";
+import { formatWriteSummary } from "../output/write-summary";
 import { pullUsage } from "../commands/usage-pull/usage-pull";
 import { syncUsage } from "../commands/usage-sync/usage-sync";
 import { scanRepo, type ScanResult } from "../commands/scan/scan";
@@ -44,10 +54,17 @@ function printApply(
   dryRun: boolean,
   reportPath: string,
   json: boolean,
-  changeMarkerPath?: string,
+  options: {
+    changeMarkerPath?: string;
+    sectionHashPath?: string;
+    promoteMessage?: string;
+    discoverHint?: string;
+  } = {},
 ): void {
   printReport(io, scan.report, scan, json);
   const sink = json ? io.stderr : io.stdout;
+  sink.write(`${formatEnforcementBadge(scan.report.provider)}\n`);
+  sink.write(`${formatWriteSummary(writes)}\n`);
   if (dryRun) {
     sink.write(
       "dry-run; instruction files use a managed TokenForge section (user text outside markers kept):\n",
@@ -55,12 +72,21 @@ function printApply(
   } else {
     sink.write("wrote:\n");
     sink.write(`  ${reportPath}\n`);
+    if (options.sectionHashPath) {
+      sink.write(`  ${options.sectionHashPath}\n`);
+    }
   }
   for (const write of writes) {
     sink.write(`  ${write.disposition.padEnd(7)} ${write.path}\n`);
   }
-  if (changeMarkerPath) {
-    sink.write(`  ${changeMarkerPath}\n`);
+  if (options.changeMarkerPath) {
+    sink.write(`  ${options.changeMarkerPath}\n`);
+  }
+  if (options.promoteMessage) {
+    sink.write(`${options.promoteMessage}\n`);
+  }
+  if (options.discoverHint) {
+    sink.write(`${options.discoverHint}\n`);
   }
 }
 
@@ -96,7 +122,9 @@ export async function runCli(
         report: { type: "string" },
         rescan: { type: "boolean", default: false },
         "skip-apply": { type: "boolean", default: false },
+        prove: { type: "boolean", default: false },
         "dry-run": { type: "boolean", default: false },
+        "promote-shield": { type: "boolean", default: false },
         json: { type: "boolean", default: false },
       },
     });
@@ -198,6 +226,22 @@ export async function runCli(
                 io.stderr.write(`tokenforge: ${message}\n`);
               },
             });
+
+      let promoteMessage: string | undefined;
+      if (values["promote-shield"]) {
+        const promoted = await promoteShieldCandidates({
+          root,
+          provider: common.provider ?? "cursor",
+          dryRun: applied.dryRun,
+        });
+        promoteMessage = promoted.message;
+      }
+
+      const discoverHint =
+        !applied.dryRun && !values["skip-apply"]
+          ? `next: tokenforge discover . → ${discoverLatestPath(root)}`
+          : undefined;
+
       printApply(
         io,
         { report: applied.report, reportPath: applied.reportPath, assessments: [] },
@@ -205,9 +249,33 @@ export async function runCli(
         applied.dryRun,
         applied.reportPath,
         Boolean(values.json),
-        applied.changeMarker ? proveChangeLatestPath(root) : undefined,
+        {
+          changeMarkerPath: applied.changeMarker
+            ? proveChangeLatestPath(root)
+            : undefined,
+          sectionHashPath: applied.changeMarker ? applySectionHashPath(root) : undefined,
+          promoteMessage,
+          discoverHint,
+        },
       );
       return savingsExitCode(applied.report.totals);
+    }
+
+    if (command === "promote-shield") {
+      const promoted = await promoteShieldCandidates({
+        root,
+        provider: values.provider ?? "cursor",
+        dryRun: values["dry-run"],
+      });
+      if (values.json) {
+        io.stdout.write(`${JSON.stringify(promoted, null, 2)}\n`);
+      } else {
+        io.stdout.write(`${promoted.message}\n`);
+        for (const pattern of promoted.patterns) {
+          io.stdout.write(`  ${pattern}\n`);
+        }
+      }
+      return 0;
     }
 
     if (command === "pilot") {
@@ -216,6 +284,7 @@ export async function runCli(
         provider: values.provider ?? "copilot",
         dryRun: values["dry-run"],
         skipApply: values["skip-apply"],
+        prove: values.prove,
       });
       if (values.json) {
         io.stdout.write(
@@ -227,6 +296,8 @@ export async function runCli(
               dryRun: pilot.dryRun,
               changeMarker: pilot.changeMarker,
               files: pilot.apply?.files.map((file) => file.path) ?? [],
+              handoff: pilot.handoff,
+              staged: pilot.staged,
             },
             null,
             2,
@@ -241,8 +312,34 @@ export async function runCli(
         if (pilot.changeMarker) {
           sink.write(`wrote ${proveChangeLatestPath(root)}\n`);
         }
+        if (pilot.handoff) {
+          sink.write(`wrote ${proveHandoffPath(root)}\n`);
+          sink.write(`open ${pilot.handoff.dashboardUrlHint}\n`);
+        }
+        if (!pilot.dryRun && !values["skip-apply"]) {
+          sink.write(`next: tokenforge discover . → ${discoverLatestPath(root)}\n`);
+        }
       }
       return savingsExitCode(pilot.report.totals);
+    }
+
+    if (command === "prove-report") {
+      const written = await writeProveReport({
+        root,
+        outPath: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            { outPath: written.outPath, reportPath: written.reportPath },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        io.stdout.write(`wrote ${written.outPath}\n`);
+      }
+      return 0;
     }
 
     if (command === "drift") {
@@ -312,6 +409,38 @@ export async function runCli(
         }
         if (result.latestPath) {
           io.stdout.write(`wrote ${result.latestPath}\n`);
+        }
+      }
+      return 0;
+    }
+
+    if (command === "org-seed") {
+      const rollup = await rollupOrgSeed({
+        root,
+        businessUnit: values.team,
+        out: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            {
+              businessUnit: rollup.businessUnit,
+              reportCount: rollup.reportCount,
+              sourceFiles: rollup.sourceFiles,
+              outPath: rollup.outPath,
+              seed: rollup.seed,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        io.stdout.write(
+          `org-seed ${rollup.businessUnit} · ${rollup.reportCount} report(s) from ${rollup.sourceFiles.length} file(s)\n`,
+        );
+        io.stdout.write(`wrote ${rollup.outPath}\n`);
+        for (const source of rollup.sourceFiles) {
+          io.stdout.write(`  ${source}\n`);
         }
       }
       return 0;

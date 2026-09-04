@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import {
   collectKeptContent,
@@ -6,6 +7,8 @@ import {
   instructionPathForProvider,
   instructionTitleForProvider,
   mergeTokenForgeSection,
+  TOKENFORGE_SECTION_BEGIN,
+  TOKENFORGE_SECTION_END,
   type PolicyFile,
 } from "@tokenforge/policy-adapters";
 import {
@@ -21,9 +24,17 @@ import { window } from "vscode";
 import { confirmExternalLlmSend, logLocalPreflight } from "../ai/transparencyCoach";
 import { readLlmSettings, isExternalBackend } from "../enrich/settings";
 
+export type CompactWriteDisposition = "create" | "merge" | "replace";
+
+export type CompactWritePlan = {
+  path: string;
+  disposition: CompactWriteDisposition;
+};
+
 export type CompactRulesPreview = {
   files: PolicyFile[];
   resolved: PolicyFile[];
+  writes: CompactWritePlan[];
   /** heuristic | hybrid — which synthesizer produced the managed body. */
   mode: "heuristic" | "hybrid";
   synthesisBackend: string;
@@ -119,6 +130,7 @@ export async function previewCompactRules(
   });
 
   const resolved: PolicyFile[] = [];
+  const writes: CompactWritePlan[] = [];
   for (const file of planned) {
     if (file.writeMode === "merge-section") {
       const existing = await readIfExists(root, file.path);
@@ -128,23 +140,93 @@ export async function previewCompactRules(
         contents: merged.contents,
         writeMode: file.writeMode,
       });
+      writes.push({ path: file.path, disposition: merged.disposition });
     } else {
+      const existing = await readIfExists(root, file.path);
       resolved.push(file);
+      writes.push({
+        path: file.path,
+        disposition: existing == null ? "create" : "replace",
+      });
     }
   }
 
   return {
     files: planned,
     resolved,
+    writes,
     mode: synthesis.backend === "heuristic" ? "heuristic" : "hybrid",
     synthesisBackend: synthesis.backend,
   };
+}
+
+function summarizeWrites(writes: readonly CompactWritePlan[]): string {
+  const counts = { create: 0, merge: 0, replace: 0 };
+  for (const write of writes) {
+    counts[write.disposition] += 1;
+  }
+  const parts: string[] = [];
+  if (counts.create > 0) {
+    parts.push(`${counts.create} create`);
+  }
+  if (counts.merge > 0) {
+    parts.push(`${counts.merge} merge`);
+  }
+  if (counts.replace > 0) {
+    parts.push(`${counts.replace} replace`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : "no writes";
+}
+
+function extractManagedBody(contents: string): string | null {
+  const beginIdx = contents.indexOf(TOKENFORGE_SECTION_BEGIN);
+  const endIdx = contents.indexOf(TOKENFORGE_SECTION_END);
+  if (beginIdx === -1 || endIdx === -1 || endIdx <= beginIdx) {
+    return null;
+  }
+  return contents.slice(beginIdx + TOKENFORGE_SECTION_BEGIN.length, endIdx).trim();
+}
+
+async function writeApplySectionHash(
+  root: string,
+  provider: string,
+  resolved: readonly PolicyFile[],
+): Promise<void> {
+  const instructionPath = instructionPathForProvider(
+    provider as Parameters<typeof instructionPathForProvider>[0],
+  );
+  const instruction = resolved.find((file) => file.path === instructionPath);
+  if (!instruction) {
+    return;
+  }
+  const body = extractManagedBody(instruction.contents);
+  if (!body) {
+    return;
+  }
+  const sectionHash = createHash("sha256").update(body).digest("hex");
+  const hashPath = join(root, ".tokenforge", "apply-section-hash.json");
+  await mkdir(dirname(hashPath), { recursive: true });
+  await writeFile(
+    hashPath,
+    `${JSON.stringify(
+      {
+        provider,
+        instructionPath,
+        sha256: sectionHash,
+        updatedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
 }
 
 /** Apply compact rules policy pack to workspace (managed sections only). */
 export async function applyCompactRules(
   root: string,
   preview: CompactRulesPreview,
+  provider: string,
 ): Promise<string[]> {
   const written: string[] = [];
 
@@ -154,6 +236,8 @@ export async function applyCompactRules(
     await writeFile(abs, file.contents, "utf8");
     written.push(file.path);
   }
+
+  await writeApplySectionHash(root, provider, preview.resolved);
 
   return written;
 }
@@ -165,12 +249,13 @@ export async function showCompactRulesPreviewMessage(
     preview.mode === "hybrid"
       ? `AI hybrid (${preview.synthesisBackend})`
       : "Heuristic";
-  const summary = preview.resolved
-    .map((f) => `${f.path} (${f.contents.length} bytes)`)
+  const summaryLine = summarizeWrites(preview.writes);
+  const fileLines = preview.writes
+    .map((write) => `${write.disposition.padEnd(7)} ${write.path}`)
     .join("\n");
   const choice = await window.showInformationMessage(
-    `Compact rules (${modeLabel}) would update ${preview.resolved.length} file(s).`,
-    { modal: true, detail: summary.slice(0, 2000) },
+    `Compact rules (${modeLabel}) — ${summaryLine}`,
+    { modal: true, detail: fileLines.slice(0, 2000) },
     "Apply",
     "Cancel",
   );

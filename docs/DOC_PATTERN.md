@@ -93,7 +93,7 @@ Add a short subsection when shipped behavior differs from the narrative:
 | Doc claim | Code today |
 | --- | --- |
 | `tokenforge prove` CLI | **Not shipped** — use `npm run tokenforge:prove` (shell wrapper) |
-| Session stats on dashboard | **Partial** — extension writes `session-stats.json`; dashboard does not load it yet (#157) |
+| Session stats on dashboard | **Shipped** — extension writes `session-stats.json`; dashboard loads via Source or `?session=` boot |
 ```
 
 Remove rows when the gap closes.

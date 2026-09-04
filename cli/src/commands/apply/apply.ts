@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import {
@@ -12,7 +13,12 @@ import { readActivePathsFile } from "../../io/active-paths-file";
 import { writeProveChangeMarker } from "../../io/change-marker-file";
 import { bootstrapRepo } from "../../io/repo-bootstrap";
 import { collectKeptContent } from "../../io/keep-dirs";
-import { scanReportPath } from "../../io/paths";
+import {
+  applySectionHashPath,
+  applySnapshotAfterPath,
+  applySnapshotBeforePath,
+  scanReportPath,
+} from "../../io/paths";
 import {
   tryReadScanReport,
   writeScanReport,
@@ -236,10 +242,43 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
 
   let changeMarker: ProveChangeMarker | undefined;
   if (!dryRun) {
+    // Before snapshot for local After-Fix Prove without waiting on the bill.
+    try {
+      const prior = await readFile(reportPath, "utf8");
+      await mkdir(dirname(applySnapshotBeforePath(root)), { recursive: true });
+      await writeFile(applySnapshotBeforePath(root), prior, "utf8");
+    } catch {
+      /* no prior report */
+    }
+
     await writeScanReport(reportPath, report);
+    await writeFile(
+      applySnapshotAfterPath(root),
+      `${JSON.stringify(report, null, 2)}\n`,
+      "utf8",
+    );
+
     for (const file of resolvedFiles) {
       await writePolicyFile(root, file);
     }
+
+    const managed = synthesis.markdown.trim();
+    const sectionHash = createHash("sha256").update(managed).digest("hex");
+    await writeFile(
+      applySectionHashPath(root),
+      `${JSON.stringify(
+        {
+          provider,
+          instructionPath,
+          sha256: sectionHash,
+          updatedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
     const marker: ProveChangeMarker = {
       timestamp: new Date().toISOString(),
       provider,

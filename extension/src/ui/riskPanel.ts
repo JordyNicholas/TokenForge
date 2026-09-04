@@ -11,6 +11,7 @@ import {
   type TreeDataProvider,
   type TreeView,
 } from "vscode";
+import type { EffectivenessTier, ShieldMode } from "@tokenforge/context-adapters";
 import { primaryReason } from "@tokenforge/risk-core";
 import { isAutoFilterEnabled } from "../filter/autoFilterSettings";
 import {
@@ -22,6 +23,11 @@ import type { ShieldSession } from "../session/shieldSession";
 import type { SessionLedgerEntry } from "../session/sessionLedger";
 import { idleHintForTab } from "../tabs/idleHint";
 import type { TrackedTab } from "../tabs/types";
+import {
+  effectivenessTooltip,
+  formatShieldBadge,
+  rollupShieldEffectiveness,
+} from "../shield/effectivenessLabels";
 import { formatTokenCount } from "./formatTokens";
 import { startUiTicker } from "./uiTicker";
 
@@ -136,6 +142,43 @@ export class ShieldSectionItem extends TreeItem {
   }
 }
 
+export class ShieldActivePathsItem extends TreeItem {
+  constructor(openTabCount: number) {
+    super("Protected from Fix exclude", TreeItemCollapsibleState.None);
+    this.description = openTabCount > 0 ? `${openTabCount} open tab(s)` : "none";
+    this.tooltip = [
+      "Every open editor tab is listed in last-scan.json activePaths.",
+      "tokenforge apply never suggests excluding paths you have open — including idle tabs.",
+      "Idle tabs still count as active session context for Fix safety.",
+      "",
+      "Recommendations only — TokenForge does not intercept any agent pipeline.",
+    ].join("\n");
+    this.iconPath = new ThemeIcon("lock");
+    this.contextValue = "tokenforge.activePaths";
+  }
+}
+
+export class ShieldEffectivenessItem extends TreeItem {
+  constructor(rollup: {
+    label: string;
+    count: number;
+    mode: ShieldMode;
+    effectiveness: EffectivenessTier;
+  }) {
+    super(rollup.label, TreeItemCollapsibleState.None);
+    this.description = `${rollup.count} tab(s) this session`;
+    this.tooltip = effectivenessTooltip(rollup.mode, rollup.effectiveness);
+    this.iconPath = new ThemeIcon(
+      rollup.effectiveness === "full"
+        ? "verified"
+        : rollup.effectiveness === "partial"
+          ? "shield"
+          : "info",
+    );
+    this.contextValue = "tokenforge.effectivenessBadge";
+  }
+}
+
 export class ShieldSummaryItem extends TreeItem {
   constructor(
     contextCost: number,
@@ -196,7 +239,7 @@ export class RiskTabItem extends TreeItem {
     const lever = session.leverRecord(tab.uri);
     const leverBits =
       lever !== undefined
-        ? [`${lever.mode} · ${lever.effectiveness}`]
+        ? [formatShieldBadge(lever.mode, lever.effectiveness)]
         : [];
     const bits = [
       formatTokenCount(tab.assessment.estTokens),
@@ -209,7 +252,7 @@ export class RiskTabItem extends TreeItem {
       tab.path,
       `${tab.assessment.estTokens} est. tokens · score ${tab.assessment.score}`,
       hint ? hint.label : undefined,
-      lever ? `Shield: ${lever.mode} · effectiveness ${lever.effectiveness}` : undefined,
+      lever ? effectivenessTooltip(lever.mode, lever.effectiveness) : undefined,
     ]
       .filter(Boolean)
       .join("\n");
@@ -261,6 +304,8 @@ export type RiskTreeNode =
   | ShieldCloseOnHardItem
   | ShieldDurableItem
   | ShieldNotifyIdleItem
+  | ShieldActivePathsItem
+  | ShieldEffectivenessItem
   | ShieldSummaryItem
   | ShieldSectionItem
   | RiskTabItem
@@ -306,7 +351,13 @@ class RiskPanelProvider implements TreeDataProvider<RiskTreeNode> {
       new ShieldCloseOnHardItem(isCloseTabOnHardShieldEnabled()),
       new ShieldDurableItem(isDurableFilterEnabled()),
       new ShieldNotifyIdleItem(isNotifyOnIdleEnabled()),
+      new ShieldActivePathsItem(this.session.registry.list().length),
     ];
+
+    const effectivenessRollup = rollupShieldEffectiveness(this.session.leversAppliedSummary());
+    for (const rollup of effectivenessRollup) {
+      nodes.push(new ShieldEffectivenessItem(rollup));
+    }
 
     if (reviewTotal === 0 && approaching.length === 0 && history.length === 0) {
       nodes.push(new ShieldEmptyItem());

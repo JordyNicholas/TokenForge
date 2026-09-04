@@ -95,15 +95,21 @@ export {
 } from "./usageCompare";
 export {
   COHORT_HONESTY_NOTE,
+  COHORT_NO_CONTROL_WARNING,
+  COHORT_NO_MARKERS_WARNING,
   annotateVarianceRow,
   cohortForTeam,
   cohortNarrative,
+  cohortTrustLevel,
+  cohortWarnings,
   compareCohorts,
   fixOnTeamsFromMarkers,
   type CohortCompare,
   type CohortId,
   type CohortSummary,
+  type CohortTrustLevel,
 } from "./cohortCompare";
+export { buildProveSummaryMarkdown, type ProveSummaryInput } from "./proveSummary";
 export {
   ChangeMarkerLoadError,
   parseChangeMarkersFile,
@@ -184,5 +190,18 @@ export {
   resolveBootAfterUsageUrl,
   resolveBootUsageUrl,
   resolveBootSourceUrl,
+  resolveBootMarkersUrl,
+  resolveBootSessionUrl,
+  resolveBootDiscoverUrl,
   type DashboardSeed,
 } from "./seed";
+export {
+  enforcementBadgeLabel,
+  enforcementChipColor,
+  enforcementTierForProvider,
+  type EffectivenessTier,
+} from "./enforcement";
+export {
+  bindPeriodsAroundMarkers,
+  type PeriodBindResult,
+} from "./periodBindFromMarkers";

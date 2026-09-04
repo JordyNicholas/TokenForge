@@ -17,6 +17,9 @@ import {
   displayPath,
   formatPercent,
   formatTokens,
+  enforcementBadgeLabel,
+  enforcementChipColor,
+  enforcementTierForProvider,
   getLlmAnalysisOverview,
   listHybridScanSummaries,
   getHybridDelta,
@@ -46,6 +49,7 @@ import { OverviewHeroBand } from "../ui/OverviewHeroBand";
 import { OverviewInvestigatePanel } from "../ui/OverviewInvestigatePanel";
 import { OverviewSection } from "../ui/OverviewSection";
 import { Page } from "../ui/Page";
+import { PilotChecklist } from "../ui/PilotChecklist";
 import { SavingsChart } from "../ui/SavingsChart";
 
 const LAYER_GLOSSARY: Record<"combined" | "heuristic" | "llm", GlossaryTermId> = {
@@ -114,6 +118,9 @@ export function OverviewPage() {
     complementarityFailures.length > 0 ||
     discoverLatest !== null;
 
+  const primaryProvider = reports[0]?.provider ?? "generic";
+  const enforcementTier = enforcementTierForProvider(primaryProvider);
+
   return (
     <Page
       title={`${seed?.businessUnit ?? "Business unit"} · ${scopeLabel}`}
@@ -124,6 +131,14 @@ export function OverviewPage() {
             label={SCAN_LAYER_LABELS[boardLayer]}
             variant="outlined"
           />
+          {reports.length > 0 ? (
+            <Chip
+              size="small"
+              label={enforcementBadgeLabel(primaryProvider)}
+              color={enforcementChipColor(enforcementTier)}
+              variant="outlined"
+            />
+          ) : null}
           <GlossaryTip
             term={SCAN_LAYER_LABELS[boardLayer]}
             termId={LAYER_GLOSSARY[boardLayer]}
@@ -132,6 +147,7 @@ export function OverviewPage() {
       }
     >
       <DemoOnboardingBanner />
+      <PilotChecklist />
       <OverviewHeroBand
         boardLayer={boardLayer}
         teamId={teamId}

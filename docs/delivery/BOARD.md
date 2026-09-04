@@ -41,7 +41,12 @@ Phase 2. Former catch-all #7 was split:
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 | F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **In Progress** (#315 Done; hero click-through on main) |
 | F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **Epics Finished** (#321–#324; PR #325) |
-| F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **In Progress** |
+| F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **In Progress** (Waves 1–4 FinOps viability shipped in-tree) |
+| F19 Org-scale Detect rollup (CLI) | — | Future | **In Progress** (Wave 5) |
+| F20 Quality gate: heuristics + Cypress | — | Future | **In Progress** (Wave 5) |
+| F21 GTM polish: hybrid defaults + marketplace | — | Future | **In Progress** (Wave 5) |
+| F22 Optional session narrative (#276) | — | Future | **In Progress** (Wave 5 stub) |
+| F23 Context Shield vendor follow-ons | — | Future | **To-Do** (Wave 5 — schedule only) |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -453,10 +458,10 @@ Walkthrough, marketplace, product docs. **Epic closed.** Follow-on: #276 LLM ses
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #276 | AI-narrated session summary (optional LLM) | Extension | To-Do — Overview uses heuristic KPI sentences |
+| #276 | AI-narrated session summary (optional LLM) | Extension | **Stub** — `tokenforge.sessionNarrative` (F22); full enricher wiring To-Do |
 | #277 | external-send transparency coach | Extension | **Done** |
 | #278 | walkthrough + first-run onboarding | Extension | **Done** |
-| #279 | README + marketplace screenshots | Extension | To-Do — icon ships; screenshot gallery does not |
+| #279 | README + marketplace screenshots | Extension | To-Do — checklist in `extension/README.md` (F21) |
 | #280 | EXTENSION_PRODUCT complete + CONTEXT_GUARD refresh | Docs | **Done** — this map |
 | #281 | vsce package CI + marketplace publish prep | DevEx | **Done** — `package:vsix` on CI |
 
@@ -480,15 +485,86 @@ Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank sta
 
 ### F16 — Dashboard UI tests: Cypress E2E + component (#314)
 
-`dashboard/` Cypress lives in-workspace (E2E + component). Scaffold and Overview hero click-through specs are on `main`. Cypress is **not** in root `npm test` / CI yet — that stays a separately-scoped story.
+`dashboard/` Cypress lives in-workspace (E2E + component). Scaffold and Overview hero click-through specs are on `main`. Cypress is **not** in root `npm test` / PR CI — nightly workflow `.github/workflows/cypress-nightly.yml` runs the Overview subset; unit tests remain the merge gate.
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
 | #315 | scaffold Cypress (E2E + component) in the dashboard workspace with first specs | Dashboard | **Done** |
 | — | Overview hero click-through (Prove at a glance → Findings / Assumptions / Variance) | Dashboard | **Shipped** (F18 follow-up) |
 | — | FinOps board visual redesign (Glossary hover + empty LLM board) | Dashboard | **Shipped** (F18 follow-up) |
+| — | Cypress nightly workflow (Overview spec, workflow_dispatch) | CI | **Shipped** (Wave 5 / F20) |
 
-Single-story epic. Pinned to `cypress@15` because `cypress@16`'s vite-dev-server requires Vite 8; revisit on the Vite 8 bump. Out of scope: Cypress in CI, testing the `extension/` webview, bulk `data-testid`, visual-regression diffing.
+Single-story epic. Pinned to `cypress@15` because `cypress@16`'s vite-dev-server requires Vite 8; revisit on the Vite 8 bump. Out of scope: Cypress on every PR (flaky cost), testing the `extension/` webview, bulk `data-testid`, visual-regression diffing.
+
+### F19 — Org-scale Detect rollup (CLI) (Wave 5)
+
+Eng-manager handoff: roll up many team repos' scan JSON into one BU dashboard seed without manual multi-file picker.
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| — | CLI `tokenforge org-seed` — walk directory for `scan-report.json` / `last-scan.json` → BU seed | CLI | **Shipped** (Wave 5) |
+| — | Dashboard multi-file SourceBar rollup | Dashboard | **Shipped** (F18) |
+
+Build order: dashboard picker (done) → **org-seed** for CI / shared-drive folder layouts.
+
+### F20 — Quality gate: heuristics + Cypress (Wave 5)
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| — | HEURISTICS_AUDIT Wave 5 next-steps checklist | Docs | **Shipped** |
+| — | Cypress nightly job (#314 close) | CI | **Shipped** — see F16 |
+| #166 | Enforce 30-candidate enrichment cap | `risk-core` | To-Do (follow-on) |
+| B1–B4 | Heuristic false-positive reductions per audit | `risk-core` | To-Do — see [`HEURISTICS_AUDIT.md`](../design/HEURISTICS_AUDIT.md) Wave 5 table |
+
+### F21 — GTM polish: hybrid defaults + marketplace (Wave 5)
+
+Heuristic scan/Fix remains default everywhere; hybrid is opt-in with explicit `--allow-external` / `tokenforge.allowExternalLlm`. Dashboard demo reset prefers **Combined** board layer.
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| — | Dashboard `resetToDemo` → preferred Combined layer | Dashboard | **Shipped** |
+| #279 | README + marketplace screenshot gallery | Extension | To-Do — checklist in `extension/README.md` |
+| — | Extension README marketplace screenshot table | Extension | **Shipped** (Wave 5 light touch) |
+
+### F22 — Optional session narrative (#276) (Wave 5)
+
+Optional, clearly costed LLM summary of session hygiene — no interception claims.
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| #276 | AI-narrated session summary (optional LLM) | Extension | **Stub shipped** — `tokenforge.sessionNarrative`; heuristic free path + honest AI gate |
+| — | Bounded enricher call for one-paragraph narrative | Extension | To-Do |
+
+Build order: **stub command** (done) → wire local Ollama one-shot when `llmEnrichment` on.
+
+### F23 — Context Shield vendor follow-ons (Wave 5)
+
+After Cursor/Copilot **promote-shield** path (`tokenforge promote-shield`, F18). Schedule Gemini/Claude native shield adapters; do not implement full adapters until prioritized.
+
+| Issue | Title | Surface | Status |
+| --- | --- | --- | --- |
+| — | Gemini Context Shield adapter (`.geminiignore` or host-native lever) | `context-adapters` | To-Do — schedule |
+| — | Claude Context Shield adapter (host-native ignore merge) | `context-adapters` | To-Do — schedule |
+| — | `promote-shield` parity for gemini/claude providers | CLI / Extension | To-Do — after adapters |
+| — | Docs: effectiveness tiers for Gemini/Claude hosts | Docs | To-Do |
+
+**Explicitly deferred:** full parity with Cursor Real Shield until host APIs are verified. Policy Fix adapters for gemini/claude already ship via F17 (#322); this epic is **Detect/Shield context**, not Fix synthesis.
+
+Cross-ref: F9 #255 Copilot partial adapter (done); F17 multi-vendor Fix (done).
+
+### Won't for v1 viability
+
+Do not pitch or schedule for the FinOps viability milestone:
+
+| Item | Why |
+| --- | --- |
+| Realtime streaming context wall | Would require intercepting vendor private pipelines — honesty constraint |
+| Hosted multi-tenant SaaS dashboard | Local-first Prove + JSON handoff is the v1 path (#326) |
+| Live billing API as merge gate | Usage import + variance board suffices; Wave C #95–#98 when prioritized |
+| RTK bash proxy / command rewriting | F5 explicit out-of-scope |
+| Field-level JSON partial excludes | Contract is one verdict per path — audit documents, not v1 |
+
+Remaining viability work is under **F18–F23** and Waves 1–5 of the Full FinOps plan.
 
 ### Further improvement candidates (not yet filed as issues)
 
@@ -498,13 +574,25 @@ committed scope.
 | Candidate | Surface | Why | Status |
 | --- | --- | --- | --- |
 | One-click Fix from the extension (`tokenforge apply`) | Extension | Detect → Fix without leaving the IDE | **Filed** — F11 #266 |
-| Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs | Open |
-| Team rollup from many `last-scan` / session exports | Dashboard | Eng-manager Detect evidence | **Shipped** — multi JSON SourceBar (F18 follow-up) |
-| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | **Shipped** — `tokenforge drift` (F18 #326) |
-| Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs | Open |
-| Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths | **Filed** — F10 #257, F9 #254 |
-| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) | Open |
+| Before/after scan snapshots under `.tokenforge/` | CLI / Prove | Local Prove without billing APIs | **Shipped** — apply snapshots + `prove-report` (Wave 1) |
+| Team rollup from many `last-scan` / session exports | Dashboard / CLI | Eng-manager Detect evidence | **Shipped** — SourceBar multi-file + `tokenforge org-seed` (F19) |
+| Policy-pack drift check in CI vs last apply | CLI / CI | Catch reverted lean policy | **Shipped** — `tokenforge drift` hash vs apply-section-hash (Wave 2) |
+| Richer heuristic classes (continue `HEURISTICS_AUDIT`) | Core | Fewer hybrid false needs | **Scheduled** — F20 Wave 5 checklist |
+| Idle + active-session feedback UX (`activePaths`) | Extension | Explain protected-from-exclude paths | **Shipped** — F10 #257 / F9 #254 + Wave 4 badges |
+| Guided pilot mode (scan → apply → prove) | CLI / docs | Match [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md) | **Shipped** — `pilot --prove` + checklist + boot params (Wave 1) |
 | Assumption presets by vendor plan | Dashboard | Editable knobs, still not live billing | **Shipped** — Assumptions page presets |
+
+### Full FinOps viability (Waves 1–4 under F18)
+
+Local-first Director + Developer spine — honesty floor unchanged (no pipeline interception, no 100% causation claim).
+
+| Wave | Outcome | Status |
+| --- | --- | --- |
+| 1 Guided Prove | `pilot --prove`, handoff, checklist, `?markers=`/`?session=`, snapshots, `prove-report`, auto period-bind | **Shipped** |
+| 2 Fix that sticks | Apply preview, enforcement badges, `promote-shield`, drift hash, CI example, discover boot | **Shipped** |
+| 3 Director trust | Cohort trustLevel, Prove summary export, Glossary/FAQ sync, Source Detect/Prove packages | **Shipped** |
+| 4 Dev daily | Session→dashboard handoff, walkthrough, external-send coach, Shield effectiveness | **Shipped** |
+| 5 Scale/GTM | F19–F23 (org-seed, Cypress nightly, marketplace, narrative stub, Shield schedule) | **Shipped** (stubs/schedule as noted) |
 
 ## Build order
 
@@ -522,9 +610,10 @@ Phase 2:
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
 8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
-10. **F16** (#314) — **Dashboard Cypress tests** (#315 Done; hero click-through shipped; CI job still open)
+10. **F16** (#314) — **Dashboard Cypress tests** (#315 Done; hero click-through shipped; **nightly CI** shipped — F20)
 11. **F17** (#320) — **Multi-vendor AI Fix parity** (**Epics Finished** via PR #325)
-12. **F18** (#326) — **Prove pilot + dashboard visibility** (local-first session ingest, Overview hero, Glossary + visual board, `tokenforge drift`)
-13. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+12. **F18** (#326) — **Prove pilot + dashboard visibility** + **FinOps Waves 1–4** (`pilot --prove`, prove-report, drift hash, promote-shield, cohort trust, session handoff)
+13. **F19–F23** (Wave 5) — **Scale, quality, GTM:** org-seed rollup, heuristics audit continuation, hybrid defaults, Cypress nightly, marketplace checklist, session narrative stub, Context Shield vendor schedule
+14. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).

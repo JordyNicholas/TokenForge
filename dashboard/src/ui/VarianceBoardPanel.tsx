@@ -1,15 +1,20 @@
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { useState } from "react";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import {
   annotateVarianceRow,
+  buildProveSummaryMarkdown,
   buildVarianceBoard,
+  compareCohorts,
   formatUsd,
   summarizeAssumptionsFreeze,
   type Assumptions,
@@ -99,6 +104,7 @@ export function VarianceBoardPanel({
     freezeCompareAssumptions,
     fixOnTeams,
   } = useDashboard();
+  const [copySnack, setCopySnack] = useState(false);
 
   if (!compareBaselineUsage) {
     return (
@@ -133,10 +139,26 @@ export function VarianceBoardPanel({
   const focusBu = teamId ? board.rows.find((row) => row.team === teamId) ?? board.bu : board.bu;
   const fixSet = new Set(fixOnTeams);
   const showCohort = fixOnTeams.length > 0;
+  const cohortCompare = compareCohorts(board, fixOnTeams);
   const annotatedRows = visibleRows.map((row) => annotateVarianceRow(row, fixSet));
+
+  async function copyProveSummary(): Promise<void> {
+    const markdown = buildProveSummaryMarkdown({
+      board,
+      fixOnTeams,
+      assumptionsFrozen: compareAssumptionsFreeze,
+    });
+    await navigator.clipboard.writeText(markdown);
+    setCopySnack(true);
+  }
 
   return (
     <Stack spacing={2.5}>
+      {cohortCompare.warnings.length > 0 ? (
+        <Alert severity={cohortCompare.trustLevel === "none" ? "info" : "warning"}>
+          {cohortCompare.warnings.join(" ")}
+        </Alert>
+      ) : null}
       <OverviewSection
         title="Period"
         titleAdornment={<GlossaryTip term="Variance" termId="variance" />}
@@ -157,6 +179,9 @@ export function VarianceBoardPanel({
           </Typography>
           <Button size="small" variant="outlined" onClick={freezeCompareAssumptions}>
             {board.assumptionsFrozen ? "Re-freeze" : "Freeze Assumptions"}
+          </Button>
+          <Button size="small" variant="outlined" onClick={() => void copyProveSummary()}>
+            Copy prove summary
           </Button>
         </Stack>
         {board.assumptionsFrozen ? (
@@ -224,6 +249,12 @@ export function VarianceBoardPanel({
           </TableBody>
         </DataTable>
       </OverviewSection>
+      <Snackbar
+        open={copySnack}
+        autoHideDuration={4000}
+        onClose={() => setCopySnack(false)}
+        message="Prove summary copied (Markdown with honesty footer)"
+      />
     </Stack>
   );
 }

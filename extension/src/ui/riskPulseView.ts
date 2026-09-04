@@ -395,6 +395,7 @@ function renderOverviewHtml(
     .tf-ai-status[data-ai-on="true"] { border-left: 3px solid var(--tf-brand, #14b8a6); }
     .tf-ai-headline { margin: 0 0 4px; }
     .tf-btn-ai { font-weight: 600; }
+    .tf-checklist { font-size: 11px; color: var(--vscode-descriptionForeground); margin: 0 0 8px; padding-left: 18px; }
   </style>
 </head>
 <body>
@@ -418,8 +419,16 @@ function renderOverviewHtml(
     <button class="tf-btn" data-cmd="tokenforge.runDiscover">Run discover</button>
     <button class="tf-btn" data-cmd="tokenforge.compactRulesPreview">Compact rules</button>
     <button class="tf-btn" data-cmd="tokenforge.applyTaskContextPack">Apply task pack</button>
+    <button class="tf-btn" data-cmd="tokenforge.sendHygieneToDashboard">Send hygiene to dashboard</button>
     <button class="tf-btn" data-cmd="tokenforge.focusRiskPanel">Open tabs</button>
   </div>
+  <div class="tf-section">Getting started</div>
+  <ul class="tf-checklist">
+    <li>Detect — open noisy tabs; review context cost</li>
+    <li>Shield — Allow or Shield from Open tabs</li>
+    <li>Compact — preview lean rules before agent turns</li>
+    <li>Prove — export session-stats and open dashboard</li>
+  </ul>
   <div class="tf-section">Session summary</div>
   ${summaryBlock}
   ${leversBlock}

@@ -43,6 +43,14 @@ describe("runCli help", () => {
     expect(captured.stdout).toContain("Getting started:");
   });
 
+  it("lists org-seed in overview help", async () => {
+    const captured = captureIo();
+    const code = await runCli(["--help"], captured.io);
+
+    expect(code).toBe(0);
+    expect(captured.stdout).toContain("org-seed");
+  });
+
   it("shows command-specific help", async () => {
     const captured = captureIo();
     const code = await runCli(["help", "scan"], captured.io);

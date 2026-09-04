@@ -1,3 +1,4 @@
+import Alert from "@mui/material/Alert";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -20,27 +21,35 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
 
   if (!compare.hasFixOn) {
     return (
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={{ alignItems: { sm: "center" }, mb: 2 }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          <GlossaryTip term="Cohort compare" termId="cohort" /> needs Fix change markers.
-        </Typography>
-        <Chip
-          size="small"
-          label="Load demo markers"
-          onClick={() => {
-            void loadDemoChangeMarkers();
-          }}
-        />
+      <Stack spacing={1} sx={{ mb: 2 }}>
+        <Alert severity="info" variant="outlined">
+          <GlossaryTip term="Cohort compare" termId="cohort" /> needs Fix change markers
+          before Fix-on vs control billed compare is meaningful.
+        </Alert>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ alignItems: { sm: "center" } }}
+        >
+          <Chip
+            size="small"
+            label="Load demo markers"
+            onClick={() => {
+              void loadDemoChangeMarkers();
+            }}
+          />
+        </Stack>
       </Stack>
     );
   }
 
   return (
     <Stack spacing={1} sx={{ mb: 2 }}>
+      {compare.trustLevel !== "strong" ? (
+        <Alert severity="warning" variant="outlined">
+          {compare.warnings[0] ?? compare.narrative}
+        </Alert>
+      ) : null}
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
         <Typography variant="subtitle2">
           <GlossaryTip term="Cohort compare" termId="cohort" />
@@ -62,6 +71,11 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
           />
         ) : (
           <Chip size="small" color="warning" variant="outlined" label="No control" />
+        )}
+        {compare.trustLevel === "strong" ? (
+          <Chip size="small" color="success" variant="outlined" label="Control present" />
+        ) : (
+          <Chip size="small" color="warning" variant="outlined" label="Weak cohort" />
         )}
       </Stack>
       <KpiRow>
@@ -86,7 +100,7 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
         <KpiCard
           label="Fix-on vs control"
           value={
-            compare.relativeBilledDeltaUsd !== null
+            compare.trustLevel === "strong" && compare.relativeBilledDeltaUsd !== null
               ? signedUsd(compare.relativeBilledDeltaUsd)
               : "—"
           }

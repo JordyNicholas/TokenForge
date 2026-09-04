@@ -59,12 +59,17 @@ export function SourceBar() {
     discoverLatestLabel,
     loadDiscoverLatestFromFile,
     clearDiscoverLatest,
+    periodBindUnbound,
+    dismissPeriodBindUnbound,
+    usagePeriodsAutoCorrected,
+    dismissUsagePeriodAutoCorrected,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [snackOpen, setSnackOpen] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [bindSnackOpen, setBindSnackOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<HTMLInputElement>(null);
   const afterFixRef = useRef<HTMLInputElement>(null);
@@ -85,6 +90,20 @@ export function SourceBar() {
       setSnackOpen(true);
     }
   }, [localError]);
+
+  useEffect(() => {
+    if (periodBindUnbound || usagePeriodsAutoCorrected) {
+      setBindSnackOpen(true);
+    }
+  }, [periodBindUnbound, usagePeriodsAutoCorrected]);
+
+  useEffect(() => {
+    const open = () => {
+      setMenuEl(document.getElementById("tokenforge-source-trigger"));
+    };
+    window.addEventListener("tokenforge:open-source", open);
+    return () => window.removeEventListener("tokenforge:open-source", open);
+  }, []);
 
   async function onSubmitUrl(event: FormEvent) {
     event.preventDefault();
@@ -180,6 +199,7 @@ export function SourceBar() {
       ) : null}
       <Tooltip title="Data source">
         <IconButton
+          id="tokenforge-source-trigger"
           color="inherit"
           aria-label="Data source"
           onClick={(event: MouseEvent<HTMLElement>) => setMenuEl(event.currentTarget)}
@@ -189,7 +209,7 @@ export function SourceBar() {
       </Tooltip>
       <Menu anchorEl={menuEl} open={Boolean(menuEl)} onClose={() => setMenuEl(null)}>
         <MenuItem disabled>
-          <Typography variant="overline">Load Detect output</Typography>
+          <Typography variant="overline">Detect package</Typography>
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -240,7 +260,7 @@ export function SourceBar() {
         </MenuItem>
         <Divider />
         <MenuItem disabled>
-          <Typography variant="overline">Prove after Fix</Typography>
+          <Typography variant="overline">Prove package</Typography>
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -266,10 +286,6 @@ export function SourceBar() {
             Clear after-Fix compare
           </MenuItem>
         ) : null}
-        <Divider />
-        <MenuItem disabled>
-          <Typography variant="overline">Prove billed usage</Typography>
-        </MenuItem>
         <MenuItem
           onClick={() => {
             setMenuEl(null);
@@ -281,7 +297,7 @@ export function SourceBar() {
           </ListItemIcon>
           <ListItemText
             primary="Import baseline usage CSV/JSON…"
-            secondary="FinOps export → UsageMetrics (not live billing)"
+            secondary="FinOps export → bill reconcile (not live billing)"
           />
         </MenuItem>
         <MenuItem
@@ -295,7 +311,7 @@ export function SourceBar() {
           </ListItemIcon>
           <ListItemText
             primary="Import after-period usage…"
-            secondary="Second bill window for estimate vs actual (#86)"
+            secondary="Second bill window for variance (#86)"
           />
         </MenuItem>
         <MenuItem
@@ -329,10 +345,6 @@ export function SourceBar() {
             Clear after-period usage
           </MenuItem>
         ) : null}
-        <Divider />
-        <MenuItem disabled>
-          <Typography variant="overline">Prove attribution</Typography>
-        </MenuItem>
         <MenuItem
           onClick={() => {
             setMenuEl(null);
@@ -344,7 +356,7 @@ export function SourceBar() {
           </ListItemIcon>
           <ListItemText
             primary="Load Fix change markers…"
-            secondary=".tokenforge/prove-change-latest.json or markers array (#96)"
+            secondary="Cohort Fix-on vs control tags (#96)"
           />
         </MenuItem>
         <MenuItem
@@ -370,10 +382,6 @@ export function SourceBar() {
             Clear Fix change markers
           </MenuItem>
         ) : null}
-        <Divider />
-        <MenuItem disabled>
-          <Typography variant="overline">Extension hygiene</Typography>
-        </MenuItem>
         <MenuItem
           onClick={() => {
             setMenuEl(null);
@@ -385,7 +393,7 @@ export function SourceBar() {
           </ListItemIcon>
           <ListItemText
             primary="Load session-stats.json…"
-            secondary="Context Guard Filter/Shield estimate → Live hygiene tier"
+            secondary="Live hygiene tier — extension Filter/Shield estimate"
           />
         </MenuItem>
         {sessionStatsLabel ? (
@@ -398,10 +406,6 @@ export function SourceBar() {
             Clear session-stats
           </MenuItem>
         ) : null}
-        <Divider />
-        <MenuItem disabled>
-          <Typography variant="overline">Missed savings</Typography>
-        </MenuItem>
         <MenuItem
           onClick={() => {
             setMenuEl(null);
@@ -413,7 +417,7 @@ export function SourceBar() {
           </ListItemIcon>
           <ListItemText
             primary="Load discover-latest.json…"
-            secondary="policy_gap / session_kept from tokenforge discover"
+            secondary="Missed savings — policy_gap / session_kept"
           />
         </MenuItem>
         {discoverLatestLabel ? (
@@ -580,6 +584,20 @@ export function SourceBar() {
         }}
         autoHideDuration={8000}
         message={snackMessage}
+      />
+      <Snackbar
+        open={bindSnackOpen && (periodBindUnbound || usagePeriodsAutoCorrected)}
+        onClose={() => {
+          setBindSnackOpen(false);
+          dismissPeriodBindUnbound();
+          dismissUsagePeriodAutoCorrected();
+        }}
+        autoHideDuration={9000}
+        message={
+          periodBindUnbound
+            ? "Could not auto-bind baseline/after periods around Fix markers — pick periods on Variance."
+            : "Baseline/after periods were reordered chronologically."
+        }
       />
     </>
   );

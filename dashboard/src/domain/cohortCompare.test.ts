@@ -99,6 +99,8 @@ describe("compareCohorts", () => {
     expect(compare.control.actualBilledChangeUsd).toBe(15);
     expect(compare.honestyNote).toMatch(/not proof/i);
     expect(compare.relativeBilledDeltaUsd).toBe(270 + 390 - 15);
+    expect(compare.trustLevel).toBe("strong");
+    expect(compare.warnings).toEqual([]);
     expect(compare.narrative).toMatch(/outpaced control/i);
     expect(compare.narrative).toMatch(/not proof|Suggestive/i);
   });
@@ -116,6 +118,8 @@ describe("compareCohorts", () => {
     expect(compare.fixOn.teamCount).toBe(0);
     expect(compare.control.teamCount).toBe(0);
     expect(compare.relativeBilledDeltaUsd).toBeNull();
+    expect(compare.trustLevel).toBe("none");
+    expect(compare.warnings.length).toBeGreaterThan(0);
     expect(compare.narrative).toMatch(/Load Fix change markers/i);
   });
 
@@ -133,7 +137,10 @@ describe("compareCohorts", () => {
     ]);
     expect(compare.control.teamCount).toBe(0);
     expect(compare.relativeBilledDeltaUsd).toBeNull();
+    expect(compare.trustLevel).toBe("weak");
+    expect(compare.warnings[0]).toMatch(/no control cohort/i);
     expect(compare.narrative).toMatch(/no control cohort/i);
+    expect(compare.narrative).not.toMatch(/outpaced control/i);
   });
 });
 

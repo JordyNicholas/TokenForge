@@ -46,6 +46,22 @@ Lowest-friction wedge — scan, local apply (with Prove change marker), stage Pr
 npm run tokenforge:pilot -- fixtures/noisy-app --team payments-platform
 ```
 
+**Guided Prove handoff** (`--prove`) writes `.tokenforge/prove-handoff.json`, copies
+artifacts into `dashboard/public` when present, and prints a dashboard URL with
+`?src=&afterUsage=&markers=&session=` query params:
+
+```bash
+npm run tokenforge -- pilot fixtures/noisy-app --team payments-platform --prove
+```
+
+Then open the printed URL (dashboard on `:5173`). Overview shows a **Prove loop**
+checklist (Scan · Fix markers · Baseline · After · Variance). Export a Markdown
+report anytime:
+
+```bash
+npm run tokenforge -- prove-report fixtures/noisy-app
+```
+
 Dry-run apply (scan + planned files only):
 
 ```bash
@@ -59,6 +75,29 @@ After apply, optionally gate PRs with a local drift check (managed section still
 
 ```bash
 npm run tokenforge -- drift fixtures/noisy-app --provider claude
+```
+
+When `.tokenforge/apply-section-hash.json` exists (written by apply), drift also
+compares the managed section body hash and reports `hash_mismatch` if edited.
+
+Example GitHub Action (copy from repo, not enabled in root CI by default):
+
+```bash
+.github/workflows/examples/tokenforge-drift.yml
+```
+
+After apply, run discover to persist missed-savings handoff:
+
+```bash
+npm run tokenforge -- discover . --provider copilot
+# → .tokenforge/discover-latest.json (boot dashboard with ?discover=/discover-latest.json)
+```
+
+Promote cursor/copilot ignore candidates into shield files (explicit — never silent):
+
+```bash
+npm run tokenforge -- promote-shield . --provider cursor --dry-run
+npm run tokenforge -- apply . --provider cursor --promote-shield
 ```
 
 ## Fast path (sanitized fixture, ~3 min)

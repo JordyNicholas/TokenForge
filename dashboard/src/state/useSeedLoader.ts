@@ -19,6 +19,7 @@ import {
   parseDashboardFile,
   parseDashboardFiles,
 } from "../data/loadDocument";
+import { writePreferredScanLayer } from "../domain/viewPrefs";
 
 const EMPTY_TOTALS: TokenRiskTotals = {
   beforeTokens: 0,
@@ -77,6 +78,7 @@ export function useSeedLoader() {
 
   const resetToDemo = useCallback(async () => {
     try {
+      writePreferredScanLayer("combined");
       applySeed(await loadDemoSeed(), DEMO_SEED_URL);
     } catch (error) {
       fail(error);

@@ -1,0 +1,46 @@
+# Dashboard Cypress E2E — nightly + manual (#314 / F20).
+#
+# Keeps root `npm test` as the PR merge gate (deterministic unit tests).
+# This job runs a small, stable Overview spec subset against the Vite dev server.
+#
+# Pinned to cypress@15 (see docs/delivery/BOARD.md F16) — cypress@16 needs Vite 8.
+
+name: Cypress nightly
+
+on:
+  schedule:
+    # 06:15 UTC — after typical US/EU off-hours; adjust if flaky on shared runners.
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cypress-nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dashboard-e2e:
+    name: dashboard Cypress E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck dashboard
+        run: npm run typecheck -w @tokenforge/dashboard
+
+      - name: Run Cypress E2E (Overview subset)
+        run: npm run e2e:run -w @tokenforge/dashboard -- --spec cypress/e2e/overview.cy.ts

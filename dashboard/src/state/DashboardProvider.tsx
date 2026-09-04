@@ -18,16 +18,22 @@ import {
   parseChangeMarkersFile,
   parseChangeMarkersJson,
   parseDiscoverLatestFile,
+  parseDiscoverLatestJson,
   parseSessionStatsFile,
   parseUsageFile,
   parseUsageText,
   projectSavings,
   resolveBootAfterUsageUrl,
+  resolveBootMarkersUrl,
+  resolveBootSessionUrl,
+  resolveBootDiscoverUrl,
   listUsagePeriods,
   normalizeUsagePeriodPair,
   upsertUsageSnapshot,
+  bindPeriodsAroundMarkers,
   withPitchScenario,
   applyAssumptionPreset,
+  parseSessionStatsJson,
   type AssumptionPresetId,
   type Assumptions,
   type DashboardSeed,
@@ -94,6 +100,9 @@ export type DashboardState = {
   /** True when baseline/after picks were swapped to chronological order. */
   usagePeriodsAutoCorrected: boolean;
   dismissUsagePeriodAutoCorrected: () => void;
+  /** True when markers + usage exist but auto period-bind could not bracket. */
+  periodBindUnbound: boolean;
+  dismissPeriodBindUnbound: () => void;
   /** Prove change markers for Fix-on vs control cohort (#96). */
   changeMarkers: ProveChangeMarker[];
   changeMarkersLabel: string | null;
@@ -153,6 +162,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [baselinePeriod, setBaselinePeriodState] = useState<string | null>(null);
   const [afterPeriod, setAfterPeriodState] = useState<string | null>(null);
   const [usagePeriodsAutoCorrected, setUsagePeriodsAutoCorrected] = useState(false);
+  const [periodBindUnbound, setPeriodBindUnbound] = useState(false);
   const [changeMarkers, setChangeMarkers] = useState<ProveChangeMarker[]>([]);
   const [changeMarkersLabel, setChangeMarkersLabel] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState<SessionStatsReport | null>(null);
@@ -179,6 +189,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const dismissUsagePeriodAutoCorrected = useCallback(() => {
     setUsagePeriodsAutoCorrected(false);
+  }, []);
+
+  const dismissPeriodBindUnbound = useCallback(() => {
+    setPeriodBindUnbound(false);
   }, []);
 
   const projection = useMemo(
@@ -454,6 +468,107 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     };
   }, [beginAfterUsageCompare]);
 
+  // Optional `?markers=/prove-change-latest.json` Prove handoff.
+  useEffect(() => {
+    const bootMarkers = resolveBootMarkersUrl();
+    if (!bootMarkers) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(bootMarkers);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${bootMarkers} (${response.status})`);
+        }
+        const markers = parseChangeMarkersJson(await response.text());
+        if (!cancelled) {
+          setChangeMarkers(markers);
+          setChangeMarkersLabel(bootMarkers);
+        }
+      } catch {
+        /* leave markers empty; operator can load from Source */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Optional `?session=/session-stats.json` Prove handoff.
+  useEffect(() => {
+    const bootSession = resolveBootSessionUrl();
+    if (!bootSession) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(bootSession);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${bootSession} (${response.status})`);
+        }
+        const report = parseSessionStatsJson(await response.text());
+        if (!cancelled) {
+          setSessionStats(report);
+          setSessionStatsLabel(bootSession);
+        }
+      } catch {
+        /* optional */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Optional `?discover=/discover-latest.json` Prove handoff.
+  useEffect(() => {
+    const bootDiscover = resolveBootDiscoverUrl();
+    if (!bootDiscover) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(bootDiscover);
+        if (!response.ok) {
+          throw new Error(`Could not fetch ${bootDiscover} (${response.status})`);
+        }
+        const summary = parseDiscoverLatestJson(await response.text());
+        if (!cancelled) {
+          setDiscoverLatest(summary);
+          setDiscoverLatestLabel(bootDiscover);
+        }
+      } catch {
+        /* optional */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Auto period-bind when Fix markers + ≥2 usage snapshots exist.
+  useEffect(() => {
+    if (changeMarkers.length === 0) {
+      return;
+    }
+    const periods = listUsagePeriods(usageSnapshots);
+    if (periods.length < 2) {
+      return;
+    }
+    // Only auto-bind when after period not yet chosen.
+    if (afterPeriodRef.current) {
+      return;
+    }
+    const bound = bindPeriodsAroundMarkers(usageSnapshots, changeMarkers);
+    if (bound.baselinePeriod && bound.afterPeriod) {
+      applyPeriodPair(bound.baselinePeriod, bound.afterPeriod);
+    }
+    setPeriodBindUnbound(bound.unbound);
+  }, [changeMarkers, usageSnapshots, applyPeriodPair]);
+
   const isDemoSource = isDemoSourceLabel(loaded.sourceLabel);
   const loadError = loaded.loadError ?? afterUsageError;
 
@@ -492,6 +607,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       usageSnapshotLabel,
       usagePeriodsAutoCorrected,
       dismissUsagePeriodAutoCorrected,
+      periodBindUnbound,
+      dismissPeriodBindUnbound,
       changeMarkers,
       changeMarkersLabel,
       fixOnTeams,
@@ -541,6 +658,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       usageSnapshotLabel,
       usagePeriodsAutoCorrected,
       dismissUsagePeriodAutoCorrected,
+      periodBindUnbound,
+      dismissPeriodBindUnbound,
       changeMarkers,
       changeMarkersLabel,
       fixOnTeams,

@@ -22,12 +22,19 @@ export type CohortSummary = {
   gapPercentLabel: string;
 };
 
+/** How much trust to place in Fix-on vs control billed compare. */
+export type CohortTrustLevel = "none" | "weak" | "strong";
+
 export type CohortCompare = {
   fixOn: CohortSummary;
   control: CohortSummary;
   unknown: CohortSummary;
   /** True when at least one Fix-on team is tagged. */
   hasFixOn: boolean;
+  /** Strong only when Fix-on and control cohorts both exist. */
+  trustLevel: CohortTrustLevel;
+  /** UI warnings — empty control, missing markers, etc. */
+  warnings: readonly string[];
   honestyNote: string;
   /**
    * Fix-on actual billed Δ minus control actual billed Δ (USD).
@@ -41,6 +48,39 @@ export type CohortCompare = {
 
 export const COHORT_HONESTY_NOTE =
   "Fix-on vs control is billed usage compare for teams with vs without a Fix apply marker — not proof that TokenForge caused 100% of any invoice delta.";
+
+export const COHORT_NO_MARKERS_WARNING =
+  "Load Fix change markers to partition Fix-on vs control teams.";
+
+export const COHORT_NO_CONTROL_WARNING =
+  "All tagged teams are Fix-on — no control cohort, so relative billed Δ is weak evidence.";
+
+/** Whether cohort compare supports a strong (Fix-on vs control) read. */
+export function cohortTrustLevel(compare: {
+  hasFixOn: boolean;
+  control: Pick<CohortSummary, "teamCount">;
+}): CohortTrustLevel {
+  if (!compare.hasFixOn) {
+    return "none";
+  }
+  if (compare.control.teamCount === 0) {
+    return "weak";
+  }
+  return "strong";
+}
+
+export function cohortWarnings(compare: {
+  hasFixOn: boolean;
+  control: Pick<CohortSummary, "teamCount">;
+}): string[] {
+  if (!compare.hasFixOn) {
+    return [COHORT_NO_MARKERS_WARNING];
+  }
+  if (compare.control.teamCount === 0) {
+    return [COHORT_NO_CONTROL_WARNING];
+  }
+  return [];
+}
 
 function formatSignedUsd(value: number): string {
   const abs = Math.abs(value);
@@ -57,12 +97,20 @@ export function cohortNarrative(compare: {
   fixOn: Pick<CohortSummary, "teamCount" | "actualBilledChangeUsd">;
   control: Pick<CohortSummary, "teamCount" | "actualBilledChangeUsd">;
   relativeBilledDeltaUsd: number | null;
+  trustLevel?: CohortTrustLevel;
 }): string {
-  if (!compare.hasFixOn) {
-    return "Load Fix change markers to partition Fix-on vs control teams.";
+  const trust =
+    compare.trustLevel ??
+    cohortTrustLevel({
+      hasFixOn: compare.hasFixOn,
+      control: compare.control,
+    });
+
+  if (trust === "none") {
+    return COHORT_NO_MARKERS_WARNING;
   }
-  if (compare.control.teamCount === 0) {
-    return "All tagged teams are Fix-on — no control cohort, so relative billed Δ is weak evidence.";
+  if (trust === "weak") {
+    return `${COHORT_NO_CONTROL_WARNING} Fix-on billed Δ alone: ${formatSignedUsd(compare.fixOn.actualBilledChangeUsd)} — not causation.`;
   }
   const relative = compare.relativeBilledDeltaUsd ?? 0;
   if (Math.abs(relative) < 0.005) {
@@ -185,11 +233,14 @@ export function compareCohorts(
     hasFixOn && controlRows.length > 0
       ? fixOn.actualBilledChangeUsd - control.actualBilledChangeUsd
       : null;
+  const trustLevel = cohortTrustLevel({ hasFixOn, control });
+  const warnings = cohortWarnings({ hasFixOn, control });
   const draft = {
     hasFixOn,
     fixOn,
     control,
     relativeBilledDeltaUsd,
+    trustLevel,
   };
 
   return {
@@ -197,6 +248,8 @@ export function compareCohorts(
     control,
     unknown,
     hasFixOn,
+    trustLevel,
+    warnings,
     honestyNote: COHORT_HONESTY_NOTE,
     relativeBilledDeltaUsd,
     narrative: cohortNarrative(draft),

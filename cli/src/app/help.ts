@@ -20,7 +20,11 @@ Commands:
   init [path]         First-time repo setup (scan + apply; use --skip-apply for scan only)
   discover [path]     Find missed savings vs on-disk exclusions
   pilot [path]        Org pilot pack: scan → apply → Prove-ready
+  prove-report [path] Write Markdown Prove report from .tokenforge artifacts
   drift [path]        Check managed policy section still present (local CI)
+  promote-shield [path]
+                      Merge ignore candidates into .cursorignore / .copilotignore
+  org-seed [path]     Roll up scan JSON files under a directory → BU seed
   org-pack <seed>     Aggregate a multi-team seed into .tokenforge/org-policy/
   org-apply [path]    Stage / push org content exclusions (requires --org)
   usage-pull          Fetch billed usage into UsageMetrics JSON
@@ -92,6 +96,10 @@ const COMMAND_HELP: Record<string, string> = {
 
   Safety: instruction markdown gets a managed <!-- tokenforge:begin/end --> section;
   user text outside the markers is kept. Exclusion YAML may fully replace.
+
+  Shield promotion (explicit — never silent):
+    --promote-shield              After apply, merge cursor/copilot ignore candidates
+                                  into .cursorignore / .copilotignore (same as promote-shield)
 `,
 
   init: `tokenforge init [path] [options]
@@ -120,6 +128,21 @@ const COMMAND_HELP: Record<string, string> = {
     --json                        Print opportunities JSON
 `,
 
+  "org-seed": `tokenforge org-seed [directory] [options]
+
+  Walk a directory tree for .tokenforge/scan-report.json and
+  .tokenforge/last-scan.json files, merge them into one dashboard seed JSON
+  (businessUnit + reports). Eng-manager handoff for Prove / dashboard ?src=.
+
+  Options:
+    --team <name>       Business unit label (default: directory name)
+    --out <path>        Output path (default: <directory>/org-seed.json)
+    --json              Print rollup metadata + seed JSON
+
+  Example:
+    npm run tokenforge -- org-seed ./team-repos --team "Retail Banking" --out ./bu-seed.json
+`,
+
   pilot: `tokenforge pilot [path] [options]
 
   Org pilot pack: scan → apply → Prove-ready artifacts.
@@ -127,30 +150,69 @@ const COMMAND_HELP: Record<string, string> = {
   Options:
     --provider copilot            Provider adapter
     --skip-apply                  Scan only
+    --prove                       Write .tokenforge/prove-handoff.json, stage
+                                  dashboard/public, print dashboard URL with
+                                  ?src=&afterUsage=&markers=&session=
     --dry-run                     Preview steps without writing
     --mode / --llm / --allow-external
                                   Passed through to scan
+`,
+
+  "prove-report": `tokenforge prove-report [path] [options]
+
+  Director-forwardable Markdown Prove report from local .tokenforge artifacts.
+  Includes estimated scan savings, Fix marker, and an honesty footer
+  (estimated ≠ billed causation).
+
+  Options:
+    --out <path>                  Output path (default: .tokenforge/prove-report.md)
+    --json                        Print { outPath, reportPath }
 `,
 
   drift: `tokenforge drift [path] [options]
 
   Local CI check: ensure the provider instruction file still contains a
   non-empty <!-- tokenforge:begin/end --> managed section (not reverted).
+  When .tokenforge/apply-section-hash.json exists, also compares the managed
+  section body hash to the last apply (status hash_mismatch).
 
   Options:
     --provider copilot            Adapter whose instruction path to check
                                   (copilot | cursor | claude | gemini | generic)
     --json                        Print status JSON
 
-  Exit codes: 0 section OK · 2 missing file / missing or empty section
+  Exit codes: 0 section OK · 2 missing file / missing or empty section / hash_mismatch
 
   Example (CI):
     npm run tokenforge -- drift . --provider claude
 `,
 
+  "promote-shield": `tokenforge promote-shield [path] [options]
+
+  Explicitly merge apply-generated ignore candidates into provider shield files.
+  Never silent — prints every pattern promoted.
+
+  Options:
+    --provider cursor             Default. cursor → .cursorignore; copilot → .copilotignore
+    --dry-run                     Preview merge without writing
+
+  Example:
+    npm run tokenforge -- apply . --provider cursor --promote-shield
+    npm run tokenforge -- promote-shield . --provider cursor --dry-run
+`,
+
   hybrid: `Hybrid scan — optional LLM enrichment on bounded candidate excerpts
 
   Use with: tokenforge scan … --mode hybrid --llm <spec> --allow-external
+
+  Privacy / honesty:
+    • Default scan is heuristic only — no AI, no data leaves the machine.
+    • External CLI/API backends (anthropic, codex, claude-code, cursor-cli,
+      gemini-cli) send bounded excerpts or a sanitized repo copy (Codex).
+    • --allow-external is required — explicit confirmation excerpts may leave
+      this machine. Same gate as extension tokenforge.allowExternalLlm.
+    • Ollama and noop stay local; no --allow-external needed.
+    • TokenForge does not intercept any vendor's private context pipeline.
 
   LLM backends:
     noop                        Default. No LLM calls.
@@ -162,8 +224,7 @@ const COMMAND_HELP: Record<string, string> = {
     cursor-cli[:model]          Cursor CLI (agent login or CURSOR_API_KEY)
 
   Notes:
-    • Default scan is heuristic only — no AI, no data leaves the machine.
-    • CLI backends require --allow-external (privacy confirmation).
+    • Heuristic token math stays authoritative; models add semantic findings.
     • See docs/adapters/LLM_ENRICHER_SETUP.md for setup per backend.
 `,
 
@@ -187,7 +248,7 @@ export function printHelp(io: HelpIo, topic?: string): void {
 
   if (normalized && normalized !== "help") {
     io.stderr.write(
-      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, drift, hybrid, mcp\n`,
+      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, org-seed, drift, promote-shield, hybrid, mcp\n`,
     );
   }
 }

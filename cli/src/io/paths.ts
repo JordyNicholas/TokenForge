@@ -37,6 +37,12 @@ export const USAGE_LATEST_FILE = "usage-latest.json";
 export const USAGE_SYNC_CONFIG_FILE = "usage-sync.json";
 export const PROVE_CHANGE_LATEST_FILE = "prove-change-latest.json";
 export const PROVE_CHANGES_TRAIL_FILE = "prove-changes.jsonl";
+export const PROVE_HANDOFF_FILE = "prove-handoff.json";
+export const PROVE_REPORT_FILE = "prove-report.md";
+export const SESSION_STATS_FILE = "session-stats.json";
+export const APPLY_SNAPSHOT_BEFORE_FILE = "scan-before-apply.json";
+export const APPLY_SNAPSHOT_AFTER_FILE = "scan-after-apply.json";
+export const APPLY_SECTION_HASH_FILE = "apply-section-hash.json";
 
 export function tokenforgeDir(root: string): string {
   return join(root, ".tokenforge");
@@ -58,6 +64,30 @@ export function proveChangeLatestPath(root: string): string {
 /** Append-only Prove change trail (one JSON object per line). */
 export function proveChangesTrailPath(root: string): string {
   return join(tokenforgeDir(root), PROVE_CHANGES_TRAIL_FILE);
+}
+
+export function proveHandoffPath(root: string): string {
+  return join(tokenforgeDir(root), PROVE_HANDOFF_FILE);
+}
+
+export function proveReportPath(root: string): string {
+  return join(tokenforgeDir(root), PROVE_REPORT_FILE);
+}
+
+export function sessionStatsPath(root: string): string {
+  return join(tokenforgeDir(root), SESSION_STATS_FILE);
+}
+
+export function applySnapshotBeforePath(root: string): string {
+  return join(tokenforgeDir(root), APPLY_SNAPSHOT_BEFORE_FILE);
+}
+
+export function applySnapshotAfterPath(root: string): string {
+  return join(tokenforgeDir(root), APPLY_SNAPSHOT_AFTER_FILE);
+}
+
+export function applySectionHashPath(root: string): string {
+  return join(tokenforgeDir(root), APPLY_SECTION_HASH_FILE);
 }
 
 /** Period-scoped Prove usage snapshot, e.g. `.tokenforge/usage-2026-08.json`. */

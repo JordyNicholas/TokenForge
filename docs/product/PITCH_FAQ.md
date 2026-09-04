@@ -86,9 +86,14 @@ in `scan-report.json`. See
 
 ## Estimate vs actual billed usage?
 
-**Wave A (shipped):** Prove projects $ from scan totals × Assumptions, imports a FinOps
-CSV/JSON as billed usage, and compares **baseline vs after-period** (estimated
-reduction, actual billed change, variance) with Assumptions frozen on that run. Demo
+**Prove loop:** Detect waste → Fix packs → **bill reconcile** on the dashboard
+Variance board. **Honest savings tiers** separate **live hygiene**, scan delta,
+scenario $, and billed usage — they do not stack into one causal savings number.
+
+**Wave A (shipped):** Prove projects **scenario $** from scan totals × Assumptions,
+imports a FinOps CSV/JSON as **bill reconcile**, and compares **baseline vs
+after-period** (estimated reduction, actual billed change, **variance**) with
+Assumptions frozen on that run. Demo
 fixtures: `dashboard/public/sample-usage.csv` and `sample-usage-after.csv`. Repeatable
 path: [`PILOT_RUNBOOK.md`](../runbooks/PILOT_RUNBOOK.md).
 
@@ -100,8 +105,11 @@ File/demo import remains the fallback.
 compare, auto-suggest `realizedWasteShare` from variance, and this FAQ + Overview
 **pilot KPI card**. Plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).
 
+**Live hygiene:** extension exports `session-stats.json`; dashboard loads via
+Source or `?session=` boot (Filter/Shield estimate — not billed usage).
+
 **Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**.
-We do not meter the agent’s private pipeline. Cohort tags reduce “was that TokenForge?”
+We do not meter the agent's private pipeline. **Cohort** tags reduce “was that TokenForge?”
 noise — they do **not** prove 100% of an invoice delta was caused by TokenForge.
 Live sync still needs org-approved credentials; import works offline.
 

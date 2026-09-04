@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import {
   type ProveChangeMarker,
   type TokenRiskReport,
@@ -5,6 +6,11 @@ import {
 import { applyPolicy, type ApplyResult } from "../apply/apply";
 import { scanRepo } from "../scan/scan";
 import { writeScanReport } from "../../io/report-file";
+import {
+  stageProveArtifactsForDashboard,
+  writeProveHandoff,
+  type ProveHandoff,
+} from "../../io/prove-handoff";
 
 export type PilotPackOptions = {
   root: string;
@@ -14,6 +20,11 @@ export type PilotPackOptions = {
   dryRun?: boolean;
   /** When true, scan only — still writes the report for Prove. */
   skipApply?: boolean;
+  /** Write Prove handoff + stage dashboard/public artifacts. */
+  prove?: boolean;
+  /** Override dashboard public dir (default: <root>/dashboard/public). */
+  dashboardPublicDir?: string;
+  dashboardBaseUrl?: string;
   mode?: string;
   llm?: string;
   llmEndpoint?: string;
@@ -28,11 +39,48 @@ export type PilotPackResult = {
   changeMarker?: ProveChangeMarker;
   dryRun: boolean;
   steps: string[];
+  handoff?: ProveHandoff;
+  staged?: string[];
 };
+
+async function maybeProveHandoff(
+  options: PilotPackOptions,
+  report: TokenRiskReport,
+  changeMarker: ProveChangeMarker | undefined,
+  dryRun: boolean,
+  steps: string[],
+): Promise<{ handoff?: ProveHandoff; staged?: string[] }> {
+  if (!options.prove || dryRun) {
+    return {};
+  }
+  const handoff = await writeProveHandoff({
+    root: options.root,
+    report,
+    changeMarker,
+    dashboardBaseUrl: options.dashboardBaseUrl,
+  });
+  steps.push(`prove handoff → ${handoff.dashboardUrlHint}`);
+  const publicDir =
+    options.dashboardPublicDir ?? resolve(options.root, "dashboard/public");
+  try {
+    const staged = await stageProveArtifactsForDashboard({
+      root: options.root,
+      dashboardPublicDir: publicDir,
+    });
+    if (staged.length > 0) {
+      steps.push(`staged dashboard/public: ${staged.join(", ")}`);
+    }
+    return { handoff, staged };
+  } catch {
+    steps.push("dashboard staging skipped (public dir unavailable)");
+    return { handoff };
+  }
+}
 
 /**
  * Single-path org pilot: scan → local apply → Prove-ready report (#100).
  * Does not call remote org APIs (#99) — use `org-apply` separately when needed.
+ * `--prove` writes handoff JSON and stages dashboard/public for query-param boot.
  */
 export async function runPilotPack(
   options: PilotPackOptions,
@@ -55,12 +103,21 @@ export async function runPilotPack(
   steps.push(`scan → ${scanned.reportPath}`);
 
   if (options.skipApply) {
+    steps.push("apply skipped");
+    const prove = await maybeProveHandoff(
+      options,
+      scanned.report,
+      undefined,
+      dryRun,
+      steps,
+    );
     return {
       report: scanned.report,
       reportPath: scanned.reportPath,
       apply: null,
       dryRun,
-      steps: [...steps, "apply skipped"],
+      steps,
+      ...prove,
     };
   }
 
@@ -80,6 +137,17 @@ export async function runPilotPack(
   if (applied.changeMarker) {
     steps.push(`change marker ${applied.changeMarker.packId}`);
   }
+  if (!dryRun && !options.skipApply) {
+    steps.push(`next: tokenforge discover . → .tokenforge/discover-latest.json`);
+  }
+
+  const prove = await maybeProveHandoff(
+    options,
+    applied.report,
+    applied.changeMarker,
+    dryRun,
+    steps,
+  );
 
   return {
     report: applied.report,
@@ -88,5 +156,6 @@ export async function runPilotPack(
     changeMarker: applied.changeMarker,
     dryRun,
     steps,
+    ...prove,
   };
 }

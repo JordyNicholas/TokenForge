@@ -10,6 +10,9 @@ import {
   aggregateTotals,
   parseDashboardDocument,
   resolveBootAfterUsageUrl,
+  resolveBootMarkersUrl,
+  resolveBootSessionUrl,
+  resolveBootDiscoverUrl,
   resolveBootUsageUrl,
   resolveBootSourceUrl,
   type DashboardSeed,
@@ -134,5 +137,32 @@ describe("resolveBootUsageUrl", () => {
   it("accepts same-origin baseline usage paths", () => {
     expect(resolveBootUsageUrl("?usage=/usage-2026-08.json")).toBe("/usage-2026-08.json");
     expect(resolveBootUsageUrl("?afterUsage=/sample-usage-after.csv")).toBeNull();
+  });
+});
+
+describe("resolveBootMarkersUrl", () => {
+  it("accepts same-origin markers paths", () => {
+    expect(resolveBootMarkersUrl("?markers=/prove-change-latest.json")).toBe(
+      "/prove-change-latest.json",
+    );
+    expect(resolveBootMarkersUrl("?src=/last-scan.json")).toBeNull();
+  });
+});
+
+describe("resolveBootSessionUrl", () => {
+  it("accepts same-origin session paths", () => {
+    expect(resolveBootSessionUrl("?session=/session-stats.json")).toBe(
+      "/session-stats.json",
+    );
+    expect(resolveBootSessionUrl("?markers=/x.json")).toBeNull();
+  });
+});
+
+describe("resolveBootDiscoverUrl", () => {
+  it("accepts same-origin discover paths", () => {
+    expect(resolveBootDiscoverUrl("?discover=/discover-latest.json")).toBe(
+      "/discover-latest.json",
+    );
+    expect(resolveBootDiscoverUrl("?session=/session-stats.json")).toBeNull();
   });
 });

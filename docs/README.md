@@ -115,7 +115,7 @@ DETECT (extension + CLI scan) → FIX (CLI apply/init) → PROVE (dashboard + us
 | Topic | Documentation | Code today |
 | --- | --- | --- |
 | Prove one-step | README `tokenforge:prove` | Shell/npm wrapper; no `tokenforge prove` subcommand |
-| Session Prove on dashboard | F4 board (#156–#158) | Extension exports `session-stats.json`; dashboard does not consume it |
+| Session Prove on dashboard | F4 board (#156–#158) | Extension exports `session-stats.json`; dashboard loads via Source or `?session=` boot |
 | Org policy remote push | `org-apply` docs in design | Staging only; Copilot manual, Cursor/Claude unsupported |
 | Hybrid scan in CI | Explicitly excluded | See `design/HYBRID_SCAN_DESIGN.md` + `.github/workflows/ci.yml` |
 

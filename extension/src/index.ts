@@ -1,16 +1,20 @@
 import {
   commands,
+  env,
   ProgressLocation,
   QuickPickItem,
+  Uri,
   workspace,
   window,
   type ExtensionContext,
 } from "vscode";
 import { applyTaskContextPack } from "./ai/applyTaskPack";
 import { runPrepareAgentSession } from "./ai/prepareSession";
+import { runSessionNarrativeCommand } from "./ai/sessionNarrativeCommand";
 import { copySmartExcerpt } from "./ai/smartExcerpt";
 import { discoverRecentChanges } from "./discover/discoverService";
 import { enrichInstructionPathsCommand } from "./enrich/enrichCommand";
+import { coachExternalSendOnEnable } from "./enrich/externalSendCoach";
 import {
   enableLlmEnrichmentWithLocalDefault,
   setLlmEnrichmentEnabled,
@@ -26,6 +30,10 @@ import {
   resolveWorkspaceRoot,
 } from "./export/writeLastScan";
 import { writeSessionStats } from "./export/writeSessionStats";
+import {
+  buildSessionProveUrl,
+  copyToClipboard,
+} from "./export/proveHandoffUrl";
 import type { ProviderId } from "@tokenforge/risk-core";
 import {
   runAutoShield,
@@ -318,7 +326,7 @@ function startContextGuard(context: ExtensionContext): void {
         if (!apply) {
           return;
         }
-        const written = await applyCompactRules(root, preview);
+        const written = await applyCompactRules(root, preview, report.provider);
         void window.showInformationMessage(
           `Compact rules applied to ${written.length} file(s): ${written.join(", ")}`,
         );
@@ -415,6 +423,8 @@ function startContextGuard(context: ExtensionContext): void {
       { label: "Export last-scan.json" },
       { label: "Reveal last-scan.json" },
       { label: "Reveal session-stats.json" },
+      { label: "Session narrative", description: "Optional hygiene summary (AI costs tokens)" },
+      { label: "Send hygiene to dashboard", description: "Copy Prove URL with ?session=" },
       { label: "Reset choices" },
       { label: "Analyze rules", description: "AI: enrich instruction files" },
       { label: "Toggle AI enrichment", description: "Turn Lane A LLM on/off" },
@@ -437,6 +447,8 @@ function startContextGuard(context: ExtensionContext): void {
       "Export last-scan.json": "tokenforge.exportLastScan",
       "Reveal last-scan.json": "tokenforge.revealLastScan",
       "Reveal session-stats.json": "tokenforge.revealSessionStats",
+      "Session narrative": "tokenforge.sessionNarrative",
+      "Send hygiene to dashboard": "tokenforge.sendHygieneToDashboard",
       "Reset choices": "tokenforge.clearFilters",
       "Analyze rules": "tokenforge.enrichInstructions",
       "Toggle AI enrichment": "tokenforge.toggleLlmEnrichment",
@@ -472,6 +484,10 @@ function startContextGuard(context: ExtensionContext): void {
         );
         return;
       }
+      const proceed = await coachExternalSendOnEnable();
+      if (!proceed) {
+        return;
+      }
       const { seededModel } = await enableLlmEnrichmentWithLocalDefault();
       void window.showInformationMessage(
         seededModel
@@ -500,12 +516,45 @@ function startContextGuard(context: ExtensionContext): void {
         const summary = result.wrote
           ? `Exported ${result.reportPath} (${result.sessionAvoidedTokens} session tokens avoided)`
           : `session-stats.json already up to date (${result.sessionAvoidedTokens} session tokens avoided)`;
-        const choice = await window.showInformationMessage(summary, "Reveal");
+        const choice = await window.showInformationMessage(summary, "Reveal", "Send to dashboard");
         if (choice === "Reveal") {
           await revealSessionStats(result.reportPath);
+        } else if (choice === "Send to dashboard") {
+          await commands.executeCommand("tokenforge.sendHygieneToDashboard");
         }
       } catch (error) {
         void window.showErrorMessage(formatError("Session export failed", error));
+      }
+    },
+  );
+
+  const sessionNarrative = commands.registerCommand(
+    "tokenforge.sessionNarrative",
+    async () => {
+      try {
+        await runSessionNarrativeCommand(session);
+      } catch (error) {
+        void window.showErrorMessage(formatError("Session narrative failed", error));
+      }
+    },
+  );
+
+  const sendHygieneToDashboard = commands.registerCommand(
+    "tokenforge.sendHygieneToDashboard",
+    async () => {
+      try {
+        await Promise.all([writeLastScan(session), writeSessionStats(session)]);
+        const url = buildSessionProveUrl();
+        await copyToClipboard(url);
+        const choice = await window.showInformationMessage(
+          `Dashboard URL copied (${url}). Stage last-scan.json and session-stats.json to dashboard/public for same-origin boot.`,
+          "Open in browser",
+        );
+        if (choice === "Open in browser") {
+          await env.openExternal(Uri.parse(url));
+        }
+      } catch (error) {
+        void window.showErrorMessage(formatError("Prove handoff failed", error));
       }
     },
   );
@@ -580,6 +629,8 @@ function startContextGuard(context: ExtensionContext): void {
     toggleCloseOnHard,
     toggleNotifyIdle,
     exportSessionStats,
+    sessionNarrative,
+    sendHygieneToDashboard,
     revealSessionStatsCmd,
     focusPanel,
     focusOverview,

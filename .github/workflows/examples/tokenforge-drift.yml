@@ -1,0 +1,36 @@
+# Example: gate PRs on TokenForge policy drift (not enabled in root CI by default).
+# Copy to .github/workflows/tokenforge-drift.yml or adapt for your repo.
+#
+# See docs/runbooks/PILOT_RUNBOOK.md — "Policy drift in CI".
+
+name: tokenforge-drift (example)
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "**/.cursor/**"
+      - "**/.github/**"
+      - ".cursorignore"
+      - ".copilotignore"
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Policy drift (managed section + hash)
+        run: npm run tokenforge -- drift . --provider copilot
+
+      - name: Discover missed savings (optional)
+        run: npm run tokenforge -- discover . --provider copilot || true
