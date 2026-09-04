@@ -56,3 +56,26 @@ export async function parseChangeMarkersFile(
   const text = await file.text();
   return parseChangeMarkersJson(text);
 }
+
+/** Unique key for deduping markers when merging additional loads. */
+export function changeMarkerKey(marker: ProveChangeMarker): string {
+  return `${marker.team ?? ""}:${marker.timestamp}:${marker.packId}`;
+}
+
+/** Append incoming markers; later duplicates (team+timestamp+packId) are skipped. */
+export function mergeChangeMarkers(
+  existing: readonly ProveChangeMarker[],
+  incoming: readonly ProveChangeMarker[],
+): ProveChangeMarker[] {
+  const seen = new Set(existing.map(changeMarkerKey));
+  const merged = [...existing];
+  for (const marker of incoming) {
+    const key = changeMarkerKey(marker);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    merged.push(marker);
+  }
+  return merged;
+}

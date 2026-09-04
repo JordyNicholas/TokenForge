@@ -1,7 +1,10 @@
+import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
 import CompareArrowsOutlined from "@mui/icons-material/CompareArrowsOutlined";
 import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
 import GroupsOutlined from "@mui/icons-material/GroupsOutlined";
+import Inventory2Outlined from "@mui/icons-material/Inventory2Outlined";
 import ManageSearchOutlined from "@mui/icons-material/ManageSearchOutlined";
+import MapOutlined from "@mui/icons-material/MapOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
 import ShieldOutlined from "@mui/icons-material/ShieldOutlined";
@@ -59,6 +62,14 @@ export function SourceBar() {
     discoverLatestLabel,
     loadDiscoverLatestFromFile,
     clearDiscoverLatest,
+    provePackLabel,
+    loadProvePackFromFile,
+    clearProvePack,
+    usageTeamMapLabel,
+    loadUsageTeamMapFromFile,
+    clearUsageTeamMap,
+    hasStoredProveSession,
+    restoreLastProveSession,
     periodBindUnbound,
     dismissPeriodBindUnbound,
     usagePeriodsAutoCorrected,
@@ -78,6 +89,8 @@ export function SourceBar() {
   const markersRef = useRef<HTMLInputElement>(null);
   const sessionStatsRef = useRef<HTMLInputElement>(null);
   const discoverRef = useRef<HTMLInputElement>(null);
+  const provePackRef = useRef<HTMLInputElement>(null);
+  const usageTeamMapRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -197,6 +210,30 @@ export function SourceBar() {
           />
         </Tooltip>
       ) : null}
+      {provePackLabel ? (
+        <Tooltip title={`Prove pack: ${provePackLabel}`}>
+          <Chip
+            size="small"
+            color="info"
+            variant="outlined"
+            label={`pack ${shortSource(provePackLabel)}`}
+            onDelete={clearProvePack}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
+      {usageTeamMapLabel ? (
+        <Tooltip title={`Usage team map: ${usageTeamMapLabel}`}>
+          <Chip
+            size="small"
+            color="info"
+            variant="outlined"
+            label={`map ${shortSource(usageTeamMapLabel)}`}
+            onDelete={clearUsageTeamMap}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
       <Tooltip title="Data source">
         <IconButton
           id="tokenforge-source-trigger"
@@ -262,6 +299,70 @@ export function SourceBar() {
         <MenuItem disabled>
           <Typography variant="overline">Prove package</Typography>
         </MenuItem>
+        {hasStoredProveSession ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              restoreLastProveSession();
+            }}
+          >
+            <ListItemIcon>
+              <HistoryOutlined fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Restore last Prove session"
+              secondary="Reload seed, markers, session, discover from browser storage"
+            />
+          </MenuItem>
+        ) : null}
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            provePackRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <Inventory2Outlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load Prove package…"
+            secondary="org-prove-pack.json — seed, markers, session, discover"
+          />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            usageTeamMapRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <MapOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load usage team map…"
+            secondary="Vendor FinOps labels → TF team ids for bill reconcile"
+          />
+        </MenuItem>
+        {usageTeamMapLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearUsageTeamMap();
+            }}
+          >
+            Clear usage team map
+          </MenuItem>
+        ) : null}
+        {provePackLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearProvePack();
+            }}
+          >
+            Clear prove pack extras
+          </MenuItem>
+        ) : null}
         <MenuItem
           onClick={() => {
             setMenuEl(null);
@@ -542,6 +643,36 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadDiscoverLatestFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={provePackRef}
+        type="file"
+        hidden
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadProvePackFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={usageTeamMapRef}
+        type="file"
+        hidden
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadUsageTeamMapFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }

@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
 import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
@@ -11,12 +12,13 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   ARCHITECTURE_LABELS,
   SCAN_LAYER_LABELS,
+  formatPercent,
+  formatTokens,
+  sessionStatsFromEntry,
   architectureForTeam,
   boardHasSavings,
   boardScopeBase,
   displayPath,
-  formatPercent,
-  formatTokens,
   enforcementBadgeLabel,
   enforcementChipColor,
   enforcementTierForProvider,
@@ -30,6 +32,7 @@ import {
   tokensByArchitecture,
   type GlossaryTermId,
 } from "../domain";
+import type { ProviderId } from "@tokenforge/risk-core";
 import { useLayerView } from "../state/useLayerView";
 import { useDashboard } from "../state/DashboardProvider";
 import { AdoptionMetricsCard } from "../ui/AdoptionMetricsCard";
@@ -71,7 +74,31 @@ export function OverviewPage() {
     redactPaths,
     assumptions,
   } = useLayerView();
-  const { sessionStats, discoverLatest, fixOnTeams } = useDashboard();
+  const {
+    sessionStats,
+    discoverLatest,
+    fixOnTeams,
+    sessionStatsEntries,
+    discoverEntries,
+    provePackCoverage,
+  } = useDashboard();
+
+  const multiSessionRows = sessionStatsEntries
+    .map((entry) => {
+      const stats = sessionStatsFromEntry(entry);
+      return stats
+        ? {
+            team: entry.team,
+            repo: entry.repo,
+            filteredPercent: stats.atRiskTabsFilteredPercent ?? null,
+            filterEventCount: stats.filterEventCount ?? null,
+            avoidedTokens: stats.sessionAvoidedTokens,
+          }
+        : null;
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+  const showMultiSession = multiSessionRows.length > 1;
+  const showMultiDiscover = discoverEntries.length > 1;
 
   const hasSavings = boardHasSavings(totals);
   const llmBoardEmpty =
@@ -118,8 +145,21 @@ export function OverviewPage() {
     complementarityFailures.length > 0 ||
     discoverLatest !== null;
 
-  const primaryProvider = reports[0]?.provider ?? "generic";
-  const enforcementTier = enforcementTierForProvider(primaryProvider);
+  const uniqueProviders =
+    reports.length > 0
+      ? ([...new Set(reports.map((report) => report.provider))] as ProviderId[])
+      : [];
+  const missingScanTeams = provePackCoverage?.missingScans ?? [];
+  const missingSessionTeams = provePackCoverage?.missingSessions ?? [];
+  const hasMissingSubmissions =
+    missingScanTeams.length > 0 || missingSessionTeams.length > 0;
+  const missingSubmissionParts: string[] = [];
+  if (missingScanTeams.length > 0) {
+    missingSubmissionParts.push(`scans: ${missingScanTeams.join(", ")}`);
+  }
+  if (missingSessionTeams.length > 0) {
+    missingSubmissionParts.push(`sessions: ${missingSessionTeams.join(", ")}`);
+  }
 
   return (
     <Page
@@ -131,14 +171,18 @@ export function OverviewPage() {
             label={SCAN_LAYER_LABELS[boardLayer]}
             variant="outlined"
           />
-          {reports.length > 0 ? (
-            <Chip
-              size="small"
-              label={enforcementBadgeLabel(primaryProvider)}
-              color={enforcementChipColor(enforcementTier)}
-              variant="outlined"
-            />
-          ) : null}
+          {uniqueProviders.map((provider) => {
+            const tier = enforcementTierForProvider(provider);
+            return (
+              <Chip
+                key={provider}
+                size="small"
+                label={enforcementBadgeLabel(provider)}
+                color={enforcementChipColor(tier)}
+                variant="outlined"
+              />
+            );
+          })}
           <GlossaryTip
             term={SCAN_LAYER_LABELS[boardLayer]}
             termId={LAYER_GLOSSARY[boardLayer]}
@@ -148,6 +192,11 @@ export function OverviewPage() {
     >
       <DemoOnboardingBanner />
       <PilotChecklist />
+      {hasMissingSubmissions ? (
+        <Alert severity="warning" sx={{ mb: 1.5 }}>
+          Missing: {missingSubmissionParts.join(" · ")}
+        </Alert>
+      ) : null}
       <OverviewHeroBand
         boardLayer={boardLayer}
         teamId={teamId}
@@ -171,6 +220,120 @@ export function OverviewPage() {
         sessionFilterEventCount={sessionStats?.filterEventCount ?? null}
       />
 
+      {showMultiSession || showMultiDiscover || provePackCoverage ? (
+        <OverviewSection title="Multi-team Prove">
+          {provePackCoverage ? (
+            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 1.5 }}>
+              {provePackCoverage.missingScans.length > 0 ? (
+                <Chip
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  label={`missing scans: ${provePackCoverage.missingScans.join(", ")}`}
+                />
+              ) : null}
+              {provePackCoverage.missingSessions.length > 0 ? (
+                <Chip
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  label={`missing sessions: ${provePackCoverage.missingSessions.join(", ")}`}
+                />
+              ) : null}
+            </Stack>
+          ) : null}
+          {showMultiSession ? (
+            <>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Live hygiene by team
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
+                {multiSessionRows.map((row) => (
+                  <Chip
+                    key={`${row.team}:${row.repo}`}
+                    size="small"
+                    variant="outlined"
+                    label={`${row.team}: ${
+                      row.filteredPercent !== null
+                        ? formatPercent(row.filteredPercent)
+                        : "—"
+                    } filter · ${formatTokens(row.avoidedTokens)} avoided`}
+                  />
+                ))}
+              </Stack>
+              <DataTable>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Team</TableCell>
+                    <TableCell>Repo</TableCell>
+                    <TableCell align="right">Filter %</TableCell>
+                    <TableCell align="right">Events</TableCell>
+                    <TableCell align="right">Avoided</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {multiSessionRows.map((row) => (
+                    <TableRow key={`${row.team}:${row.repo}`}>
+                      <TableCell>{row.team}</TableCell>
+                      <TableCell>{row.repo}</TableCell>
+                      <TableCell align="right">
+                        {row.filteredPercent !== null
+                          ? formatPercent(row.filteredPercent)
+                          : "—"}
+                      </TableCell>
+                      <TableCell align="right">{row.filterEventCount ?? "—"}</TableCell>
+                      <TableCell align="right">{formatTokens(row.avoidedTokens)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </DataTable>
+            </>
+          ) : null}
+          {showMultiDiscover ? (
+            <>
+              <Typography variant="subtitle2" sx={{ mt: showMultiSession ? 2 : 0, mb: 1 }}>
+                Discover policy_gap by team
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
+                {discoverEntries.map((entry) => (
+                  <Chip
+                    key={`${entry.team}:${entry.repo}`}
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                    label={`${entry.team}: ${entry.summary.policyGapCount} policy_gap · ${formatTokens(entry.summary.missedTokens)} missed`}
+                  />
+                ))}
+              </Stack>
+              <DataTable>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Team</TableCell>
+                    <TableCell>Repo</TableCell>
+                    <TableCell align="right">policy_gap</TableCell>
+                    <TableCell align="right">session_kept</TableCell>
+                    <TableCell align="right">Missed</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {discoverEntries.map((entry) => (
+                    <TableRow key={`${entry.team}:${entry.repo}`}>
+                      <TableCell>{entry.team}</TableCell>
+                      <TableCell>{entry.repo}</TableCell>
+                      <TableCell align="right">{entry.summary.policyGapCount}</TableCell>
+                      <TableCell align="right">{entry.summary.sessionKeptCount}</TableCell>
+                      <TableCell align="right">
+                        {formatTokens(entry.summary.missedTokens)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </DataTable>
+            </>
+          ) : null}
+        </OverviewSection>
+      ) : null}
+
       {hasInvestigateDetail ? (
         <OverviewSection
           title="Scan detail"
@@ -181,7 +344,7 @@ export function OverviewPage() {
               discoverLatest
                 ? `Discover: ${discoverLatest.policyGapCount} policy_gap · ${formatTokens(discoverLatest.missedTokens)} missed.`
                 : llmBoardEmpty
-                  ? "No LLM savings on this board."
+                  ? "Hybrid not run — switch to Combined for the full Detect picture."
                   : investigateCount > 0
                     ? `${investigateCount} hybrid / instruction detail row(s).`
                     : "Board notes for this layer."
@@ -206,16 +369,15 @@ export function OverviewPage() {
             <InstructionStackCard rows={instructionStackRows} />
             {llmBoardUnavailable ? (
               <Typography variant="body2" color="text.secondary">
-                No LLM layer in the loaded JSON. Run a hybrid scan and reload the report.
+                Hybrid not run — switch to Combined for the full Detect picture.
               </Typography>
             ) : null}
             {llmBoardEmpty ? (
               <Typography variant="body2" color="text.secondary">
-                LLM board has no excluded/filtered savings
+                Hybrid not run — switch to Combined for the full Detect picture.
                 {complementarityFailures.length > 0
                   ? ` (complementarity: ${complementarityFailures[0]?.scan?.llm ? "see scan meta" : "llm_empty"})`
                   : ""}
-                . Switch to Combined or Heuristic for the full Detect picture.
               </Typography>
             ) : null}
             {llmOverviews.map(({ team, repo, overview }) => (

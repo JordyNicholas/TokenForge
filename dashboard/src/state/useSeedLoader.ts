@@ -27,11 +27,15 @@ const EMPTY_TOTALS: TokenRiskTotals = {
   savedTokens: 0,
 };
 
-export function useSeedLoader() {
+export function useSeedLoader(options?: {
+  remapUsage?: (usage: UsageMetrics) => UsageMetrics;
+}) {
   const [seed, setSeed] = useState<DashboardSeed | null>(null);
   const [sourceLabel, setSourceLabel] = useState(DEMO_SEED_URL);
   const [usageLabel, setUsageLabel] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const remapUsage = options?.remapUsage ?? ((usage: UsageMetrics) => usage);
 
   const applySeed = useCallback(
     (
@@ -66,15 +70,24 @@ export function useSeedLoader() {
         delete rest.usage;
         return rest;
       }
-      return { ...current, usage };
+      return { ...current, usage: remapUsage(usage) };
     });
     setUsageLabel(label);
     setLoadError(null);
-  }, []);
+  }, [remapUsage]);
 
   const fail = useCallback((error: unknown) => {
     setLoadError(errorMessage(error));
   }, []);
+
+  const applySeedDocument = useCallback(
+    (next: DashboardSeed, label: string, usageLabelMode: "from-seed" | "keep" = "from-seed") => {
+      const seedWithUsage =
+        next.usage && usageLabelMode !== "keep" ? { ...next, usage: remapUsage(next.usage) } : next;
+      applySeed(seedWithUsage, label, usageLabelMode);
+    },
+    [applySeed, remapUsage],
+  );
 
   const resetToDemo = useCallback(async () => {
     try {
@@ -238,6 +251,7 @@ export function useSeedLoader() {
       resetUsageToDemo,
       clearUsage,
       resetToDemo,
+      applySeedDocument,
     };
   }, [
     seed,
@@ -252,5 +266,6 @@ export function useSeedLoader() {
     resetUsageToDemo,
     clearUsage,
     resetToDemo,
+    applySeedDocument,
   ]);
 }
