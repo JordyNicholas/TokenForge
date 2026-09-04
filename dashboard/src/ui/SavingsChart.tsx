@@ -1,6 +1,7 @@
 import { BarChart } from "@mui/x-charts/BarChart";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
-import { formatTokens } from "../domain";
+import { boardHasSavings, formatTokens } from "../domain";
+import { EmptyState } from "./EmptyState";
 
 export function SavingsChart({
   reports,
@@ -9,6 +10,16 @@ export function SavingsChart({
   reports: TokenRiskReport[];
   onSelectTeam?: (team: string) => void;
 }) {
+  const hasData = reports.some((report) => boardHasSavings(report.totals));
+  if (!hasData) {
+    return (
+      <EmptyState
+        title="No savings on this board"
+        body="This scan layer has zero before/saved tokens (common on LLM when the model added no exclusions). Switch to Combined or Heuristic."
+      />
+    );
+  }
+
   const teams = reports.map((report) => report.team);
   const before = reports.map((report) => report.totals.beforeTokens);
   const after = reports.map((report) => report.totals.afterTokens);

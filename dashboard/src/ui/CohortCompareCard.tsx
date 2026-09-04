@@ -1,5 +1,3 @@
-import Alert from "@mui/material/Alert";
-import AlertTitle from "@mui/material/AlertTitle";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -9,6 +7,7 @@ import {
   type VarianceBoard,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
+import { GlossaryTip } from "./GlossaryTip";
 import { KpiCard, KpiRow } from "./Kpi";
 
 function signedUsd(value: number): string {
@@ -21,27 +20,31 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
 
   if (!compare.hasFixOn) {
     return (
-      <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
-        <AlertTitle>Cohort compare (Fix-on vs control)</AlertTitle>
-        Load Prove change markers from <code>apply</code> / <code>org-pack</code>{" "}
-        (Data source → Load Fix change markers…) or{" "}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        sx={{ alignItems: { sm: "center" }, mb: 2 }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          <GlossaryTip term="Cohort compare" termId="cohort" /> needs Fix change markers.
+        </Typography>
         <Chip
           size="small"
           label="Load demo markers"
           onClick={() => {
             void loadDemoChangeMarkers();
           }}
-          sx={{ mx: 0.5 }}
-        />{" "}
-        to tag Fix-on teams. {compare.honestyNote}
-      </Alert>
+        />
+      </Stack>
     );
   }
 
   return (
     <Stack spacing={1} sx={{ mb: 2 }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-        <Typography variant="subtitle2">Cohort compare</Typography>
+        <Typography variant="subtitle2">
+          <GlossaryTip term="Cohort compare" termId="cohort" />
+        </Typography>
         {changeMarkersLabel ? (
           <Chip size="small" variant="outlined" label={changeMarkersLabel} />
         ) : null}
@@ -58,18 +61,17 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
             label={`Control: ${compare.control.teams.join(", ")}`}
           />
         ) : (
-          <Chip size="small" color="warning" variant="outlined" label="No control cohort" />
+          <Chip size="small" color="warning" variant="outlined" label="No control" />
         )}
       </Stack>
-      <Typography variant="body2">{compare.narrative}</Typography>
       <KpiRow>
         <KpiCard
-          label="Fix-on · actual billed Δ"
+          label="Fix-on · billed Δ"
           value={signedUsd(compare.fixOn.actualBilledChangeUsd)}
           hint={`${compare.fixOn.teamCount} team(s)`}
         />
         <KpiCard
-          label="Control · actual billed Δ"
+          label="Control · billed Δ"
           value={
             compare.control.teamCount > 0
               ? signedUsd(compare.control.actualBilledChangeUsd)
@@ -88,7 +90,7 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
               ? signedUsd(compare.relativeBilledDeltaUsd)
               : "—"
           }
-          hint="Relative billed Δ (Fix-on − control)"
+          hint={compare.narrative}
         />
         <KpiCard
           label="Fix-on gap"
@@ -96,9 +98,6 @@ export function CohortCompareCard({ board }: { board: VarianceBoard }) {
           hint="% of Fix-on estimate"
         />
       </KpiRow>
-      <Typography variant="caption" color="text.secondary">
-        {compare.honestyNote}
-      </Typography>
     </Stack>
   );
 }

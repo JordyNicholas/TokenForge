@@ -1,19 +1,25 @@
-import InfoOutlined from "@mui/icons-material/InfoOutlined";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { TokenRiskTotals } from "@tokenforge/risk-core";
 import {
   SAVINGS_TIERS,
-  SAVINGS_TIERS_DILUTION_NOTE,
   buildSavingsTierValues,
   compareUsagePeriods,
   type Assumptions,
+  type GlossaryTermId,
+  type SavingsTierId,
   type UsageMetrics,
 } from "../domain";
 import { useDashboard } from "../state/DashboardProvider";
 import { GlossaryTip } from "./GlossaryTip";
+
+const TIER_GLOSSARY: Record<SavingsTierId, GlossaryTermId> = {
+  "live-hygiene": "live-hygiene",
+  "scan-delta": "scan-delta",
+  "projected-usd": "scenario-usd",
+  "imported-bill": "bill-reconcile",
+};
 
 export function HonestSavingsTiers({
   hasScan,
@@ -62,18 +68,11 @@ export function HonestSavingsTiers({
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Stack
-        direction="row"
-        spacing={0.75}
-        sx={{ alignItems: "center", mb: 1 }}
-      >
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mb: 1 }}>
         <Typography variant="subtitle2" component="h2">
-          How savings work
+          Savings signals
         </Typography>
-        <GlossaryTip
-          term="Honest tiers"
-          definition="Four labeled signals from live Filter hygiene through billed usage. Higher tiers reconcile estimates — they do not prove causation without cohort controls."
-        />
+        <GlossaryTip term="Honest tiers" termId="honest-tiers" />
       </Stack>
       <Box
         sx={{
@@ -95,7 +94,7 @@ export function HonestSavingsTiers({
                 border: 1,
                 borderColor: "divider",
                 bgcolor: "background.paper",
-                minHeight: 120,
+                minHeight: 96,
               }}
             >
               <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
@@ -115,7 +114,7 @@ export function HonestSavingsTiers({
                 >
                   {tier.order}
                 </Box>
-                <GlossaryTip term={tier.label} definition={tier.shortHonesty} />
+                <GlossaryTip term={tier.label} termId={TIER_GLOSSARY[tier.id]} />
               </Stack>
               <Typography
                 variant="h6"
@@ -134,12 +133,6 @@ export function HonestSavingsTiers({
           );
         })}
       </Box>
-      <Alert severity="info" variant="outlined" icon={<InfoOutlined fontSize="inherit" />} sx={{ mt: 1.5 }}>
-        <Typography variant="caption" color="text.secondary">
-          {SAVINGS_TIERS_DILUTION_NOTE} Cohort tags reduce “was that TokenForge?” noise — they do
-          not prove 100% of an invoice delta was caused by TokenForge.
-        </Typography>
-      </Alert>
     </Box>
   );
 }

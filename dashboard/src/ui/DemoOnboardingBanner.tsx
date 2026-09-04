@@ -1,8 +1,6 @@
 import Alert from "@mui/material/Alert";
-import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "react-router-dom";
 import { useDashboard } from "../state/DashboardProvider";
 import { useBoardLayer } from "../state/useLayerView";
@@ -26,16 +24,9 @@ export function DemoOnboardingBanner() {
         </Button>
       }
     >
-      <AlertTitle>Demo data loaded</AlertTitle>
-      <Typography variant="body2" sx={{ mb: 1 }}>
-        You&apos;re viewing{" "}
-        <strong>{seed?.businessUnit ?? "a sample business unit"}</strong>. Load your CLI
-        report (<code>.tokenforge/scan-report.json</code>) or extension export (
-        <code>.tokenforge/last-scan.json</code>) from the source menu. Estimated avoided
-        context ≠ invoice delta — import baseline + after usage, then open Variance.
-        Guided pilot: <code>npm run tokenforge:pilot -- path/to/repo</code>.
-      </Typography>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+      Demo: <strong>{seed?.businessUnit ?? "sample BU"}</strong>. Load your scan from Source, or
+      open Variance after importing usage.
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 1 }}>
         <Button
           size="small"
           component={RouterLink}
@@ -47,13 +38,10 @@ export function DemoOnboardingBanner() {
         <Button
           size="small"
           component={RouterLink}
-          to={`/board/${boardLayer}/assumptions`}
-          variant="outlined"
+          to={`/board/${boardLayer}/glossary`}
+          variant="text"
         >
-          Open Assumptions
-        </Button>
-        <Button size="small" component={RouterLink} to={`/board/${boardLayer}`} variant="text">
-          Overview
+          Glossary
         </Button>
       </Stack>
     </Alert>

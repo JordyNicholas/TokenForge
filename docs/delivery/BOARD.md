@@ -486,6 +486,7 @@ Build order: **#307 → #308 → #309 ∥ #310 → #311**. Discover LLM rank sta
 | --- | --- | --- | --- |
 | #315 | scaffold Cypress (E2E + component) in the dashboard workspace with first specs | Dashboard | **Done** |
 | — | Overview hero click-through (Prove at a glance → Findings / Assumptions / Variance) | Dashboard | **Shipped** (F18 follow-up) |
+| — | FinOps board visual redesign (Glossary hover + empty LLM board) | Dashboard | **Shipped** (F18 follow-up) |
 
 Single-story epic. Pinned to `cypress@15` because `cypress@16`'s vite-dev-server requires Vite 8; revisit on the Vite 8 bump. Out of scope: Cypress in CI, testing the `extension/` webview, bulk `data-testid`, visual-regression diffing.
 
@@ -523,7 +524,7 @@ Phase 2:
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **F16** (#314) — **Dashboard Cypress tests** (#315 Done; hero click-through shipped; CI job still open)
 11. **F17** (#320) — **Multi-vendor AI Fix parity** (**Epics Finished** via PR #325)
-12. **F18** (#326) — **Prove pilot + dashboard visibility** (local-first session ingest, Overview hero, `tokenforge drift`)
+12. **F18** (#326) — **Prove pilot + dashboard visibility** (local-first session ingest, Overview hero, Glossary + visual board, `tokenforge drift`)
 13. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
 Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).

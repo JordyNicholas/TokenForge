@@ -11,7 +11,6 @@ import { explainFinding } from "@tokenforge/risk-core";
 import {
   ACTION_LABELS,
   SCAN_LAYER_LABELS,
-  SCAN_LAYER_LEADS,
   SOURCE_LABELS,
   displayPath,
   formatPercent,
@@ -42,12 +41,7 @@ export function FindingsPage() {
   return (
     <Page
       title={`Findings · ${SCAN_LAYER_LABELS[boardLayer]}`}
-      lead={
-        <>
-          {SCAN_LAYER_LEADS[boardLayer]} Click a row for the explanation and copy-only
-          advice. TokenForge does not apply suggestions.
-        </>
-      }
+      lead="Click a row for explanation and copy-only advice. TokenForge does not auto-apply."
     >
       <PrivacyControls />
 

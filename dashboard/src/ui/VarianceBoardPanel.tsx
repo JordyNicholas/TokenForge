@@ -1,5 +1,3 @@
-import Alert from "@mui/material/Alert";
-import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
@@ -21,6 +19,8 @@ import {
 import { useDashboard } from "../state/DashboardProvider";
 import { CohortCompareCard } from "./CohortCompareCard";
 import { DataTable } from "./DataTable";
+import { EmptyState } from "./EmptyState";
+import { GlossaryTip } from "./GlossaryTip";
 import { KpiCard, KpiRow } from "./Kpi";
 import { OverviewSection } from "./OverviewSection";
 import { UsagePeriodPicker } from "./UsagePeriodPicker";
@@ -102,20 +102,19 @@ export function VarianceBoardPanel({
 
   if (!compareBaselineUsage) {
     return (
-      <Alert severity="info" variant="outlined">
-        Load or import baseline billed usage to open the variance board.
-      </Alert>
+      <EmptyState
+        title="Baseline usage needed"
+        body="Import baseline billed usage from Source to open Variance."
+      />
     );
   }
 
   if (!compareAfterUsage) {
     return (
-      <Alert severity="info" variant="outlined">
-        <AlertTitle>After-period usage needed</AlertTitle>
-        Import a second FinOps export or run{" "}
-        <code>tokenforge usage-pull</code> for the post-Fix billing window. Billed usage
-        compare — not agent pipeline metering.
-      </Alert>
+      <EmptyState
+        title="After-period usage needed"
+        body="Import a second FinOps export (or usage-pull) for the post-Fix window."
+      />
     );
   }
 
@@ -140,7 +139,7 @@ export function VarianceBoardPanel({
     <Stack spacing={2.5}>
       <OverviewSection
         title="Period"
-        lead="Baseline vs after side-by-side. Freeze Assumptions so estimate $ does not drift mid-compare."
+        titleAdornment={<GlossaryTip term="Variance" termId="variance" />}
       >
         <UsagePeriodPicker />
         <Stack
@@ -149,41 +148,28 @@ export function VarianceBoardPanel({
           sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
         >
           <Typography variant="body2" color="text.secondary">
-            {board.baselinePeriod} → {board.afterPeriod} · {board.providerLabel}. Estimated $
-            uses {board.assumptionsFrozen ? "frozen" : "live"} Assumptions × each team&apos;s
-            baseline scan. Billed usage compare — not agent pipeline metering.
+            {board.baselinePeriod} → {board.afterPeriod} · {board.providerLabel} ·{" "}
+            {board.assumptionsFrozen ? "frozen" : "live"} Assumptions
+            {board.periodMismatch || board.providerMismatch
+              ? " · period/provider labels differ"
+              : ""}
+            {board.liveAssumptionsDrift ? " · live Assumptions drifted — re-freeze" : ""}
           </Typography>
           <Button size="small" variant="outlined" onClick={freezeCompareAssumptions}>
-            {board.assumptionsFrozen ? "Re-freeze Assumptions" : "Freeze Assumptions"}
+            {board.assumptionsFrozen ? "Re-freeze" : "Freeze Assumptions"}
           </Button>
         </Stack>
         {board.assumptionsFrozen ? (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Chip size="small" color="success" variant="outlined" label="Assumptions frozen" />
-            <Typography variant="caption" color="text.secondary">
-              {summarizeAssumptionsFreeze(compareAssumptionsFreeze!)}
-            </Typography>
-          </Stack>
-        ) : null}
-        {board.periodMismatch || board.providerMismatch ? (
-          <Alert severity="warning" variant="outlined">
-            {board.periodMismatch ? "Period labels differ between baseline and after. " : ""}
-            {board.providerMismatch ? "Provider labels differ. " : ""}
-            Prefer matching exports for a clean variance read.
-          </Alert>
-        ) : null}
-        {board.liveAssumptionsDrift ? (
-          <Alert severity="warning" variant="outlined">
-            Live Assumptions changed since this compare was frozen. Re-freeze to adopt current
-            knobs.
-          </Alert>
+          <Chip
+            size="small"
+            color="success"
+            variant="outlined"
+            label={summarizeAssumptionsFreeze(compareAssumptionsFreeze!)}
+          />
         ) : null}
       </OverviewSection>
 
-      <OverviewSection
-        title="Prove KPIs"
-        lead="Estimated reduction, actual billed Δ, and variance stay visible together — not sequential tabs."
-      >
+      <OverviewSection title="Prove KPIs">
         <CohortCompareCard board={board} />
         <KpiRow>
           <KpiCard
@@ -209,10 +195,7 @@ export function VarianceBoardPanel({
         </KpiRow>
       </OverviewSection>
 
-      <OverviewSection
-        title="Teams"
-        lead="Per-team estimate vs billed rows for the selected periods."
-      >
+      <OverviewSection title="Teams">
         <DataTable>
           <TableHead>
             <TableRow>
@@ -240,12 +223,6 @@ export function VarianceBoardPanel({
             ) : null}
           </TableBody>
         </DataTable>
-        {!teamId ? (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-            BU row sums scan estimates across teams; billed usage rows follow imported/synced
-            exports.
-          </Typography>
-        ) : null}
       </OverviewSection>
     </Stack>
   );

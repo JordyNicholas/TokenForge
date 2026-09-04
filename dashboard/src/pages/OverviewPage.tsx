@@ -1,7 +1,7 @@
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
@@ -11,13 +11,12 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   ARCHITECTURE_LABELS,
   SCAN_LAYER_LABELS,
-  SCAN_LAYER_LEADS,
   architectureForTeam,
+  boardHasSavings,
   boardScopeBase,
   displayPath,
   formatPercent,
   formatTokens,
-  formatUsd,
   getLlmAnalysisOverview,
   listHybridScanSummaries,
   getHybridDelta,
@@ -26,17 +25,16 @@ import {
   seedHasLlmLayer,
   tokenSavedPercent,
   tokensByArchitecture,
+  type GlossaryTermId,
 } from "../domain";
 import { useLayerView } from "../state/useLayerView";
 import { useDashboard } from "../state/DashboardProvider";
 import { AdoptionMetricsCard } from "../ui/AdoptionMetricsCard";
-import { AfterFixCompareCard } from "../ui/AfterFixCompareCard";
 import { ArchitectureChart } from "../ui/ArchitectureChart";
 import { ChartCard } from "../ui/ChartCard";
 import { DataTable } from "../ui/DataTable";
 import { DemoOnboardingBanner } from "../ui/DemoOnboardingBanner";
 import { EmptyState } from "../ui/EmptyState";
-import { FutureLeversCard } from "../ui/FutureLeversCard";
 import { GlossaryTip } from "../ui/GlossaryTip";
 import { HonestSavingsTiers } from "../ui/HonestSavingsTiers";
 import { HybridScanMetaCard } from "../ui/HybridScanMetaCard";
@@ -48,12 +46,13 @@ import { OverviewHeroBand } from "../ui/OverviewHeroBand";
 import { OverviewInvestigatePanel } from "../ui/OverviewInvestigatePanel";
 import { OverviewSection } from "../ui/OverviewSection";
 import { Page } from "../ui/Page";
-import { PrivacyControls } from "../ui/PrivacyControls";
-import { ProveStoryRail } from "../ui/ProveStoryRail";
 import { SavingsChart } from "../ui/SavingsChart";
-import { UsageMetricsCard } from "../ui/UsageMetricsCard";
-import { UsagePeriodCompareCard } from "../ui/UsagePeriodCompareCard";
-import { PilotKpiCard } from "../ui/PilotKpiCard";
+
+const LAYER_GLOSSARY: Record<"combined" | "heuristic" | "llm", GlossaryTermId> = {
+  combined: "combined-board",
+  heuristic: "heuristic-board",
+  llm: "llm-board",
+};
 
 export function OverviewPage() {
   const navigate = useNavigate();
@@ -67,15 +66,12 @@ export function OverviewPage() {
     scopeLabel,
     redactPaths,
     assumptions,
-    patchAssumptions,
-    usageLabel,
-    fixOnTeams,
   } = useLayerView();
-  const { sessionStats, discoverLatest } = useDashboard();
+  const { sessionStats, discoverLatest, fixOnTeams } = useDashboard();
+
+  const hasSavings = boardHasSavings(totals);
   const llmBoardEmpty =
-    boardLayer === "llm" &&
-    reports.length > 0 &&
-    reports.every((report) => report.findings.length === 0);
+    boardLayer === "llm" && reports.length > 0 && !hasSavings;
   const llmBoardUnavailable =
     boardLayer === "llm" && seed !== null && !seedHasLlmLayer(seed.reports);
   const llmOverviews =
@@ -122,96 +118,57 @@ export function OverviewPage() {
     <Page
       title={`${seed?.businessUnit ?? "Business unit"} · ${scopeLabel}`}
       lead={
-        <>
-          {SCAN_LAYER_LEADS[boardLayer]}{" "}
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+          <Chip
+            size="small"
+            label={SCAN_LAYER_LABELS[boardLayer]}
+            variant="outlined"
+          />
           <GlossaryTip
             term={SCAN_LAYER_LABELS[boardLayer]}
-            definition={
-              boardLayer === "combined"
-                ? "Merged heuristic + LLM findings used by Fix adapters."
-                : boardLayer === "heuristic"
-                  ? "Deterministic baseline from size, path class, and inactivity."
-                  : "Optional semantic enrichment from a hybrid scan."
-            }
+            termId={LAYER_GLOSSARY[boardLayer]}
           />
-        </>
+        </Stack>
       }
     >
       <DemoOnboardingBanner />
-      <ProveStoryRail />
       <OverviewHeroBand
         boardLayer={boardLayer}
         teamId={teamId}
         totals={totals}
         projection={projection}
-        hasScan={reports.length > 0}
+        hasScan={hasSavings}
       />
 
-      <OverviewSection
-        title="Prove"
-        lead="Estimated avoided context vs imported bill. Scenario $ is assumption math — not invoice causation."
-      >
-        <HonestSavingsTiers
-          hasScan={reports.length > 0}
-          totals={totals}
-          assumptions={assumptions}
-          usage={seed?.usage}
-          teamId={teamId}
-        />
-        <UsageMetricsCard usage={seed?.usage} teamId={teamId} usageLabel={usageLabel} />
-        <PilotKpiCard
-          baselineTotals={totals}
-          assumptions={assumptions}
-          teamId={teamId}
-        />
-        <UsagePeriodCompareCard
-          baselineUsage={seed?.usage}
-          baselineTotals={totals}
-          assumptions={assumptions}
-          teamId={teamId}
-        />
-        <Alert severity="success" variant="outlined">
-          Under your assumptions, about{" "}
-          <strong>{formatPercent(projection.scenarioSavedPercent)}</strong> of estimated
-          Chat/Agent tokens look like waste →{" "}
-          <strong>{formatUsd(projection.monthlyUsdSaved)}</strong>/mo.{" "}
-          <Link
-            component={RouterLink}
-            to={`${boardScopeBase(boardLayer, teamId)}/assumptions`}
-            underline="hover"
-          >
-            Adjust Assumptions
-          </Link>{" "}
-          (scan exclusion {formatPercent(projection.tokenSavedPercent)} × waste applicability).
-        </Alert>
-        <AfterFixCompareCard beforeTotals={totals} />
-      </OverviewSection>
+      <HonestSavingsTiers
+        hasScan={hasSavings}
+        totals={totals}
+        assumptions={assumptions}
+        usage={seed?.usage}
+        teamId={teamId}
+      />
 
-      <OverviewSection
-        title="Hygiene"
-        lead="Session Filter / Shield coverage when session-stats.json is loaded. Adoption from Fix markers."
-      >
-        <AdoptionMetricsCard
-          reports={reports}
-          fixOnTeams={fixOnTeams}
-          sessionFilteredPercent={sessionStats?.atRiskTabsFilteredPercent ?? null}
-          sessionFilterEventCount={sessionStats?.filterEventCount ?? null}
-        />
-        <PrivacyControls showNote />
-      </OverviewSection>
+      <AdoptionMetricsCard
+        reports={reports}
+        fixOnTeams={fixOnTeams}
+        sessionFilteredPercent={sessionStats?.atRiskTabsFilteredPercent ?? null}
+        sessionFilterEventCount={sessionStats?.filterEventCount ?? null}
+      />
 
       {hasInvestigateDetail ? (
         <OverviewSection
           title="Scan detail"
-          lead="Hybrid meta, instruction budget, discover policy_gap, and model overview stay behind Investigate — not peer Prove KPIs."
+          titleAdornment={<GlossaryTip term="Investigate" termId="llm-board" />}
         >
           <OverviewInvestigatePanel
             summary={
               discoverLatest
                 ? `Discover: ${discoverLatest.policyGapCount} policy_gap · ${formatTokens(discoverLatest.missedTokens)} missed.`
-                : investigateCount > 0
-                  ? `${investigateCount} hybrid / instruction detail row(s) available.`
-                  : "LLM board notes for this layer."
+                : llmBoardEmpty
+                  ? "No LLM savings on this board."
+                  : investigateCount > 0
+                    ? `${investigateCount} hybrid / instruction detail row(s).`
+                    : "Board notes for this layer."
             }
             badgeCount={(() => {
               const n = discoverLatest
@@ -221,46 +178,36 @@ export function OverviewPage() {
             })()}
           >
             {discoverLatest ? (
-              <Alert severity="warning" variant="outlined">
-                <strong>policy_gap</strong>: {discoverLatest.policyGapCount} path(s) ·{" "}
-                <strong>session_kept</strong>: {discoverLatest.sessionKeptCount} · missed ≈{" "}
+              <Typography variant="body2" color="text.secondary">
+                policy_gap: {discoverLatest.policyGapCount} · session_kept:{" "}
+                {discoverLatest.sessionKeptCount} · missed ≈{" "}
                 {formatTokens(discoverLatest.missedTokens)}. Run{" "}
-                <code>tokenforge discover</code> / <code>tokenforge drift</code> locally — dashboard
-                ingest is file-based, not live CI.
-              </Alert>
+                <code>tokenforge discover</code> / <code>tokenforge drift</code> locally.
+              </Typography>
             ) : null}
             <HybridScanMetaCard summaries={hybridSummaries} />
             <HybridDeltaCard rows={hybridDeltaRows} />
             <InstructionStackCard rows={instructionStackRows} />
             {llmBoardUnavailable ? (
-              <Alert severity="info" variant="outlined">
-                No LLM layer in the loaded JSON. Run a hybrid scan (
-                <code>--mode hybrid --llm ollama:…</code>) and load the report to populate this
-                board.
-              </Alert>
+              <Typography variant="body2" color="text.secondary">
+                No LLM layer in the loaded JSON. Run a hybrid scan and reload the report.
+              </Typography>
             ) : null}
-            {llmBoardEmpty && complementarityFailures.length > 0 ? (
-              <Alert severity="warning" variant="outlined">
-                Hybrid scan sent {complementarityFailures[0]?.scan?.llm?.candidatesSent ?? 0}{" "}
-                candidate(s) but returned zero LLM findings (
-                <code>complementarityStatus: llm_empty</code>). Check backend logs, timeout, or
-                load a report with <code>analysisOverview</code> for overview-only complementarity.
-              </Alert>
-            ) : llmBoardEmpty ? (
-              <Alert severity="warning" variant="outlined">
-                Hybrid scan ran, but the model did not flag any paths for exclusion. Try a smaller
-                path (e.g. <code>docs/</code>) or increase <code>--llm-timeout</code> on slower
-                hardware.
-              </Alert>
+            {llmBoardEmpty ? (
+              <Typography variant="body2" color="text.secondary">
+                LLM board has no excluded/filtered savings
+                {complementarityFailures.length > 0
+                  ? ` (complementarity: ${complementarityFailures[0]?.scan?.llm ? "see scan meta" : "llm_empty"})`
+                  : ""}
+                . Switch to Combined or Heuristic for the full Detect picture.
+              </Typography>
             ) : null}
             {llmOverviews.map(({ team, repo, overview }) => (
               <LlmAnalysisOverviewCard
                 key={`${team}:${repo}`}
                 overview={overview}
                 title={
-                  llmOverviews.length > 1
-                    ? `Model analysis · ${team}`
-                    : "Model analysis"
+                  llmOverviews.length > 1 ? `Model analysis · ${team}` : "Model analysis"
                 }
               />
             ))}
@@ -268,14 +215,7 @@ export function OverviewPage() {
         </OverviewSection>
       ) : null}
 
-      <OverviewSection
-        title="Teams"
-        lead={
-          singleTeam
-            ? "Token mix for this team scope."
-            : "Compare teams; click a bar or row to open that team’s board."
-        }
-      >
+      <OverviewSection title="Teams">
         {reports.length === 0 ? (
           <EmptyState
             title="No teams on this board"
@@ -292,11 +232,7 @@ export function OverviewPage() {
             >
               <ChartCard
                 title={teamId ? "Tokens for this team" : "Tokens by team"}
-                subheader={
-                  teamId
-                    ? "Team-scoped Prove"
-                    : "Click a bar to open that team’s dashboard"
-                }
+                subheader={teamId ? "Team-scoped Prove" : "Click a bar to open that team"}
               >
                 <SavingsChart
                   reports={reports}
@@ -305,138 +241,111 @@ export function OverviewPage() {
               </ChartCard>
               <ChartCard
                 title="Saved vs remaining"
-                subheader={teamId ? "Team roll-up" : "BU roll-up of scan totals"}
+                subheader={teamId ? "Team roll-up" : "BU roll-up"}
               >
                 <MixChart totals={totals} />
               </ChartCard>
             </Box>
 
-            {archBuckets.length > 0 ? (
+            {archBuckets.length > 0 && hasSavings ? (
               <ChartCard
                 title="Saved tokens by architecture"
-                subheader="Microservices, serverless, data platforms — same FinOps loop"
+                subheader="Same FinOps loop across styles"
               >
                 <ArchitectureChart buckets={archBuckets} />
               </ChartCard>
             ) : null}
 
-            <Box>
-              <Typography variant="subtitle1" component="h3" sx={{ mb: 1.5, fontWeight: 600 }}>
-                {singleTeam ? "Team detail" : "Teams in this business unit"}
-              </Typography>
-              <DataTable>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Team</TableCell>
-                    <TableCell>Architecture</TableCell>
-                    <TableCell>Repo</TableCell>
-                    <TableCell align="right">Before</TableCell>
-                    <TableCell align="right">After</TableCell>
-                    <TableCell align="right">Saved</TableCell>
-                    <TableCell align="right">Scan %</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {reports.map((report) => {
-                    const arch = architectureForTeam(report.team, seed?.architectures);
-                    return (
-                      <TableRow
-                        key={`${report.team}:${report.repo}`}
-                        hover
-                        onClick={() => openTeam(report.team)}
-                        sx={{ cursor: "pointer" }}
-                      >
-                        <TableCell>{report.team}</TableCell>
-                        <TableCell>
-                          {arch ? (
-                            <Chip size="small" label={ARCHITECTURE_LABELS[arch]} />
-                          ) : (
-                            "—"
-                          )}
-                        </TableCell>
-                        <TableCell>{displayPath(report.repo, redactPaths)}</TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                          {formatTokens(report.totals.beforeTokens)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                          {formatTokens(report.totals.afterTokens)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                          {formatTokens(report.totals.savedTokens)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                          {formatPercent(tokenSavedPercent(report.totals))}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  <TableRow>
-                    <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
-                      {singleTeam ? "Total" : "BU total (global)"}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+            <DataTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Team</TableCell>
+                  <TableCell>Architecture</TableCell>
+                  <TableCell>Repo</TableCell>
+                  <TableCell align="right">Before</TableCell>
+                  <TableCell align="right">After</TableCell>
+                  <TableCell align="right">Saved</TableCell>
+                  <TableCell align="right">Scan %</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reports.map((report) => {
+                  const arch = architectureForTeam(report.team, seed?.architectures);
+                  return (
+                    <TableRow
+                      key={`${report.team}:${report.repo}`}
+                      hover
+                      onClick={() => openTeam(report.team)}
+                      sx={{ cursor: "pointer" }}
                     >
-                      {formatTokens(totals.beforeTokens)}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
-                    >
-                      {formatTokens(totals.afterTokens)}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
-                    >
-                      {formatTokens(totals.savedTokens)}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
-                    >
-                      {formatPercent(projection.tokenSavedPercent)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </DataTable>
-              {!teamId ? (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-                  Click a team to isolate Prove for that repository. Use Global in the sidebar for
-                  the estate-wide result.
-                </Typography>
-              ) : (
-                <Typography variant="body2" sx={{ mt: 1.5 }}>
-                  <Link
-                    component={RouterLink}
-                    to={boardScopeBase(boardLayer, null)}
-                    underline="hover"
+                      <TableCell>{report.team}</TableCell>
+                      <TableCell>
+                        {arch ? (
+                          <Chip size="small" label={ARCHITECTURE_LABELS[arch]} />
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>{displayPath(report.repo, redactPaths)}</TableCell>
+                      <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatTokens(report.totals.beforeTokens)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatTokens(report.totals.afterTokens)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatTokens(report.totals.savedTokens)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatPercent(tokenSavedPercent(report.totals))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow>
+                  <TableCell colSpan={3} sx={{ fontWeight: 600 }}>
+                    {singleTeam ? "Total" : "BU total"}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
                   >
-                    ← Back to global BU view
-                  </Link>
-                </Typography>
-              )}
-            </Box>
+                    {formatTokens(totals.beforeTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatTokens(totals.afterTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatTokens(totals.savedTokens)}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatPercent(projection.tokenSavedPercent)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </DataTable>
+            {teamId ? (
+              <Typography variant="body2">
+                <Link
+                  component={RouterLink}
+                  to={boardScopeBase(boardLayer, null)}
+                  underline="hover"
+                >
+                  ← Back to global BU view
+                </Link>
+              </Typography>
+            ) : null}
           </>
         )}
-      </OverviewSection>
-
-      <OverviewSection
-        title="Adjacent levers"
-        lead="Do not pitch first — premium share and other knobs are secondary to Prove."
-      >
-        <FutureLeversCard
-          beforeTokens={totals.beforeTokens}
-          assumptions={assumptions}
-          projection={projection}
-          onApplyPremiumShare={(share) => patchAssumptions({ premiumShare: share })}
-        />
-        <Alert severity="info" variant="outlined">
-          Displayed $ uses editable assumptions (rate, team size, messages/day). Changing
-          those knobs does not rewrite the scan JSON. Scan exclusion % comes from this board;
-          scenario $ = exclusion × waste applicability.
-        </Alert>
       </OverviewSection>
     </Page>
   );

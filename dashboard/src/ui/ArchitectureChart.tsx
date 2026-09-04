@@ -1,10 +1,20 @@
 import { PieChart } from "@mui/x-charts/PieChart";
 import type { ArchitectureBucket } from "../domain";
 import { formatTokens } from "../domain";
+import { EmptyState } from "./EmptyState";
 
 export function ArchitectureChart({ buckets }: { buckets: ArchitectureBucket[] }) {
   if (buckets.length === 0) {
     return null;
+  }
+  const hasSaved = buckets.some((bucket) => bucket.savedTokens > 0);
+  if (!hasSaved) {
+    return (
+      <EmptyState
+        title="No architecture savings"
+        body="Saved tokens by architecture need positive scan savings on this board."
+      />
+    );
   }
   return (
     <PieChart

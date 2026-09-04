@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { readPreferredScanLayer } from "./domain";
 import { AssumptionsPage } from "./pages/AssumptionsPage";
 import { FindingsPage } from "./pages/FindingsPage";
+import { GlossaryPage } from "./pages/GlossaryPage";
 import { HeatmapPage } from "./pages/HeatmapPage";
 import { OverviewPage } from "./pages/OverviewPage";
 import { VarianceBoardPage } from "./pages/VarianceBoardPage";
@@ -19,6 +20,7 @@ function BoardViewRoutes() {
       <Route path="findings" element={<FindingsPage />} />
       <Route path="variance" element={<VarianceBoardPage />} />
       <Route path="assumptions" element={<AssumptionsPage />} />
+      <Route path="glossary" element={<GlossaryPage />} />
       <Route path="offenders" element={<Navigate to="findings" replace />} />
     </Routes>
   );

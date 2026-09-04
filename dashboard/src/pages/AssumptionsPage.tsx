@@ -1,7 +1,7 @@
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import {
   ASSUMPTION_PRESETS,
   PITCH_REALIZED_WASTE_SHARE,
@@ -111,32 +111,21 @@ export function AssumptionsPage() {
     <Page
       title={`Assumptions · ${SCAN_LAYER_LABELS[boardLayer]}`}
       lead={
-        <>
-          Tokens → $ is scenario math on the{" "}
-          <GlossaryTip
-            term="active scan board"
-            definition="Totals follow Combined, Heuristic, or LLM — same board as Overview."
-          />
-          . The pitch ~30% is this calculator, not a production SLA. Vendor presets seed knobs
-          only — not live billing rates.
-        </>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+          <GlossaryTip term="Scenario $" termId="scenario-usd" />
+          <GlossaryTip term="Waste applicability" termId="waste-applicability" />
+          <Typography variant="body2" color="text.secondary">
+            {SCAN_LAYER_LABELS[boardLayer]} · {totals.savedTokens.toLocaleString()} /{" "}
+            {totals.beforeTokens.toLocaleString()} tokens
+          </Typography>
+        </Stack>
       }
     >
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={1}
-        sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
+        sx={{ alignItems: { sm: "center" }, justifyContent: "flex-end" }}
       >
-        <Alert severity="info" variant="outlined" sx={{ flex: 1 }}>
-          Using <strong>{SCAN_LAYER_LABELS[boardLayer]}</strong> board totals (
-          {totals.savedTokens.toLocaleString()} / {totals.beforeTokens.toLocaleString()}{" "}
-          tokens). Displayed savings ={" "}
-          <GlossaryTip
-            term="exclusion × applicability"
-            definition="Scan exclusion % from the board, times waste applicability so you can model how much of billed Chat/Agent traffic this waste class covers."
-          />
-          .
-        </Alert>
         <Button variant="contained" onClick={applyPitchScenario} sx={{ flexShrink: 0 }}>
           Pitch scenario (~{Math.round(PITCH_REALIZED_WASTE_SHARE * 100)}%)
         </Button>

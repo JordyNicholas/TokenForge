@@ -4,6 +4,7 @@ import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
 import FactCheckOutlined from "@mui/icons-material/FactCheckOutlined";
 import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
+import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PsychologyOutlined from "@mui/icons-material/PsychologyOutlined";
 import RuleOutlined from "@mui/icons-material/RuleOutlined";
@@ -266,9 +267,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: `${boardBase}/heatmap`, label: "Heatmap", icon: GridViewOutlined },
     { to: `${boardBase}/findings`, label: "Findings", icon: FactCheckOutlined },
     { to: `${boardBase}/assumptions`, label: "Assumptions", icon: CalculateOutlined },
+    { to: `${boardBase}/glossary`, label: "Glossary", icon: MenuBookOutlined },
   ];
 
   const bottomValue = (() => {
+    if (location.pathname.includes("/glossary")) {
+      return `${boardBase}/glossary`;
+    }
     if (location.pathname.includes("/assumptions")) {
       return `${boardBase}/assumptions`;
     }

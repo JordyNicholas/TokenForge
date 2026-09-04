@@ -10,6 +10,7 @@ import {
   formatPercent,
   formatTokens,
   formatUsd,
+  type GlossaryTermId,
   type Projection,
   type ScanLayerId,
 } from "../domain";
@@ -17,8 +18,7 @@ import { useDashboard } from "../state/DashboardProvider";
 import { GlossaryTip } from "./GlossaryTip";
 
 /**
- * Above-the-fold analytical hero (Uxcel): 3–4 decision KPIs, clickable into
- * Findings / Variance / Assumptions. Keeps Prove honesty — estimated ≠ billed.
+ * Above-the-fold analytical hero: decision KPIs into Findings / Variance / Assumptions.
  */
 export function OverviewHeroBand({
   boardLayer,
@@ -38,9 +38,7 @@ export function OverviewHeroBand({
   const base = boardScopeBase(boardLayer, teamId);
 
   const hygiene =
-    sessionStats !== null
-      ? formatTokens(sessionStats.sessionAvoidedTokens)
-      : "—";
+    sessionStats !== null ? formatTokens(sessionStats.sessionAvoidedTokens) : "—";
   const scanSaved = hasScan ? formatTokens(totals.savedTokens) : "—";
   const scenarioUsd = hasScan ? `${formatUsd(projection.monthlyUsdSaved)}/mo` : "—";
   const scenarioPct = hasScan ? formatPercent(projection.scenarioSavedPercent) : "";
@@ -48,36 +46,37 @@ export function OverviewHeroBand({
 
   const tiles: Array<{
     label: string;
+    termId: GlossaryTermId;
     value: string;
     hint: string;
     to: string;
   }> = [
     {
       label: "Live hygiene",
+      termId: "live-hygiene",
       value: hygiene,
-      hint: sessionStats
-        ? "Session Filter/Shield estimate"
-        : "Load session-stats.json",
+      hint: sessionStats ? "Session Filter/Shield" : "Load session-stats.json",
       to: base,
     },
     {
       label: "Scan tokens avoided",
+      termId: "scan-delta",
       value: scanSaved,
       hint: "Repo scan / apply delta",
       to: `${base}/findings`,
     },
     {
       label: "Scenario $",
+      termId: "scenario-usd",
       value: scenarioUsd,
       hint: scenarioPct ? `${scenarioPct} under Assumptions` : "Needs scan + Assumptions",
       to: `${base}/assumptions`,
     },
     {
       label: "Bill reconcile",
+      termId: "bill-reconcile",
       value: hasBillCompare ? "Ready" : "Import usage",
-      hint: hasBillCompare
-        ? "Open Variance for estimate vs billed"
-        : "Baseline + after-period usage",
+      hint: hasBillCompare ? "Open Variance" : "Baseline + after usage",
       to: `${base}/variance`,
     },
   ];
@@ -88,10 +87,7 @@ export function OverviewHeroBand({
         <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
           Prove at a glance
         </Typography>
-        <GlossaryTip
-          term="Analytical Overview"
-          definition="Primary FinOps signals first. Click a tile to investigate. Estimated avoided context is not an invoice delta."
-        />
+        <GlossaryTip term="Prove loop" termId="prove-loop" />
       </Stack>
       <Box
         sx={{
@@ -117,9 +113,7 @@ export function OverviewHeroBand({
               onClick={() => navigate(tile.to)}
               sx={{ p: 2, height: "100%", alignItems: "flex-start" }}
             >
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                {tile.label}
-              </Typography>
+              <GlossaryTip term={tile.label} termId={tile.termId} />
               <Typography variant="h5" component="p" sx={{ fontWeight: 700, my: 0.5 }}>
                 {tile.value}
               </Typography>

@@ -9,12 +9,11 @@ import {
   architectureForTeam,
   boardScopeBase,
   tokenSavedPercent,
-  SCAN_LAYER_LABELS,
-  SCAN_LAYER_LEADS,
 } from "../domain";
 import { useLayerView } from "../state/useLayerView";
 import { heatFill, resolveColorMode } from "../theme/heat";
 import { EmptyState } from "../ui/EmptyState";
+import { GlossaryTip } from "../ui/GlossaryTip";
 import { HeatCell } from "../ui/HeatCell";
 import { Page } from "../ui/Page";
 import { PrivacyControls } from "../ui/PrivacyControls";
@@ -29,12 +28,7 @@ export function HeatmapPage() {
     <Page
       title={`Team heatmap · ${scopeLabel}`}
       lead={
-        <>
-          {SCAN_LAYER_LEADS[boardLayer]} Color is each team’s exclusion ratio on this board.{" "}
-          {seed?.businessUnit ?? "This BU"} rolls up to ~30% on the demo seed with the pitch
-          Assumptions preset; payments-platform is the noisy outlier. Click a cell to open
-          that team’s dashboard.
-        </>
+        <GlossaryTip term="Exclusion ratio" termId="exclusion-ratio" />
       }
     >
       <PrivacyControls />

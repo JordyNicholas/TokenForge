@@ -1,9 +1,8 @@
-// Overview E2E: analytical hero + board shell against the Vite SPA.
+// Overview E2E: analytical hero + Glossary against the Vite SPA.
 
 describe("Dashboard · Overview", () => {
   describe("with the bundled demo seed", () => {
     beforeEach(() => {
-      // "/" redirects to preferred board (default combined); wait past spinner.
       cy.loadDemoDashboard("/");
     });
 
@@ -16,6 +15,7 @@ describe("Dashboard · Overview", () => {
         cy.contains("Findings").should("exist");
         cy.contains("Assumptions").should("exist");
         cy.contains("Variance").should("exist");
+        cy.contains("Glossary").should("exist");
       });
 
       cy.get("h1").should("contain.text", "·");
@@ -25,8 +25,6 @@ describe("Dashboard · Overview", () => {
       cy.contains("Scan tokens avoided").should("be.visible");
       cy.contains("Scenario $").should("be.visible");
       cy.contains("Bill reconcile").should("be.visible");
-
-      cy.contains(/Teams in this business unit|Team detail/).should("exist");
     });
 
     it("navigates Overview → Findings from the hero Scan tokens tile", () => {
@@ -44,22 +42,31 @@ describe("Dashboard · Overview", () => {
       cy.location("pathname").should("include", "/variance");
     });
 
-    it("navigates Overview → Findings from the side nav", () => {
+    it("opens Glossary from the side nav", () => {
       cy.get('nav[aria-label="FinOps views"]')
-        .contains("a", "Findings")
+        .contains("a", "Glossary")
         .click({ force: true });
-      cy.location("pathname").should("include", "/findings");
+      cy.location("pathname").should("include", "/glossary");
+      cy.contains("h1", "Glossary").should("be.visible");
+      cy.contains("Honest savings tiers").should("exist");
     });
 
     it("switches the scan board to Heuristic", () => {
       cy.get('[aria-label="Scan board"]').contains("Heuristic").click();
       cy.location("pathname").should("include", "/board/heuristic");
     });
+
+    it("shows an empty state on the LLM board instead of zero charts", () => {
+      cy.get('[aria-label="Scan board"]').contains("LLM").click();
+      cy.location("pathname").should("include", "/board/llm");
+      cy.contains("No savings on this board").should("be.visible");
+    });
   });
 
   describe("with a stubbed seed (deterministic)", () => {
     beforeEach(() => {
       cy.intercept("GET", "/demo-seed.json", { fixture: "seed-min.json" }).as("seed");
+      cy.clearLocalStorage();
       cy.visit("/");
       cy.wait("@seed");
       cy.contains("Loading demo seed…").should("not.exist");

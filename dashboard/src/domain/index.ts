@@ -16,7 +16,15 @@ export {
   listHybridScanSummaries,
   type HybridScanSummary,
 } from "./hybridMeta";
+export {
+  GLOSSARY_TERMS,
+  glossaryHash,
+  glossaryTerm,
+  type GlossaryTerm,
+  type GlossaryTermId,
+} from "./glossary";
 export { displayPath, isDemoSourceLabel } from "./privacy";
+export { boardHasSavings } from "./boardSavings";
 export {
   SAVED_PERCENT_DIGITS,
   blendedUsdPerMillion,

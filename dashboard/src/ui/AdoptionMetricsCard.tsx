@@ -1,10 +1,8 @@
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { TokenRiskReport } from "@tokenforge/risk-core";
 import {
-  ADOPTION_HONESTY_NOTE,
   ADOPTION_UNAVAILABLE,
   computeRepoCoverage,
   formatCoverageLabel,
@@ -41,7 +39,7 @@ export function AdoptionMetricsCard({
         </Typography>
         <GlossaryTip
           term="Repo coverage"
-          definition="Share of teams on this board with scan reports and Fix apply markers. FinOps adoption signal — not vendor agent metering."
+          definition="Share of teams with scan reports and Fix apply markers. FinOps adoption signal — not vendor agent metering."
         />
       </Stack>
       <KpiRow>
@@ -68,7 +66,7 @@ export function AdoptionMetricsCard({
           }
         />
         <KpiCard
-          label="Session Filter (extension)"
+          label="Session Filter"
           value={
             sessionAvailable
               ? formatPercent(sessionFilteredPercent)
@@ -76,21 +74,16 @@ export function AdoptionMetricsCard({
           }
           hint={
             sessionAvailable
-              ? `${sessionFilterEventCount ?? 0} Filter/Shield event(s) in session-stats`
-              : "Load .tokenforge/session-stats.json from Source"
+              ? `${sessionFilterEventCount ?? 0} event(s)`
+              : "Load session-stats.json"
           }
         />
         <KpiCard
           label="Board scope"
           value={String(coverage.totalTeams)}
-          hint="Unique teams on loaded seed"
+          hint="Unique teams"
         />
       </KpiRow>
-      <Alert severity="info" variant="outlined" sx={{ mt: 1.5 }}>
-        <Typography variant="caption" color="text.secondary">
-          {ADOPTION_HONESTY_NOTE}
-        </Typography>
-      </Alert>
     </Box>
   );
 }
