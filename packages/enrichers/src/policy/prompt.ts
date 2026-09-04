@@ -46,10 +46,24 @@ export function buildPolicySynthesisPrompt(
     ? `Always-on instruction stack: ~${budget.alwaysOnTokens} est. tokens (recommended ≤ ${budget.recommendedMax}).`
     : "Instruction stack budget not recorded.";
 
+  const hasBodies = input.instructionContents.size > 0;
+  const modeLines = hasBodies
+    ? [
+        "Mode: REWRITE — existing instruction bodies are provided below.",
+        "Compact overlap, keep load-bearing guidance, and produce a complete managed section.",
+      ]
+    : [
+        "Mode: BOOTSTRAP — no instruction bodies were loaded.",
+        "Synthesize a complete lean starter policy from scan findings and budget hints alone.",
+        "Prefer concrete Do not load / Prefer guidance over empty platitudes.",
+      ];
+
   return [
     "You compile a TokenForge provider policy pack section for AI coding agents.",
     "Primary goal: reduce billable token bleed with complete, readable, actionable rules.",
     "Write for the agent that reads this every turn — not homework for humans editing repo files.",
+    "",
+    ...modeLines,
     "",
     "Return JSON only:",
     '{"markdown":"# Title\\n\\n…complete markdown body…"}',

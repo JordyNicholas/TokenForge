@@ -107,4 +107,13 @@ export {
   synthesizePolicyHybrid,
 } from "./policy/synthesizer";
 export { synthesizePolicyWithCursorCli } from "./policy/cursor-cli";
+export {
+  synthesizeManagedPolicy,
+  loadInstructionContentsForPolicy,
+} from "./policy/managed";
+export {
+  createPolicyPromptRunner,
+  policyBackendRequiresExternalConsent,
+} from "./policy/runners";
 export type { PolicySynthesisInput, PolicySynthesisResult } from "./policy/types";
+export type { SynthesizeManagedPolicyOptions } from "./policy/managed";

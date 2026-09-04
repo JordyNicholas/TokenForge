@@ -6,6 +6,8 @@ export {
   GENERIC_INSTRUCTIONS_PATH,
   MAX_INSTRUCTION_BYTES,
   exclusionPathForProvider,
+  instructionPathForProvider,
+  instructionTitleForProvider,
 } from "./limits";
 export { collapseExclusionPaths } from "./exclusions";
 export {
@@ -21,8 +23,15 @@ export {
   CURSOR_INSTRUCTIONS_PATH,
   cursorAdapter,
 } from "./cursor/cursor";
+export {
+  GEMINI_EXCLUSIONS_PATH,
+  GEMINI_INSTRUCTIONS_PATH,
+  geminiAdapter,
+} from "./gemini/gemini";
 export { genericAdapter } from "./generic/generic";
 export { getAdapter } from "./registry";
+export { collectKeptContent } from "./keep-dirs";
+export type { KeptContent } from "./keep-dirs";
 export type { PolicyFile, PolicyRenderContext, PolicyWriteMode, ProviderAdapter } from "./types";
 export {
   TOKENFORGE_SECTION_BEGIN,
