@@ -14,18 +14,17 @@ large" from "waste" — see `docs/design/HEURISTICS_AUDIT.md` for the full write
 
 | Path | Role | ~Bytes | What it stresses |
 | --- | --- | ---: | --- |
-| `rules/pricing-notes.md` | human business notes, not an AI instruction file | ~1.6 KB | `isInstructionPath` matches the bare path segment `rules`, so this gets prioritized as an LLM enrichment candidate even though it has nothing to do with agent instructions (B1). |
-| `src/generated-types.ts` | large but genuinely hand-maintained API type surface | ~120 KB | Crosses `OVERSIZED_BYTES` (100 KB) as a `source`-class file (weight 0.15). `toFinding()` still assigns it `action: "excluded"` — the exact same fix-adapter recommendation a lockfile gets (B2/B3). |
-| `config/locales.json` | large but genuine i18n config | ~125 KB | Same `oversized` → `excluded` outcome as the type file, on a real config a team would want to keep in context. |
+| `rules/pricing-notes.md` | human business notes, not an AI instruction file | ~1.6 KB | Regression for B1: bare `rules/` must not be treated as an agent instruction path (only `.cursor/rules`, `.claude/rules`, `.github/rules`). |
+| `src/generated-types.ts` | large but genuinely hand-maintained API type surface | ~120 KB | Below `SOURCE_OVERSIZED_BYTES` (250 KB) after B2/B3 — must stay out of findings. |
+| `config/locales.json` | large but genuine i18n config | ~125 KB | Still crosses the config oversized bar → `oversized` / `excluded`. |
 | `src/index.ts` | tiny real source | <1 KB | Control: this one should stay in the keep-set. |
 
 ## Expected scan result
 
-`src/generated-types.ts` and `config/locales.json` are expected findings
-(`reason: "oversized"`, `action: "excluded"`) — that is today's actual,
-intentional behavior, not a test bug. The golden file
-(`fixtures/expected/borderline-app-totals.json`) pins those totals precisely
-so a future heuristic change (e.g. addressing B1/B2) shows up as a diff here.
+Only `config/locales.json` is an expected finding (`reason: "oversized"`,
+`action: "excluded"`). Hand-maintained source under the source size bar stays
+out of the report. The golden file (`fixtures/expected/borderline-app-totals.json`)
+pins those totals so a future heuristic change shows up as a diff here.
 
 ## Layout
 

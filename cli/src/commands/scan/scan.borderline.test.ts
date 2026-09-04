@@ -1,4 +1,8 @@
-import { isTokenRiskReport, selectEnrichmentCandidates } from "@tokenforge/risk-core";
+import {
+  isInstructionPath,
+  isTokenRiskReport,
+  selectEnrichmentCandidates,
+} from "@tokenforge/risk-core";
 import { describe, expect, it } from "vitest";
 import { borderlineAppRoot } from "../../test/helpers";
 import { scanRepo } from "./scan";
@@ -29,7 +33,10 @@ describe("scanRepo (borderline-app, precision stress test)", () => {
     const { assessments } = await scanRepo({ root: borderlineAppRoot });
     const candidates = selectEnrichmentCandidates(assessments);
 
-    expect(candidates.some((item) => item.path === "rules/pricing-notes.md")).toBe(false);
-    expect(candidates.some((item) => item.path.endsWith(".cursor/rules"))).toBe(false);
+    // Bare `rules/` is business notes, not an agent instruction path — must not
+    // lead the enrichment list (instruction bucket). A tiny fixture may still
+    // include it later via the largest-files bucket.
+    expect(isInstructionPath("rules/pricing-notes.md")).toBe(false);
+    expect(candidates[0]?.path).not.toBe("rules/pricing-notes.md");
   });
 });

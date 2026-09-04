@@ -281,7 +281,7 @@ function preferLines(
       .slice(0, MAX_PREFER_ROOTS)
       .map((root) => `\`${root}/\``)
       .join(", ");
-    lines.push(`- Prefer living source under ${named}`);
+    lines.push(`- Living source under ${named}`);
   }
   lines.push("- Short, living config — not the dumps listed above");
   return lines;
