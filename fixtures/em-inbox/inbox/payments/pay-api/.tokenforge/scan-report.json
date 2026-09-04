@@ -1,0 +1,9 @@
+{
+  "source": "cli",
+  "timestamp": "2026-01-01T00:00:00.000Z",
+  "team": "payments",
+  "repo": "pay-api",
+  "provider": "generic",
+  "findings": [],
+  "totals": { "beforeTokens": 110, "afterTokens": 10, "savedTokens": 100 }
+}

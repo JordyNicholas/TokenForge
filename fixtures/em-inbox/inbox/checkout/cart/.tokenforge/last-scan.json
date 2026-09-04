@@ -1,0 +1,9 @@
+{
+  "source": "cli",
+  "timestamp": "2026-01-01T00:00:00.000Z",
+  "team": "checkout",
+  "repo": "cart",
+  "provider": "generic",
+  "findings": [],
+  "totals": { "beforeTokens": 60, "afterTokens": 10, "savedTokens": 50 }
+}
