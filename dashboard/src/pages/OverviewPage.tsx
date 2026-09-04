@@ -71,7 +71,7 @@ export function OverviewPage() {
     usageLabel,
     fixOnTeams,
   } = useLayerView();
-  const { sessionStats } = useDashboard();
+  const { sessionStats, discoverLatest } = useDashboard();
   const llmBoardEmpty =
     boardLayer === "llm" &&
     reports.length > 0 &&
@@ -115,7 +115,8 @@ export function OverviewPage() {
     investigateCount > 0 ||
     llmBoardUnavailable ||
     llmBoardEmpty ||
-    complementarityFailures.length > 0;
+    complementarityFailures.length > 0 ||
+    discoverLatest !== null;
 
   return (
     <Page
@@ -202,16 +203,32 @@ export function OverviewPage() {
       {hasInvestigateDetail ? (
         <OverviewSection
           title="Scan detail"
-          lead="Hybrid meta, instruction budget, and model overview stay behind Investigate — not peer Prove KPIs."
+          lead="Hybrid meta, instruction budget, discover policy_gap, and model overview stay behind Investigate — not peer Prove KPIs."
         >
           <OverviewInvestigatePanel
             summary={
-              investigateCount > 0
-                ? `${investigateCount} hybrid / instruction detail row(s) available.`
-                : "LLM board notes for this layer."
+              discoverLatest
+                ? `Discover: ${discoverLatest.policyGapCount} policy_gap · ${formatTokens(discoverLatest.missedTokens)} missed.`
+                : investigateCount > 0
+                  ? `${investigateCount} hybrid / instruction detail row(s) available.`
+                  : "LLM board notes for this layer."
             }
-            badgeCount={investigateCount || undefined}
+            badgeCount={(() => {
+              const n = discoverLatest
+                ? discoverLatest.policyGapCount + investigateCount
+                : investigateCount;
+              return n > 0 ? n : undefined;
+            })()}
           >
+            {discoverLatest ? (
+              <Alert severity="warning" variant="outlined">
+                <strong>policy_gap</strong>: {discoverLatest.policyGapCount} path(s) ·{" "}
+                <strong>session_kept</strong>: {discoverLatest.sessionKeptCount} · missed ≈{" "}
+                {formatTokens(discoverLatest.missedTokens)}. Run{" "}
+                <code>tokenforge discover</code> / <code>tokenforge drift</code> locally — dashboard
+                ingest is file-based, not live CI.
+              </Alert>
+            ) : null}
             <HybridScanMetaCard summaries={hybridSummaries} />
             <HybridDeltaCard rows={hybridDeltaRows} />
             <InstructionStackCard rows={instructionStackRows} />
