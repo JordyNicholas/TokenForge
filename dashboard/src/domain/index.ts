@@ -2,10 +2,14 @@ export type { Assumptions } from "./assumptions";
 export {
   DEFAULT_ASSUMPTIONS,
   PITCH_REALIZED_WASTE_SHARE,
+  ASSUMPTION_PRESETS,
+  applyAssumptionPreset,
   assumptionsEqual,
   cloneAssumptions,
   summarizeAssumptionsFreeze,
   withPitchScenario,
+  type AssumptionPreset,
+  type AssumptionPresetId,
 } from "./assumptions";
 export { suggestRealizedWasteShare, type WasteShareSuggestion } from "./suggestWasteShare";
 export {
@@ -126,19 +130,6 @@ export {
   type RoutingAdvice,
 } from "./advisory";
 export {
-  DEMO_SEED_URL,
-  DEMO_USAGE_URL,
-  SeedLoadError,
-  aggregateTotals,
-  errorMessage,
-  isDashboardSeed,
-  parseDashboardDocument,
-  resolveBootAfterUsageUrl,
-  resolveBootUsageUrl,
-  resolveBootSourceUrl,
-  type DashboardSeed,
-} from "./seed";
-export {
   SAVINGS_TIERS,
   SAVINGS_TIERS_DILUTION_NOTE,
   TIER_UNAVAILABLE,
@@ -162,3 +153,27 @@ export {
   parseSessionStatsFile,
   parseSessionStatsJson,
 } from "./parseSessionStats";
+export {
+  parseDiscoverLatestFile,
+  parseDiscoverLatestJson,
+  type DiscoverLatestRow,
+  type DiscoverLatestSummary,
+} from "./parseDiscoverLatest";
+export {
+  readPreferredScanLayer,
+  writePreferredScanLayer,
+} from "./viewPrefs";
+export {
+  DEMO_SEED_URL,
+  DEMO_USAGE_URL,
+  SeedLoadError,
+  aggregateTotals,
+  errorMessage,
+  isDashboardSeed,
+  mergeReportsToSeed,
+  parseDashboardDocument,
+  resolveBootAfterUsageUrl,
+  resolveBootUsageUrl,
+  resolveBootSourceUrl,
+  type DashboardSeed,
+} from "./seed";

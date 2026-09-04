@@ -1,5 +1,7 @@
 import CompareArrowsOutlined from "@mui/icons-material/CompareArrowsOutlined";
 import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
+import GroupsOutlined from "@mui/icons-material/GroupsOutlined";
+import ManageSearchOutlined from "@mui/icons-material/ManageSearchOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
 import ShieldOutlined from "@mui/icons-material/ShieldOutlined";
@@ -34,6 +36,7 @@ export function SourceBar() {
     sourceLabel,
     loadError,
     loadFromFile,
+    loadFromFiles,
     loadFromUrl,
     resetToDemo,
     afterFixLabel,
@@ -53,6 +56,9 @@ export function SourceBar() {
     sessionStatsLabel,
     loadSessionStatsFromFile,
     clearSessionStats,
+    discoverLatestLabel,
+    loadDiscoverLatestFromFile,
+    clearDiscoverLatest,
   } = useDashboard();
   const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -60,11 +66,13 @@ export function SourceBar() {
   const [snackOpen, setSnackOpen] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const filesRef = useRef<HTMLInputElement>(null);
   const afterFixRef = useRef<HTMLInputElement>(null);
   const usageRef = useRef<HTMLInputElement>(null);
   const afterUsageRef = useRef<HTMLInputElement>(null);
   const markersRef = useRef<HTMLInputElement>(null);
   const sessionStatsRef = useRef<HTMLInputElement>(null);
+  const discoverRef = useRef<HTMLInputElement>(null);
 
   const snackMessage = loadError ?? localError;
 
@@ -158,6 +166,18 @@ export function SourceBar() {
           />
         </Tooltip>
       ) : null}
+      {discoverLatestLabel ? (
+        <Tooltip title={`Discover: ${discoverLatestLabel}`}>
+          <Chip
+            size="small"
+            color="warning"
+            variant="outlined"
+            label={`discover ${shortSource(discoverLatestLabel)}`}
+            onDelete={clearDiscoverLatest}
+            sx={{ maxWidth: 160, display: { xs: "none", md: "inline-flex" } }}
+          />
+        </Tooltip>
+      ) : null}
       <Tooltip title="Data source">
         <IconButton
           color="inherit"
@@ -183,6 +203,20 @@ export function SourceBar() {
           <ListItemText
             primary="Load JSON file"
             secondary="CLI .tokenforge/scan-report.json or extension last-scan.json"
+          />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            filesRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <GroupsOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load team rollup (multi JSON)…"
+            secondary="Merge several last-scan / scan-report files into one BU"
           />
         </MenuItem>
         <MenuItem
@@ -364,6 +398,34 @@ export function SourceBar() {
             Clear session-stats
           </MenuItem>
         ) : null}
+        <Divider />
+        <MenuItem disabled>
+          <Typography variant="overline">Missed savings</Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null);
+            discoverRef.current?.click();
+          }}
+        >
+          <ListItemIcon>
+            <ManageSearchOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Load discover-latest.json…"
+            secondary="policy_gap / session_kept from tokenforge discover"
+          />
+        </MenuItem>
+        {discoverLatestLabel ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null);
+              clearDiscoverLatest();
+            }}
+          >
+            Clear discover report
+          </MenuItem>
+        ) : null}
       </Menu>
       <input
         ref={fileRef}
@@ -374,6 +436,20 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadFromFile(file);
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={filesRef}
+        type="file"
+        hidden
+        multiple
+        accept="application/json,.json"
+        onChange={(event) => {
+          const list = event.target.files;
+          if (list && list.length > 0) {
+            void loadFromFiles([...list]);
           }
           event.target.value = "";
         }}
@@ -447,6 +523,21 @@ export function SourceBar() {
           const file = event.target.files?.[0];
           if (file) {
             void loadSessionStatsFromFile(file).catch((error: unknown) => {
+              setLocalError(errorMessage(error));
+            });
+          }
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={discoverRef}
+        type="file"
+        hidden
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void loadDiscoverLatestFromFile(file).catch((error: unknown) => {
               setLocalError(errorMessage(error));
             });
           }

@@ -17,6 +17,7 @@ import {
   isDemoSourceLabel,
   parseChangeMarkersFile,
   parseChangeMarkersJson,
+  parseDiscoverLatestFile,
   parseSessionStatsFile,
   parseUsageFile,
   parseUsageText,
@@ -26,8 +27,11 @@ import {
   normalizeUsagePeriodPair,
   upsertUsageSnapshot,
   withPitchScenario,
+  applyAssumptionPreset,
+  type AssumptionPresetId,
   type Assumptions,
   type DashboardSeed,
+  type DiscoverLatestSummary,
   type Projection,
   type UsageMetrics,
 } from "../domain";
@@ -59,6 +63,7 @@ export type DashboardState = {
   patchAssumptions: (patch: Partial<Assumptions>) => void;
   applyPitchScenario: () => void;
   loadFromFile: (file: File) => Promise<void>;
+  loadFromFiles: (files: File[]) => Promise<void>;
   loadFromUrl: (url: string) => Promise<void>;
   resetToDemo: () => Promise<void>;
   usageLabel: string | null;
@@ -76,6 +81,7 @@ export type DashboardState = {
    */
   compareAssumptionsFreeze: Assumptions | null;
   freezeCompareAssumptions: () => void;
+  applyAssumptionPresetId: (presetId: AssumptionPresetId) => void;
   /** Period-scoped usage snapshots for variance board (#93). */
   usagePeriods: string[];
   baselinePeriod: string | null;
@@ -100,6 +106,11 @@ export type DashboardState = {
   sessionStatsLabel: string | null;
   loadSessionStatsFromFile: (file: File) => Promise<void>;
   clearSessionStats: () => void;
+  /** CLI/extension discover-latest.json → policy_gap Investigate. */
+  discoverLatest: DiscoverLatestSummary | null;
+  discoverLatestLabel: string | null;
+  loadDiscoverLatestFromFile: (file: File) => Promise<void>;
+  clearDiscoverLatest: () => void;
 };
 
 const DashboardContext = createContext<DashboardState | null>(null);
@@ -146,6 +157,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [changeMarkersLabel, setChangeMarkersLabel] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState<SessionStatsReport | null>(null);
   const [sessionStatsLabel, setSessionStatsLabel] = useState<string | null>(null);
+  const [discoverLatest, setDiscoverLatest] = useState<DiscoverLatestSummary | null>(null);
+  const [discoverLatestLabel, setDiscoverLatestLabel] = useState<string | null>(null);
   const baselinePeriodRef = useRef<string | null>(null);
   const afterPeriodRef = useRef<string | null>(null);
   baselinePeriodRef.current = baselinePeriod;
@@ -184,6 +197,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const applyPitchScenario = useCallback(() => {
     setAssumptions((current) => withPitchScenario(current));
+  }, []);
+
+  const applyAssumptionPresetId = useCallback((presetId: AssumptionPresetId) => {
+    setAssumptions((current) => applyAssumptionPreset(current, presetId));
   }, []);
 
   const freezeCompareAssumptions = useCallback(() => {
@@ -368,6 +385,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setSessionStatsLabel(null);
   }, []);
 
+  const loadDiscoverLatestFromFile = useCallback(async (file: File) => {
+    const summary = await parseDiscoverLatestFile(file);
+    setDiscoverLatest(summary);
+    setDiscoverLatestLabel(file.name);
+  }, []);
+
+  const clearDiscoverLatest = useCallback(() => {
+    setDiscoverLatest(null);
+    setDiscoverLatestLabel(null);
+  }, []);
+
   // Clear after-Fix / after-usage compare when primary seed changes (not on first mount,
   // so `?afterUsage=` can land alongside the demo/boot seed).
   useEffect(() => {
@@ -447,6 +475,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       clearAfterFix,
       patchAssumptions,
       applyPitchScenario,
+      applyAssumptionPresetId,
       afterUsage,
       afterUsageLabel,
       loadAfterUsageFromFile,
@@ -473,6 +502,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       sessionStatsLabel,
       loadSessionStatsFromFile,
       clearSessionStats,
+      discoverLatest,
+      discoverLatestLabel,
+      loadDiscoverLatestFromFile,
+      clearDiscoverLatest,
     }),
     [
       loaded,
@@ -491,6 +524,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       clearAfterFix,
       patchAssumptions,
       applyPitchScenario,
+      applyAssumptionPresetId,
       afterUsage,
       afterUsageLabel,
       loadAfterUsageFromFile,
@@ -517,6 +551,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       sessionStatsLabel,
       loadSessionStatsFromFile,
       clearSessionStats,
+      discoverLatest,
+      discoverLatestLabel,
+      loadDiscoverLatestFromFile,
+      clearDiscoverLatest,
     ],
   );
 

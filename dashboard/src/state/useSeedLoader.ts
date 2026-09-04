@@ -17,6 +17,7 @@ import {
   fetchDashboardDocument,
   loadDemoSeed,
   parseDashboardFile,
+  parseDashboardFiles,
 } from "../data/loadDocument";
 
 const EMPTY_TOTALS: TokenRiskTotals = {
@@ -102,6 +103,28 @@ export function useSeedLoader() {
       }
     },
     [applySeed, fail, mergePreservingUsage],
+  );
+
+  const loadFromFiles = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) {
+        return;
+      }
+      if (files.length === 1) {
+        await loadFromFile(files[0]!);
+        return;
+      }
+      try {
+        const merged = mergePreservingUsage(
+          await parseDashboardFiles(files, "Team rollup"),
+        );
+        const label = `${files.length} reports · team rollup`;
+        applySeed(merged.seed, label, merged.keepUsageLabel ? "keep" : "from-seed");
+      } catch (error) {
+        fail(error);
+      }
+    },
+    [applySeed, fail, loadFromFile, mergePreservingUsage],
   );
 
   const loadFromUrl = useCallback(
@@ -206,6 +229,7 @@ export function useSeedLoader() {
       usageLabel,
       loadError,
       loadFromFile,
+      loadFromFiles,
       loadFromUrl,
       loadUsageFromFile,
       loadUsageFromUrl,
@@ -219,6 +243,7 @@ export function useSeedLoader() {
     usageLabel,
     loadError,
     loadFromFile,
+    loadFromFiles,
     loadFromUrl,
     loadUsageFromFile,
     loadUsageFromUrl,

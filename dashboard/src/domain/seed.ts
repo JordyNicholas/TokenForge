@@ -100,6 +100,57 @@ export function parseDashboardDocument(value: unknown): DashboardSeed {
   );
 }
 
+function reportKey(report: TokenRiskReport): string {
+  return `${report.team}:${report.repo}`;
+}
+
+/**
+ * Merge one or more Token Risk reports / seeds into a BU rollup seed.
+ * Later files win on the same team:repo key.
+ */
+export function mergeReportsToSeed(
+  documents: unknown[],
+  businessUnit = "Team rollup",
+): DashboardSeed {
+  if (documents.length === 0) {
+    throw new SeedLoadError("Select at least one Token Risk JSON file.");
+  }
+  const byKey = new Map<string, TokenRiskReport>();
+  let architectures: Record<string, ArchitectureStyle> | undefined;
+  let usage: UsageMetrics | undefined;
+  for (const document of documents) {
+    const seed = parseDashboardDocument(document);
+    for (const report of seed.reports) {
+      byKey.set(reportKey(report), report);
+    }
+    if (seed.architectures) {
+      architectures = { ...(architectures ?? {}), ...seed.architectures };
+    }
+    if (seed.usage) {
+      usage = seed.usage;
+    }
+  }
+  const reports = [...byKey.values()];
+  if (reports.length === 0) {
+    throw new SeedLoadError("No Token Risk reports found in the selected files.");
+  }
+  if (documents.length === 1) {
+    const only = parseDashboardDocument(documents[0]);
+    return {
+      businessUnit: only.businessUnit,
+      reports,
+      ...(architectures ? { architectures } : {}),
+      ...(usage ? { usage } : {}),
+    };
+  }
+  return {
+    businessUnit,
+    reports,
+    ...(architectures ? { architectures } : {}),
+    ...(usage ? { usage } : {}),
+  };
+}
+
 export function aggregateTotals(reports: TokenRiskReport[]): TokenRiskTotals {
   return reports.reduce<TokenRiskTotals>(
     (acc, report) => ({

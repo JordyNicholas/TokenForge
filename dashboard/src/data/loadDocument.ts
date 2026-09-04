@@ -1,6 +1,7 @@
 import {
   DEMO_SEED_URL,
   SeedLoadError,
+  mergeReportsToSeed,
   parseDashboardDocument,
   type DashboardSeed,
 } from "../domain";
@@ -35,6 +36,22 @@ export async function parseDashboardFile(file: File): Promise<DashboardSeed> {
     throw new SeedLoadError(`${file.name} is not JSON`);
   }
   return parseDashboardDocument(payload);
+}
+
+/** Multi-file team rollup: each file is a Token Risk report or a seed. */
+export async function parseDashboardFiles(
+  files: File[],
+  businessUnit = "Team rollup",
+): Promise<DashboardSeed> {
+  const documents: unknown[] = [];
+  for (const file of files) {
+    try {
+      documents.push(JSON.parse(await file.text()));
+    } catch {
+      throw new SeedLoadError(`${file.name} is not JSON`);
+    }
+  }
+  return mergeReportsToSeed(documents, businessUnit);
 }
 
 export async function loadDemoSeed(): Promise<DashboardSeed> {
