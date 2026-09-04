@@ -21,7 +21,10 @@ export function startContinuousAnalyze(
     enrichInFlight = true;
     pendingAfterFlight = false;
     const triggerPath = lastSavedPath;
-    void enrichInstructionPathsCommand(session, { triggerPath })
+    void enrichInstructionPathsCommand(session, {
+      triggerPath,
+      interactive: false,
+    })
       .catch(() => {
         /* command surfaces its own errors */
       })

@@ -15,6 +15,14 @@ import { isExternalBackend, readLlmSettings } from "./settings";
 
 export type EnrichCommandOptions = {
   triggerPath?: string;
+  /**
+   * When false (continuous analyze on save), skip post-run toasts — especially
+   * full cache hits, which would otherwise spam on every instruction save.
+   * Default true for Command Palette / Overview.
+   */
+  interactive?: boolean;
+  /** Skip enrich-cache and re-call the model for all candidates. */
+  bypassCache?: boolean;
 };
 
 let enrichCommandInFlight = false;
@@ -45,19 +53,24 @@ async function enrichInstructionPathsCommandInner(
   session: RiskSession,
   options: EnrichCommandOptions,
 ): Promise<void> {
+  const interactive = options.interactive !== false;
   const settings = readLlmSettings();
   if (!settings.enrichmentEnabled) {
-    void window.showWarningMessage(
-      "Enable TokenForge › LLM Enrichment (tokenforge.llmEnrichment) for this workspace first.",
-    );
+    if (interactive) {
+      void window.showWarningMessage(
+        "Enable TokenForge › LLM Enrichment (tokenforge.llmEnrichment) for this workspace first.",
+      );
+    }
     return;
   }
 
   const spec = safeParseLlmSpec(settings.llm);
   if (spec.backend === "noop") {
-    void window.showInformationMessage(
-      "TokenForge AI enrichment is on, but no model is set. Set tokenforge.llm (e.g. ollama:qwen2.5-coder:3b) to Analyze rules.",
-    );
+    if (interactive) {
+      void window.showInformationMessage(
+        "TokenForge AI enrichment is on, but no model is set. Set tokenforge.llm (e.g. ollama:qwen2.5-coder:3b) to Analyze rules.",
+      );
+    }
     return;
   }
   const root = resolveWorkspaceRoot();
@@ -93,9 +106,11 @@ async function enrichInstructionPathsCommandInner(
   }
 
   if (candidates.length === 0) {
-    void window.showInformationMessage(
-      "No instruction paths found (AGENTS.md, CLAUDE.md, copilot-instructions, .cursor/rules, …).",
-    );
+    if (interactive) {
+      void window.showInformationMessage(
+        "No instruction paths found (AGENTS.md, CLAUDE.md, copilot-instructions, .cursor/rules, …).",
+      );
+    }
     return;
   }
 
@@ -113,27 +128,34 @@ async function enrichInstructionPathsCommandInner(
         model: spec.model,
         error: `cannot reach Ollama at ${endpoint}`,
       });
-      void window.showWarningMessage(
-        `TokenForge: cannot reach Ollama at ${endpoint}. Start it (ollama serve) or set tokenforge.llmEndpoint. Detect stays heuristic.`,
-      );
+      if (interactive) {
+        void window.showWarningMessage(
+          `TokenForge: cannot reach Ollama at ${endpoint}. Start it (ollama serve) or set tokenforge.llmEndpoint. Detect stays heuristic.`,
+        );
+      }
       return;
     }
   }
 
   let result: Awaited<ReturnType<typeof writeLastScan>> | undefined;
   let findingCount = 0;
+  let fullCacheHit = false;
   setEnrichExportBusy(true);
   try {
     await window.withProgress(
       {
         location: ProgressLocation.Notification,
-        title: "TokenForge: enriching instruction paths",
+        title: options.bypassCache
+          ? "TokenForge: force re-analyzing instruction paths"
+          : "TokenForge: enriching instruction paths",
         cancellable: false,
       },
       async (progress) => {
         const modelLabel = spec.backend === "noop" ? spec.backend : `${spec.backend}:${spec.model}`;
         progress.report({
-          message: `${candidates.length} instruction file(s) via ${modelLabel}`,
+          message: options.bypassCache
+            ? `${candidates.length} instruction file(s) via ${modelLabel} (bypassing cache)`
+            : `${candidates.length} instruction file(s) via ${modelLabel}`,
         });
         let enrichment: Awaited<ReturnType<typeof runInstructionEnrichment>>;
         try {
@@ -141,6 +163,7 @@ async function enrichInstructionPathsCommandInner(
             root,
             candidates,
             externalDataConsent: externalConsent,
+            bypassCache: options.bypassCache === true,
             onProgress: (message) => progress.report({ message }),
           });
         } catch (error) {
@@ -167,6 +190,7 @@ async function enrichInstructionPathsCommandInner(
           llmCandidateTokens,
         });
         findingCount = enrichment.findings.length;
+        fullCacheHit = enrichment.fullCacheHit;
 
         recordEnrichRun({
           at: Date.now(),
@@ -186,8 +210,41 @@ async function enrichInstructionPathsCommandInner(
     return;
   }
 
+  // Continuous analyze: stay quiet on full cache hits (file unchanged).
+  if (!interactive) {
+    if (fullCacheHit) {
+      return;
+    }
+    // Still surface a real enrich so the user knows continuous analyze did work.
+    void window.showInformationMessage(
+      `Enriched ${candidates.length} path(s) → ${findingCount} LLM finding(s). Wrote ${result.reportPath}`,
+    );
+    return;
+  }
+
   // Keep the reveal prompt outside withProgress so the notification spinner
   // stops when the enricher finishes (awaiting UI inside keeps it "running").
+  if (fullCacheHit) {
+    const choice = await window.showInformationMessage(
+      `Rules unchanged since last analyze — reused cached findings for ${candidates.length} file(s) (no model call).`,
+      "Force re-analyze",
+      "Reveal last-scan.json",
+    );
+    if (choice === "Force re-analyze") {
+      // Re-enter Inner while the outer in-flight lock is still held so a second
+      // Command Palette click cannot race this force pass.
+      await enrichInstructionPathsCommandInner(session, {
+        ...options,
+        bypassCache: true,
+      });
+      return;
+    }
+    if (choice === "Reveal last-scan.json") {
+      await revealLastScan(result.reportPath);
+    }
+    return;
+  }
+
   const choice = await window.showInformationMessage(
     `Enriched ${candidates.length} path(s) → ${findingCount} LLM finding(s). Wrote ${result.reportPath}`,
     "Reveal last-scan.json",

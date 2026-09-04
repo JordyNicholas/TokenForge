@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { TokenRiskFinding } from "@tokenforge/risk-core";
+import { emptyCache, hashContent } from "./enrichCache";
 
 const get = vi.fn();
 
@@ -7,12 +9,12 @@ vi.mock("vscode", () => ({
 }));
 
 const enrich = vi.fn(async (_input: { model: string; externalDataConsent?: boolean }) => ({
-  findings: [],
+  findings: [] as TokenRiskFinding[],
   meta: {
     backend: "claude-code" as const,
     model: "default",
     durationMs: 1,
-    candidatesSent: 0,
+    candidatesSent: 1,
   },
 }));
 
@@ -24,15 +26,34 @@ vi.mock("@tokenforge/enrichers", async () => {
   return { ...actual, getEnricher: () => ({ id: "claude-code", enrich }) };
 });
 
-// Keep the cache logic real but off-disk so the test does not touch the FS.
+const loadEnrichCache = vi.fn<
+  (
+    root: string,
+    backend: string,
+    model: string,
+  ) => Promise<ReturnType<typeof emptyCache>>
+>();
+const saveEnrichCache = vi.fn<
+  (root: string, cache: ReturnType<typeof emptyCache>) => Promise<void>
+>(async () => {});
+
 vi.mock("./enrichCache", async () => {
   const actual = await vi.importActual<typeof import("./enrichCache")>("./enrichCache");
   return {
     ...actual,
-    loadEnrichCache: async () => actual.emptyCache("claude-code", "default"),
-    saveEnrichCache: async () => {},
+    loadEnrichCache: (
+      root: string,
+      backend: string,
+      model: string,
+    ) => loadEnrichCache(root, backend, model),
+    saveEnrichCache: (root: string, cache: ReturnType<typeof emptyCache>) =>
+      saveEnrichCache(root, cache),
   };
 });
+
+vi.mock("node:fs/promises", () => ({
+  readFile: vi.fn(async () => Buffer.from("agents body", "utf8")),
+}));
 
 const CANDIDATE = {
   path: "AGENTS.md",
@@ -69,6 +90,9 @@ describe("runInstructionEnrichment with claude-code", () => {
     vi.resetModules();
     get.mockReset();
     enrich.mockClear();
+    loadEnrichCache.mockReset();
+    saveEnrichCache.mockClear();
+    loadEnrichCache.mockResolvedValue(emptyCache("claude-code", "default"));
   });
 
   it("refuses to run until allowExternalLlm is enabled", async () => {
@@ -83,9 +107,10 @@ describe("runInstructionEnrichment with claude-code", () => {
   it("runs once the workspace has opted in", async () => {
     configure({ allowExternalLlm: true });
 
-    await run();
+    const outcome = await run();
 
     expect(enrich).toHaveBeenCalledOnce();
+    expect(outcome.fullCacheHit).toBe(false);
     // The adapter enforces its own gate too, so the opt-in has to reach it —
     // an extension that only checked locally would trip the CLI's UsageError.
     expect(enrich.mock.calls[0]![0]).toMatchObject({
@@ -99,5 +124,58 @@ describe("runInstructionEnrichment with claude-code", () => {
 
     await expect(run()).rejects.toThrow("LLM enrichment is off");
     expect(enrich).not.toHaveBeenCalled();
+  });
+
+  it("serves a full cache hit without calling the model", async () => {
+    configure({ allowExternalLlm: true });
+    const cached: TokenRiskFinding = {
+      path: "AGENTS.md",
+      reason: "semantic_bloat",
+      bytes: 10,
+      estTokens: 3,
+      action: "excluded",
+      source: "llm",
+    };
+    const cache = emptyCache("claude-code", "default");
+    cache.entries["AGENTS.md"] = {
+      hash: hashContent("agents body"),
+      findings: [cached],
+    };
+    loadEnrichCache.mockResolvedValue(cache);
+
+    const outcome = await run();
+
+    expect(enrich).not.toHaveBeenCalled();
+    expect(outcome.fullCacheHit).toBe(true);
+    expect(outcome.cacheHitCount).toBe(1);
+    expect(outcome.meta.candidatesSent).toBe(0);
+    expect(outcome.findings).toEqual([cached]);
+    expect(saveEnrichCache).not.toHaveBeenCalled();
+  });
+
+  it("bypassCache forces a model call even when every path is a hit", async () => {
+    configure({ allowExternalLlm: true });
+    const cache = emptyCache("claude-code", "default");
+    cache.entries["AGENTS.md"] = {
+      hash: hashContent("agents body"),
+      findings: [
+        {
+          path: "AGENTS.md",
+          reason: "semantic_bloat",
+          bytes: 10,
+          estTokens: 3,
+          action: "excluded",
+          source: "llm",
+        },
+      ],
+    };
+    loadEnrichCache.mockResolvedValue(cache);
+
+    const outcome = await run({ bypassCache: true });
+
+    expect(enrich).toHaveBeenCalledOnce();
+    expect(outcome.fullCacheHit).toBe(false);
+    expect(outcome.cacheHitCount).toBe(0);
+    expect(saveEnrichCache).toHaveBeenCalledOnce();
   });
 });

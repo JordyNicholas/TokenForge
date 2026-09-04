@@ -43,6 +43,18 @@ export type RunInstructionEnrichmentOptions = {
   onProgress?: (message: string) => void;
   /** When true, skip the interactive consent gate (tests). */
   externalDataConsent?: boolean;
+  /**
+   * Skip enrich-cache hits and send every candidate to the model.
+   * Used by Analyze rules → Force re-analyze.
+   */
+  bypassCache?: boolean;
+};
+
+/** Extension-facing outcome; `fullCacheHit` is not written into last-scan meta. */
+export type InstructionEnrichmentOutcome = LlmEnrichmentResult & {
+  /** True when every candidate was served from enrich-cache (no model call). */
+  fullCacheHit: boolean;
+  cacheHitCount: number;
 };
 
 /**
@@ -51,7 +63,7 @@ export type RunInstructionEnrichmentOptions = {
  */
 export async function runInstructionEnrichment(
   options: RunInstructionEnrichmentOptions,
-): Promise<LlmEnrichmentResult> {
+): Promise<InstructionEnrichmentOutcome> {
   const settings = readLlmSettings();
   if (!settings.enrichmentEnabled) {
     throw new Error(
@@ -79,11 +91,18 @@ export async function runInstructionEnrichment(
 
   // Content-hash cache: only files whose excerpt changed (per backend+model) are
   // sent to the model, so repeat Analyze / continuousAnalyze stays cost-bounded.
+  // Force re-analyze (`bypassCache`) treats every path as stale.
   const cache = await loadEnrichCache(options.root, spec.backend, spec.model);
-  const { hits, stale } = partitionByCache(
-    hashed.map((entry) => ({ path: entry.candidate.path, hash: entry.hash })),
-    cache,
-  );
+  const partitioned = options.bypassCache
+    ? {
+        hits: [] as string[],
+        stale: hashed.map((entry) => entry.candidate.path),
+      }
+    : partitionByCache(
+        hashed.map((entry) => ({ path: entry.candidate.path, hash: entry.hash })),
+        cache,
+      );
+  const { hits, stale } = partitioned;
   const hitFindings = hits.flatMap((path) => cache.entries[path]?.findings ?? []);
 
   if (stale.length === 0) {
@@ -97,6 +116,8 @@ export async function runInstructionEnrichment(
         durationMs: 0,
         candidatesSent: 0,
       },
+      fullCacheHit: true,
+      cacheHitCount: hits.length,
     };
   }
 
@@ -109,6 +130,12 @@ export async function runInstructionEnrichment(
     settings.timeoutSeconds !== undefined
       ? parseLlmTimeoutSeconds(String(settings.timeoutSeconds))
       : undefined;
+
+  if (options.bypassCache) {
+    options.onProgress?.(
+      `force re-analyze — ${staleCandidates.length} file(s), bypassing cache`,
+    );
+  }
 
   const result = await enricher.enrich({
     root: options.root,
@@ -137,5 +164,7 @@ export async function runInstructionEnrichment(
   return {
     findings: [...result.findings, ...hitFindings],
     meta: result.meta,
+    fullCacheHit: false,
+    cacheHitCount: hits.length,
   };
 }
