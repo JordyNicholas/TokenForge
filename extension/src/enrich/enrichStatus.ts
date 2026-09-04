@@ -36,6 +36,8 @@ export type EnrichmentStatusView = {
   model: string;
   /** false when enrichment is on but the backend is the no-op stub (no real model). */
   hasModel: boolean;
+  /** Fix adapter id (where Compact/apply writes packs). */
+  provider: string;
   headline: string;
   detail?: string;
 };
@@ -46,12 +48,19 @@ export type EnrichmentStatusView = {
  * backend/model headline and a one-line detail.
  */
 export function describeEnrichmentStatus(
-  settings: { enrichmentEnabled: boolean; llm: string },
+  settings: { enrichmentEnabled: boolean; llm: string; provider?: string },
   lastRun?: EnrichRunStatus,
 ): EnrichmentStatusView {
   const spec = safeParseLlmSpec(settings.llm);
   const hasModel = spec.backend !== "noop";
   const backendLabel = hasModel ? `${spec.backend}:${spec.model}` : spec.backend;
+  const provider = (settings.provider ?? "generic").trim() || "generic";
+  const packLine = `Writing packs for ${provider}`;
+  const analyzeLine = !settings.enrichmentEnabled
+    ? "Analyzing off (Detect stays heuristic)"
+    : hasModel
+      ? `Analyzing with ${backendLabel}`
+      : "Analyzing with no-op (set tokenforge.llm)";
 
   if (!settings.enrichmentEnabled) {
     return {
@@ -59,21 +68,28 @@ export function describeEnrichmentStatus(
       backend: spec.backend,
       model: spec.model,
       hasModel,
-      headline: "AI enrichment: Off — Detect stays heuristic",
-      detail: "Enable to let a local, opt-in model judge your rules and context.",
+      provider,
+      headline: `${packLine} · ${analyzeLine}`,
+      detail: "Enable AI enrichment to let a local, opt-in model judge your rules and context.",
     };
   }
 
-  const headline = hasModel
-    ? `AI enrichment: On — ${backendLabel}`
-    : "AI enrichment: On — no model set (using no-op)";
+  const headline = `${packLine} · ${analyzeLine}`;
   const detail =
     describeLastRun(lastRun) ??
     (hasModel
       ? "Run Analyze rules to enrich instruction files (bounded candidate set)."
       : "Set tokenforge.llm to a model (e.g. ollama:qwen2.5-coder:3b) to get findings.");
 
-  return { on: true, backend: spec.backend, model: spec.model, hasModel, headline, detail };
+  return {
+    on: true,
+    backend: spec.backend,
+    model: spec.model,
+    hasModel,
+    provider,
+    headline,
+    detail,
+  };
 }
 
 function describeLastRun(lastRun?: EnrichRunStatus): string | undefined {

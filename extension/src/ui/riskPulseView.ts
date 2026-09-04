@@ -134,7 +134,13 @@ class RiskPulseProvider implements WebviewViewProvider {
       prePromptBanner:
         prePromptEnabled && pulse.displayAtRiskTokens >= threshold && pulse.pendingCount > 0,
       rulesOverThreshold: isRulesBudgetOverThreshold(this.rulesCost, threshold),
-      enrichment: describeEnrichmentStatus(readLlmSettings(), getLastEnrichRun()),
+      enrichment: describeEnrichmentStatus(
+        {
+          ...readLlmSettings(),
+          provider: workspace.getConfiguration("tokenforge").get<string>("provider") ?? "generic",
+        },
+        getLastEnrichRun(),
+      ),
       cardsLoading,
     };
   }
@@ -402,8 +408,9 @@ function renderOverviewHtml(
     <div class="tf-kpi"><span class="tf-kpi-label">Rules cost</span><span class="tf-kpi-value">${rulesKpi}</span></div>
   </div>
   ${reductionNote}
-  <div class="tf-section">AI enrichment</div>
+  <div class="tf-section">Fix target &amp; AI</div>
   ${enrichmentBlock}
+  <p class="tf-honesty">Estimated avoided context ≠ invoice delta. Import bill into the Prove dashboard to reconcile.</p>
   <div class="tf-actions">
     <button class="tf-btn" data-cmd="tokenforge.shieldAllPending">Shield all pending</button>
     <button class="tf-btn" data-cmd="tokenforge.cleanSession">Clean session</button>
