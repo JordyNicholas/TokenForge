@@ -172,10 +172,13 @@ mirror the Part 0.3 settings into its `.vscode/settings.json`.
      Expect `scan.mode: "hybrid"`, `scan.llm.backend: "ollama"`,
      `scan.llm.model: "qwen2.5-coder:7b"`, and a populated LLM findings layer.
    - Findings include semantic notes heuristics can't produce.
-5. **Compact rules** (`tokenforge.compactRulesPreview`): with LLM findings present,
-   preview → apply. It writes a lean managed block into the provider instruction file
-   (e.g. `.github/copilot-instructions.md` `tokenforge:begin/end`); confirm user text
-   outside the markers is preserved.
+5. **Compact rules** (`tokenforge.compactRulesPreview`): with LLM findings present
+   (prefer disk `last-scan.json` hybrid layers), preview → apply. Uses the same
+   `synthesizeManagedPolicy` path as CLI `apply` — heuristic by default; hybrid when
+   `llmEnrichment` is on. Modal shows **Heuristic** vs **AI hybrid**. It writes a lean
+   managed block into the provider instruction file (e.g. `.github/copilot-instructions.md`
+   or `GEMINI.md` for `tokenforge.provider: gemini`); confirm user text outside the
+   markers is preserved.
 6. **Continuous analyze**: set `continuousAnalyze: true`, edit + save `AGENTS.md` →
    after ~2 s a debounced Analyze rules re-runs on that path. Turn it back off.
 

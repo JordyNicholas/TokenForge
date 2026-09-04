@@ -2,21 +2,18 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   isInstructionPath,
-  parseApplyMode,
-  resolvePolicyMaxBytes,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 import {
-  parseLlmSpec,
-  parseLlmTimeoutSeconds,
-  synthesizePolicyHeuristic,
-  synthesizePolicyWithCursorCli,
+  synthesizeManagedPolicy,
+  type SynthesizeManagedPolicyOptions,
   type PolicySynthesisResult,
 } from "@tokenforge/enrichers";
 import type { ApplyOptions } from "../commands/apply/apply";
 import { readTokenForgeConfig } from "../io/tokenforge-config";
 
-async function loadInstructionContentsForPolicy(
+/** @deprecated Prefer synthesizeManagedPolicy from enrichers — kept for CLI call sites. */
+export async function loadInstructionContentsForPolicy(
   root: string,
   report: TokenRiskReport,
 ): Promise<Map<string, string>> {
@@ -49,60 +46,28 @@ export async function synthesizeManagedInstructionBody(options: {
   sourceRoots?: readonly string[];
 }): Promise<PolicySynthesisResult> {
   const config = await readTokenForgeConfig(options.root);
-  const applyMode =
-    parseApplyMode(options.applyOptions.mode) ??
-    config?.apply?.mode ??
-    "heuristic";
-  const maxBytes = resolvePolicyMaxBytes({
-    applyMode,
-    config,
-    cliOverride: options.applyOptions.policyMaxBytes,
-  });
-  const instructionContents = await loadInstructionContentsForPolicy(
-    options.root,
-    options.report,
-  );
-  const baseInput = {
+  const timeoutRaw = options.applyOptions.llmTimeout;
+  const llmTimeoutSeconds =
+    timeoutRaw !== undefined && timeoutRaw.trim().length > 0
+      ? Number(timeoutRaw)
+      : undefined;
+  const apply: SynthesizeManagedPolicyOptions = {
+    root: options.root,
     report: options.report,
     title: options.title,
-    maxBytes,
+    applyMode: options.applyOptions.mode,
+    llm: options.applyOptions.llm,
+    llmEndpoint: options.applyOptions.llmEndpoint,
+    llmTimeoutSeconds:
+      llmTimeoutSeconds !== undefined && Number.isFinite(llmTimeoutSeconds)
+        ? llmTimeoutSeconds
+        : undefined,
+    policyMaxBytes: options.applyOptions.policyMaxBytes,
     config,
-    instructionContents,
     keepDirs: options.keepDirs,
     sourceRoots: options.sourceRoots,
+    externalDataConsent: options.applyOptions.externalDataConsent,
     onProgress: options.applyOptions.onProgress,
   };
-
-  if (applyMode !== "hybrid") {
-    return synthesizePolicyHeuristic({
-      ...baseInput,
-      model: "none",
-    });
-  }
-
-  const spec = parseLlmSpec(options.applyOptions.llm);
-  if (spec.backend === "noop") {
-    return synthesizePolicyHeuristic({
-      ...baseInput,
-      model: spec.model,
-    });
-  }
-
-  if (spec.backend === "cursor-cli") {
-    const timeoutSeconds = parseLlmTimeoutSeconds(options.applyOptions.llmTimeout);
-    return synthesizePolicyWithCursorCli({
-      ...baseInput,
-      model: spec.model,
-      timeoutMs: timeoutSeconds !== undefined ? timeoutSeconds * 1000 : undefined,
-      externalDataConsent: options.applyOptions.externalDataConsent,
-    });
-  }
-
-  options.applyOptions.onProgress?.(
-    `Hybrid apply: backend ${spec.backend} policy synthesis not wired yet — using heuristic compiler.`,
-  );
-  return synthesizePolicyHeuristic({
-    ...baseInput,
-    model: spec.model,
-  });
+  return synthesizeManagedPolicy(apply);
 }

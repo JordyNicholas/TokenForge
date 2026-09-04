@@ -11,7 +11,7 @@ import {
 
 describe("getAdapter", () => {
   it("resolves every supported provider", () => {
-    const providers: ProviderId[] = ["copilot", "generic", "cursor", "claude"];
+    const providers: ProviderId[] = ["copilot", "generic", "cursor", "claude", "gemini"];
     for (const provider of providers) {
       expect(getAdapter(provider).id).toBe(provider);
     }

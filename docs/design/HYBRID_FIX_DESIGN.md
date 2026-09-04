@@ -55,14 +55,19 @@ specified in [`HEURISTIC_FIX_DESIGN.md`](./HEURISTIC_FIX_DESIGN.md) (F14).
 # Scan — vendor tier uses full attention set
 tokenforge scan . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
 
-# Apply — hybrid policy synthesis
+# Apply — hybrid policy synthesis (shared CLI + Extension Compact)
 tokenforge apply . --mode hybrid --llm cursor-cli:composer-2.5 --allow-external
+tokenforge apply . --mode hybrid --llm gemini-cli --allow-external
+tokenforge apply . --mode hybrid --llm ollama:qwen2.5-coder:3b
+tokenforge apply . --provider gemini --mode heuristic
 
 # Presentation backup
 npm run tokenforge:presentation-full          # extension checklist + heuristic + hybrid
 npm run tokenforge:presentation-heuristic     # Act 2 only (fixtures/hybrid-eval-app)
 npm run tokenforge:presentation-hybrid        # Act 3 only
 ```
+
+Hybrid Fix backends: `ollama`, `cursor-cli`, `gemini-cli`, `claude-code`, `anthropic`, `codex` via `synthesizeManagedPolicy` in `@tokenforge/enrichers` (F17 #321). Invalid/over-budget LLM output still falls back to heuristic.
 
 Runbook: [`../runbooks/PRESENTATION_HYBRID_EVAL.md`](../runbooks/PRESENTATION_HYBRID_EVAL.md).
 

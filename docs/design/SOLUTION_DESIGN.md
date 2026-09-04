@@ -136,7 +136,7 @@ enumerates the newest delta is what went stale across three bumps before.
   "timestamp": "ISO-8601",
   "repo": "org/name-or-local",
   "team": "payments-platform",
-  "provider": "copilot|cursor|claude|generic",
+  "provider": "copilot|cursor|claude|gemini|generic",
   "findings": [
     {
       "path": "package-lock.json",
@@ -198,8 +198,9 @@ Enrichers are pluggable (`noop`, `ollama`, `codex`, `anthropic`). Full design:
 | Adapter id | Example outputs (illustrative) |
 | --- | --- |
 | `copilot` (MVP default OK) | merge lean section into `.github/copilot-instructions.md` (`<!-- tokenforge:begin/end -->`) + exclusion candidates |
-| `cursor` | merge lean section into `.cursor/rules/tokenforge.mdc` + ignore candidates |
+| `cursor` | merge lean section into `.cursor/rules/tokenforge.mdc` + exclusion / ignore candidates |
 | `claude` / `codex` | merge lean section into `CLAUDE.md` + ignore candidates |
+| `gemini` | merge lean section into `GEMINI.md` + `.gemini/tokenforge-exclusion-candidates.yml` (advisory; no Google org API) |
 | `generic` | merge lean section into `.github/tokenforge-instructions.md` + vendor-neutral exclusions |
 
 Always also write `.tokenforge/scan-report.json` (agnostic contract).

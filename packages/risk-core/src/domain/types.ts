@@ -3,7 +3,7 @@
 export type ScanSource = "extension" | "cli";
 
 /** Fix adapter that produced (or will produce) policy files. Scoring ignores this. */
-export type ProviderId = "copilot" | "cursor" | "claude" | "generic";
+export type ProviderId = "copilot" | "cursor" | "claude" | "gemini" | "generic";
 
 export type FindingReason =
   | "inactive_tab"

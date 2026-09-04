@@ -11,4 +11,4 @@
 | [LLM_ENRICHER_SETUP.md](./LLM_ENRICHER_SETUP.md) | CLI/extension hybrid backends |
 | [AGENT_MCP_SETUP.md](./AGENT_MCP_SETUP.md) | MCP server (`tokenforge mcp`) |
 
-Fix adapters (Copilot, Cursor, Claude, generic) are documented in [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md) and implemented under `cli/src/adapters/`.
+Fix adapters (Copilot, Cursor, Claude, Gemini, generic) are documented in [`../design/SOLUTION_DESIGN.md`](../design/SOLUTION_DESIGN.md) and implemented under `packages/policy-adapters/` (CLI re-exports via `cli/src/adapters/`).

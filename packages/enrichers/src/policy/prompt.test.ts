@@ -29,5 +29,25 @@ describe("buildPolicySynthesisPrompt", () => {
     expect(prompt).toContain("package-lock.json");
     expect(prompt).toContain("AGENTS.md");
     expect(prompt).toContain("complete, readable");
+    expect(prompt).toContain("Mode: REWRITE");
+  });
+
+  it("uses bootstrap mode when no instruction bodies are loaded", () => {
+    const prompt = buildPolicySynthesisPrompt({
+      title: "TokenForge instructions (generic)",
+      maxBytes: 4096,
+      instructionContents: new Map(),
+      report: {
+        source: "cli",
+        timestamp: "2026-09-01T00:00:00.000Z",
+        repo: "demo",
+        team: "demo",
+        provider: "generic",
+        findings: [],
+        totals: { beforeTokens: 0, afterTokens: 0, savedTokens: 0 },
+      },
+    });
+    expect(prompt).toContain("Mode: BOOTSTRAP");
+    expect(prompt).toContain("(no instruction bodies loaded)");
   });
 });

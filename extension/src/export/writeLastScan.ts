@@ -54,6 +54,7 @@ function providerId(): ProviderId {
     value === "copilot" ||
     value === "cursor" ||
     value === "claude" ||
+    value === "gemini" ||
     value === "generic"
   ) {
     return value;

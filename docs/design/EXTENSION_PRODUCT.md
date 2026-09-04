@@ -99,7 +99,7 @@ Shared `scoreRisk` / `assessTab`. A tab is at-risk when any of:
 | Task pack rank | Prepare / Apply pack | Yes when enrichment on; else top-8 by tokens |
 | Overlap radar | Overview card | Yes when enrichment on; else basename heuristic |
 | Discover rank | `tokenforge.runDiscover` | Yes when enrichment on; heuristic missed-savings always |
-| Compact rules | `tokenforge.compactRulesPreview` | No live model — Fix from last-scan via policy adapters |
+| Compact rules | `tokenforge.compactRulesPreview` | Same synthesizer as CLI `apply`: heuristic by default; hybrid when enrichment + LLM on |
 | Smart excerpt | `tokenforge.copySmartExcerpt` | No |
 | Drift advisor | Overview | No |
 | Session summary | Overview | No (KPI sentences; optional LLM is #276) |
@@ -124,7 +124,7 @@ Shared `scoreRisk` / `assessTab`. A tab is at-risk when any of:
 
 ## Compact rules (Fix in IDE)
 
-Dry-run + apply managed `tokenforge:begin/end` sections through `@tokenforge/policy-adapters`. User text outside markers is preserved. Uses the in-memory / last-scan report, not a second model call.
+Dry-run + apply managed `tokenforge:begin/end` sections through `@tokenforge/policy-adapters`, using the **same** `synthesizeManagedPolicy` path as CLI `apply` (heuristic by default; AI hybrid when `tokenforge.llmEnrichment` is on and `tokenforge.llm` is set). Prefer on-disk `last-scan.json` hybrid layers when the session report lacks them. User text outside markers is preserved. Fix targets: `copilot` | `cursor` | `claude` | `gemini` | `generic`.
 
 ---
 

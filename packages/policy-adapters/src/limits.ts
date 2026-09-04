@@ -8,8 +8,9 @@ import {
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 import { PolicyError } from "./errors";
-import { CLAUDE_EXCLUSIONS_PATH } from "./claude/claude";
-import { CURSOR_EXCLUSIONS_PATH } from "./cursor/cursor";
+import { CLAUDE_EXCLUSIONS_PATH, CLAUDE_INSTRUCTIONS_PATH } from "./claude/claude";
+import { CURSOR_EXCLUSIONS_PATH, CURSOR_INSTRUCTIONS_PATH } from "./cursor/cursor";
+import { GEMINI_EXCLUSIONS_PATH, GEMINI_INSTRUCTIONS_PATH } from "./gemini/gemini";
 import type { PolicyFile } from "./types";
 
 /** @deprecated Prefer MAX_LEAN_INSTRUCTION_BYTES from risk-core. */
@@ -53,7 +54,42 @@ export function exclusionPathForProvider(provider: ProviderId): string {
   if (provider === "claude") {
     return CLAUDE_EXCLUSIONS_PATH;
   }
+  if (provider === "gemini") {
+    return GEMINI_EXCLUSIONS_PATH;
+  }
   return GENERIC_EXCLUSIONS_PATH;
+}
+
+export function instructionPathForProvider(provider: ProviderId): string {
+  if (provider === "copilot") {
+    return COPILOT_INSTRUCTIONS_PATH;
+  }
+  if (provider === "claude") {
+    return CLAUDE_INSTRUCTIONS_PATH;
+  }
+  if (provider === "cursor") {
+    return CURSOR_INSTRUCTIONS_PATH;
+  }
+  if (provider === "gemini") {
+    return GEMINI_INSTRUCTIONS_PATH;
+  }
+  return GENERIC_INSTRUCTIONS_PATH;
+}
+
+export function instructionTitleForProvider(provider: ProviderId): string {
+  if (provider === "copilot") {
+    return "Copilot instructions (TokenForge)";
+  }
+  if (provider === "claude") {
+    return "Claude / Codex instructions (TokenForge)";
+  }
+  if (provider === "cursor") {
+    return "Cursor rules (TokenForge)";
+  }
+  if (provider === "gemini") {
+    return "Gemini instructions (TokenForge)";
+  }
+  return "TokenForge instructions (generic)";
 }
 
 export function renderExclusionYaml(

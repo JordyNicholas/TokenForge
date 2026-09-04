@@ -29,6 +29,7 @@ const PROVIDERS = new Set<ProviderId>([
   "copilot",
   "cursor",
   "claude",
+  "gemini",
   "generic",
 ]);
 const REASONS = new Set<FindingReason>([
