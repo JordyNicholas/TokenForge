@@ -359,6 +359,9 @@ function providerShapeOf(path: string): ProviderId | undefined {
   if (lower.endsWith("claude.md")) {
     return "claude";
   }
+  if (lower.endsWith("gemini.md") || lower.startsWith(".gemini/")) {
+    return "gemini";
+  }
   return undefined;
 }
 

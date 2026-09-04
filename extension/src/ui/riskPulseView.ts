@@ -171,6 +171,7 @@ class RiskPulseProvider implements WebviewViewProvider {
         providerValue === "copilot" ||
         providerValue === "cursor" ||
         providerValue === "claude" ||
+        providerValue === "gemini" ||
         providerValue === "generic"
           ? providerValue
           : "generic";

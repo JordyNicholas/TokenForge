@@ -43,6 +43,7 @@ import { installCursorShieldHooks } from "./hooks/cursorHooks";
 import {
   applyCompactRules,
   previewCompactRules,
+  resolveCompactReport,
   showCompactRulesPreviewMessage,
 } from "./instructions/compactRules";
 import { startContinuousAnalyze } from "./instructions/continuousAnalyze";
@@ -296,7 +297,7 @@ function startContextGuard(context: ExtensionContext): void {
     async () => {
       try {
         const root = resolveWorkspaceRoot();
-        const report = assertValidLastScan(
+        const sessionReport = assertValidLastScan(
           buildLastScanReport({
             tabs: session.listAll(),
             decisionFor: (uri) => session.decision(uri),
@@ -305,6 +306,7 @@ function startContextGuard(context: ExtensionContext): void {
             provider: providerIdFromSettings(),
           }),
         );
+        const report = await resolveCompactReport(root, sessionReport);
         const preview = await previewCompactRules(root, report);
         if (preview.resolved.length === 0) {
           void window.showInformationMessage(
@@ -316,7 +318,7 @@ function startContextGuard(context: ExtensionContext): void {
         if (!apply) {
           return;
         }
-        const written = await applyCompactRules(root, report);
+        const written = await applyCompactRules(root, preview);
         void window.showInformationMessage(
           `Compact rules applied to ${written.length} file(s): ${written.join(", ")}`,
         );
@@ -665,6 +667,7 @@ function providerIdFromSettings(): ProviderId {
     value === "copilot" ||
     value === "cursor" ||
     value === "claude" ||
+    value === "gemini" ||
     value === "generic"
   ) {
     return value;

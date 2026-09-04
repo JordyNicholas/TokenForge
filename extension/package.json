@@ -494,6 +494,7 @@
             "copilot",
             "cursor",
             "claude",
+            "gemini",
             "generic"
           ],
           "description": "Fix adapter id recorded in last-scan.json (scoring ignores this)."

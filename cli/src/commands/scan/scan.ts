@@ -40,6 +40,7 @@ const PROVIDERS = new Set<ProviderId>([
   "copilot",
   "cursor",
   "claude",
+  "gemini",
   "generic",
 ]);
 
@@ -83,7 +84,7 @@ export function parseProviderId(value: string): ProviderId {
     return value as ProviderId;
   }
   throw new UsageError(
-    `Unknown provider "${value}". Use copilot, cursor, claude, or generic.`,
+    `Unknown provider "${value}". Use copilot, cursor, claude, gemini, or generic.`,
   );
 }
 

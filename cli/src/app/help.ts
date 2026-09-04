@@ -30,7 +30,7 @@ Commands:
 Common options (most commands):
   --team <name>       Team label (default: local)
   --repo <name>       Repo label (default: directory name)
-  --provider <id>     copilot | cursor | claude | generic
+  --provider <id>     copilot | cursor | claude | gemini | generic
   --dry-run           Show planned writes without changing files
   --json              Print machine-readable JSON to stdout
   -h, --help          Show help
@@ -78,7 +78,7 @@ const COMMAND_HELP: Record<string, string> = {
   Write agent policy pack: managed instruction section + exclusion candidates.
 
   Options:
-    --provider copilot            Default apply adapter (copilot | cursor | claude | generic)
+    --provider copilot            Default apply adapter (copilot | cursor | claude | gemini | generic)
     --mode heuristic | hybrid     Policy synthesis mode (default: heuristic)
     --llm <backend[:model]>       Hybrid apply — compiles scan JSON into policy text
     --allow-external              Required for hybrid apply with vendor CLI backends

@@ -370,6 +370,7 @@ export const SECRET_FILE_PATTERNS: readonly RegExp[] = [
 export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([
   "agents.md",
   "claude.md",
+  "gemini.md",
   "copilot-instructions.md",
   "cursorrules",
   ".cursorrules",
@@ -378,6 +379,7 @@ export const INSTRUCTION_FILE_NAMES: ReadonlySet<string> = new Set([
 /** Path segments that indicate instruction / rules directories. */
 export const INSTRUCTION_PATH_SEGMENTS: ReadonlySet<string> = new Set([
   ".cursor",
+  ".gemini",
   "rules",
 ]);
 
