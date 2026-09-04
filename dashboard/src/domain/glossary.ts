@@ -17,7 +17,10 @@ export type GlossaryTermId =
   | "waste-applicability"
   | "prove-loop"
   | "honest-tiers"
-  | "exclusion-ratio";
+  | "exclusion-ratio"
+  | "calibration"
+  | "honor-smoke"
+  | "enforcement";
 
 export type GlossaryTerm = {
   id: GlossaryTermId;
@@ -128,6 +131,27 @@ export const GLOSSARY_TERMS: readonly GlossaryTerm[] = [
     short: "Saved tokens ÷ before tokens on the active scan board for a team.",
     long: "Heatmap color encodes each team’s exclusion ratio on the current board. Click a cell or team to open that team’s scoped dashboard.",
     relatedView: "heatmap",
+  },
+  {
+    id: "calibration",
+    title: "Calibration band",
+    short:
+      "How strongly estimate vs billed Δ can be read: strong / suggestive / weak / insufficient — never 100% causation.",
+    long: "Calibration compares estimated reduction to imported billed change. Strong requires a control cohort and aligned movement. Suggestive/weak/insufficient are honest labels for empty control or noisy periods. See prove-report and Variance Copy prove summary.",
+    relatedView: "variance",
+  },
+  {
+    id: "honor-smoke",
+    title: "Honor smoke",
+    short:
+      "Checklist that the host appears to honor Soft/Hard Shield files — observation, not metering.",
+    long: "`tokenforge honor-smoke` writes `.tokenforge/honor-smoke.json` with Cursor Soft (`.cursorindexingignore`) and Hard (`.cursorignore`) verification steps. It does not intercept the agent pipeline or prove invoice savings.",
+  },
+  {
+    id: "enforcement",
+    title: "Enforcement tier",
+    short: "How reliably a provider honors Shield/ignore: full, partial, or advisory.",
+    long: "Cursor Shield is full where ignore files are honored. Copilot and Gemini are partial. Claude and generic instruction packs are advisory unless a host-native ignore merge exists. Candidates are not enforced until promote-shield.",
   },
 ] as const;
 

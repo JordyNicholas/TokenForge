@@ -8,8 +8,12 @@ export so Prove can show **estimated reduction**, **actual billed change**, and
 This is a **manual reconciliation** demo. It is **not** live vendor billing sync and
 **not** metering of any agent pipeline.
 
-Hackathon ≤5-min script (noisy tabs → CLI → ~30% scenario): [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).
+Hackathon ≤5-min script (noisy tabs → CLI → ~30% scenario): [`DEMO_RUNBOOK.md`](./DEMO_RUNBOOK.md).  
+Director standard pilot (control team + 2 periods + freeze + prove-report): [`STANDARD_PILOT_KIT.md`](./STANDARD_PILOT_KIT.md).  
 Plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md).
+
+Platform monthly operator checklist (usage-sync + scan + drift + org-seed):
+[`MONTHLY_CADENCE.md`](./MONTHLY_CADENCE.md).
 
 ## Honesty (say this out loud)
 
@@ -60,6 +64,7 @@ report anytime:
 
 ```bash
 npm run tokenforge -- prove-report fixtures/noisy-app
+npm run tokenforge -- honor-smoke fixtures/noisy-app
 ```
 
 Dry-run apply (scan + planned files only):
@@ -93,12 +98,15 @@ npm run tokenforge -- discover . --provider copilot
 # → .tokenforge/discover-latest.json (boot dashboard with ?discover=/discover-latest.json)
 ```
 
-Promote cursor/copilot ignore candidates into shield files (explicit — never silent):
+Promote cursor/copilot/gemini ignore candidates into shield files (explicit — never silent):
 
 ```bash
 npm run tokenforge -- promote-shield . --provider cursor --dry-run
+npm run tokenforge -- promote-shield . --provider gemini --dry-run
 npm run tokenforge -- apply . --provider cursor --promote-shield
 ```
+
+Claude promote writes advisory entries to `.tokenforge/session-shield.json` (no verified ignore file).
 
 ## Fast path (sanitized fixture, ~3 min)
 
@@ -264,6 +272,21 @@ Smoke (no billing secrets): Actions → **Prove monthly** → Run workflow with
 Cron-only shops can keep the shell example above; same CLI flags as the Action.
 Do not rely on `tokenforge:usage-sync` / `tokenforge:prove` in CI (those stage
 the local dashboard).
+
+## Platform checklist (ongoing)
+
+After the first pilot apply, wire these into the team's normal Platform lane — not
+as one-off demo steps:
+
+| Check | Command / workflow | When |
+| --- | --- | --- |
+| Managed section drift | `npm run tokenforge -- drift . --provider <cursor\|copilot\|claude>` | Every PR (or nightly) — fails if `<!-- tokenforge:begin/end -->` markers or section hash drift |
+| Drift in CI | Copy [`.github/workflows/examples/tokenforge-drift.yml`](../.github/workflows/examples/tokenforge-drift.yml) into the repo's `.github/workflows/` | On push / PR to protected branches |
+| Cursor ignore shield | `npm run tokenforge -- promote-shield . --provider cursor --dry-run` then `apply --promote-shield` | After first Fix apply in Cursor shops — promotes ignore candidates into `.cursorignore` / shield files explicitly (never silent) |
+| Monthly Prove | [`.github/workflows/prove-monthly.yml`](../.github/workflows/prove-monthly.yml) | Platform-owned billing window compare |
+
+Developers keep Context Guard for real-time Detect; Platform owns drift gates and
+monthly billed-usage reconciliation.
 
 ## Out of scope (do not demo as done)
 

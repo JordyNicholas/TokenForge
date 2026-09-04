@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { RiskAssessment } from "../domain/types";
 import {
+  DEFAULT_BORDERLINE_CANDIDATE_COUNT,
   DEFAULT_MAX_ENRICHMENT_CANDIDATES,
   DEFAULT_REPEATED_CONFIG_COUNT,
 } from "../domain/constants";
 import { scoreRisk } from "../score/score";
 import {
+  isInstructionPath,
+  orderedBucketAssessments,
   repeatedConfigBasenames,
   selectEnrichmentCandidates,
 } from "./candidates";
@@ -93,16 +96,22 @@ describe("selectEnrichmentCandidates", () => {
     expect(selected.map((item) => item.path)).toEqual(["src/a.ts", "src/z.ts", "src/m.ts"]);
   });
 
-  it("caps at 30 candidates by default when no maxCandidates is given", () => {
-    // Borderline bucket has no per-bucket limit, so 40 borderline configs exercise
-    // the function's own default cap (30) rather than the topCount default (10).
-    const assessments = Array.from({ length: 40 }, (_, index) =>
+  it("caps the borderline bucket at borderlineCount, largest bytes first (B4)", () => {
+    const borderlineConfigs = Array.from({ length: 40 }, (_, index) =>
       assessment(`config/file-${index}.json`, 10_000 - index, { fileClass: "config" }),
     );
 
-    const selected = selectEnrichmentCandidates(assessments);
+    const ordered = orderedBucketAssessments(borderlineConfigs, {
+      topCount: 0,
+      sourceTopCount: 0,
+      repeatedConfigCount: 0,
+    });
+    const borderlineSelected = ordered.filter((item) =>
+      item.path.startsWith("config/file-"),
+    );
 
-    expect(selected).toHaveLength(30);
+    expect(borderlineSelected).toHaveLength(DEFAULT_BORDERLINE_CANDIDATE_COUNT);
+    expect(borderlineSelected[0].path).toBe("config/file-0.json");
   });
 
   it("gives small source files a fair chance even when the repo is dominated by bigger files (B8)", () => {
@@ -327,6 +336,24 @@ describe("selectEnrichmentCandidates", () => {
 
     expect(selected.filter((item) => item.path === "AGENTS.md")).toHaveLength(1);
     expect(selected[0].path).toBe("AGENTS.md");
+  });
+});
+
+describe("isInstructionPath", () => {
+  it("matches basename instruction files and agent rules directories", () => {
+    expect(isInstructionPath("AGENTS.md")).toBe(true);
+    expect(isInstructionPath(".cursor/rules/foo.md")).toBe(true);
+    expect(isInstructionPath(".cursor/rules/sub/deep.mdc")).toBe(true);
+    expect(isInstructionPath(".github/rules/copilot.md")).toBe(true);
+    expect(isInstructionPath(".claude/rules/project.md")).toBe(true);
+  });
+
+  it("does not treat a bare rules/ business directory as instruction (B1)", () => {
+    expect(isInstructionPath("fixtures/borderline-app/rules/pricing-notes.md")).toBe(
+      false,
+    );
+    expect(isInstructionPath("rules/pricing-notes.md")).toBe(false);
+    expect(isInstructionPath("src/app.ts")).toBe(false);
   });
 });
 

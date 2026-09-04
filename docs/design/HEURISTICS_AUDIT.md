@@ -571,11 +571,11 @@ Golden totals: `fixtures/expected/asset-dump-app-totals.json`. Story: #301.
 Use this checklist before filing new heuristic stories. Prefer **document + golden fixture**
 over risky one-off rule changes.
 
-| Step | Target | Action |
+| Step | Target | Status |
 | --- | --- | --- |
-| 1 | B1 — bare `rules` segment | Tighten `isInstructionPath` to require `.cursor/rules`, `.claude/rules`, or `.github/rules` parents; add `fixtures/borderline-app` regression |
-| 2 | B2 / B3 — oversized `source` | Do not recommend `excluded` for `oversized`-only `source` findings; scale or gate the 100KB bar by class |
-| 3 | B4 — borderline bucket cap | Cap the borderline enrichment bucket separately from the global 30-candidate ceiling (#166) |
+| 1 | B1 — bare `rules` segment | **Fixed** — `isInstructionPath` requires `.cursor/rules`, `.claude/rules`, or `.github/rules`; `fixtures/borderline-app` regression |
+| 2 | B2 / B3 — oversized `source` | **Fixed** — `heuristicFindingAction` keeps oversized-only `source`; `SOURCE_OVERSIZED_BYTES` (250 KB) class-aware bar in `scoreRisk` |
+| 3 | B4 — borderline bucket cap | **Fixed** — `DEFAULT_BORDERLINE_CANDIDATE_COUNT` (8) on the borderline enrichment bucket (#166) |
 | 4 | Left open — field-level JSON | Document-only: no contract change until per-file partial verdicts exist |
 | 5 | Left open — recency | Document-only: git mtime is not relevance; extension `activePaths` remains the input (#137) |
 | 6 | Output-shape follow-on | Extend B16 classes if new CI artifact shapes appear in pilot repos (story #171 backlog) |

@@ -12,6 +12,12 @@ function contextProviderForPolicy(provider: ProviderId): ContextProviderId {
   if (provider === "copilot") {
     return "copilot";
   }
+  if (provider === "gemini") {
+    return "gemini";
+  }
+  if (provider === "claude") {
+    return "claude";
+  }
   return "generic";
 }
 

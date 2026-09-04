@@ -2,7 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
-import { CURSOR_IGNORE_CANDIDATES_PATH } from "@tokenforge/policy-adapters";
+import {
+  CURSOR_IGNORE_CANDIDATES_PATH,
+  GEMINI_EXCLUSIONS_PATH,
+} from "@tokenforge/policy-adapters";
 import { TOKENFORGE_IGNORE_BEGIN } from "@tokenforge/context-adapters";
 import { promoteShieldCandidates } from "./promote-shield";
 
@@ -63,5 +66,25 @@ describe("promoteShieldCandidates", () => {
     await expect(
       import("node:fs/promises").then((fs) => fs.access(join(root, ".cursorignore"))),
     ).rejects.toThrow();
+  });
+
+  it("merges gemini candidates into .geminiignore", async () => {
+    const root = tempRoot("tf-promote-gemini");
+    await mkdir(join(root, ".gemini"), { recursive: true });
+    await writeFile(
+      join(root, GEMINI_EXCLUSIONS_PATH),
+      "paths:\n  - package-lock.json\n",
+      "utf8",
+    );
+
+    const result = await promoteShieldCandidates({ root, provider: "gemini" });
+    expect(result.promoted).toBe(true);
+    expect(result.targetPath).toBe(".geminiignore");
+
+    const ignore = await import("node:fs/promises").then((fs) =>
+      fs.readFile(join(root, ".geminiignore"), "utf8"),
+    );
+    expect(ignore).toContain(TOKENFORGE_IGNORE_BEGIN);
+    expect(ignore).toContain("package-lock.json");
   });
 });

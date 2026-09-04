@@ -137,6 +137,12 @@ function startContextGuard(context: ExtensionContext): void {
       if (event.affectsConfiguration("tokenforge.durableFilterDecisions")) {
         rehydrate();
       }
+      if (
+        event.affectsConfiguration("tokenforge.installCursorHooks") ||
+        event.affectsConfiguration("tokenforge.postTurnLogging")
+      ) {
+        void maybeInstallCursorHooks();
+      }
     }),
     { dispose: () => durable.dispose() },
   );
@@ -698,15 +704,15 @@ function rehydrateDurableDecisions(
 }
 
 async function maybeInstallCursorHooks(): Promise<void> {
-  const enabled = workspace
-    .getConfiguration("tokenforge")
-    .get<boolean>("installCursorHooks", false);
+  const config = workspace.getConfiguration("tokenforge");
+  const enabled = config.get<boolean>("installCursorHooks", false);
   if (!enabled) {
     return;
   }
   try {
     const root = resolveWorkspaceRoot();
-    await installCursorShieldHooks(root);
+    const postTurnLogging = config.get<boolean>("postTurnLogging", false) === true;
+    await installCursorShieldHooks(root, { postTurnLogging });
   } catch {
     /* no workspace */
   }

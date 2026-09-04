@@ -92,8 +92,10 @@ Add a short subsection when shipped behavior differs from the narrative:
 
 | Doc claim | Code today |
 | --- | --- |
-| `tokenforge prove` CLI | **Not shipped** — use `npm run tokenforge:prove` (shell wrapper) |
 | Session stats on dashboard | **Shipped** — extension writes `session-stats.json`; dashboard loads via Source or `?session=` boot |
+| Standard Director pilot | **Shipped** — [`STANDARD_PILOT_KIT.md`](./runbooks/STANDARD_PILOT_KIT.md) + `honor-smoke` + enriched `prove-report` |
+| Platform monthly cadence | **Shipped** — [`MONTHLY_CADENCE.md`](./runbooks/MONTHLY_CADENCE.md) |
+| F24 adoption & evidence | **Shipped** — [`F24_REAL_WORLD_ADOPTION.md`](./delivery/F24_REAL_WORLD_ADOPTION.md) Waves A–D |
 ```
 
 Remove rows when the gap closes.

@@ -28,6 +28,8 @@ export {
 export { genericContextAdapter } from "./generic.js";
 export { cursorContextAdapter } from "./cursor.js";
 export { copilotContextAdapter } from "./copilot.js";
+export { geminiContextAdapter } from "./gemini.js";
+export { claudeContextAdapter } from "./claude.js";
 
 export {
   type DetectContextProviderHints,

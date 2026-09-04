@@ -109,6 +109,11 @@ export {
   type CohortSummary,
   type CohortTrustLevel,
 } from "./cohortCompare";
+export {
+  estimateVsBilledBand,
+  type CalibrationBand,
+  type CalibrationBandResult,
+} from "./calibrationBands";
 export { buildProveSummaryMarkdown, type ProveSummaryInput } from "./proveSummary";
 export {
   ChangeMarkerLoadError,

@@ -430,9 +430,10 @@
             "cursor",
             "copilot",
             "claude",
+            "gemini",
             "generic"
           ],
-          "markdownDescription": "Which **context adapter** applies Shield levers. `auto` detects Cursor / Copilot from workspace hints and installed extensions."
+          "markdownDescription": "Which **context adapter** applies Shield levers. `auto` detects Cursor / Copilot / Gemini / Claude from workspace hints and installed extensions."
         },
         "tokenforge.closeTabOnHardShield": {
           "type": "boolean",

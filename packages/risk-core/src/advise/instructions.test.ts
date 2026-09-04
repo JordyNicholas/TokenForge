@@ -305,11 +305,17 @@ describe("synthesizeLeanInstructions", () => {
 
     const withActive: TokenRiskReport = {
       ...heuristicReport,
-      activePaths: [excluded!.path],
+      activePaths: [excluded!.path, "src/app.ts"],
     };
 
+    const md = synthesizeLeanInstructions(withActive);
+    expect(md).toContain("Keep open editor tabs in context");
+    expect(md).toContain(excluded!.path);
     expect(synthesizeLeanInstructions(heuristicReport)).toContain(excluded!.path);
-    expect(synthesizeLeanInstructions(withActive)).not.toContain(excluded!.path);
+    const doNotLoad = md.includes("## Do not load")
+      ? md.slice(md.indexOf("## Do not load"), md.indexOf("## Prefer"))
+      : "";
+    expect(doNotLoad).not.toContain(excluded!.path);
   });
 
   it("is deterministic for the same report", () => {

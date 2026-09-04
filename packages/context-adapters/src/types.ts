@@ -4,7 +4,12 @@ export type ShieldMode = "soft" | "hard";
 /** How reliably the provider honors a shield for the given path. */
 export type EffectivenessTier = "full" | "partial" | "advisory";
 
-export type ContextProviderId = "generic" | "cursor" | "copilot";
+export type ContextProviderId =
+  | "generic"
+  | "cursor"
+  | "copilot"
+  | "gemini"
+  | "claude";
 
 export type ContextCapabilities = {
   id: ContextProviderId;

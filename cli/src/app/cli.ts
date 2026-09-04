@@ -9,6 +9,7 @@ import { checkPolicyDrift } from "../commands/drift/drift";
 import { rollupOrgSeed } from "../commands/org-seed/org-seed";
 import { promoteShieldCandidates } from "../commands/promote-shield/promote-shield";
 import { writeProveReport } from "../commands/prove-report/prove-report";
+import { writeHonorSmoke } from "../commands/honor-smoke/honor-smoke";
 import { applyOrgRemote } from "../commands/org-apply/org-apply";
 import { runMcpServer } from "../mcp/runMcpServer";
 import {
@@ -332,6 +333,25 @@ export async function runCli(
         io.stdout.write(
           `${JSON.stringify(
             { outPath: written.outPath, reportPath: written.reportPath },
+            null,
+            2,
+          )}\n`,
+        );
+      } else {
+        io.stdout.write(`wrote ${written.outPath}\n`);
+      }
+      return 0;
+    }
+
+    if (command === "honor-smoke") {
+      const written = await writeHonorSmoke({
+        root,
+        outPath: values.out,
+      });
+      if (values.json) {
+        io.stdout.write(
+          `${JSON.stringify(
+            { outPath: written.outPath, modes: written.artifact.modes.length },
             null,
             2,
           )}\n`,

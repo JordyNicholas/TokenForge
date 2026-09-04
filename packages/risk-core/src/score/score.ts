@@ -8,6 +8,7 @@ import {
   SCORE_WEIGHT_CLASS,
   SCORE_WEIGHT_INACTIVE,
   SCORE_WEIGHT_SIZE,
+  SOURCE_OVERSIZED_BYTES,
 } from "../domain/constants";
 import { estimateTokens } from "../estimate/estimate";
 import { isAuxiliaryDataPath, protectionFor } from "../protect/protect";
@@ -91,7 +92,9 @@ export function scoreRisk(input: RiskInput): RiskAssessment {
   }
   const oversizedBytes = isAuxiliaryDataPath(input.path)
     ? AUXILIARY_OVERSIZED_BYTES
-    : OVERSIZED_BYTES;
+    : fileClass === "source"
+      ? SOURCE_OVERSIZED_BYTES
+      : OVERSIZED_BYTES;
   if (bytes >= oversizedBytes && !suppressed.has("oversized")) {
     reasons.push("oversized");
   }

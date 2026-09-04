@@ -3,6 +3,7 @@ import {
   AUXILIARY_OVERSIZED_BYTES,
   INACTIVE_MS,
   OVERSIZED_BYTES,
+  SOURCE_OVERSIZED_BYTES,
 } from "../domain/constants";
 import { primaryReason, heuristicFindingAction, scoreRisk } from "./score";
 
@@ -190,11 +191,22 @@ describe("heuristicFindingAction", () => {
   it("keeps oversized-only application source out of Fix exclusions (B2)", () => {
     const assessment = scoreRisk({
       path: "src/generated-types.ts",
-      bytes: OVERSIZED_BYTES + 1,
+      bytes: SOURCE_OVERSIZED_BYTES + 1,
       inactiveMs: 0,
     });
     expect(assessment.fileClass).toBe("source");
     expect(heuristicFindingAction(assessment, "oversized")).toBe("kept");
+  });
+
+  it("does not flag source below the class-aware oversized bar (B3)", () => {
+    const assessment = scoreRisk({
+      path: "src/generated-types.ts",
+      bytes: OVERSIZED_BYTES + 1,
+      inactiveMs: 0,
+    });
+    expect(assessment.fileClass).toBe("source");
+    expect(assessment.atRisk).toBe(false);
+    expect(assessment.reasons).toEqual([]);
   });
 
   it("still excludes oversized config and high-risk filetypes", () => {
@@ -216,7 +228,7 @@ describe("heuristicFindingAction", () => {
   it("excludes source when oversized is not the sole reason", () => {
     const assessment = scoreRisk({
       path: "src/app.ts",
-      bytes: OVERSIZED_BYTES + 1,
+      bytes: SOURCE_OVERSIZED_BYTES + 1,
       inactiveMs: INACTIVE_MS,
     });
     expect(assessment.reasons).toContain("oversized");

@@ -170,7 +170,7 @@ Icon: shield + funnel (`extension/media/tokenforge.svg` for the activity bar, `t
 | Package | Job |
 | --- | --- |
 | `@tokenforge/risk-core` | Score, classes, report contract |
-| `@tokenforge/context-adapters` | Shield levers (Cursor / Copilot partial / generic) |
+| `@tokenforge/context-adapters` | Shield levers (Cursor full / Copilot partial / Gemini partial / Claude advisory / generic) |
 | `@tokenforge/policy-adapters` | Compact-rules / Fix file rendering |
 | `@tokenforge/enrichers` | LLM enrich + JSON judge (Ollama local default) |
 
@@ -184,7 +184,8 @@ Wave epics F8–F13 (#237–#242) are **closed** on GitHub (rebuild landed as on
 
 | Doc claim | Code today |
 | --- | --- |
-| AI-narrated session summary | **Heuristic KPI sentences** — optional LLM wrap is #276 |
-| `postTurnLogging` setting | Post-turn hook runs whenever hooks are installed; setting is not a separate gate (#273) |
-| Marketplace screenshots | Icon only; screenshot pack is #279 |
-| Session stats on dashboard | Extension writes JSON; dashboard does not load it |
+| AI-narrated session summary | **Shipped** — heuristic free path; local Ollama one-shot when enrichment on (#276) |
+| `postTurnLogging` setting | **Shipped** — post-turn hook installs only when setting + `installCursorHooks` are on (#273) |
+| Marketplace screenshots | Icon ships; gallery checklist + alt text in `extension/README.md` (#279) |
+| Daily Fix/Prove health strip | **Shipped** — Overview chips: Scan / Session / Drift / Promote (F24-C) |
+| Session stats on dashboard | Extension writes JSON; dashboard loads via Source or `?session=` boot |

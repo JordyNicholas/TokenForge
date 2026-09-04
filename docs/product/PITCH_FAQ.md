@@ -107,11 +107,21 @@ compare, auto-suggest `realizedWasteShare` from variance, and this FAQ + Overvie
 
 **Live hygiene:** extension exports `session-stats.json`; dashboard loads via
 Source or `?session=` boot (Filter/Shield estimate — not billed usage).
+Overview shows a **daily health strip** (scan freshness, session export, drift, promote).
+
+**Context Shield:** Cursor (full), Copilot/Gemini (partial ignore merge), Claude/generic
+(advisory session-shield). Effectiveness tiers are honest — no pipeline interception.
 
 **Honesty:** we reconcile **estimated** context-waste savings with **period billed usage**.
 We do not meter the agent's private pipeline. **Cohort** tags reduce “was that TokenForge?”
 noise — they do **not** prove 100% of an invoice delta was caused by TokenForge.
-Live sync still needs org-approved credentials; import works offline.
+**Calibration bands** (strong / suggestive / weak / insufficient) label how far estimate vs
+billed Δ can be read — strong needs a control cohort. Live sync still needs org-approved
+credentials; import works offline.
+
+Director standard path: [`STANDARD_PILOT_KIT.md`](../runbooks/STANDARD_PILOT_KIT.md) ·
+Platform monthly: [`MONTHLY_CADENCE.md`](../runbooks/MONTHLY_CADENCE.md) ·
+Adoption program: [`F24_REAL_WORLD_ADOPTION.md`](../delivery/F24_REAL_WORLD_ADOPTION.md).
 
 ## Completions vs Chat/Agent metering?
 

@@ -1,8 +1,10 @@
 import { access } from "node:fs/promises";
 import { join } from "node:path";
 import type { ContextProviderId, ProviderContextAdapter } from "./types.js";
+import { claudeContextAdapter } from "./claude.js";
 import { copilotContextAdapter } from "./copilot.js";
 import { cursorContextAdapter } from "./cursor.js";
+import { geminiContextAdapter } from "./gemini.js";
 import { genericContextAdapter } from "./generic.js";
 
 export type DetectContextProviderHints = {
@@ -10,12 +12,18 @@ export type DetectContextProviderHints = {
   copilot?: boolean;
   /** VS Code / extension knows Cursor is the active agent. */
   cursor?: boolean;
+  /** VS Code / extension knows Gemini CLI is the active agent. */
+  gemini?: boolean;
+  /** VS Code / extension knows Claude Code is the active agent. */
+  claude?: boolean;
 };
 
 const adapters: Record<ContextProviderId, ProviderContextAdapter> = {
   generic: genericContextAdapter,
   cursor: cursorContextAdapter,
   copilot: copilotContextAdapter,
+  gemini: geminiContextAdapter,
+  claude: claudeContextAdapter,
 };
 
 /** Resolve a provider context adapter by id. */
@@ -46,6 +54,12 @@ export async function detectContextProvider(
   if (hints.copilot) {
     return "copilot";
   }
+  if (hints.gemini) {
+    return "gemini";
+  }
+  if (hints.claude) {
+    return "claude";
+  }
 
   const hasCursor =
     (await pathExists(root, ".cursor")) ||
@@ -64,7 +78,30 @@ export async function detectContextProvider(
     return "copilot";
   }
 
+  const hasGemini =
+    (await pathExists(root, ".gemini")) ||
+    (await pathExists(root, ".geminiignore")) ||
+    (await pathExists(root, "GEMINI.md"));
+
+  if (hasGemini) {
+    return "gemini";
+  }
+
+  const hasClaude =
+    (await pathExists(root, "CLAUDE.md")) ||
+    (await pathExists(root, ".claude"));
+
+  if (hasClaude) {
+    return "claude";
+  }
+
   return "generic";
 }
 
-export { genericContextAdapter, cursorContextAdapter, copilotContextAdapter };
+export {
+  genericContextAdapter,
+  cursorContextAdapter,
+  copilotContextAdapter,
+  geminiContextAdapter,
+  claudeContextAdapter,
+};

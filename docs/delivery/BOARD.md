@@ -36,17 +36,18 @@ Phase 2. Former catch-all #7 was split:
 | F10 Extension rebuild Wave C: Session AI | #239 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
 | F11 Extension rebuild Wave D: Instructions & Fix in IDE | #240 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
 | F12 Extension rebuild Wave E: Discover & advisory | #241 | Future | **Epics Finished** (some child issues still open on GitHub; code on `main`) |
-| F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **Epics Finished** (#279 screenshots and #276 LLM summary remain follow-on) |
-| F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **To-Do** (open) |
+| F13 Extension rebuild Wave F: Prove, docs & ship | #242 | Future | **Epics Finished** (#276/#279 closed under F24) |
+| F14 Heuristic Fix: robust deterministic policy synthesis | #283 | Future | **In Progress** (F24-B lean instructions shipped; epic may remain for further synthesis) |
 | F15 Extension AI-First: first-class local LLM judgment | #306 | Future | **Epics Finished** (#307–#311) |
 | F16 Dashboard UI tests: Cypress E2E + component | #314 | Future | **In Progress** (#315 Done; hero click-through on main) |
 | F17 Multi-vendor AI Fix parity (CLI ↔ Extension) | #320 | Future | **Epics Finished** (#321–#324; PR #325) |
-| F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **In Progress** (Waves 1–4 FinOps viability shipped in-tree) |
-| F19 Org-scale Detect rollup (CLI) | — | Future | **In Progress** (Wave 5) |
-| F20 Quality gate: heuristics + Cypress | — | Future | **In Progress** (Wave 5) |
-| F21 GTM polish: hybrid defaults + marketplace | — | Future | **In Progress** (Wave 5) |
-| F22 Optional session narrative (#276) | — | Future | **In Progress** (Wave 5 stub) |
-| F23 Context Shield vendor follow-ons | — | Future | **To-Do** (Wave 5 — schedule only) |
+| F18 Prove pilot + dashboard visibility (local-first) | #326 | Future | **Done** (Waves 1–4 FinOps viability) |
+| F19 Org-scale Detect rollup (CLI) | — | Future | **Done** (Wave 5) |
+| F20 Quality gate: heuristics + Cypress | — | Future | **Done** (B1–B4 Fixed; Cypress nightly) |
+| F21 GTM polish: hybrid defaults + marketplace | — | Future | **Done** (#279 gallery spec in README) |
+| F22 Optional session narrative (#276) | — | Future | **Done** (heuristic + Ollama → session-narrative.md) |
+| F23 Context Shield vendor follow-ons | — | Future | **Done** (Gemini partial + Claude advisory) |
+| F24 Real-world adoption & evidence | — | Future | **Done** — [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md) |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -446,7 +447,7 @@ Discover, MCP audit, smart excerpt. **Epic closed.**
 | #270 | Discover LLM rank + Overview card | Extension | **Done** |
 | #271 | MCP config audit | Extension | **Done** |
 | #272 | smart excerpt command | Extension | **Done** |
-| #273 | post-turn path logging hook (opt-in) | Extension | **Partial** — hook ships with installer; `postTurnLogging` is not a separate gate |
+| #273 | post-turn path logging hook (opt-in) | Extension | **Done** — gated by `tokenforge.postTurnLogging` + marker file |
 | #274 | monorepo scope hints in Discover | Extension | **Done** |
 | #275 | Tests: Discover & advisory | Tests | **Done** |
 
@@ -458,10 +459,10 @@ Walkthrough, marketplace, product docs. **Epic closed.** Follow-on: #276 LLM ses
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #276 | AI-narrated session summary (optional LLM) | Extension | **Stub** — `tokenforge.sessionNarrative` (F22); full enricher wiring To-Do |
+| #276 | AI-narrated session summary (optional LLM) | Extension | **Done** — local Ollama one-shot + `.tokenforge/session-narrative.md` |
 | #277 | external-send transparency coach | Extension | **Done** |
 | #278 | walkthrough + first-run onboarding | Extension | **Done** |
-| #279 | README + marketplace screenshots | Extension | To-Do — checklist in `extension/README.md` (F21) |
+| #279 | README + marketplace screenshots | Extension | **Done** — gallery table + alt text; binaries in `extension/media/` at publish |
 | #280 | EXTENSION_PRODUCT complete + CONTEXT_GUARD refresh | Docs | **Done** — this map |
 | #281 | vsce package CI + marketplace publish prep | DevEx | **Done** — `package:vsix` on CI |
 
@@ -523,8 +524,8 @@ Heuristic scan/Fix remains default everywhere; hybrid is opt-in with explicit `-
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
 | — | Dashboard `resetToDemo` → preferred Combined layer | Dashboard | **Shipped** |
-| #279 | README + marketplace screenshot gallery | Extension | To-Do — checklist in `extension/README.md` |
-| — | Extension README marketplace screenshot table | Extension | **Shipped** (Wave 5 light touch) |
+| #279 | README + marketplace screenshot gallery | Extension | **Done** — F24-C gallery spec |
+| — | Extension README marketplace screenshot table | Extension | **Shipped** |
 
 ### F22 — Optional session narrative (#276) (Wave 5)
 
@@ -532,8 +533,8 @@ Optional, clearly costed LLM summary of session hygiene — no interception clai
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| #276 | AI-narrated session summary (optional LLM) | Extension | **Stub shipped** — `tokenforge.sessionNarrative`; heuristic free path + honest AI gate |
-| — | Bounded enricher call for one-paragraph narrative | Extension | To-Do |
+| #276 | AI-narrated session summary (optional LLM) | Extension | **Done** — heuristic + local Ollama path writes `session-narrative.md` |
+| — | Bounded enricher call for one-paragraph narrative | Extension | **Done** — Ollama via `completeJson` when enrichment on |
 
 Build order: **stub command** (done) → wire local Ollama one-shot when `llmEnrichment` on.
 
@@ -543,10 +544,10 @@ After Cursor/Copilot **promote-shield** path (`tokenforge promote-shield`, F18).
 
 | Issue | Title | Surface | Status |
 | --- | --- | --- | --- |
-| — | Gemini Context Shield adapter (`.geminiignore` or host-native lever) | `context-adapters` | To-Do — schedule |
-| — | Claude Context Shield adapter (host-native ignore merge) | `context-adapters` | To-Do — schedule |
-| — | `promote-shield` parity for gemini/claude providers | CLI / Extension | To-Do — after adapters |
-| — | Docs: effectiveness tiers for Gemini/Claude hosts | Docs | To-Do |
+| — | Gemini Context Shield adapter (`.geminiignore` or host-native lever) | `context-adapters` | **Done** — partial ignore merge + session-shield |
+| — | Claude Context Shield adapter (host-native ignore merge) | `context-adapters` | **Done** — advisory session-shield only |
+| — | `promote-shield` parity for gemini/claude providers | CLI / Extension | **Done** — gemini → `.geminiignore`; claude → session-shield |
+| — | Docs: effectiveness tiers for Gemini/Claude hosts | Docs | **Done** — EXTENSION_PRODUCT + README |
 
 **Explicitly deferred:** full parity with Cursor Real Shield until host APIs are verified. Policy Fix adapters for gemini/claude already ship via F17 (#322); this epic is **Detect/Shield context**, not Fix synthesis.
 
@@ -592,7 +593,18 @@ Local-first Director + Developer spine — honesty floor unchanged (no pipeline 
 | 2 Fix that sticks | Apply preview, enforcement badges, `promote-shield`, drift hash, CI example, discover boot | **Shipped** |
 | 3 Director trust | Cohort trustLevel, Prove summary export, Glossary/FAQ sync, Source Detect/Prove packages | **Shipped** |
 | 4 Dev daily | Session→dashboard handoff, walkthrough, external-send coach, Shield effectiveness | **Shipped** |
-| 5 Scale/GTM | F19–F23 (org-seed, Cypress nightly, marketplace, narrative stub, Shield schedule) | **Shipped** (stubs/schedule as noted) |
+| 5 Scale/GTM | F19–F23 (org-seed, Cypress nightly, marketplace, narrative, Shield) | **Shipped** |
+
+### F24 — Real-world adoption & evidence
+
+Detail: [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md). Honesty floor unchanged.
+
+| Wave | Outcome | Status |
+| --- | --- | --- |
+| A Evidence | Standard pilot kit, `honor-smoke`, prove-report trust/calibration bands | **Shipped** |
+| B Fix quality | Heuristics B1–B4 Fixed, F14 leaner instructions, Platform drift/promote checklist | **Shipped** |
+| C Adoption | Extension daily health, #279 gallery, MONTHLY_CADENCE, session narrative | **Shipped** |
+| D Coverage | Gemini/Claude Shield adapters, postTurnLogging gate, docs sync | **Shipped** |
 
 ## Build order
 
@@ -608,12 +620,13 @@ Phase 2:
 5. **F5** (#177) — RTK-inspired native patterns (#170–#175 open; #176 **Done**); cross-refs F4 above
 6. **F6** (#199) — **Epics Finished** (#200–#211, #189); design: [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md)
 7. **F7** (#225) — **Epics Finished** (#226–#234); design: [`HYBRID_FIX_DESIGN.md`](../design/HYBRID_FIX_DESIGN.md)
-8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). Follow-on: #276, #279, #273 hook gate
+8. **F8–F13** (#237–#242) — **Extension Context Guard rebuild** (**Epics Finished** on GitHub). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md). #276/#279/#273 closed under F24.
 9. **F15** (#306) — **Extension AI-First** (**Epics Finished** with #307–#311). Build: #307 → #308 → #309 ∥ #310 → #311
 10. **F16** (#314) — **Dashboard Cypress tests** (#315 Done; hero click-through shipped; **nightly CI** shipped — F20)
 11. **F17** (#320) — **Multi-vendor AI Fix parity** (**Epics Finished** via PR #325)
 12. **F18** (#326) — **Prove pilot + dashboard visibility** + **FinOps Waves 1–4** (`pilot --prove`, prove-report, drift hash, promote-shield, cohort trust, session handoff)
-13. **F19–F23** (Wave 5) — **Scale, quality, GTM:** org-seed rollup, heuristics audit continuation, hybrid defaults, Cypress nightly, marketplace checklist, session narrative stub, Context Shield vendor schedule
-14. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
+13. **F19–F23** (Wave 5) — **Scale, quality, GTM** (shipped; F23 adapters completed under F24-D)
+14. **F24** — **Real-world adoption & evidence** ([`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md)) — **Done** (A–D)
+15. **Candidates** below — promote to issues when the team agrees scope (several filed under F8–F13)
 
-Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md).
+Design: [`HYBRID_SCAN_DESIGN.md`](../design/HYBRID_SCAN_DESIGN.md) · Complementary hybrid (F6): [`COMPLEMENTARY_HYBRID_SCAN.md`](../design/COMPLEMENTARY_HYBRID_SCAN.md) · Prove gap plan: [`USAGE_RECONCILIATION_PLAN.md`](../design/USAGE_RECONCILIATION_PLAN.md) · Extension Detect: [`EXTENSION_CONTEXT_GUARD.md`](../adapters/EXTENSION_CONTEXT_GUARD.md) · F24: [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md).

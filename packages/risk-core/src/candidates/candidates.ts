@@ -1,5 +1,6 @@
 import type { FiletypeRiskClass, RiskAssessment } from "../domain/types";
 import {
+  DEFAULT_BORDERLINE_CANDIDATE_COUNT,
   DEFAULT_MAX_ENRICHMENT_CANDIDATES,
   DEFAULT_REPEATED_CONFIG_COUNT,
   DEFAULT_SOURCE_CANDIDATE_COUNT,
@@ -19,6 +20,8 @@ export type EnrichmentCandidateOptions = {
   sourceTopCount?: number;
   /** Max paths from the repeated-config bucket (see #136). */
   repeatedConfigCount?: number;
+  /** Max borderline config/unknown paths (largest bytes first; see B4). */
+  borderlineCount?: number;
   /**
    * Max candidates returned after dedupe and cap. Omitting it is the normal
    * case and yields `DEFAULT_MAX_ENRICHMENT_CANDIDATES` — the cap is a
@@ -32,6 +35,16 @@ function basename(path: string): string {
   return segments[segments.length - 1] ?? path;
 }
 
+/** Recognized agent-rules directory prefixes (segment `rules` alone is not enough). */
+const AGENT_RULES_PREFIXES = [".cursor/rules", ".claude/rules", ".github/rules"] as const;
+
+function isAgentRulesPath(normalized: string): boolean {
+  const lower = normalized.toLowerCase();
+  return AGENT_RULES_PREFIXES.some(
+    (prefix) => lower === prefix || lower.startsWith(`${prefix}/`),
+  );
+}
+
 /** True for AGENTS.md / CLAUDE.md / copilot-instructions / .cursor|rules paths. */
 export function isInstructionPath(path: string): boolean {
   const normalized = path.replaceAll("\\", "/");
@@ -39,8 +52,15 @@ export function isInstructionPath(path: string): boolean {
   if (INSTRUCTION_FILE_NAMES.has(name)) {
     return true;
   }
+  if (isAgentRulesPath(normalized)) {
+    return true;
+  }
   const segments = normalized.split("/").filter(Boolean);
-  return segments.some((segment) => INSTRUCTION_PATH_SEGMENTS.has(segment.toLowerCase()));
+  return segments.some((segment) => {
+    const lower = segment.toLowerCase();
+    // Bare `rules` matches anywhere — too broad (B1). `.cursor` / `.gemini` stay.
+    return lower !== "rules" && INSTRUCTION_PATH_SEGMENTS.has(lower);
+  });
 }
 
 function parentDir(path: string): string {
@@ -161,6 +181,8 @@ export function orderedBucketAssessments(
   const sourceTopCount = options.sourceTopCount ?? DEFAULT_SOURCE_CANDIDATE_COUNT;
   const repeatedConfigCount =
     options.repeatedConfigCount ?? DEFAULT_REPEATED_CONFIG_COUNT;
+  const borderlineCount =
+    options.borderlineCount ?? DEFAULT_BORDERLINE_CANDIDATE_COUNT;
 
   const assessments = allAssessments.filter(
     (assessment) => !isSecretPath(assessment.path),
@@ -172,7 +194,10 @@ export function orderedBucketAssessments(
     .sort((a, b) => b.bytes - a.bytes || a.path.localeCompare(b.path))
     .slice(0, sourceTopCount);
   const repeatedConfig = repeatedConfigCandidates(assessments, repeatedConfigCount);
-  const borderline = assessments.filter(isBorderline);
+  const borderline = assessments
+    .filter(isBorderline)
+    .sort((a, b) => b.bytes - a.bytes || a.path.localeCompare(b.path))
+    .slice(0, borderlineCount);
   const topEligible = [...assessments]
     .filter(isEligibleForTopBucket)
     .sort((a, b) => b.bytes - a.bytes || a.path.localeCompare(b.path))

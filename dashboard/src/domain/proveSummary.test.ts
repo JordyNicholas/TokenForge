@@ -46,6 +46,8 @@ describe("buildProveSummaryMarkdown", () => {
     expect(md).toMatch(/2026-08 → 2026-09/);
     expect(md).toMatch(/Estimated reduction/);
     expect(md).toMatch(/no control cohort|weak evidence/i);
+    expect(md).toMatch(/## Calibration/);
+    expect(md).toMatch(/Band:/);
     expect(md).toMatch(/not proof|not an invoice causation/i);
   });
 

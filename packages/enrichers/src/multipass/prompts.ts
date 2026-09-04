@@ -1,7 +1,6 @@
 import {
   classifyFiletype,
-  INSTRUCTION_FILE_NAMES,
-  INSTRUCTION_PATH_SEGMENTS,
+  isInstructionPath,
   repeatedConfigBasenames,
 } from "@tokenforge/risk-core";
 import { MAX_MAP_DIGEST_CHARS } from "../limits";
@@ -18,18 +17,7 @@ function basename(path: string): string {
   return segments[segments.length - 1] ?? path;
 }
 
-/** Same rules as risk-core candidate selection — kept local to avoid exporting internals. */
-export function isInstructionPath(path: string): boolean {
-  const normalized = path.replaceAll("\\", "/");
-  const name = basename(normalized).toLowerCase();
-  if (INSTRUCTION_FILE_NAMES.has(name)) {
-    return true;
-  }
-  const segments = normalized.split("/").filter(Boolean);
-  return segments.some((segment) =>
-    INSTRUCTION_PATH_SEGMENTS.has(segment.toLowerCase()),
-  );
-}
+export { isInstructionPath };
 
 function truncateDigest(text: string): string {
   const trimmed = text.trim().length > 0 ? text.trim() : "(empty)";

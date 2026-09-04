@@ -37,8 +37,10 @@ const MAX_HYGIENE_SUMMARY_CHARS = 120;
 const COMPLETE_HYGIENE_SUMMARY_CHARS = 480;
 const MAX_WHY_THEMES = 3;
 const MAX_PREFER_ROOTS = 4;
+const MAX_ACTIVE_PATH_HINTS = 3;
 const MAX_STACK_TRIM_HINTS = 2;
 const MAX_EXCLUDE_BULLETS = 24;
+const MAX_DUMP_BULLETS = 3;
 const MAX_HYGIENE_BULLETS = 8;
 const MAX_ADVISORY_BULLETS = 6;
 const ADVISORY_REASONS = new Set<TokenRiskFinding["reason"]>([
@@ -126,9 +128,9 @@ const EXCLUDE_SECTIONS: ReadonlyArray<{ kind: WasteKind; heading: string }> = [
 function excludeSections(entries: readonly ExcludeEntry[]): string[] {
   const sections: string[] = [];
   for (const { kind, heading } of EXCLUDE_SECTIONS) {
-    const lines = entries
-      .filter((entry) => entry.kind === kind)
-      .map((entry) => `- \`${entry.glob}\``);
+    const matched = entries.filter((entry) => entry.kind === kind);
+    const cap = kind === "dump" ? MAX_DUMP_BULLETS : matched.length;
+    const lines = matched.slice(0, cap).map((entry) => `- \`${entry.glob}\``);
     if (lines.length > 0) {
       sections.push([heading, ...lines].join("\n"));
     }
@@ -249,38 +251,40 @@ function advisoryBullets(
 function introLines(report: TokenRiskReport): string[] {
   const kinds = dominantWasteKinds(report.findings);
   if (kinds.length === 0) {
-    return [
-      "Keep Chat/Agent context small. Prefer living source over generated and",
-      "oversized files. Do not paste those into the prompt.",
-    ];
+    return ["Keep Chat/Agent context small — prefer living source over dumps."];
   }
   const labels = joinLabels(kinds.map((kind) => WASTE_KIND_LABEL[kind]));
-  return [
-    `Keep Chat/Agent context small. In this repo the weight is ${labels}.`,
-    "Do not paste those files into the prompt.",
-  ];
+  return [`Keep context small. Weight here: ${labels}. Do not paste those into prompts.`];
 }
 
 /**
  * Prefer roots the caller attested to, or the generic line when it could not.
  * Naming `src/` on a repo that has no `src/` is worse than saying nothing.
  */
-function preferLines(sourceRoots: readonly string[] | undefined): string[] {
+function preferLines(
+  sourceRoots: readonly string[] | undefined,
+  active: ReadonlySet<string>,
+): string[] {
+  const lines: string[] = [];
+  const activeHints = [...active]
+    .sort((a, b) => a.localeCompare(b))
+    .slice(0, MAX_ACTIVE_PATH_HINTS)
+    .map((path) => `\`${path}\``);
+  if (activeHints.length > 0) {
+    lines.push(`- Keep open editor tabs in context: ${joinLabels(activeHints)}`);
+  }
   const roots = (sourceRoots ?? []).filter((root) => root.length > 0);
   if (roots.length === 0) {
-    return [
-      "- Living application source over generated or vendored trees",
-      "- Short, living config — not legacy XML/JSON dumps",
-    ];
+    lines.push("- Living application source over generated or vendored trees");
+  } else {
+    const named = roots
+      .slice(0, MAX_PREFER_ROOTS)
+      .map((root) => `\`${root}/\``)
+      .join(", ");
+    lines.push(`- Prefer living source under ${named}`);
   }
-  const named = roots
-    .slice(0, MAX_PREFER_ROOTS)
-    .map((root) => `\`${root}/\``)
-    .join(", ");
-  return [
-    `- Living source under ${named}`,
-    "- Short, living config — not the dumps listed above",
-  ];
+  lines.push("- Short, living config — not the dumps listed above");
+  return lines;
 }
 
 function whyThemes(report: TokenRiskReport): string[] {
@@ -407,17 +411,17 @@ export function synthesizeLeanInstructions(
     : MAX_HYGIENE_SUMMARY_CHARS;
 
   const header = [`# ${title}`, "", ...introLines(report)].join("\n");
-  const prefer = [
-    "## Prefer",
-    ...preferLines(options.sourceRoots),
-    "",
-    "This file is intentionally short. Do not append logs, lockfile excerpts, or",
-    "vendor billing notes.",
-  ].join("\n");
 
   // A "do not load" bullet naming the file its author has open is the exact
   // false positive #137 exists to prevent.
   const active = activePathSet(report);
+  const prefer = [
+    "## Prefer",
+    ...preferLines(options.sourceRoots, active),
+    "",
+    "Stay short — no lockfile excerpts, logs, or billing notes.",
+  ].join("\n");
+
   let excludeEntries = excludedEntriesForInstructions(report.findings, active, {
     keepDirs: options.keepDirs,
   });

@@ -1,6 +1,6 @@
 {
   "rounding": "savedPercent = Math.round((savedTokens / beforeTokens) * 1000) / 10  (±0.1 percentage points)",
-  "pitchNote": "Precision stress test: oversized-only application source (generated-types.ts) stays in context after B2; oversized config (locales.json) is still proposed for exclusion. rules/pricing-notes.md remains an LLM enrichment candidate (B1).",
+  "pitchNote": "Precision stress test: hand-maintained source (generated-types.ts) stays below SOURCE_OVERSIZED_BYTES; oversized config (locales.json) is still proposed for exclusion. rules/pricing-notes.md is not an instruction path (B1).",
   "schemaNote": "savedPercent is CLI display math only. The v0 scan-report.json contract stores beforeTokens, afterTokens, and savedTokens.",
   "fixture": "fixtures/borderline-app",
   "totals": {
@@ -16,13 +16,6 @@
       "bytes": 125290,
       "estTokens": 31323,
       "action": "excluded"
-    },
-    {
-      "path": "src/generated-types.ts",
-      "reason": "oversized",
-      "bytes": 120173,
-      "estTokens": 30044,
-      "action": "kept"
     }
   ]
 }

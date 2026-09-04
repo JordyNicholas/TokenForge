@@ -16,6 +16,13 @@ export const BACKGROUND_INACTIVE_MS = 5 * 60 * 1000;
 export const OVERSIZED_BYTES = 100_000;
 
 /**
+ * Higher `oversized` bar for `source` — hand-maintained modules can legitimately
+ * exceed {@link OVERSIZED_BYTES} without being low-value context
+ * (`HEURISTICS_AUDIT.md` B2 / B3).
+ */
+export const SOURCE_OVERSIZED_BYTES = 250_000;
+
+/**
  * Lower `oversized` bar for auxiliary data trees (fixtures, mocks, recorded
  * payloads). One flat threshold treats a 30 KB blob of recorded JSON like a
  * 30 KB hand-written module — see `docs/design/HEURISTICS_AUDIT.md` B3. This is the
@@ -133,6 +140,12 @@ export const DEFAULT_SOURCE_CANDIDATE_COUNT = 5;
 
 /** Borderline config/unknown paths at or above this size are LLM candidates. */
 export const MIN_BORDERLINE_BYTES = 4_096;
+
+/**
+ * Max paths from the borderline enrichment bucket (largest bytes first).
+ * Prevents mid-size configs from crowding instruction and top-file slots (#166).
+ */
+export const DEFAULT_BORDERLINE_CANDIDATE_COUNT = 8;
 
 /**
  * Max paths from the repeated-per-package-config bucket. Capped like every

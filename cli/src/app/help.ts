@@ -21,9 +21,10 @@ Commands:
   discover [path]     Find missed savings vs on-disk exclusions
   pilot [path]        Org pilot pack: scan → apply → Prove-ready
   prove-report [path] Write Markdown Prove report from .tokenforge artifacts
+  honor-smoke [path]  Write Cursor host-honor checklist (.tokenforge/honor-smoke.json)
   drift [path]        Check managed policy section still present (local CI)
   promote-shield [path]
-                      Merge ignore candidates into .cursorignore / .copilotignore
+                      Merge ignore candidates into provider shield files
   org-seed [path]     Roll up scan JSON files under a directory → BU seed
   org-pack <seed>     Aggregate a multi-team seed into .tokenforge/org-policy/
   org-apply [path]    Stage / push org content exclusions (requires --org)
@@ -98,8 +99,8 @@ const COMMAND_HELP: Record<string, string> = {
   user text outside the markers is kept. Exclusion YAML may fully replace.
 
   Shield promotion (explicit — never silent):
-    --promote-shield              After apply, merge cursor/copilot ignore candidates
-                                  into .cursorignore / .copilotignore (same as promote-shield)
+    --promote-shield              After apply, merge ignore candidates into shield files
+                                  (cursor/copilot/gemini ignore; claude → session-shield)
 `,
 
   init: `tokenforge init [path] [options]
@@ -161,12 +162,29 @@ const COMMAND_HELP: Record<string, string> = {
   "prove-report": `tokenforge prove-report [path] [options]
 
   Director-forwardable Markdown Prove report from local .tokenforge artifacts.
-  Includes estimated scan savings, Fix marker, and an honesty footer
+  Includes estimated scan savings, Fix marker, usage/variance when local usage
+  snapshots exist, trust/cohort notes, and calibration band
   (estimated ≠ billed causation).
 
   Options:
     --out <path>                  Output path (default: .tokenforge/prove-report.md)
     --json                        Print { outPath, reportPath }
+`,
+
+  "honor-smoke": `tokenforge honor-smoke [path] [options]
+
+  Write a host-honor verification checklist for Cursor Soft
+  (.cursorindexingignore) and Hard (.cursorignore) shields.
+
+  Honesty: observes whether the host appears to honor ignore files on this
+  machine — not metering of any agent private context pipeline.
+
+  Options:
+    --out <path>                  Output path (default: .tokenforge/honor-smoke.json)
+    --json                        Print { outPath, modes }
+
+  Example:
+    npm run tokenforge -- honor-smoke fixtures/noisy-app
 `,
 
   drift: `tokenforge drift [path] [options]
@@ -193,12 +211,13 @@ const COMMAND_HELP: Record<string, string> = {
   Never silent — prints every pattern promoted.
 
   Options:
-    --provider cursor             Default. cursor → .cursorignore; copilot → .copilotignore
+    --provider cursor             Default. cursor/copilot/gemini → ignore files;
+                                  claude → advisory session-shield.json
     --dry-run                     Preview merge without writing
 
   Example:
     npm run tokenforge -- apply . --provider cursor --promote-shield
-    npm run tokenforge -- promote-shield . --provider cursor --dry-run
+    npm run tokenforge -- promote-shield . --provider gemini --dry-run
 `,
 
   hybrid: `Hybrid scan — optional LLM enrichment on bounded candidate excerpts
@@ -248,7 +267,7 @@ export function printHelp(io: HelpIo, topic?: string): void {
 
   if (normalized && normalized !== "help") {
     io.stderr.write(
-      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, org-seed, drift, promote-shield, hybrid, mcp\n`,
+      `Unknown help topic "${topic}". Try: scan, apply, init, discover, pilot, org-seed, prove-report, honor-smoke, drift, promote-shield, hybrid, mcp\n`,
     );
   }
 }

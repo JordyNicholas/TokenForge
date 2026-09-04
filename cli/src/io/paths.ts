@@ -39,6 +39,7 @@ export const PROVE_CHANGE_LATEST_FILE = "prove-change-latest.json";
 export const PROVE_CHANGES_TRAIL_FILE = "prove-changes.jsonl";
 export const PROVE_HANDOFF_FILE = "prove-handoff.json";
 export const PROVE_REPORT_FILE = "prove-report.md";
+export const HONOR_SMOKE_FILE = "honor-smoke.json";
 export const SESSION_STATS_FILE = "session-stats.json";
 export const APPLY_SNAPSHOT_BEFORE_FILE = "scan-before-apply.json";
 export const APPLY_SNAPSHOT_AFTER_FILE = "scan-after-apply.json";
@@ -72,6 +73,11 @@ export function proveHandoffPath(root: string): string {
 
 export function proveReportPath(root: string): string {
   return join(tokenforgeDir(root), PROVE_REPORT_FILE);
+}
+
+/** Host-honor smoke checklist for Cursor Soft/Hard (#F24-A). */
+export function honorSmokePath(root: string): string {
+  return join(tokenforgeDir(root), HONOR_SMOKE_FILE);
 }
 
 export function sessionStatsPath(root: string): string {

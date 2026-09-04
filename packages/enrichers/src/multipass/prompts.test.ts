@@ -43,6 +43,7 @@ describe("isInstructionPath", () => {
     expect(isInstructionPath("AGENTS.md")).toBe(true);
     expect(isInstructionPath(".cursor/rules/testing.mdc")).toBe(true);
     expect(isInstructionPath("src/app.ts")).toBe(false);
+    expect(isInstructionPath("rules/pricing-notes.md")).toBe(false);
   });
 });
 

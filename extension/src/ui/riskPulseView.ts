@@ -28,6 +28,7 @@ import { peekInstructionOverlap, resolveInstructionOverlap, type OverlapHint } f
 import type { ShieldSession } from "../session/shieldSession";
 import { hasTokenReduction, type RiskPulseModel } from "../session/riskPulse";
 import { formatTokenCount } from "./formatTokens";
+import { buildDailyHealth, type DailyHealthModel } from "./dailyHealth";
 
 export const RISK_PULSE_VIEW_ID = "tokenforge.riskPulse";
 
@@ -46,6 +47,7 @@ type OverviewModel = {
   rulesOverThreshold: boolean;
   enrichment: EnrichmentStatusView;
   cardsLoading: boolean;
+  dailyHealth?: DailyHealthModel;
 };
 
 class RiskPulseProvider implements WebviewViewProvider {
@@ -54,6 +56,7 @@ class RiskPulseProvider implements WebviewViewProvider {
   private rulesCost = 0;
   private discoverItems: readonly DiscoverCandidate[] = [];
   private overlapHints: readonly OverlapHint[] = [];
+  private dailyHealth?: DailyHealthModel;
   private renderGen = 0;
   private slowTimer: ReturnType<typeof setTimeout> | undefined;
   private workspaceCardsReady = false;
@@ -142,6 +145,7 @@ class RiskPulseProvider implements WebviewViewProvider {
         getLastEnrichRun(),
       ),
       cardsLoading,
+      dailyHealth: this.dailyHealth,
     };
   }
 
@@ -209,6 +213,7 @@ class RiskPulseProvider implements WebviewViewProvider {
       this.discoverItems = discoverResult.candidates;
       const instructionPaths = instrPaths.map((c) => c.path);
       this.overlapHints = peekInstructionOverlap(this.session.listAll(), instructionPaths);
+      this.dailyHealth = await buildDailyHealth(root, provider);
       // Lane A overlap is async — refresh the card when the model returns.
       void resolveInstructionOverlap({
         root,
@@ -282,7 +287,7 @@ function renderOverviewHtml(
   cssUri: Uri,
   model: OverviewModel,
 ): string {
-  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading } =
+  const { pulse, sessionSaved, rulesCost, autoShieldOn, driftSummary, discoverItems, taskPackPaths, sessionNarrative, overlapHints, leversFootnote, prePromptBanner, rulesOverThreshold, enrichment, cardsLoading, dailyHealth } =
     model;
   const csp = webview.cspSource;
   const nonce = makeNonce();
@@ -396,6 +401,11 @@ function renderOverviewHtml(
     .tf-ai-headline { margin: 0 0 4px; }
     .tf-btn-ai { font-weight: 600; }
     .tf-checklist { font-size: 11px; color: var(--vscode-descriptionForeground); margin: 0 0 8px; padding-left: 18px; }
+    .tf-health { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .tf-chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--vscode-panel-border, rgba(128,128,128,0.35)); background: var(--vscode-editor-background); }
+    .tf-chip[data-status="ok"], .tf-chip[data-status="sent"], .tf-chip[data-status="done"] { border-color: var(--tf-brand, #14b8a6); }
+    .tf-chip[data-status="stale"], .tf-chip[data-status="unsent"], .tf-chip[data-status="pending"], .tf-chip[data-status="dirty"] { border-color: var(--tf-brand-warning, #f59e0b); }
+    .tf-chip[data-status="missing"], .tf-chip[data-status="unknown"] { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -403,6 +413,7 @@ function renderOverviewHtml(
   ${prePromptBlock}
   ${autoBanner}
   ${rulesBadge}
+  ${renderDailyHealthStrip(dailyHealth, cardsLoading)}
   <div class="tf-hero">
     <div class="tf-kpi"><span class="tf-kpi-label">Context cost</span><span class="tf-kpi-value">${contextCost}</span></div>
     <div class="tf-kpi"><span class="tf-kpi-label">Session saved</span><span class="tf-kpi-value">${sessionKpi}</span></div>
@@ -454,6 +465,25 @@ function renderOverviewHtml(
   </script>
 </body>
 </html>`;
+}
+
+function renderDailyHealthStrip(
+  model: DailyHealthModel | undefined,
+  cardsLoading: boolean,
+): string {
+  if (cardsLoading && !model) {
+    return `<div class="tf-health"><span class="tf-chip" data-status="unknown">Daily health…</span></div>`;
+  }
+  if (!model) {
+    return "";
+  }
+  const chips = [model.scan, model.session, model.drift, model.promote]
+    .map(
+      (chip) =>
+        `<span class="tf-chip" data-status="${escapeHtml(chip.status)}" title="${escapeHtml(chip.detail)}">${escapeHtml(chip.label)}: ${escapeHtml(chip.status)}</span>`,
+    )
+    .join("");
+  return `<div class="tf-health">${chips}</div>`;
 }
 
 function shieldLabel(decision: string): string {

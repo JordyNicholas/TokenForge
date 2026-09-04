@@ -4,6 +4,7 @@
  */
 import type { Assumptions } from "./assumptions";
 import { summarizeAssumptionsFreeze } from "./assumptions";
+import { estimateVsBilledBand } from "./calibrationBands";
 import {
   COHORT_HONESTY_NOTE,
   compareCohorts,
@@ -21,6 +22,19 @@ _Local-first TokenForge Prove — forward this Markdown to FinOps._`;
 
 function signedUsd(value: number): string {
   return `${value >= 0 ? "+" : "−"}${formatUsd(Math.abs(value))}`;
+}
+
+function calibrationSection(
+  board: VarianceBoard,
+  compare: CohortCompare,
+): string {
+  const band = estimateVsBilledBand({
+    estimatedReductionUsd: board.bu.estimatedReductionUsd,
+    actualBilledChangeUsd: board.bu.actualBilledChangeUsd,
+    hasControlCohort: compare.control.teamCount > 0,
+    trustLevel: compare.trustLevel,
+  });
+  return `- Band: **${band.band}** — ${band.label}\n- ${band.rationale}`;
 }
 
 function cohortSection(compare: CohortCompare): string {
@@ -85,6 +99,10 @@ Assumptions: **${freezeLabel}**
 ## Cohort compare (Fix-on vs control)
 
 ${cohortSection(compare)}
+
+## Calibration
+
+${calibrationSection(board, compare)}
 
 ## Teams
 

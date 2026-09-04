@@ -14,7 +14,8 @@
 | New collaborator / agent | [`../AGENTS.md`](../AGENTS.md) → [`product/CONCEPT_BRIEF.md`](./product/CONCEPT_BRIEF.md) → [`design/SOLUTION_DESIGN.md`](./design/SOLUTION_DESIGN.md) |
 | Running the hackathon demo | [`runbooks/DEMO_RUNBOOK.md`](./runbooks/DEMO_RUNBOOK.md) |
 | Full hybrid-eval presentation (extension + heuristic + hybrid) | [`runbooks/PRESENTATION_HYBRID_EVAL.md`](./runbooks/PRESENTATION_HYBRID_EVAL.md) |
-| FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) |
+| FinOps / pilot (estimate vs bill) | [`runbooks/PILOT_RUNBOOK.md`](./runbooks/PILOT_RUNBOOK.md) · [`runbooks/STANDARD_PILOT_KIT.md`](./runbooks/STANDARD_PILOT_KIT.md) |
+| Platform monthly cadence | [`runbooks/MONTHLY_CADENCE.md`](./runbooks/MONTHLY_CADENCE.md) |
 | Shipping a PR | [`delivery/PROJECT_PR_WORKFLOW.md`](./delivery/PROJECT_PR_WORKFLOW.md) |
 | Extension (Context Guard) | [`design/EXTENSION_PRODUCT.md`](./design/EXTENSION_PRODUCT.md) → [`adapters/EXTENSION_CONTEXT_GUARD.md`](./adapters/EXTENSION_CONTEXT_GUARD.md) |
 | Hybrid scan / LLM backends | [`design/COMPLEMENTARY_HYBRID_SCAN.md`](./design/COMPLEMENTARY_HYBRID_SCAN.md) → [`design/HYBRID_SCAN_DESIGN.md`](./design/HYBRID_SCAN_DESIGN.md) → [`adapters/LLM_ENRICHER_SETUP.md`](./adapters/LLM_ENRICHER_SETUP.md) |
@@ -54,6 +55,7 @@ Architecture, contracts narrative, audits, phased plans.
 | Doc | Purpose |
 | --- | --- |
 | [BOARD.md](./delivery/BOARD.md) | Epic/story map ↔ GitHub issues |
+| [F24_REAL_WORLD_ADOPTION.md](./delivery/F24_REAL_WORLD_ADOPTION.md) | Real-world adoption & evidence waves (F24) |
 | [PROJECT_PR_WORKFLOW.md](./delivery/PROJECT_PR_WORKFLOW.md) | Branch naming, `Closes #n`, CI, board automation |
 
 ### [adapters/](./adapters/) — delivery surfaces
@@ -71,6 +73,8 @@ Architecture, contracts narrative, audits, phased plans.
 | [DEMO_RUNBOOK.md](./runbooks/DEMO_RUNBOOK.md) | ≤5 min live demo (Detect → Fix → Prove) |
 | [PRESENTATION_HYBRID_EVAL.md](./runbooks/PRESENTATION_HYBRID_EVAL.md) | ~15 min hybrid-eval-app demo (extension → heuristic → hybrid) |
 | [PILOT_RUNBOOK.md](./runbooks/PILOT_RUNBOOK.md) | One-team baseline → apply → import bill |
+| [STANDARD_PILOT_KIT.md](./runbooks/STANDARD_PILOT_KIT.md) | Director standard pilot: control team, 2 periods, freeze, prove-report |
+| [MONTHLY_CADENCE.md](./runbooks/MONTHLY_CADENCE.md) | Platform monthly: usage-sync, scan, drift, org-seed, prove-report |
 | [prove-monthly.md](./runbooks/prove-monthly.md) | Platform monthly `usage-sync` via GitHub Actions |
 
 ### [testing/](./testing/) — manual E2E verification
