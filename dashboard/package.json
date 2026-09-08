@@ -12,6 +12,7 @@
     "cy:open": "cypress open",
     "e2e": "start-server-and-test dev http://localhost:5173 'cypress open --e2e'",
     "e2e:run": "start-server-and-test dev http://localhost:5173 'cypress run --e2e'",
+    "e2e:run:overview": "start-server-and-test dev http://localhost:5173 'cypress run --e2e --spec cypress/e2e/overview.cy.ts'",
     "test:ct": "cypress run --component"
   },
   "dependencies": {

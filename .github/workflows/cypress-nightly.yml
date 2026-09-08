@@ -42,5 +42,8 @@ jobs:
       - name: Typecheck dashboard
         run: npm run typecheck -w @tokenforge/dashboard
 
+      # Spec must live inside the Cypress argv. Extra `-- --spec …` after
+      # `e2e:run` is parsed by start-server-and-test as a second server/URL pair,
+      # so Cypress exits cleanly then the job fails with "server closed unexpectedly".
       - name: Run Cypress E2E (Overview subset)
-        run: npm run e2e:run -w @tokenforge/dashboard -- --spec cypress/e2e/overview.cy.ts
+        run: npm run e2e:run:overview -w @tokenforge/dashboard
