@@ -1,6 +1,10 @@
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import type { TokenRiskReport } from "@tokenforge/risk-core";
+import {
+  REASONING_PACK_MODES,
+  parseReasoningPackMode,
+  type TokenRiskReport,
+} from "@tokenforge/risk-core";
 import { applyPolicy, initRepo } from "../commands/apply/apply";
 import { runDiscover } from "../commands/discover/discover";
 import { applyOrgPack } from "../commands/org-pack/org-pack";
@@ -157,6 +161,7 @@ export async function runCli(
         "allow-external": { type: "boolean", default: false },
         "active-paths-file": { type: "string" },
         "policy-max-bytes": { type: "string" },
+        "reasoning-pack": { type: "string" },
         report: { type: "string" },
         rescan: { type: "boolean", default: false },
         "skip-apply": { type: "boolean", default: false },
@@ -177,6 +182,21 @@ export async function runCli(
     }
 
     const root = resolve(rootArg ?? process.cwd());
+
+    // A typo that quietly turned the pack off would be indistinguishable from
+    // it working, so an unrecognised value is a usage error, not a fallback.
+    const reasoningPackRaw = values["reasoning-pack"];
+    if (
+      reasoningPackRaw !== undefined &&
+      parseReasoningPackMode(String(reasoningPackRaw)) === undefined
+    ) {
+      io.stderr.write(
+        `tokenforge: --reasoning-pack must be one of ${REASONING_PACK_MODES.join(" | ")}
+`,
+      );
+      return 2;
+    }
+
     const policyMaxBytesRaw = values["policy-max-bytes"];
     const policyMaxBytes =
       policyMaxBytesRaw !== undefined
@@ -197,6 +217,8 @@ export async function runCli(
         policyMaxBytes !== undefined && Number.isFinite(policyMaxBytes)
           ? policyMaxBytes
           : undefined,
+      reasoningPack:
+        reasoningPackRaw === undefined ? undefined : String(reasoningPackRaw),
     };
 
     if (command === "scan") {

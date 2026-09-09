@@ -28,6 +28,10 @@ export function synthesizePolicyHeuristic(
     completeSummaries: true,
     keepDirs: input.keepDirs,
     sourceRoots: input.sourceRoots,
+    stackProfile: input.stackProfile,
+    directoryRoles: input.directoryRoles,
+    reasoningPack: input.reasoningPack,
+    existingInstructionTexts: [...input.instructionContents.values()],
   });
   return {
     markdown,

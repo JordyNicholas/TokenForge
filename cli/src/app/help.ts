@@ -94,6 +94,7 @@ const COMMAND_HELP: Record<string, string> = {
     --llm <backend[:model]>       Hybrid apply — compiles scan JSON into policy text
     --allow-external              Required for hybrid apply with vendor CLI backends
     --policy-max-bytes <n>        Override managed section byte budget
+    --reasoning-pack <m>          off | roles | roles+persona (default roles)
     --dry-run                     List planned writes without changing files
     --json                        Include totals JSON on stdout
 

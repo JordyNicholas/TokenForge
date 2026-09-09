@@ -451,3 +451,38 @@ export const MAX_ROLE_RULE_CHARS = 200;
 
 /** Representative files kept per directory role, for the hybrid prompt. */
 export const MAX_ROLE_SAMPLE_FILES = 3;
+
+/**
+ * Byte ceiling for the whole reasoning section, heading included.
+ *
+ * REASONING_PACK_DESIGN sized the table at ~600 bytes before any rule text
+ * existed. Measured against real rows, 600 rendered three paths and no persona,
+ * and the first thing it dropped was the shared-component guidance that is one
+ * of the two examples the design leads with. 1100 covers a persona plus seven
+ * or so rows, which reaches a normal repo.
+ *
+ * It stays a hard cap rather than a share of the document because this text is
+ * added to a file the agent reads every turn and F26 makes no savings claim to
+ * pay for it. Under document-wide pressure the whole section yields before the
+ * exclusion bullets that do carry the savings.
+ */
+export const MAX_REASONING_SECTION_BYTES = 1_100;
+
+/** Persona lines the section may render before it stops being a summary. */
+export const MAX_REASONING_PERSONA_LINES = 3;
+
+/** Role-bearing directories a repo needs before routing advice means anything. */
+export const MIN_REASONING_ROLE_DIRS = 5;
+
+/** Distinct roles a repo needs before a routing table beats saying nothing. */
+export const MIN_REASONING_DISTINCT_ROLES = 3;
+
+/**
+ * Markers bounding the section `apply` owns inside a provider instruction file.
+ *
+ * Defined in the kernel rather than in `policy-adapters` because both the
+ * adapter that writes the section and the synthesizer that decides what goes in
+ * it need to recognise one, and the synthesizer must not depend on the adapter.
+ */
+export const TOKENFORGE_SECTION_BEGIN = "<!-- tokenforge:begin -->";
+export const TOKENFORGE_SECTION_END = "<!-- tokenforge:end -->";

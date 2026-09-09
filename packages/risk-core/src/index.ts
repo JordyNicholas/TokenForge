@@ -30,6 +30,8 @@ export {
   MAX_ANALYSIS_OVERVIEW_THEMES,
   MAX_ANALYSIS_OVERVIEW_CAVEAT_CHARS,
   MAX_ANALYSIS_OVERVIEW_CAVEATS,
+  TOKENFORGE_SECTION_BEGIN,
+  TOKENFORGE_SECTION_END,
   TOKEN_RISK_REPORT_SCHEMA_ID,
   TOKEN_RISK_REPORT_SCHEMA_PATH,
   TOKEN_RISK_REPORT_SCHEMA_V0_ID,
@@ -43,8 +45,12 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V4_ID,
   TOKEN_RISK_REPORT_SCHEMA_V4_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
+  MAX_REASONING_PERSONA_LINES,
+  MAX_REASONING_SECTION_BYTES,
   MAX_ROLE_RULE_CHARS,
   MAX_ROLE_SAMPLE_FILES,
+  MIN_REASONING_DISTINCT_ROLES,
+  MIN_REASONING_ROLE_DIRS,
   DEFAULT_HEURISTIC_POLICY_MAX_BYTES,
   DEFAULT_HYBRID_POLICY_MAX_BYTES,
 } from "./domain/constants";
@@ -64,12 +70,18 @@ export {
   type HeuristicAttentionOptions,
 } from "./candidates/attention";
 export {
-  resolvePolicyMaxBytes,
-  parseApplyMode,
+  DEFAULT_REASONING_PACK_MODE,
+  REASONING_PACK_MODES,
+  isReasoningPackMode,
   isTokenForgeConfig,
+  parseApplyMode,
+  parseReasoningPackMode,
+  resolvePolicyMaxBytes,
+  resolveReasoningPackMode,
   type ApplyMode,
-  type TokenForgeConfig,
   type EnrichmentTierSetting,
+  type ReasoningPackMode,
+  type TokenForgeConfig,
 } from "./config/tokenforge-config";
 export { classifyFiletype, isPrismaGeneratedPath } from "./classify/classify";
 export {
@@ -117,6 +129,14 @@ export {
   resolveSuggestion,
   templateSuggestion,
 } from "./advise/suggest";
+export {
+  REASONING_SECTION_HEADING,
+  buildReasoningSection,
+  hasExistingPersona,
+  meetsReasoningEmissionGate,
+  personaLines,
+  type ReasoningSectionInput,
+} from "./advise/reasoning";
 export {
   synthesizeLeanInstructions,
   type SynthesizeLeanInstructionsOptions,

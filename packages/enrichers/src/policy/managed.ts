@@ -3,6 +3,9 @@ import {
   parseApplyMode,
   resolvePolicyMaxBytes,
   type ApplyMode,
+  type DirectoryRoleAssignment,
+  type ReasoningPackMode,
+  type StackProfile,
   type TokenForgeConfig,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
@@ -29,6 +32,11 @@ export type SynthesizeManagedPolicyOptions = {
   config?: TokenForgeConfig;
   keepDirs?: ReadonlySet<string>;
   sourceRoots?: readonly string[];
+  /** Instruction path this run merges into; read for persona detection (F26). */
+  instructionPath?: string;
+  stackProfile?: StackProfile;
+  directoryRoles?: readonly DirectoryRoleAssignment[];
+  reasoningPack?: ReasoningPackMode;
   externalDataConsent?: boolean;
   onProgress?: (message: string) => void;
   /** Optional preloaded bodies; when omitted, loads from report instruction paths. */
@@ -38,9 +46,16 @@ export type SynthesizeManagedPolicyOptions = {
 export async function loadInstructionContentsForPolicy(
   root: string,
   report: TokenRiskReport,
+  targetInstructionPath?: string,
 ): Promise<Map<string, string>> {
   const contents = new Map<string, string>();
   const paths = new Set<string>();
+  // The file this run is about to merge into is exactly the one whose persona
+  // a new one would collide with, and a small, clean instruction file is never
+  // in `findings` - so scan output alone would miss the common case (F26 S7).
+  if (targetInstructionPath !== undefined) {
+    paths.add(targetInstructionPath);
+  }
   for (const finding of report.findings) {
     if (isInstructionPath(finding.path)) {
       paths.add(finding.path);
@@ -77,7 +92,11 @@ export async function synthesizeManagedPolicy(
   });
   const instructionContents =
     options.instructionContents ??
-    (await loadInstructionContentsForPolicy(options.root, options.report));
+    (await loadInstructionContentsForPolicy(
+      options.root,
+      options.report,
+      options.instructionPath,
+    ));
 
   const baseInput = {
     report: options.report,
@@ -87,6 +106,9 @@ export async function synthesizeManagedPolicy(
     instructionContents,
     keepDirs: options.keepDirs,
     sourceRoots: options.sourceRoots,
+    stackProfile: options.stackProfile,
+    directoryRoles: options.directoryRoles,
+    reasoningPack: options.reasoningPack,
     onProgress: options.onProgress,
   };
 
