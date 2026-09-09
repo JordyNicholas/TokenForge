@@ -24,7 +24,7 @@ describe("initInbox", () => {
     const root = tempRoot("tf-inbox-init");
     const result = await initInbox({ root, withRoster: true, businessUnit: "Retail" });
 
-    expect(result.readmePath).toContain("inbox/README.md");
+    expect(result.readmePath).toBe(join(root, "inbox", "README.md"));
     const readme = await readFile(result.readmePath, "utf8");
     expect(readme).toContain(".tokenforge/");
     expect(readme).toContain("{team}/");

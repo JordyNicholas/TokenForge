@@ -43,6 +43,8 @@ export {
   TOKEN_RISK_REPORT_SCHEMA_V4_ID,
   TOKEN_RISK_REPORT_SCHEMA_V4_PATH,
   MAX_LEAN_INSTRUCTION_BYTES,
+  MAX_ROLE_RULE_CHARS,
+  MAX_ROLE_SAMPLE_FILES,
   DEFAULT_HEURISTIC_POLICY_MAX_BYTES,
   DEFAULT_HYBRID_POLICY_MAX_BYTES,
 } from "./domain/constants";
@@ -119,6 +121,20 @@ export {
   synthesizeLeanInstructions,
   type SynthesizeLeanInstructionsOptions,
 } from "./advise/instructions";
+export {
+  STACK_MANIFEST_NAMES,
+  detectStack,
+  type DetectStackInput,
+} from "./stack/detectStack";
+export {
+  REASONING_BREADTH,
+  ROLE_RULES,
+  hasStrategyVocabulary,
+  isRenderableRoleRule,
+  resolveDirectoryRoles,
+  type DirectoryEntry,
+  type ResolveDirectoryRolesInput,
+} from "./stack/roles";
 export { collapseExclusionPaths, type CollapseOptions } from "./policy/collapse";
 export {
   ASSET_DIR_GLOB_SUFFIX,
@@ -195,6 +211,13 @@ export type {
   ComplementarityStatus,
   SessionStatsHistoryEntry,
   SessionStatsReport,
+  DirectoryRole,
+  DirectoryRoleAssignment,
+  ReasoningStrategy,
+  RoleSignal,
+  StackConfidence,
+  StackLanguage,
+  StackProfile,
 } from "./domain/types";
 export type { SessionAdoptionSnapshot } from "./adoption/sessionAdoption";
 export type {
