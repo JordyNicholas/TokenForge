@@ -222,50 +222,50 @@ The pack adds always-on bytes and can make no exclusion-savings claim.
 
 ## Implementation map (F26 — #329)
 
-Wave issues: A #330 · B #331 · C #332 · D #333 · E #334. Story ids `S1`–`S17` are
-local to this doc; they become checklist items on the wave issue that owns them.
+Wave issues: A #330 · B #331 · C #332 · D #333 · E #334. Each story `S1`–`S17` is a
+sub-issue of its wave.
 
 ### Wave A — Detection primitives (#330)
 
-| Story | Deliverable | Surface |
-| --- | --- | --- |
-| S1 | This document + BOARD F26 index + product rule | Docs |
-| S2 | `detectStack` → `StackProfile` with confidence, from manifests + config presence + lockfile | `risk-core` |
-| S3 | `directoryRoles` — language-scoped role taxonomy + lookup table + 4 disambiguation layers + conservative tie fallback; internal `DirectoryRole` enum, imperative rule templates | `risk-core` |
-| S4 | Extend `collectKeptContent` to also return `stackProfile` / `directoryRoles` / `sampleFiles` — one walk, no contract change | `policy-adapters` |
+| Story | Issue | Deliverable | Surface |
+| --- | --- | --- | --- |
+| S1 | #336 ✅ | This document + BOARD F26 index + product rule (PR #335) | Docs |
+| S2 | #337 | `detectStack` → `StackProfile` with confidence, from manifests + config presence + lockfile | `risk-core` |
+| S3 | #338 | `directoryRoles` — language-scoped role taxonomy + lookup table + 4 disambiguation layers + conservative tie fallback; internal `DirectoryRole` enum, imperative rule templates | `risk-core` |
+| S4 | #339 | Extend `collectKeptContent` to also return `stackProfile` / `directoryRoles` / `sampleFiles` — one walk, no contract change | `policy-adapters` |
 
 ### Wave B — Deterministic synthesis + generic delivery (usable MVP) (#331)
 
-| Story | Deliverable | Surface |
-| --- | --- | --- |
-| S5 | `synthesizeLeanInstructions` gains `stackProfile?` / `directoryRoles?` → `## How to reason about this repo` (persona + `glob → rule` table); hard sub-budget, trim by role value, meta-vocabulary lint | `risk-core` |
-| S6 | `apply.reasoningPack: "off" \| "roles" \| "roles+persona"` (default `roles`) + `--reasoning-pack` flag + `resolveReasoningPackMode` precedence | `risk-core` / CLI |
-| S7 | Emission gate (`distinctRoles ≥ 3` ∧ `dirsWithRole ≥ 5` ∧ file floor) + persona suppression when an existing persona is detected | `risk-core` / CLI |
+| Story | Issue | Deliverable | Surface |
+| --- | --- | --- | --- |
+| S5 | #340 | `synthesizeLeanInstructions` gains `stackProfile?` / `directoryRoles?` → `## How to reason about this repo` (persona + `glob → rule` table); hard sub-budget, trim by role value, meta-vocabulary lint | `risk-core` |
+| S6 | #341 | `apply.reasoningPack: "off" \| "roles" \| "roles+persona"` (default `roles`) + `--reasoning-pack` flag + `resolveReasoningPackMode` precedence | `risk-core` / CLI |
+| S7 | #342 | Emission gate (`distinctRoles ≥ 3` ∧ `dirsWithRole ≥ 5` ∧ file floor) + persona suppression when an existing persona is detected | `risk-core` / CLI |
 
 ### Wave C — Per-provider delivery (#332)
 
-| Story | Deliverable | Surface |
-| --- | --- | --- |
-| S8 | Cursor: `.cursor/rules/tokenforge-<role>.mdc` scoped rules — `globs:` + `alwaysApply: false` frontmatter, `generatedAt` / `derivedFrom` comment | CLI / `policy-adapters` |
-| S9 | Copilot / Claude / Gemini: `## How to reason` block in the single file via shared `synthesizeManagedPolicy` (F17) | `enrichers` / CLI |
-| S10 | Monorepo grouping (`<root> → role → globs`, per-root cap) + stale-rule pruning on re-run, shared S8/S9 | `policy-adapters` / CLI |
+| Story | Issue | Deliverable | Surface |
+| --- | --- | --- | --- |
+| S8 | #343 | Cursor: `.cursor/rules/tokenforge-<role>.mdc` scoped rules — `globs:` + `alwaysApply: false` frontmatter, `generatedAt` / `derivedFrom` comment | CLI / `policy-adapters` |
+| S9 | #344 | Copilot / Claude / Gemini: `## How to reason` block in the single file via shared `synthesizeManagedPolicy` (F17) | `enrichers` / CLI |
+| S10 | #345 | Monorepo grouping (`<root> → role → globs`, per-root cap) + stale-rule pruning on re-run, shared S8/S9 | `policy-adapters` / CLI |
 
 ### Wave D — Hybrid upgrade (opt-in) (#333)
 
-| Story | Deliverable | Surface |
-| --- | --- | --- |
-| S11 | `PolicySynthesisInput` + `buildPolicySynthesisPrompt` gain stack + role table + `sampleFiles` excerpts + "only narrow" instruction + untrusted-content line | `enrichers` |
-| S12 | JSON contract: optional `reasoning: { persona[], roles[] }` + `parsePolicyReasoningPayload` validator + deterministic re-render/splice | `enrichers` |
-| S13 | Fallback ladder in `synthesizePolicyHybrid` (per-rule drop, strategy-upgrade discard, whole-doc over-budget → heuristic) + `--allow-external` gate for `sampleFiles` | `enrichers` / CLI |
+| Story | Issue | Deliverable | Surface |
+| --- | --- | --- | --- |
+| S11 | #346 | `PolicySynthesisInput` + `buildPolicySynthesisPrompt` gain stack + role table + `sampleFiles` excerpts + "only narrow" instruction + untrusted-content line | `enrichers` |
+| S12 | #347 | JSON contract: optional `reasoning: { persona[], roles[] }` + `parsePolicyReasoningPayload` validator + deterministic re-render/splice | `enrichers` |
+| S13 | #348 | Fallback ladder in `synthesizePolicyHybrid` (per-rule drop, strategy-upgrade discard, whole-doc over-budget → heuristic) + `--allow-external` gate for `sampleFiles` | `enrichers` / CLI |
 
 ### Wave E — Hardening, fixtures, eval, docs (#334)
 
-| Story | Deliverable | Surface |
-| --- | --- | --- |
-| S14 | Guard suite: meta-vocabulary denylist, rule length/imperative, exfiltration denylist on hybrid output, ambiguous-role → conservative fallback, >30% weak-signal → persona-only downgrade | `risk-core` / `enrichers` |
-| S15 | Fixtures + goldens: `reasoning-nextapp-app`, `-django-app`, `-ddd-app`, `-polyglot-app`, `-monorepo-app`, `-tiny-app`, `-has-persona-app`, `-wide-app`; extend `fallback.test.ts` and `advise/instructions.test.ts` | Tests |
-| S16 | Hybrid eval: `reasoning-eval-app` + rubric check in the presentation script; extend `PRESENTATION_HYBRID_EVAL.md` | Tests / Scripts |
-| S17 | Docs refresh + BOARD F26 index + `--json` role-assignment meta for audit; reasoning pack documented as a quality lever outside the $ math | Docs / Dashboard |
+| Story | Issue | Deliverable | Surface |
+| --- | --- | --- | --- |
+| S14 | #349 | Guard suite: meta-vocabulary denylist, rule length/imperative, exfiltration denylist on hybrid output, ambiguous-role → conservative fallback, >30% weak-signal → persona-only downgrade | `risk-core` / `enrichers` |
+| S15 | #350 | Fixtures + goldens: `reasoning-nextapp-app`, `-django-app`, `-ddd-app`, `-polyglot-app`, `-monorepo-app`, `-tiny-app`, `-has-persona-app`, `-wide-app`; extend `fallback.test.ts` and `advise/instructions.test.ts` | Tests |
+| S16 | #351 | Hybrid eval: `reasoning-eval-app` + rubric check in the presentation script; extend `PRESENTATION_HYBRID_EVAL.md` | Tests / Scripts |
+| S17 | #352 | Docs refresh + BOARD F26 index + `--json` role-assignment meta for audit; reasoning pack documented as a quality lever outside the $ math | Docs / Dashboard |
 
 ## Build order
 

@@ -629,15 +629,15 @@ naming conventions. Quality lever, **outside the savings $ math**. Design:
 [`REASONING_PACK_DESIGN.md`](../design/REASONING_PACK_DESIGN.md). Epic **#329**;
 wave issues filed, **not yet scheduled**.
 
-| Issue | Wave | Stories | Outcome |
+| Issue | Wave | Story sub-issues | Outcome |
 | --- | --- | --- | --- |
-| #330 | A Detection primitives | S1–S4 | `detectStack` → `StackProfile`; `directoryRoles` taxonomy + disambiguation; walk returns stack/roles/sampleFiles (no contract change) |
-| #331 | B Deterministic synthesis | S5–S7 | `## How to reason` block (persona + `glob → rule` table); `apply.reasoningPack` config; emission gate + persona-suppression |
-| #332 | C Per-provider delivery | S8–S10 | Cursor `.mdc` glob-scoped rules; single-file block for Copilot/Claude/Gemini; monorepo grouping + stale-rule pruning |
-| #333 | D Hybrid upgrade (opt-in) | S11–S13 | Prompt gains stack + role table + sample excerpts; optional `reasoning` JSON field re-rendered deterministically; fallback ladder + `--allow-external` gate |
-| #334 | E Hardening + eval | S14–S17 | Guard suite (meta-vocab, exfiltration, weak-signal downgrade); `reasoning-*-app` fixtures + goldens; hybrid rubric eval; docs + `--json` audit meta |
+| #330 | A Detection primitives | S1 #336 ✅ · S2 #337 · S3 #338 · S4 #339 | `detectStack` → `StackProfile`; `directoryRoles` taxonomy + disambiguation; walk returns stack/roles/sampleFiles (no contract change) |
+| #331 | B Deterministic synthesis | S5 #340 · S6 #341 · S7 #342 | `## How to reason` block (persona + `glob → rule` table); `apply.reasoningPack` config; emission gate + persona-suppression |
+| #332 | C Per-provider delivery | S8 #343 · S9 #344 · S10 #345 | Cursor `.mdc` glob-scoped rules; single-file block for Copilot/Claude/Gemini; monorepo grouping + stale-rule pruning |
+| #333 | D Hybrid upgrade (opt-in) | S11 #346 · S12 #347 · S13 #348 | Prompt gains stack + role table + sample excerpts; optional `reasoning` JSON field re-rendered deterministically; fallback ladder + `--allow-external` gate |
+| #334 | E Hardening + eval | S14 #349 · S15 #350 · S16 #351 · S17 #352 | Guard suite (meta-vocab, exfiltration, weak-signal downgrade); `reasoning-*-app` fixtures + goldens; hybrid rubric eval; docs + `--json` audit meta |
 
-Build order: **#330 → #331 → #332 → #333 → #334**. Wave B (#331) is a shippable slice; Wave C (#332) is the differentiator; Wave D (#333) never becomes a merge gate.
+Build order: **#330 → #331 → #332 → #333 → #334**. Wave B (#331) is a shippable slice; Wave C (#332) is the differentiator; Wave D (#333) never becomes a merge gate. S1 (#336) shipped with the design-doc PR #335.
 
 ## Build order
 
