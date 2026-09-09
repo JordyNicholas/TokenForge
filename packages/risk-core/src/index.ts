@@ -132,10 +132,12 @@ export {
 export {
   REASONING_SECTION_HEADING,
   buildReasoningSection,
+  buildScopedReasoningRules,
   hasExistingPersona,
   meetsReasoningEmissionGate,
   personaLines,
   type ReasoningSectionInput,
+  type ScopedReasoningRule,
 } from "./advise/reasoning";
 export {
   synthesizeLeanInstructions,

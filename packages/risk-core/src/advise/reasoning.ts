@@ -2,6 +2,7 @@ import {
   MAX_REASONING_PERSONA_LINES,
   MAX_REASONING_SECTION_BYTES,
   MIN_REASONING_DISTINCT_ROLES,
+  MAX_REASONING_ROWS_PER_ROOT,
   MIN_REASONING_ROLE_DIRS,
   TOKENFORGE_SECTION_BEGIN,
   TOKENFORGE_SECTION_END,
@@ -165,7 +166,91 @@ export type ReasoningSectionInput = {
   existingInstructionTexts?: readonly string[];
   /** Byte ceiling for the whole section, heading included. */
   maxBytes?: number;
+  /**
+   * The table is delivered out of band, so render the persona only.
+   *
+   * Cursor scopes a rule to a glob, so the routing belongs in per-role rule
+   * files that load only when a matching file is in context. The persona is
+   * repo-wide and has nowhere else to go, so it stays in the always-on file.
+   * Rendering both would put the same guidance in front of the agent twice.
+   */
+  scopedTable?: boolean;
 };
+
+/** One role cluster, ready to be written as a glob-scoped rule file. */
+export type ScopedReasoningRule = {
+  role: DirectoryRole;
+  /** Every glob this role covers, sorted. */
+  globs: string[];
+  /** Directories the globs came from, for the ownership comment. */
+  dirs: string[];
+  rule: string;
+  /** Short phrase naming what the rule is for, for provider frontmatter. */
+  description: string;
+};
+
+/** What each role cluster is called in a rule-file description. */
+const ROLE_DESCRIPTIONS: Readonly<Record<DirectoryRole, string>> = {
+  routes: "pages and route entry points",
+  shared_components: "shared UI components",
+  domain: "domain and business logic",
+  state: "state and stores",
+  api: "API handlers and controllers",
+  data: "the data layer",
+  infra: "build, CI and infrastructure",
+  tests: "tests",
+  utils: "helpers and utilities",
+  types: "types and schemas",
+  docs: "documentation and content",
+};
+
+/**
+ * Role clusters for providers that can scope a rule to a glob.
+ *
+ * One cluster per role rather than one per directory: the rule text is
+ * identical across directories of the same role, so a file each would repeat it
+ * verbatim and multiply what the reader has to keep straight.
+ */
+export function buildScopedReasoningRules(
+  input: Pick<ReasoningSectionInput, "directoryRoles" | "mode">,
+): ScopedReasoningRule[] {
+  if (input.mode === "off") {
+    return [];
+  }
+  const directoryRoles = input.directoryRoles ?? [];
+  if (!meetsReasoningEmissionGate(directoryRoles)) {
+    return [];
+  }
+
+  const byRole = new Map<DirectoryRole, ScopedReasoningRule>();
+  for (const assignment of orderedRows(directoryRoles)) {
+    const existing = byRole.get(assignment.role);
+    if (existing) {
+      existing.globs.push(...assignment.globs);
+      existing.dirs.push(assignment.dir);
+      continue;
+    }
+    byRole.set(assignment.role, {
+      role: assignment.role,
+      globs: [...assignment.globs],
+      dirs: [assignment.dir],
+      rule: assignment.rule,
+      description: ROLE_DESCRIPTIONS[assignment.role],
+    });
+  }
+
+  return [...byRole.values()]
+    .map((cluster) => ({
+      ...cluster,
+      globs: [...new Set(cluster.globs)].sort(),
+      dirs: [...new Set(cluster.dirs)].sort(),
+    }))
+    .sort(
+      (a, b) =>
+        (ROLE_RANK.get(a.role) ?? ROLE_RENDER_PRIORITY.length) -
+        (ROLE_RANK.get(b.role) ?? ROLE_RENDER_PRIORITY.length),
+    );
+}
 
 /**
  * True when the repo has enough shape for routing advice to mean anything.
@@ -238,11 +323,29 @@ function utf8Bytes(text: string): number {
   return new TextEncoder().encode(text).length;
 }
 
-/** Rows ordered for the reader: highest-value role first, then by path. */
+/** The top-level directory a row belongs to - its package, in a monorepo. */
+function rootOf(dir: string): string {
+  return dir.split("/")[0] ?? dir;
+}
+
+/**
+ * Rows ordered for the reader: highest-value role first, then by path.
+ *
+ * `perRootCap` limits how many rows any one top-level directory contributes,
+ * and is applied only to monorepo-shaped trees. Ranking by role value alone,
+ * `apps/web` contributes a row for every role it has before `packages/api`
+ * contributes its first, so the trim loop then cuts whole packages instead of
+ * the least useful rows.
+ *
+ * It stays off for a single-package repo, where the top-level directories are
+ * `src/`, `app/` and `docs/` rather than packages: capping `src/` there would
+ * truncate an ordinary repo for no reason, since nothing is competing with it.
+ */
 function orderedRows(
   directoryRoles: readonly DirectoryRoleAssignment[],
+  perRootCap?: number,
 ): DirectoryRoleAssignment[] {
-  return [...directoryRoles]
+  const ranked = [...directoryRoles]
     .filter((assignment) => isRenderableRoleRule(assignment.rule))
     .sort(
       (a, b) =>
@@ -250,6 +353,35 @@ function orderedRows(
           (ROLE_RANK.get(b.role) ?? ROLE_RENDER_PRIORITY.length) ||
         a.dir.localeCompare(b.dir),
     );
+
+  if (perRootCap === undefined) {
+    return ranked;
+  }
+
+  const perRoot = new Map<string, number>();
+  const kept: DirectoryRoleAssignment[] = [];
+  for (const assignment of ranked) {
+    const root = rootOf(assignment.dir);
+    const used = perRoot.get(root) ?? 0;
+    if (used >= perRootCap) {
+      continue;
+    }
+    perRoot.set(root, used + 1);
+    kept.push(assignment);
+  }
+  return kept;
+}
+
+/**
+ * The per-root cap this repo should use, or `undefined` for no cap.
+ *
+ * Gated on the monorepo tool the stack detector already found rather than on
+ * "more than one top-level directory", which every ordinary repo satisfies.
+ */
+function perRootCapFor(stack: StackProfile | undefined): number | undefined {
+  return stack?.monorepoTool === undefined
+    ? undefined
+    : MAX_REASONING_ROWS_PER_ROOT;
 }
 
 function renderRow(assignment: DirectoryRoleAssignment): string {
@@ -303,7 +435,16 @@ export function buildReasoningSection(
     !(input.existingInstructionTexts ?? []).some(hasExistingPersona);
   const persona = wantsPersona ? personaLines(input.stackProfile!) : [];
 
-  let rows = orderedRows(directoryRoles);
+  // Scoped delivery: the routing lives in per-role rule files, so the only
+  // thing left for the always-on file is the persona. With no persona to write
+  // there is nothing to say here at all.
+  if (input.scopedTable) {
+    return persona.length > 0
+      ? render(persona, [])
+      : undefined;
+  }
+
+  let rows = orderedRows(directoryRoles, perRootCapFor(input.stackProfile));
   if (rows.length === 0) {
     return undefined;
   }

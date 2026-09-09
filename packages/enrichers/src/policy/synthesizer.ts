@@ -31,6 +31,7 @@ export function synthesizePolicyHeuristic(
     stackProfile: input.stackProfile,
     directoryRoles: input.directoryRoles,
     reasoningPack: input.reasoningPack,
+    scopedTable: input.scopedTable,
     existingInstructionTexts: [...input.instructionContents.values()],
   });
   return {

@@ -486,3 +486,13 @@ export const MIN_REASONING_DISTINCT_ROLES = 3;
  */
 export const TOKENFORGE_SECTION_BEGIN = "<!-- tokenforge:begin -->";
 export const TOKENFORGE_SECTION_END = "<!-- tokenforge:end -->";
+
+/**
+ * Reasoning table rows allowed per source root.
+ *
+ * In a monorepo the same role appears in every package, so an uncapped table
+ * spends its whole budget describing `apps/web` and never reaches `packages/`.
+ * Capping per root makes the section say a little about each package rather
+ * than everything about the first one.
+ */
+export const MAX_REASONING_ROWS_PER_ROOT = 4;

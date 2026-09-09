@@ -4,6 +4,7 @@ import {
   renderIgnoreCandidates,
   renderInstructionsFile,
 } from "../limits";
+import { renderCursorScopedRules } from "./scoped-rules";
 import type { PolicyFile, ProviderAdapter } from "../types";
 
 export const CURSOR_INSTRUCTIONS_PATH = ".cursor/rules/tokenforge.mdc";
@@ -49,6 +50,10 @@ export const cursorAdapter: ProviderAdapter = {
           { keepDirs: context?.keepDirs },
         ),
       },
+      // Glob-scoped reasoning rules. Cursor is the only provider that can load
+      // a rule conditionally, so the routing table lives here rather than in
+      // the always-on file - see `renderCursorScopedRules`.
+      ...renderCursorScopedRules(context?.scopedReasoningRules ?? []),
     ];
   },
 };

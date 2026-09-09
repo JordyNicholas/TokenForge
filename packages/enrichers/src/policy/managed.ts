@@ -37,6 +37,8 @@ export type SynthesizeManagedPolicyOptions = {
   stackProfile?: StackProfile;
   directoryRoles?: readonly DirectoryRoleAssignment[];
   reasoningPack?: ReasoningPackMode;
+  /** Table is delivered as scoped rule files, so render the persona only. */
+  scopedTable?: boolean;
   externalDataConsent?: boolean;
   onProgress?: (message: string) => void;
   /** Optional preloaded bodies; when omitted, loads from report instruction paths. */
@@ -109,6 +111,7 @@ export async function synthesizeManagedPolicy(
     stackProfile: options.stackProfile,
     directoryRoles: options.directoryRoles,
     reasoningPack: options.reasoningPack,
+    scopedTable: options.scopedTable,
     onProgress: options.onProgress,
   };
 

@@ -1,4 +1,8 @@
-import type { ProviderId, TokenRiskReport } from "@tokenforge/risk-core";
+import type {
+  ProviderId,
+  ScopedReasoningRule,
+  TokenRiskReport,
+} from "@tokenforge/risk-core";
 
 /**
  * How apply should persist this file (#130).
@@ -27,6 +31,12 @@ export type PolicyRenderContext = {
    * to its depth and count floors.
    */
   keepDirs?: ReadonlySet<string>;
+  /**
+   * Reasoning role clusters for providers that can scope a rule to a glob
+   * (F26 S8). Providers without glob scoping ignore this: their routing table
+   * is already inside the managed instruction body.
+   */
+  scopedReasoningRules?: readonly ScopedReasoningRule[];
 };
 
 export type ProviderAdapter = {

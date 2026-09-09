@@ -24,6 +24,13 @@ export {
   cursorAdapter,
 } from "./cursor/cursor";
 export {
+  CURSOR_RULES_DIR,
+  CURSOR_SCOPED_RULE_PREFIX,
+  cursorScopedRulePath,
+  isCursorScopedRulePath,
+  renderCursorScopedRules,
+} from "./cursor/scoped-rules";
+export {
   GEMINI_EXCLUSIONS_PATH,
   GEMINI_INSTRUCTIONS_PATH,
   geminiAdapter,
