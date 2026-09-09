@@ -18,6 +18,9 @@ import { activePathSet, isActivePath } from "../policy/active";
 import { isPathCoveredByExclusion } from "../policy/exclusions";
 import { collapseExclusionPaths, type CollapseOptions } from "../policy/collapse";
 import { isInstructionStackOverBudget } from "../instruction/budget";
+import { buildReasoningSection } from "./reasoning";
+import type { ReasoningPackMode } from "../config/tokenforge-config";
+import type { DirectoryRoleAssignment, StackProfile } from "../domain/types";
 
 export type SynthesizeLeanInstructionsOptions = {
   /** Markdown H1 title line without leading `# `. */
@@ -30,6 +33,17 @@ export type SynthesizeLeanInstructionsOptions = {
   keepDirs?: ReadonlySet<string>;
   /** Top-level directories holding living source, for the Prefer section. */
   sourceRoots?: readonly string[];
+  /** What the repo is built with, for the reasoning-pack persona (F26). */
+  stackProfile?: StackProfile;
+  /** Directories the reasoning pack has a rule for (F26). */
+  directoryRoles?: readonly DirectoryRoleAssignment[];
+  /** How much of the reasoning pack to write. Defaults to `off` when absent. */
+  reasoningPack?: ReasoningPackMode;
+  /**
+   * Instruction bodies the repo already carries, one entry per file. Read only
+   * to decide whether a persona would be a second one. Never rendered.
+   */
+  existingInstructionTexts?: readonly string[];
 };
 
 const HYGIENE_KINDS = new Set(["trim_instructions", "dedupe_rules"]);
@@ -432,6 +446,16 @@ export function synthesizeLeanInstructions(
   const stackSection = instructionStackSection(report);
   let includeStack = stackSection !== undefined;
 
+  // Absent unless a caller asked for it: every existing caller renders exactly
+  // the bytes it rendered before F26.
+  const reasoningSection = buildReasoningSection({
+    stackProfile: options.stackProfile,
+    directoryRoles: options.directoryRoles,
+    mode: options.reasoningPack ?? "off",
+    existingInstructionTexts: options.existingInstructionTexts,
+  });
+  let includeReasoning = reasoningSection !== undefined;
+
   const build = (): string => {
     const sections: string[] = [header];
 
@@ -472,6 +496,10 @@ ${hint}` : stackSection);
 
     sections.push(prefer);
 
+    if (includeReasoning && reasoningSection) {
+      sections.push(reasoningSection);
+    }
+
     if (themes.length > 0) {
       sections.push(
         ["## Why", ...themes.map((theme) => `- ${theme}`)].join("\n"),
@@ -485,6 +513,10 @@ ${hint}` : stackSection);
   while (utf8Bytes(text) > maxBytes) {
     if (themes.length > 0) {
       themes = themes.slice(0, -1);
+    } else if (includeReasoning) {
+      // The reasoning pack makes no savings claim, so it yields the whole
+      // document budget to the exclusion bullets that do.
+      includeReasoning = false;
     } else if (hygiene.length > 0) {
       hygiene = hygiene.slice(0, -1);
     } else if (includeStack) {

@@ -1,9 +1,29 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import {
+  CLAUDE_EXCLUSIONS_PATH,
+  CLAUDE_INSTRUCTIONS_PATH,
+} from "./claude/claude";
+import {
+  CURSOR_EXCLUSIONS_PATH,
+  CURSOR_IGNORE_CANDIDATES_PATH,
+  CURSOR_INSTRUCTIONS_PATH,
+} from "./cursor/cursor";
+import {
+  GEMINI_EXCLUSIONS_PATH,
+  GEMINI_INSTRUCTIONS_PATH,
+} from "./gemini/gemini";
+import {
+  COPILOT_EXCLUSIONS_PATH,
+  COPILOT_INSTRUCTIONS_PATH,
+  GENERIC_EXCLUSIONS_PATH,
+  GENERIC_INSTRUCTIONS_PATH,
+} from "./limits";
+import {
   STACK_MANIFEST_NAMES,
   classifyFiletype,
   detectStack,
+  isInstructionPath,
   protectionFor,
   resolveDirectoryRoles,
   type DirectoryEntry,
@@ -11,6 +31,39 @@ import {
   type StackProfile,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
+
+/**
+ * Every path `apply` itself writes.
+ *
+ * A pack that describes the artifacts it just produced is not idempotent: the
+ * first run creates `.github/copilot-instructions.md`, the second sees a
+ * populated `.github/` and adds a row for it, and `tokenforge drift` then
+ * reports drift on a repo nobody touched. Provider adapters own these paths, so
+ * they are listed here rather than sniffed by name.
+ */
+const TOKENFORGE_OWNED_PATHS: ReadonlySet<string> = new Set([
+  COPILOT_INSTRUCTIONS_PATH,
+  COPILOT_EXCLUSIONS_PATH,
+  GENERIC_INSTRUCTIONS_PATH,
+  GENERIC_EXCLUSIONS_PATH,
+  CLAUDE_INSTRUCTIONS_PATH,
+  CLAUDE_EXCLUSIONS_PATH,
+  CURSOR_INSTRUCTIONS_PATH,
+  CURSOR_EXCLUSIONS_PATH,
+  CURSOR_IGNORE_CANDIDATES_PATH,
+  GEMINI_INSTRUCTIONS_PATH,
+  GEMINI_EXCLUSIONS_PATH,
+]);
+
+/**
+ * True for a file the reasoning pack must not read the repo shape from.
+ *
+ * Instruction files are excluded for a second reason beyond idempotence: the
+ * agent needs no reasoning advice about the instruction file it is reading.
+ */
+function isToolOwnedPath(path: string): boolean {
+  return TOKENFORGE_OWNED_PATHS.has(path) || isInstructionPath(path);
+}
 
 /** Directories the keep-content walker never enters. */
 const SKIP_DIR_NAMES = new Set([
@@ -168,7 +221,8 @@ export async function collectKeptContent(
 
       // Reasoning-pack evidence. Excluded paths are already skipped above, so a
       // sample file can never name something the pack tells the agent to ignore.
-      if (relativeDir !== "") {
+      // Files `apply` writes are skipped too - see {@link isToolOwnedPath}.
+      if (relativeDir !== "" && !isToolOwnedPath(path)) {
         const names = filesByDir.get(relativeDir) ?? [];
         if (names.length < MAX_FILE_NAMES_PER_DIR) {
           names.push(entry.name);

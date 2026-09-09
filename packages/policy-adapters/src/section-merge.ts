@@ -1,11 +1,17 @@
+import {
+  TOKENFORGE_SECTION_BEGIN,
+  TOKENFORGE_SECTION_END,
+} from "@tokenforge/risk-core";
 /**
  * Managed-section merge for provider instruction markdown (#130).
  * HTML comments demarcate TokenForge content so developers can see what apply
  * produced; agents typically ignore HTML comments as structural noise.
  */
 
-export const TOKENFORGE_SECTION_BEGIN = "<!-- tokenforge:begin -->";
-export const TOKENFORGE_SECTION_END = "<!-- tokenforge:end -->";
+export {
+  TOKENFORGE_SECTION_BEGIN,
+  TOKENFORGE_SECTION_END,
+} from "@tokenforge/risk-core";
 
 /** Wrap lean instruction body in managed markers. */
 export function wrapTokenForgeSection(body: string): string {

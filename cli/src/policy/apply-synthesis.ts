@@ -2,6 +2,10 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   isInstructionPath,
+  parseReasoningPackMode,
+  resolveReasoningPackMode,
+  type DirectoryRoleAssignment,
+  type StackProfile,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
 import {
@@ -44,6 +48,9 @@ export async function synthesizeManagedInstructionBody(options: {
   applyOptions: ApplyOptions;
   keepDirs?: ReadonlySet<string>;
   sourceRoots?: readonly string[];
+  stackProfile?: StackProfile;
+  directoryRoles?: readonly DirectoryRoleAssignment[];
+  instructionPath?: string;
 }): Promise<PolicySynthesisResult> {
   const config = await readTokenForgeConfig(options.root);
   const timeoutRaw = options.applyOptions.llmTimeout;
@@ -66,6 +73,13 @@ export async function synthesizeManagedInstructionBody(options: {
     config,
     keepDirs: options.keepDirs,
     sourceRoots: options.sourceRoots,
+    stackProfile: options.stackProfile,
+    directoryRoles: options.directoryRoles,
+    instructionPath: options.instructionPath,
+    reasoningPack: resolveReasoningPackMode({
+      config,
+      cliOverride: parseReasoningPackMode(options.applyOptions.reasoningPack),
+    }),
     externalDataConsent: options.applyOptions.externalDataConsent,
     onProgress: options.applyOptions.onProgress,
   };

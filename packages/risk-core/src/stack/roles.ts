@@ -35,47 +35,47 @@ export const ROLE_RULES: Readonly<
 > = {
   routes: {
     strategy: "explore",
-    rule: "Sketch two or three ways to compose this screen (data fetching, where state lives), name the trade-off, then pick one and say why.",
+    rule: "Sketch two or three ways to compose this screen, note the trade-off, then pick one and say why.",
   },
   shared_components: {
     strategy: "linear",
-    rule: "Work in order: props, then states, then accessibility, then render. Keep the existing contract - this is imported in many places.",
+    rule: "Work in order: props, states, accessibility, render. This is imported in many places - keep the contract.",
   },
   domain: {
     strategy: "linear",
-    rule: "State the invariant this module protects, then reason forward from it. Make the smallest change that keeps the invariant true.",
+    rule: "State the invariant this module protects, then reason forward. Make the smallest change that holds it.",
   },
   state: {
     strategy: "linear",
-    rule: "Trace the full path before editing: action, store update, selector, consumer. Keep the shape other code already reads.",
+    rule: "Trace action, store update, selector, consumer before editing. Keep the shape other code reads.",
   },
   api: {
     strategy: "linear",
-    rule: "Settle the request and response contract first, then validation, then the happy path, then each error case. Do not reshape the response casually.",
+    rule: "Settle the contract, then validation, then the happy path, then each error case.",
   },
   data: {
     strategy: "linear",
-    rule: "Read the existing schema before writing anything. Do not change the schema or add a migration unless the task explicitly asks for one.",
+    rule: "Read the existing schema first. Do not change it or add a migration unless the task asks.",
   },
   infra: {
     strategy: "checklist",
-    rule: "Treat this as a checklist: what changes, what must be re-run, how to verify, how to roll back. Confirm each step before the next.",
+    rule: "Work as a checklist: what changes, what to re-run, how to verify, how to roll back.",
   },
   tests: {
     strategy: "linear",
-    rule: "Arrange, act, assert. One behaviour per test, named for that behaviour. Never weaken an assertion to make a test pass.",
+    rule: "Arrange, act, assert. One behaviour per test. Never weaken an assertion to make it pass.",
   },
   utils: {
     strategy: "minimal",
-    rule: "Make the smallest correct change and add a unit test for it. Do not restructure the surrounding module.",
+    rule: "Make the smallest correct change and add a unit test. Do not restructure the module.",
   },
   types: {
     strategy: "linear",
-    rule: "Change the type first, then follow the compiler to every caller. Do not widen a type to silence an error.",
+    rule: "Change the type first, then follow the compiler to every caller.",
   },
   docs: {
     strategy: "minimal",
-    rule: "Read the affected section, state what changes, then edit only that section. Match the surrounding voice and formatting.",
+    rule: "Read the affected section, state what changes, then edit only that section.",
   },
 };
 

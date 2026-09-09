@@ -46,6 +46,8 @@ export type ApplyOptions = {
   activePathsFile?: string;
   /** Override managed policy byte budget. */
   policyMaxBytes?: number;
+  /** `off` | `roles` | `roles+persona` — how much of the reasoning pack to write. */
+  reasoningPack?: string;
   /** Progress sink for hybrid apply LLM synthesis. */
   onProgress?: (message: string) => void;
   /** When set (init), skip a second walk. */
@@ -221,7 +223,8 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   // Walked here rather than read off the report: `findings` are at-risk paths
   // only, so nothing in the contract says which directories still hold source
   // the agent needs. Without it a glob can cover more than the findings justify.
-  const { keepDirs, sourceRoots } = await collectKeptContent(root, report);
+  const { keepDirs, sourceRoots, stackProfile, directoryRoles } =
+    await collectKeptContent(root, report);
   const synthesis = await synthesizeManagedInstructionBody({
     root,
     report,
@@ -229,6 +232,9 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
     applyOptions: options,
     keepDirs,
     sourceRoots,
+    stackProfile,
+    directoryRoles,
+    instructionPath,
   });
   const renderContext: PolicyRenderContext = {
     managedInstructionBodies: new Map([[instructionPath, synthesis.markdown]]),
