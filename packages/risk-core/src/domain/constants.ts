@@ -496,3 +496,6 @@ export const TOKENFORGE_SECTION_END = "<!-- tokenforge:end -->";
  * than everything about the first one.
  */
 export const MAX_REASONING_ROWS_PER_ROOT = 4;
+
+/** Longest a persona line may be before it stops being a one-line fact. */
+export const MAX_PERSONA_LINE_CHARS = 140;

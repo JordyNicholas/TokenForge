@@ -1,4 +1,5 @@
 import {
+  MAX_PERSONA_LINE_CHARS,
   MAX_REASONING_PERSONA_LINES,
   MAX_REASONING_SECTION_BYTES,
   MIN_REASONING_DISTINCT_ROLES,
@@ -13,7 +14,7 @@ import type {
   DirectoryRoleAssignment,
   StackProfile,
 } from "../domain/types";
-import { isRenderableRoleRule } from "../stack/roles";
+import { hasStrategyVocabulary, isRenderableRoleRule } from "../stack/roles";
 
 /** Heading the section renders under. */
 export const REASONING_SECTION_HEADING = "## How to reason about this repo";
@@ -175,7 +176,34 @@ export type ReasoningSectionInput = {
    * Rendering both would put the same guidance in front of the agent twice.
    */
   scopedTable?: boolean;
+  /**
+   * Persona lines to render instead of the ones derived from the stack.
+   *
+   * The hybrid path (F26 Wave D) lets a model sharpen the wording against files
+   * it has actually read. Rendering still happens here so the line count, the
+   * byte budget and the section order stay under deterministic control - only
+   * the words come from the model.
+   */
+  personaOverride?: readonly string[];
 };
+
+/**
+ * True when a persona line may be rendered.
+ *
+ * Facts about the repo only. An identity claim ("You are a Next.js engineer")
+ * competes with whatever voice the author already chose, and a strategy label
+ * turns the line into the cargo cult the whole feature avoids.
+ */
+export function isRenderablePersonaLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length === 0 || trimmed.length > MAX_PERSONA_LINE_CHARS) {
+    return false;
+  }
+  if (hasStrategyVocabulary(trimmed)) {
+    return false;
+  }
+  return !PERSONA_MARKERS.some((marker) => marker.test(trimmed));
+}
 
 /** One role cluster, ready to be written as a glob-scoped rule file. */
 export type ScopedReasoningRule = {
@@ -312,6 +340,24 @@ export function personaLines(stack: StackProfile): string[] {
   return lines.slice(0, MAX_REASONING_PERSONA_LINES);
 }
 
+/**
+ * Persona lines to render: the model refinement when it is usable, otherwise
+ * the deterministic ones.
+ *
+ * An override that fails validation falls back rather than rendering nothing,
+ * so a bad refinement costs the sharpening, never the section.
+ */
+function resolvePersona(input: ReasoningSectionInput): string[] {
+  const override = (input.personaOverride ?? [])
+    .map((line) => line.trim())
+    .filter(isRenderablePersonaLine)
+    .slice(0, MAX_REASONING_PERSONA_LINES);
+  if (override.length > 0) {
+    return override;
+  }
+  return input.stackProfile ? personaLines(input.stackProfile) : [];
+}
+
 function joinWords(words: readonly string[]): string {
   if (words.length <= 1) {
     return words[0] ?? "";
@@ -431,9 +477,8 @@ export function buildReasoningSection(
 
   const wantsPersona =
     input.mode === "roles+persona" &&
-    input.stackProfile !== undefined &&
     !(input.existingInstructionTexts ?? []).some(hasExistingPersona);
-  const persona = wantsPersona ? personaLines(input.stackProfile!) : [];
+  const persona = wantsPersona ? resolvePersona(input) : [];
 
   // Scoped delivery: the routing lives in per-role rule files, so the only
   // thing left for the always-on file is the persona. With no persona to write
