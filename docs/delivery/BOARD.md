@@ -49,6 +49,7 @@ Phase 2. Former catch-all #7 was split:
 | F23 Context Shield vendor follow-ons | — | Future | **Done** (Gemini partial + Claude advisory) |
 | F24 Real-world adoption & evidence | — | Future | **Done** — [`F24_REAL_WORLD_ADOPTION.md`](./F24_REAL_WORLD_ADOPTION.md) |
 | F25 EM multi-person Prove & collection | — | Future | **Done** — [`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md) |
+| F26 Reasoning pack: persona + per-directory reasoning routing | #329 | Future | **Proposed** — [`REASONING_PACK_DESIGN.md`](../design/REASONING_PACK_DESIGN.md); waves #330–#334 |
 
 **Extension rebuild (F8–F13):** shipped (epics closed). Product: [`EXTENSION_PRODUCT.md`](../design/EXTENSION_PRODUCT.md) (#280). Absorbs F4 session Prove UI (#157–#160), F5 #170 discover (F12), board candidate one-click Fix from extension (F11).
 
@@ -618,6 +619,25 @@ Detail: [`F25_EM_MULTI_PERSON_PROVE.md`](./F25_EM_MULTI_PERSON_PROVE.md). Runboo
 | C Session handoff | Prove session persist/restore in dashboard | **Shipped** |
 | D Stage dashboard | `stage-dashboard` boot URL | **Shipped** |
 | E Usage map + CI | usage team map, `remap-usage`, EM CI example, docs | **Shipped** |
+
+### F26 — Reasoning pack: persona + per-directory reasoning routing (#329, proposed)
+
+Heuristic Fix adds a `## How to reason about this repo` block: a stack-derived
+persona plus a per-directory reasoning approach (ToT for pages, CoT for shared
+components, checklist for infra, suppressed for utils), chosen from directory
+naming conventions. Quality lever, **outside the savings $ math**. Design:
+[`REASONING_PACK_DESIGN.md`](../design/REASONING_PACK_DESIGN.md). Epic **#329**;
+wave issues filed, **not yet scheduled**.
+
+| Issue | Wave | Stories | Outcome |
+| --- | --- | --- | --- |
+| #330 | A Detection primitives | S1–S4 | `detectStack` → `StackProfile`; `directoryRoles` taxonomy + disambiguation; walk returns stack/roles/sampleFiles (no contract change) |
+| #331 | B Deterministic synthesis | S5–S7 | `## How to reason` block (persona + `glob → rule` table); `apply.reasoningPack` config; emission gate + persona-suppression |
+| #332 | C Per-provider delivery | S8–S10 | Cursor `.mdc` glob-scoped rules; single-file block for Copilot/Claude/Gemini; monorepo grouping + stale-rule pruning |
+| #333 | D Hybrid upgrade (opt-in) | S11–S13 | Prompt gains stack + role table + sample excerpts; optional `reasoning` JSON field re-rendered deterministically; fallback ladder + `--allow-external` gate |
+| #334 | E Hardening + eval | S14–S17 | Guard suite (meta-vocab, exfiltration, weak-signal downgrade); `reasoning-*-app` fixtures + goldens; hybrid rubric eval; docs + `--json` audit meta |
+
+Build order: **#330 → #331 → #332 → #333 → #334**. Wave B (#331) is a shippable slice; Wave C (#332) is the differentiator; Wave D (#333) never becomes a merge gate.
 
 ## Build order
 
