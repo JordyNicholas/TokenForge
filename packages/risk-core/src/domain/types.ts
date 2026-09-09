@@ -281,3 +281,77 @@ export type SessionStatsReport = {
   /** Filter actions recorded this IDE window. */
   filterEventCount?: number;
 };
+
+/* ------------------------------------------------------------------ */
+/* Reasoning pack (F26) — never persisted to the Token Risk contract.  */
+/* These types describe what the apply-side walk attests, the way      */
+/* keepDirs / sourceRoots already do. `TokenRiskReport` gains no field. */
+/* ------------------------------------------------------------------ */
+
+/** Languages the role tables are registered for, plus what manifests attest. */
+export type StackLanguage =
+  | "typescript"
+  | "javascript"
+  | "python"
+  | "go"
+  | "rust"
+  | "java"
+  | "ruby"
+  | "php";
+
+/** How much the persona may claim. See `detectStack`. */
+export type StackConfidence = "high" | "medium" | "low" | "none";
+
+/** Deterministic read of what a repo is built with. */
+export type StackProfile = {
+  languages: StackLanguage[];
+  frameworks: string[];
+  packageManager?: string;
+  testRunners: string[];
+  orm?: string;
+  styling: string[];
+  monorepoTool?: string;
+  confidence: StackConfidence;
+};
+
+/** What a directory is for, as far as reasoning guidance is concerned. */
+export type DirectoryRole =
+  | "routes"
+  | "shared_components"
+  | "domain"
+  | "state"
+  | "api"
+  | "data"
+  | "infra"
+  | "tests"
+  | "utils"
+  | "types"
+  | "docs";
+
+/**
+ * How wide the agent should reason in a directory.
+ *
+ * Ordered by breadth — see `REASONING_BREADTH`. The rendered rule states the
+ * behaviour; these ids never reach generated text.
+ */
+export type ReasoningStrategy = "explore" | "linear" | "checklist" | "minimal";
+
+/** Which disambiguation layer settled a role. Surfaced for audit, not output. */
+export type RoleSignal = "name" | "stack" | "shape" | "sibling" | "depth";
+
+/** One directory the reasoning pack has something to say about. */
+export type DirectoryRoleAssignment = {
+  /** Repo-relative directory. */
+  dir: string;
+  /** Globs the rule applies to — `dir` plus `/**`. */
+  globs: string[];
+  role: DirectoryRole;
+  strategy: ReasoningStrategy;
+  /** Imperative behaviour text. Never names a reasoning strategy. */
+  rule: string;
+  /** The layer that won, for `--json` audit and the weak-signal downgrade. */
+  signal: RoleSignal;
+  language: StackLanguage | "unknown";
+  /** Up to three representative files, for the hybrid prompt (S4/S11). */
+  sampleFiles: string[];
+};

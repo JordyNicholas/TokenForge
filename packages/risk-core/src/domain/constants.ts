@@ -439,3 +439,15 @@ export const DEFAULT_HYBRID_POLICY_MAX_BYTES = 8_192;
  * Prefer {@link DEFAULT_HEURISTIC_POLICY_MAX_BYTES} or mode-specific budgets.
  */
 export const MAX_LEAN_INSTRUCTION_BYTES = DEFAULT_HEURISTIC_POLICY_MAX_BYTES;
+
+/**
+ * Longest a generated reasoning rule may be.
+ *
+ * A rule is a directive, not an essay: past this the agent is reading prose
+ * instead of following an instruction, and the reasoning section has its own
+ * small sub-budget to live inside.
+ */
+export const MAX_ROLE_RULE_CHARS = 200;
+
+/** Representative files kept per directory role, for the hybrid prompt. */
+export const MAX_ROLE_SAMPLE_FILES = 3;
