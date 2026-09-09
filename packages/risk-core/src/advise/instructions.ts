@@ -44,6 +44,8 @@ export type SynthesizeLeanInstructionsOptions = {
    * to decide whether a persona would be a second one. Never rendered.
    */
   existingInstructionTexts?: readonly string[];
+  /** Table is delivered as scoped rule files, so render the persona only. */
+  scopedTable?: boolean;
 };
 
 const HYGIENE_KINDS = new Set(["trim_instructions", "dedupe_rules"]);
@@ -453,6 +455,7 @@ export function synthesizeLeanInstructions(
     directoryRoles: options.directoryRoles,
     mode: options.reasoningPack ?? "off",
     existingInstructionTexts: options.existingInstructionTexts,
+    scopedTable: options.scopedTable,
   });
   let includeReasoning = reasoningSection !== undefined;
 

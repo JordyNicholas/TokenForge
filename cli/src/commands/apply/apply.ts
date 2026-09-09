@@ -3,6 +3,8 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import {
   buildPackId,
+  parseReasoningPackMode,
+  resolveReasoningPackMode,
   type ProveChangeMarker,
   type ProviderId,
   type TokenRiskReport,
@@ -25,6 +27,12 @@ import {
 } from "../../io/report-file";
 import { parseProviderId, scanRepo } from "../scan/scan";
 import { synthesizeManagedInstructionBody } from "../../policy/apply-synthesis";
+import {
+  removeScopedRuleFiles,
+  scopedReasoningRulesFor,
+  staleScopedRulePaths,
+} from "../../policy/scoped-reasoning";
+import { readTokenForgeConfig } from "../../io/tokenforge-config";
 import {
   instructionPathForProvider,
   instructionTitleForProvider,
@@ -78,6 +86,11 @@ export type ApplyResult = {
   dryRun: boolean;
   /** Prove trail event written on successful apply (#95). */
   changeMarker?: ProveChangeMarker;
+  /**
+   * Scoped reasoning rule files a previous run wrote that this one no longer
+   * would, removed here (or listed, under `--dry-run`).
+   */
+  removedFiles?: string[];
 };
 
 function safePolicyPath(root: string, relativePath: string): string {
@@ -225,6 +238,20 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
   // the agent needs. Without it a glob can cover more than the findings justify.
   const { keepDirs, sourceRoots, stackProfile, directoryRoles } =
     await collectKeptContent(root, report);
+
+  // Resolved here rather than inside the synthesis bridge because the same
+  // answer decides two things: what the managed section renders, and which
+  // scoped rule files the adapter writes. Two resolutions could disagree.
+  const reasoningPack = resolveReasoningPackMode({
+    config: await readTokenForgeConfig(root),
+    cliOverride: parseReasoningPackMode(options.reasoningPack),
+  });
+  const scopedReasoningRules = scopedReasoningRulesFor({
+    provider,
+    reasoningPack,
+    directoryRoles,
+  });
+
   const synthesis = await synthesizeManagedInstructionBody({
     root,
     report,
@@ -235,16 +262,26 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
     stackProfile,
     directoryRoles,
     instructionPath,
+    reasoningPack,
+    // When the adapter writes scoped rule files, the managed section keeps the
+    // persona and drops the table: the same routing in both places would put
+    // the guidance in front of the agent twice.
+    scopedTable: scopedReasoningRules.length > 0,
   });
   const renderContext: PolicyRenderContext = {
     managedInstructionBodies: new Map([[instructionPath, synthesis.markdown]]),
     policyMaxBytes: synthesis.policyMaxBytes,
     keepDirs,
+    scopedReasoningRules,
   };
   const files = adapter.render(report, renderContext);
   const reportPath = scanReportPath(root);
   const dryRun = Boolean(options.dryRun);
   const { resolvedFiles, writes } = await resolvePolicyWrites(root, files);
+  const removedFiles = await staleScopedRulePaths(
+    root,
+    files.map((file) => file.path),
+  );
 
   let changeMarker: ProveChangeMarker | undefined;
   if (!dryRun) {
@@ -267,6 +304,7 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
     for (const file of resolvedFiles) {
       await writePolicyFile(root, file);
     }
+    await removeScopedRuleFiles(root, removedFiles);
 
     const managed = synthesis.markdown.trim();
     const sectionHash = createHash("sha256").update(managed).digest("hex");
@@ -305,6 +343,7 @@ export async function applyPolicy(options: ApplyOptions): Promise<ApplyResult> {
     writes,
     dryRun,
     changeMarker,
+    removedFiles,
   };
 }
 

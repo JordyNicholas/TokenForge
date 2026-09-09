@@ -5,6 +5,7 @@ import {
   parseReasoningPackMode,
   resolveReasoningPackMode,
   type DirectoryRoleAssignment,
+  type ReasoningPackMode,
   type StackProfile,
   type TokenRiskReport,
 } from "@tokenforge/risk-core";
@@ -51,6 +52,10 @@ export async function synthesizeManagedInstructionBody(options: {
   stackProfile?: StackProfile;
   directoryRoles?: readonly DirectoryRoleAssignment[];
   instructionPath?: string;
+  /** Resolved by the caller, so the managed section and the scoped rule files
+   * cannot disagree about how much of the pack this run writes. */
+  reasoningPack?: ReasoningPackMode;
+  scopedTable?: boolean;
 }): Promise<PolicySynthesisResult> {
   const config = await readTokenForgeConfig(options.root);
   const timeoutRaw = options.applyOptions.llmTimeout;
@@ -76,10 +81,13 @@ export async function synthesizeManagedInstructionBody(options: {
     stackProfile: options.stackProfile,
     directoryRoles: options.directoryRoles,
     instructionPath: options.instructionPath,
-    reasoningPack: resolveReasoningPackMode({
-      config,
-      cliOverride: parseReasoningPackMode(options.applyOptions.reasoningPack),
-    }),
+    reasoningPack:
+      options.reasoningPack ??
+      resolveReasoningPackMode({
+        config,
+        cliOverride: parseReasoningPackMode(options.applyOptions.reasoningPack),
+      }),
+    scopedTable: options.scopedTable,
     externalDataConsent: options.applyOptions.externalDataConsent,
     onProgress: options.applyOptions.onProgress,
   };

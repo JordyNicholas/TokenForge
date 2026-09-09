@@ -124,6 +124,49 @@ describe("buildReasoningSection", () => {
   });
 });
 
+describe("monorepo grouping", () => {
+  const MONOREPO: DirectoryRoleAssignment[] = [
+    assignment("apps/web/app", "routes"),
+    assignment("apps/web/components", "shared_components"),
+    assignment("apps/web/store", "state"),
+    assignment("apps/web/utils", "utils"),
+    assignment("apps/web/types", "types"),
+    assignment("packages/api/handlers", "api"),
+    assignment("packages/api/db", "data"),
+  ];
+
+  it("caps rows per package so every package gets a voice", () => {
+    const text =
+      section({
+        directoryRoles: MONOREPO,
+        stackProfile: { ...NEXT_STACK, monorepoTool: "pnpm-workspaces" },
+      }) ?? "";
+
+    // Ranking by role value alone, `apps/` would spend the budget before
+    // `packages/` said anything at all.
+    expect(text).toContain("`packages/api/handlers/**`");
+    expect(text).toContain("`packages/api/db/**`");
+    expect(text).toContain("`apps/web/app/**`");
+    const appsRows = (text.match(/^\| `apps\//gm) ?? []).length;
+    expect(appsRows).toBeLessThanOrEqual(4);
+  });
+
+  it("does not cap an ordinary single-package repo", () => {
+    // Here the top-level directories are `src/` and `docs/`, not packages.
+    // Capping `src/` would truncate a normal repo for no reason.
+    const single = [
+      assignment("src/app", "routes"),
+      assignment("src/services", "domain"),
+      assignment("src/db", "data"),
+      assignment("src/api", "api"),
+      assignment("src/store", "state"),
+    ];
+    const text = section({ directoryRoles: single, mode: "roles" }) ?? "";
+
+    expect(text).toContain("`src/store/**`");
+  });
+});
+
 describe("emission gate", () => {
   it("needs enough directories and enough distinct roles", () => {
     expect(meetsReasoningEmissionGate(ROLES)).toBe(true);

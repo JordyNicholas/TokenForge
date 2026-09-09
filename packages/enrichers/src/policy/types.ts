@@ -22,6 +22,8 @@ export type PolicySynthesisInput = {
   directoryRoles?: readonly DirectoryRoleAssignment[];
   /** How much of the reasoning pack to write. Absent means `off`. */
   reasoningPack?: ReasoningPackMode;
+  /** Table is delivered as scoped rule files, so render the persona only. */
+  scopedTable?: boolean;
   model: string;
   backend?: string;
   timeoutMs?: number;
