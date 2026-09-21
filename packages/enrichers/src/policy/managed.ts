@@ -156,7 +156,72 @@ export async function synthesizeManagedPolicy(
       backend: spec.backend,
       timeoutMs: timeoutSeconds !== undefined ? timeoutSeconds * 1000 : undefined,
       externalDataConsent: options.externalDataConsent,
+      sampleFileContents: await loadSampleFileContents({
+        root: options.root,
+        directoryRoles: options.directoryRoles,
+        backend: spec.backend,
+        externalDataConsent: options.externalDataConsent,
+        onProgress: options.onProgress,
+      }),
     },
     runner,
   );
+}
+
+/** Backends that run on the machine, so repo content never leaves it. */
+const LOCAL_POLICY_BACKENDS: ReadonlySet<string> = new Set(["noop", "ollama"]);
+
+/**
+ * Whether this run may put repository source in the refinement prompt.
+ *
+ * The per-backend runners already refuse to call a vendor without consent, so
+ * this is the second lock rather than the only one - but it is the one that
+ * decides whether the bytes are ever read off disk and assembled into a prompt
+ * at all, which is the difference between "not sent" and "not collected".
+ */
+export function mayReadSampleFiles(
+  backend: string,
+  externalDataConsent: boolean | undefined,
+): boolean {
+  return LOCAL_POLICY_BACKENDS.has(backend) || externalDataConsent === true;
+}
+
+/**
+ * Sample file bodies for the refinement prompt, or nothing.
+ *
+ * This is the only part of F26 that would put repository *source* in front of a
+ * vendor model, so it is gated the same way the enrichers are: local backends
+ * read freely, everything else needs `--allow-external`. Without consent the
+ * refinement still runs - the model just judges from paths and role names, and
+ * the deterministic rules remain the floor either way.
+ */
+async function loadSampleFileContents(options: {
+  root: string;
+  directoryRoles?: readonly DirectoryRoleAssignment[];
+  backend: string;
+  externalDataConsent?: boolean;
+  onProgress?: (message: string) => void;
+}): Promise<Map<string, string> | undefined> {
+  const roles = options.directoryRoles ?? [];
+  if (roles.length === 0) {
+    return undefined;
+  }
+  if (!mayReadSampleFiles(options.backend, options.externalDataConsent)) {
+    options.onProgress?.(
+      `Policy synthesizer: --allow-external not set — sending role names to ${options.backend} without file contents.`,
+    );
+    return undefined;
+  }
+
+  const contents = new Map<string, string>();
+  for (const role of roles) {
+    for (const path of role.sampleFiles) {
+      try {
+        contents.set(path, await readFile(join(options.root, path), "utf8"));
+      } catch {
+        // An unreadable sample is one less example, not a failed run.
+      }
+    }
+  }
+  return contents;
 }

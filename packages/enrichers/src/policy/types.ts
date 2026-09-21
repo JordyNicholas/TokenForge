@@ -24,6 +24,13 @@ export type PolicySynthesisInput = {
   reasoningPack?: ReasoningPackMode;
   /** Table is delivered as scoped rule files, so render the persona only. */
   scopedTable?: boolean;
+  /**
+   * Bodies of the role sample files, keyed by repo-relative path.
+   *
+   * Absent when repo content may not be sent to this backend. The role table
+   * still goes either way, so refinement degrades to judging from names.
+   */
+  sampleFileContents?: ReadonlyMap<string, string>;
   model: string;
   backend?: string;
   timeoutMs?: number;

@@ -53,6 +53,17 @@ export {
   geminiCliEnricher,
 } from "./gemini-cli/gemini-cli";
 export { noopEnricher } from "./noop/noop";
+export { mayReadSampleFiles } from "./policy/managed";
+export {
+  parsePolicyReasoningPayload,
+  refineReasoning,
+  renderRefinedReasoningSection,
+  spliceReasoningSection,
+  type ReasoningPayload,
+  type ReasoningRejection,
+  type ReasoningRolePayload,
+  type RefineReasoningResult,
+} from "./policy/reasoningPayload";
 export { ollamaEnricher } from "./ollama/ollama";
 export { mapStructuredFinding, mapStructuredFindings, parseLlmSpec } from "./parse";
 export {
